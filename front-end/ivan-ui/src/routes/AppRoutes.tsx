@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 
 // Lazy loading pages
 const HomePage = lazy(() => import("@/pages/home/HomePage"));
@@ -8,7 +9,15 @@ const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const ForgotPasswordPage = lazy(
   () => import("@/pages/auth/ForgotPasswordPage")
 );
+const PasswordResetPage = lazy(() => import("@/pages/auth/PasswordResetPage"));
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
+const VolunteersPage = lazy(() => import("@/pages/volunteers/VolunteersPage"));
+const OrganizationsPage = lazy(
+  () => import("@/pages/organizations/OrganizationsPage")
+);
+const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
+const EventsPage = lazy(() => import("@/pages/events/EventsPage"));
+const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
 
 // Loading component
 const PageLoader = () => (
@@ -26,18 +35,34 @@ export default function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/volunteers" element={<VolunteersPage />} />
+        <Route path="/organizations" element={<OrganizationsPage />} />
+        <Route path="/events" element={<EventsPage />} />
 
         {/* Protected routes */}
-        <Route path="/dashboard" element={<DashboardPage />} />
-
-        {/* 404 fallback */}
         <Route
-          path="*"
+          path="/dashboard"
           element={
-            <div className="flex flex-col items-center justify-center min-h-screen">
-              <h1 className="text-4xl font-bold text-gray-800">404</h1>
-              <p className="text-gray-600 mt-2">Trang không tồn tại</p>
-            </div>
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin" as any]}>
+              <AdminPage />
+            </ProtectedRoute>
           }
         />
       </Routes>

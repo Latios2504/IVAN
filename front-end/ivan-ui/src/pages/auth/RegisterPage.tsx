@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -11,6 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -18,10 +27,12 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "" as UserRole | "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,7 +42,6 @@ export default function RegisterPage() {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
-
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -57,10 +67,13 @@ export default function RegisterPage() {
       newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
     }
 
+    if (!formData.role) {
+      newErrors.role = "Vui lòng chọn vai trò";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -69,16 +82,15 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual registration logic
-      console.log("Register:", formData);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Navigate to login on success
-      navigate("/login", {
-        state: { message: "Đăng ký thành công! Vui lòng đăng nhập." },
+      await register({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role as UserRole,
       });
+
+      // Navigate to dashboard on success
+      navigate("/dashboard");
     } catch (error) {
       console.error("Registration failed:", error);
       setErrors({ submit: "Đăng ký thất bại. Vui lòng thử lại." });
@@ -115,7 +127,6 @@ export default function RegisterPage() {
                 <p className="text-sm text-destructive">{errors.fullName}</p>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -133,7 +144,6 @@ export default function RegisterPage() {
                 <p className="text-sm text-destructive">{errors.email}</p>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Mật khẩu</Label>
               <Input
@@ -150,8 +160,7 @@ export default function RegisterPage() {
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
-            </div>
-
+            </div>{" "}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
               <Input
@@ -171,7 +180,46 @@ export default function RegisterPage() {
                 </p>
               )}
             </div>
-
+            <div className="space-y-2">
+              <Label htmlFor="role">Vai trò</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value) => {
+                  setFormData((prev) => ({ ...prev, role: value as UserRole }));
+                  if (errors.role) {
+                    setErrors((prev) => ({ ...prev, role: "" }));
+                  }
+                }}
+                disabled={isLoading}
+              >
+                <SelectTrigger
+                  className={errors.role ? "border-destructive" : ""}
+                >
+                  <SelectValue placeholder="Chọn vai trò của bạn" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="volunteer">
+                    <div className="flex flex-col">
+                      <span className="font-medium">Tình nguyện viên</span>
+                      <span className="text-sm text-muted-foreground">
+                        Tham gia các hoạt động tình nguyện
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="organization">
+                    <div className="flex flex-col">
+                      <span className="font-medium">Tổ chức</span>
+                      <span className="text-sm text-muted-foreground">
+                        Tạo và quản lý các hoạt động tình nguyện
+                      </span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.role && (
+                <p className="text-sm text-destructive">{errors.role}</p>
+              )}
+            </div>
             {errors.submit && (
               <p className="text-sm text-destructive text-center">
                 {errors.submit}
