@@ -11,6 +11,7 @@ import type {
   LoginCredentials,
   RegisterData,
 } from "@/types/auth";
+import type { VolunteerProfile, OrganizationProfile } from "@/types/profile";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -78,41 +79,76 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log("Login credentials:", credentials);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Mock user data based on email
-      let role: string;
-      let profile = {};
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock user data based on email
+      let role: "volunteer" | "organization" | "admin";
+      let profile: VolunteerProfile | OrganizationProfile | undefined =
+        undefined;
 
       if (credentials.email.includes("admin")) {
         role = "admin";
-        profile = {
-          name: "Admin User",
-          phone: "0123456789",
-        };
+        // No profile for admin users
       } else if (credentials.email.includes("org")) {
         role = "organization";
         profile = {
-          name: "Tổ chức ABC",
-          type: "Tổ chức phi chính phủ",
+          id: "org-1",
+          userId: "1",
+          organizationName: "Tổ chức ABC",
           description: "Tổ chức hoạt động trong lĩnh vực giáo dục và xã hội",
-          verified: true,
-          contactInfo: {
-            phone: "0123456789",
-            website: "https://org-abc.com",
+          website: "https://org-abc.com",
+          industry: "Education",
+          size: "medium",
+          location: {
             address: "123 Đường ABC, Quận 1, TP.HCM",
+            city: "TP.HCM",
+            state: "TP.HCM",
+            country: "Vietnam",
           },
-        };
+          contactInfo: {
+            phoneNumber: "0123456789",
+            email: credentials.email,
+          },
+          verification: {
+            isVerified: true,
+            documents: [],
+          },
+          settings: {
+            isPublic: true,
+            allowDirectContact: true,
+            autoApproveVolunteers: false,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as OrganizationProfile;
       } else {
         role = "volunteer";
         profile = {
-          firstName: "Nguyễn",
-          lastName: "Văn A",
-          dateOfBirth: "1995-01-01",
-          address: "456 Đường XYZ, Quận 2, TP.HCM",
+          id: "vol-1",
+          userId: "1",
           bio: "Tôi là một tình nguyện viên nhiệt tình với niềm đam mê giúp đỡ cộng đồng.",
           skills: ["Giảng dạy", "Tiếng Anh", "Tổ chức sự kiện"],
-          interests: ["Giáo dục", "Môi trường", "Chăm sóc trẻ em"],
-        };
+          experience: "2 năm kinh nghiệm tình nguyện",
+          availability: ["Cuối tuần", "Tối thứ 2-6"],
+          location: {
+            city: "TP.HCM",
+            state: "TP.HCM",
+            country: "Vietnam",
+          },
+          phoneNumber: "0123456789",
+          dateOfBirth: "1995-01-01",
+          emergencyContact: {
+            name: "Nguyễn Văn B",
+            relationship: "Anh/Chị",
+            phoneNumber: "0987654321",
+          },
+          socialMedia: {},
+          preferences: {
+            emailNotifications: true,
+            smsNotifications: false,
+            volunteerTypes: ["Giáo dục", "Môi trường", "Chăm sóc trẻ em"],
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as VolunteerProfile;
       }
 
       const mockUser: User = {
@@ -124,7 +160,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             : role === "organization"
             ? "Tổ chức ABC"
             : "Admin User",
-        role: role as any,
+        role: role,
         isActive: true,
         profile,
         createdAt: new Date().toISOString(),
@@ -143,7 +179,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       throw error;
     }
   };
-
   const register = async (data: RegisterData): Promise<void> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
@@ -154,38 +189,80 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
       // Auto-login after successful registration
-      let profile = {};
+      const fullName = `${data.firstName} ${data.lastName}`.trim();
+      let profile: VolunteerProfile | OrganizationProfile | undefined;
 
       if (data.role === "organization") {
         profile = {
-          name: data.fullName,
-          type: "Tổ chức phi chính phủ",
-          description: "Tổ chức mới tham gia",
-          verified: false,
-          contactInfo: {
-            phone: "",
-            website: "",
-            address: "",
+          id: Date.now().toString(),
+          userId: Date.now().toString(),
+          organizationName: data.organizationName || fullName,
+          description: data.organizationDescription || "Tổ chức mới tham gia",
+          website: data.website,
+          industry: "Social",
+          size: "small" as const,
+          location: {
+            address: data.address || "",
+            city: data.city || "",
+            state: data.state || "",
+            country: data.country || "Vietnam",
+            zipCode: data.postalCode,
           },
-        };
+          contactInfo: {
+            phoneNumber: data.phone,
+            email: data.email,
+          },
+          verification: {
+            isVerified: false,
+            documents: [],
+          },
+          settings: {
+            isPublic: true,
+            allowDirectContact: true,
+            autoApproveVolunteers: false,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as OrganizationProfile;
       } else if (data.role === "volunteer") {
-        const nameParts = data.fullName.split(" ");
         profile = {
-          firstName: nameParts[0] || "",
-          lastName: nameParts.slice(1).join(" ") || "",
-          dateOfBirth: "",
-          address: "",
+          id: Date.now().toString(),
+          userId: Date.now().toString(),
           bio: "",
-          skills: [],
-          interests: [],
-        };
+          skills: data.skills || [],
+          experience: "",
+          availability: data.availability || [],
+          location: {
+            city: data.city || "",
+            state: data.state || "",
+            country: data.country || "Vietnam",
+          },
+          phoneNumber: data.phone,
+          dateOfBirth: data.dateOfBirth,
+          emergencyContact:
+            data.emergencyContactName && data.emergencyContactPhone
+              ? {
+                  name: data.emergencyContactName,
+                  relationship: "Emergency Contact",
+                  phoneNumber: data.emergencyContactPhone,
+                }
+              : undefined,
+          socialMedia: {},
+          preferences: {
+            emailNotifications: true,
+            smsNotifications: false,
+            volunteerTypes: data.interests || [],
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as VolunteerProfile;
       }
 
       const mockUser: User = {
-        id: "1",
+        id: Date.now().toString(),
         email: data.email,
-        fullName: data.fullName,
-        role: data.role as any,
+        fullName: fullName,
+        role: data.role,
         isActive: true,
         profile,
         createdAt: new Date().toISOString(),
