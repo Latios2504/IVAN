@@ -55,7 +55,7 @@ A comprehensive volunteer management system built with React, TypeScript, and mo
 
 ## 🛠️ Tech Stack
 
-- **React 18** - Modern React with hooks and context
+- **React 19** - Modern React with hooks and context
 - **TypeScript** - Type-safe development
 - **Vite** - Fast build tool and dev server
 - **Tailwind CSS** - Utility-first CSS framework
