@@ -65,7 +65,45 @@ namespace WebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("users");
+                    b.ToTable("User");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1373),
+                            Email = "volunteer1@example.com",
+                            EmailVerified = true,
+                            IsActive = true,
+                            PasswordHash = "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+                            RoleId = 2,
+                            UpdatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1373),
+                            Username = "volunteer1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1376),
+                            Email = "volunteer2@example.com",
+                            EmailVerified = true,
+                            IsActive = true,
+                            PasswordHash = "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+                            RoleId = 2,
+                            UpdatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1377),
+                            Username = "volunteer2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1379),
+                            Email = "admin@example.com",
+                            EmailVerified = true,
+                            IsActive = true,
+                            PasswordHash = "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+                            RoleId = 4,
+                            UpdatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1379),
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("WebAPI.Data.Entities.VolunteerProfile", b =>
@@ -77,27 +115,22 @@ namespace WebAPI.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Availability")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("BackgroundCheckDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Bio")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("City")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Company")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -108,22 +141,18 @@ namespace WebAPI.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EducationLevel")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("EmergencyContactName")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("EmergencyContactPhone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("FacebookUrl")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
@@ -133,12 +162,10 @@ namespace WebAPI.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Gender")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Interests")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsBackgroundChecked")
@@ -150,26 +177,21 @@ namespace WebAPI.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Occupation")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("ProfilePictureUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Province")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Skills")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -186,7 +208,61 @@ namespace WebAPI.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("VolunteerProfiles");
+                    b.ToTable("VolunteerProfile");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "123 Đường Láng, Đống Đa",
+                            Availability = "Weekends,Evenings",
+                            Bio = "Tình nguyện viên nhiệt huyết với 5 năm kinh nghiệm trong các hoạt động cộng đồng.",
+                            City = "Hà Nội",
+                            Company = "FPT Software",
+                            CreatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1437),
+                            DateOfBirth = new DateTime(1995, 5, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EducationLevel = "Đại học",
+                            EmergencyContactName = "Nguyen Thi B",
+                            EmergencyContactPhone = "0987654322",
+                            FirstName = "Nguyen",
+                            Gender = "Male",
+                            Interests = "Environmental Conservation,Education",
+                            IsBackgroundChecked = false,
+                            LastName = "Van A",
+                            Occupation = "Kỹ sư phần mềm",
+                            Phone = "0987654321",
+                            Province = "Hà Nội",
+                            Skills = "First Aid,Teaching",
+                            UpdatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1437),
+                            UserId = 1,
+                            VolunteerHoursCompleted = 50
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "456 Nguyễn Trãi, Thanh Xuân",
+                            Availability = "Weekdays,Evenings",
+                            Bio = "Tình nguyện viên năng động, thích tham gia các hoạt động phát triển cộng đồng.",
+                            City = "Hà Nội",
+                            Company = "VinGroup",
+                            CreatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1455),
+                            DateOfBirth = new DateTime(1998, 8, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            EducationLevel = "Đại học",
+                            EmergencyContactName = "Tran Van D",
+                            EmergencyContactPhone = "0912345679",
+                            FirstName = "Tran",
+                            Gender = "Female",
+                            Interests = "Community Development,Health",
+                            IsBackgroundChecked = false,
+                            LastName = "Thi C",
+                            Occupation = "Nhân viên marketing",
+                            Phone = "0912345678",
+                            Province = "Hà Nội",
+                            Skills = "Event Management,Public Speaking",
+                            UpdatedAt = new DateTime(2025, 5, 28, 16, 7, 41, 297, DateTimeKind.Utc).AddTicks(1455),
+                            UserId = 2,
+                            VolunteerHoursCompleted = 30
+                        });
                 });
 
             modelBuilder.Entity("WebAPI.Data.Entities.VolunteerProfile", b =>

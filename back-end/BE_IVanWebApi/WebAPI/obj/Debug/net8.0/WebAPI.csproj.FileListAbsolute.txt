@@ -138,3 +138,10 @@ D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\obj\Debug\net8.0\refint\
 D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\obj\Debug\net8.0\WebAPI.pdb
 D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\obj\Debug\net8.0\WebAPI.genruntimeconfig.cache
 D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\obj\Debug\net8.0\ref\WebAPI.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\bin\Debug\net8.0\AutoMapper.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\bin\Debug\net8.0\Microsoft.OpenApi.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\SEMESTER 9\SEP490\IVAN\back-end\BE_IVanWebApi\WebAPI\obj\Debug\net8.0\WebAPI.MvcApplicationPartsAssemblyInfo.cs
