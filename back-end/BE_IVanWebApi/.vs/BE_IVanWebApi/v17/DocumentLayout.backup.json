@@ -1,30 +1,94 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\",
+  "WorkspaceRootPath": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528131546_InitialDB.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:WebAPI\\Migrations\\20250528131546_InitialDB.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\controllers\\organizationprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\controllers\\organizationprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\controllers\\partnerprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\controllers\\partnerprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\organizationprofiles\\iorganizationprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\organizationprofiles\\iorganizationprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\ivancontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\organizationprofiles\\organizationprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\organizationprofiles\\organizationprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\partnerprofiles\\partnerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\partnerprofiles\\partnerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\partnerprofiles\\ipartnerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\partnerprofiles\\ipartnerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\repository\\organizationprofiles\\organizationprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\repository\\organizationprofiles\\organizationprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\repository\\organizationprofiles\\iorganizationprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\repository\\organizationprofiles\\iorganizationprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\helpers\\automapper\\organizationprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\helpers\\automapper\\organizationprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\repository\\partnerprofiles\\ipartnerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\repository\\partnerprofiles\\ipartnerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\repository\\partnerprofiles\\partnerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\repository\\partnerprofiles\\partnerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\partnerprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\partnerprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\ivancontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\ivancontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\partnerprofiles\\organizationprofilefiltermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\partnerprofiles\\organizationprofilefiltermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\volunteerprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\volunteerprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\partnerprofiles\\partnerprofileviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\partnerprofiles\\partnerprofileviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\partnerprofiles\\partnerprofileinputmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\partnerprofiles\\partnerprofileinputmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\organizationprofiles\\organizationprofileinputmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\organizationprofiles\\organizationprofileinputmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\organizationprofiles\\organizationprofilefiltermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\organizationprofiles\\organizationprofilefiltermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\organizationprofiles\\organizationprofileviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\organizationprofiles\\organizationprofileviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\helpers\\automapper\\partnerprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\helpers\\automapper\\partnerprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\dh fpt\\su25\\sep\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\organizationprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\organizationprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,15 +98,15 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 18,
+          "SelectedChildIndex": 21,
           "Children": [
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
             },
             {
               "$type": "Bookmark",
@@ -110,81 +174,288 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "20250528131546_InitialDB.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528131546_InitialDB.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Migrations\\20250528131546_InitialDB.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528131546_InitialDB.cs",
-              "RelativeToolTip": "WebAPI\\Migrations\\20250528131546_InitialDB.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T13:15:46.282Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\appsettings.json",
-              "RelativeDocumentMoniker": "WebAPI\\appsettings.json",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\appsettings.json",
-              "RelativeToolTip": "WebAPI\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-28T12:53:25.116Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "IVANContext.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\IVANContext.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\IVANContext.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\IVANContext.cs",
-              "RelativeToolTip": "WebAPI\\Data\\IVANContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAnAAAAAAAAAA==",
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Program.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
+              "RelativeToolTip": "WebAPI\\Program.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAmwBwAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:43:54.056Z",
+              "WhenOpened": "2025-06-03T15:15:35.675Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "User.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\User.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\User.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\User.cs",
-              "RelativeToolTip": "WebAPI\\Data\\Entities\\User.cs",
-              "ViewState": "AgIAABUAAAAAAAAAAAA7wB8AAAA/AAAAAAAAAA==",
+              "Title": "OrganizationProfileService.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\OrganizationProfiles\\OrganizationProfileService.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Service\\OrganizationProfiles\\OrganizationProfileService.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\OrganizationProfiles\\OrganizationProfileService.cs",
+              "RelativeToolTip": "WebAPI\\Service\\OrganizationProfiles\\OrganizationProfileService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:40:31.092Z",
+              "WhenOpened": "2025-05-31T16:10:20.902Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "VolunteerProfile.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "RelativeToolTip": "WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "ViewState": "AgIAAD4AAAAAAAAAAAAgwA8AAAAtAAAAAAAAAA==",
+              "DocumentIndex": 6,
+              "Title": "IPartnerProfileService.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\PartnerProfiles\\IPartnerProfileService.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Service\\PartnerProfiles\\IPartnerProfileService.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\PartnerProfiles\\IPartnerProfileService.cs",
+              "RelativeToolTip": "WebAPI\\Service\\PartnerProfiles\\IPartnerProfileService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:36:29.753Z",
+              "WhenOpened": "2025-06-03T14:07:21.848Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "OrganizationProfileController.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Controllers\\OrganizationProfileController.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Controllers\\OrganizationProfileController.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Controllers\\OrganizationProfileController.cs",
+              "RelativeToolTip": "WebAPI\\Controllers\\OrganizationProfileController.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAiwA0AAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-31T16:10:57.703Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Program.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
-              "RelativeToolTip": "WebAPI\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAADAAAAAAAAAA==",
+              "Title": "PartnerProfileController.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Controllers\\PartnerProfileController.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Controllers\\PartnerProfileController.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Controllers\\PartnerProfileController.cs",
+              "RelativeToolTip": "WebAPI\\Controllers\\PartnerProfileController.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAgwEAAAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:21:19.442Z",
+              "WhenOpened": "2025-06-03T14:18:17.193Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IOrganizationProfileService.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\OrganizationProfiles\\IOrganizationProfileService.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Service\\OrganizationProfiles\\IOrganizationProfileService.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\OrganizationProfiles\\IOrganizationProfileService.cs",
+              "RelativeToolTip": "WebAPI\\Service\\OrganizationProfiles\\IOrganizationProfileService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-31T16:11:15.426Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "OrganizationProfileRepository.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\OrganizationProfiles\\OrganizationProfileRepository.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Repository\\OrganizationProfiles\\OrganizationProfileRepository.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\OrganizationProfiles\\OrganizationProfileRepository.cs",
+              "RelativeToolTip": "WebAPI\\Repository\\OrganizationProfiles\\OrganizationProfileRepository.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwBoAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-31T03:00:07.308Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PartnerProfileService.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\PartnerProfiles\\PartnerProfileService.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Service\\PartnerProfiles\\PartnerProfileService.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\PartnerProfiles\\PartnerProfileService.cs",
+              "RelativeToolTip": "WebAPI\\Service\\PartnerProfiles\\PartnerProfileService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADIAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T14:09:33.812Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IOrganizationProfileRepository.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\OrganizationProfiles\\IOrganizationProfileRepository.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Repository\\OrganizationProfiles\\IOrganizationProfileRepository.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\OrganizationProfiles\\IOrganizationProfileRepository.cs",
+              "RelativeToolTip": "WebAPI\\Repository\\OrganizationProfiles\\IOrganizationProfileRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T07:55:35.49Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "OrganizationProfileMapping.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\OrganizationProfileMapping.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Helpers\\AutoMapper\\OrganizationProfileMapping.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\OrganizationProfileMapping.cs",
+              "RelativeToolTip": "WebAPI\\Helpers\\AutoMapper\\OrganizationProfileMapping.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T11:35:26.244Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "IPartnerProfileRepository.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\PartnerProfiles\\IPartnerProfileRepository.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Repository\\PartnerProfiles\\IPartnerProfileRepository.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\PartnerProfiles\\IPartnerProfileRepository.cs",
+              "RelativeToolTip": "WebAPI\\Repository\\PartnerProfiles\\IPartnerProfileRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:58:15.326Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "PartnerProfileRepository.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\PartnerProfiles\\PartnerProfileRepository.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Repository\\PartnerProfiles\\PartnerProfileRepository.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\PartnerProfiles\\PartnerProfileRepository.cs",
+              "RelativeToolTip": "WebAPI\\Repository\\PartnerProfiles\\PartnerProfileRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:58:33.165Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "PartnerProfile.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\PartnerProfile.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\PartnerProfile.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\PartnerProfile.cs",
+              "RelativeToolTip": "WebAPI\\Data\\Entities\\PartnerProfile.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAswEQAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T11:28:06.535Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "IVANContext.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\IVANContext.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Data\\IVANContext.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\IVANContext.cs",
+              "RelativeToolTip": "WebAPI\\Data\\IVANContext.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAQwBQAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T14:02:45.545Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "OrganizationProfileFilterModel.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\PartnerProfiles\\OrganizationProfileFilterModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\PartnerProfiles\\OrganizationProfileFilterModel.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\PartnerProfiles\\OrganizationProfileFilterModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\PartnerProfiles\\OrganizationProfileFilterModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:52:53.333Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "PartnerProfileViewModel.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\PartnerProfiles\\PartnerProfileViewModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\PartnerProfiles\\PartnerProfileViewModel.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\PartnerProfiles\\PartnerProfileViewModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\PartnerProfiles\\PartnerProfileViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:53:37.802Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "PartnerProfileInputModel.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\PartnerProfiles\\PartnerProfileInputModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\PartnerProfiles\\PartnerProfileInputModel.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\PartnerProfiles\\PartnerProfileInputModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\PartnerProfiles\\PartnerProfileInputModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:53:48.413Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "OrganizationProfileInputModel.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileInputModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileInputModel.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileInputModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileInputModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:52:49.172Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "OrganizationProfileFilterModel.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileFilterModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileFilterModel.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileFilterModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileFilterModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-02T12:49:21.819Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "OrganizationProfileViewModel.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileViewModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileViewModel.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileViewModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\OrganizationProfiles\\OrganizationProfileViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T13:53:22.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "PartnerProfileMapping.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\PartnerProfileMapping.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Helpers\\AutoMapper\\PartnerProfileMapping.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\PartnerProfileMapping.cs",
+              "RelativeToolTip": "WebAPI\\Helpers\\AutoMapper\\PartnerProfileMapping.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T11:35:51.821Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "OrganizationProfile.cs",
+              "DocumentMoniker": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\OrganizationProfile.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\OrganizationProfile.cs",
+              "ToolTip": "D:\\DH FPT\\SU25\\SEP\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\OrganizationProfile.cs",
+              "RelativeToolTip": "WebAPI\\Data\\Entities\\OrganizationProfile.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-31T16:08:38.507Z"
             }
           ]
         },
