@@ -20,7 +20,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { UserRole, type RegisterData } from "@/types/auth";
+import {
+  UserRole,
+  type RegisterData,
+  PUBLIC_REGISTRATION_ROLES,
+} from "@/types/auth";
 
 export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -29,8 +33,8 @@ export default function RegisterPage() {
     lastName: "",
     email: "",
     password: "",
-    role: "" as UserRole,
-    phone: "",
+    role: "" as (typeof PUBLIC_REGISTRATION_ROLES)[number],
+    phoneNumber: "",
     dateOfBirth: "",
     gender: undefined,
     address: "",
@@ -50,6 +54,12 @@ export default function RegisterPage() {
     contactPersonName: "",
     contactPersonTitle: "",
     focusAreas: [],
+    // Partner fields
+    companyName: "",
+    industry: "",
+    companyDescription: "",
+    partnershipInterests: [],
+    expectedPartnership: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +68,7 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const getSteps = () => {
     const isOrganization = formData.role === "organization";
+    const isPartner = formData.role === "partner";
 
     return [
       {
@@ -67,16 +78,28 @@ export default function RegisterPage() {
       },
       {
         id: "personal",
-        title: isOrganization ? "Thông tin tổ chức" : "Thông tin cá nhân",
+        title: isOrganization
+          ? "Thông tin tổ chức"
+          : isPartner
+          ? "Thông tin đối tác"
+          : "Thông tin cá nhân",
         description: isOrganization
           ? "Chi tiết tổ chức và địa chỉ"
+          : isPartner
+          ? "Chi tiết đối tác và địa chỉ"
           : "Chi tiết cá nhân và địa chỉ",
       },
       {
         id: "role-specific",
-        title: isOrganization ? "Thông tin hoạt động" : "Thông tin chuyên môn",
+        title: isOrganization
+          ? "Thông tin hoạt động"
+          : isPartner
+          ? "Lĩnh vực hợp tác"
+          : "Thông tin chuyên môn",
         description: isOrganization
           ? "Lĩnh vực và mô tả hoạt động"
+          : isPartner
+          ? "Loại hình và lĩnh vực hợp tác"
           : "Kỹ năng và sở thích",
       },
     ];
@@ -137,6 +160,10 @@ export default function RegisterPage() {
         }
         if (!formData.organizationType) {
           newErrors.organizationType = "Vui lòng chọn loại tổ chức";
+        }
+      } else if (formData.role === "partner") {
+        if (!formData.companyName?.trim()) {
+          newErrors.companyName = "Tên công ty không được để trống";
         }
       }
     }
@@ -235,14 +262,15 @@ export default function RegisterPage() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">Số điện thoại</Label>
+        {" "}
+        <Label htmlFor="phoneNumber">Số điện thoại</Label>
         <Input
-          id="phone"
-          name="phone"
+          id="phoneNumber"
+          name="phoneNumber"
           type="tel"
           placeholder="0123456789"
-          value={formData.phone}
-          onChange={(e) => handleInputChange("phone", e.target.value)}
+          value={formData.phoneNumber}
+          onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
           disabled={isLoading}
         />
       </div>
@@ -294,7 +322,7 @@ export default function RegisterPage() {
         >
           <SelectTrigger className={errors.role ? "border-destructive" : ""}>
             <SelectValue placeholder="Chọn vai trò của bạn" />
-          </SelectTrigger>
+          </SelectTrigger>{" "}
           <SelectContent>
             <SelectItem value="volunteer">
               <div className="flex flex-col">
@@ -309,6 +337,14 @@ export default function RegisterPage() {
                 <span className="font-medium">Tổ chức</span>
                 <span className="text-sm text-muted-foreground">
                   Tạo và quản lý các hoạt động tình nguyện
+                </span>
+              </div>
+            </SelectItem>
+            <SelectItem value="partner">
+              <div className="flex flex-col">
+                <span className="font-medium">Đối tác</span>
+                <span className="text-sm text-muted-foreground">
+                  Hợp tác và tài trợ các hoạt động
                 </span>
               </div>
             </SelectItem>
@@ -541,7 +577,6 @@ export default function RegisterPage() {
               </p>
             )}
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="organizationType">Loại tổ chức</Label>
             <Select
@@ -574,7 +609,6 @@ export default function RegisterPage() {
               </p>
             )}
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="organizationDescription">Mô tả tổ chức</Label>
             <Textarea
@@ -589,7 +623,6 @@ export default function RegisterPage() {
               rows={4}
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="website">Website</Label>
             <Input
@@ -602,7 +635,6 @@ export default function RegisterPage() {
               disabled={isLoading}
             />
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="contactPersonName">Tên người liên hệ</Label>
@@ -633,7 +665,6 @@ export default function RegisterPage() {
               />
             </div>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="focusAreas">
               Lĩnh vực hoạt động (phân cách bằng dấu phẩy)
@@ -644,6 +675,136 @@ export default function RegisterPage() {
               placeholder="Giáo dục, Y tế, Môi trường, ..."
               value={formData.focusAreas?.join(", ") || ""}
               onChange={(e) => handleArrayChange("focusAreas", e.target.value)}
+              disabled={isLoading}
+              rows={3}
+            />
+          </div>{" "}
+        </div>
+      );
+    }
+
+    if (formData.role === "partner") {
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Tên công ty</Label>
+            <Input
+              id="companyName"
+              name="companyName"
+              type="text"
+              placeholder="Công ty ABC"
+              value={formData.companyName}
+              onChange={(e) => handleInputChange("companyName", e.target.value)}
+              required
+              disabled={isLoading}
+              className={errors.companyName ? "border-destructive" : ""}
+            />
+            {errors.companyName && (
+              <p className="text-sm text-destructive">{errors.companyName}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="industry">Ngành nghề</Label>
+            <Input
+              id="industry"
+              name="industry"
+              type="text"
+              placeholder="Công nghệ thông tin"
+              value={formData.industry}
+              onChange={(e) => handleInputChange("industry", e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="companyDescription">Mô tả công ty</Label>
+            <Textarea
+              id="companyDescription"
+              name="companyDescription"
+              placeholder="Mô tả ngắn gọn về công ty của bạn..."
+              value={formData.companyDescription}
+              onChange={(e) =>
+                handleInputChange("companyDescription", e.target.value)
+              }
+              disabled={isLoading}
+              rows={4}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="website">Website công ty</Label>
+            <Input
+              id="website"
+              name="website"
+              type="url"
+              placeholder="https://company.com"
+              value={formData.website}
+              onChange={(e) => handleInputChange("website", e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonName">Tên người đại diện</Label>
+              <Input
+                id="contactPersonName"
+                name="contactPersonName"
+                type="text"
+                placeholder="Nguyễn Văn D"
+                value={formData.contactPersonName}
+                onChange={(e) =>
+                  handleInputChange("contactPersonName", e.target.value)
+                }
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonTitle">Chức vụ</Label>
+              <Input
+                id="contactPersonTitle"
+                name="contactPersonTitle"
+                type="text"
+                placeholder="Giám đốc Marketing"
+                value={formData.contactPersonTitle}
+                onChange={(e) =>
+                  handleInputChange("contactPersonTitle", e.target.value)
+                }
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="partnershipInterests">
+              Lĩnh vực quan tâm hợp tác (phân cách bằng dấu phẩy)
+            </Label>
+            <Textarea
+              id="partnershipInterests"
+              name="partnershipInterests"
+              placeholder="Giáo dục, Y tế, Môi trường, CSR, ..."
+              value={formData.partnershipInterests?.join(", ") || ""}
+              onChange={(e) =>
+                handleArrayChange("partnershipInterests", e.target.value)
+              }
+              disabled={isLoading}
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expectedPartnership">
+              Hình thức hợp tác mong muốn
+            </Label>
+            <Textarea
+              id="expectedPartnership"
+              name="expectedPartnership"
+              placeholder="Tài trợ tài chính, tài trợ hiện vật, hỗ trợ nhân sự, ..."
+              value={formData.expectedPartnership}
+              onChange={(e) =>
+                handleInputChange("expectedPartnership", e.target.value)
+              }
               disabled={isLoading}
               rows={3}
             />

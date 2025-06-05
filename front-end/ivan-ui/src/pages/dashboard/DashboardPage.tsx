@@ -1,54 +1,62 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth";
+import VolunteerDashboard from "./VolunteerDashboard";
+import OrganizationDashboard from "./OrganizationDashboard";
+import CoordinatorDashboard from "./CoordinatorDashboard";
+import AdminDashboard from "./AdminDashboard";
+import PartnerDashboard from "./PartnerDashboard";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  const getRoleLabel = (role: string) => {
-    const labels = {
-      volunteer: "Tình nguyện viên",
-      organization: "Tổ chức",
-      admin: "Quản trị viên",
-    };
-    return labels[role as keyof typeof labels] || role;
-  };
-
-  const getRoleColor = (role: string) => {
-    const colors = {
-      volunteer: "bg-green-500",
-      organization: "bg-blue-500",
-      admin: "bg-purple-500",
-    };
-    return colors[role as keyof typeof colors] || "bg-gray-500";
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Không tìm thấy thông tin người dùng
+          </h2>
+          <p className="text-gray-600">Vui lòng đăng nhập lại</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Route to appropriate dashboard based on user role
+  switch (user.role) {
+    case UserRole.VOLUNTEER:
+      return <VolunteerDashboard />;
+    case UserRole.ORGANIZATION:
+      return <OrganizationDashboard />;
+    case UserRole.COORDINATOR:
+      return <CoordinatorDashboard />;
+    case UserRole.ADMIN:
+      return <AdminDashboard />;
+    case UserRole.PARTNER:
+      return <PartnerDashboard />;
+    default:
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Vai trò không hợp lệ
+            </h2>
+            <p className="text-gray-600">
+              Vai trò "{user.role}" không được hỗ trợ
+            </p>
+          </div>
+        </div>
+      );
+  }
+}
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );

@@ -23,7 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 
-# GitHub Copilot and Memory Bank
-.github/copilot-instructions.md
-memory-bank/
-*.copilot-instructions.md

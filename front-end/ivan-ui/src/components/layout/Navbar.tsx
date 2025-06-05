@@ -55,10 +55,15 @@ export default function Navbar() {
                 </span>
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/dashboard">Dashboard</Link>
-                </Button>
+                </Button>{" "}
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/profile">Hồ sơ</Link>
                 </Button>{" "}
+                {user?.role === UserRole.ORGANIZATION && (
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to="/organization/management">Quản lý</Link>
+                  </Button>
+                )}
                 {user?.role === UserRole.ADMIN && (
                   <Button asChild variant="ghost" size="sm">
                     <Link to="/admin">Quản trị</Link>

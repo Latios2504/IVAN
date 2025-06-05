@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { UserRole } from "@/types/auth";
 
 // Lazy loading pages
 const HomePage = lazy(() => import("@/pages/home/HomePage"));
@@ -18,6 +19,10 @@ const OrganizationsPage = lazy(
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const EventsPage = lazy(() => import("@/pages/events/EventsPage"));
 const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
+const CompanyPage = lazy(() => import("@/pages/company/CompanyPage"));
+const OrganizationManagementPage = lazy(
+  () => import("@/pages/organization/OrganizationManagementPage")
+);
 
 // Loading component
 const PageLoader = () => (
@@ -35,12 +40,19 @@ export default function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />{" "}
         <Route path="/volunteers" element={<VolunteersPage />} />
         <Route path="/organizations" element={<OrganizationsPage />} />
-        <Route path="/events" element={<EventsPage />} />
-
+        <Route path="/events" element={<EventsPage />} />{" "}
         {/* Protected routes */}
+        <Route
+          path="/company"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <CompanyPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
@@ -56,12 +68,20 @@ export default function AppRoutes() {
               <ProfilePage />
             </ProtectedRoute>
           }
-        />
+        />{" "}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["admin" as any]}>
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/management"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <OrganizationManagementPage />
             </ProtectedRoute>
           }
         />
