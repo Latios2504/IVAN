@@ -1,49 +1,60 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebAPI.Data;
 using WebAPI.Data.Entities;
+using WebAPI.Models.VolunteerProfile;
 
 namespace WebAPI.Repository.VolunteerProfileRepo
 {
     public class VolunteerProfileRepository : IVolunteerProfileRepository
     {
-        private readonly IVANSystemContext _context;
-
-        public VolunteerProfileRepository(IVANSystemContext context)
+        private readonly IVANContext _context;
+        public VolunteerProfileRepository(IVANContext context)
         {
             _context = context;
         }
-        public async Task<VolunteerProfile> AddAsync(VolunteerProfile entity)
+
+        public async Task AddAsync(VolunteerProfile profile)
         {
-            _context.VolunteerProfiles.Add(entity);
+            await _context.VolunteerProfile.AddAsync(profile);
             await _context.SaveChangesAsync();
-            return entity;
         }
 
-        public async Task<List<VolunteerProfile>> GetAllAsync()
+        public async Task<VolunteerProfile> GetByIdAsync(int id)
         {
-            return await _context.VolunteerProfiles
-            .Include(v => v.User).ThenInclude(v => v.UserProfiles) // để lấy được FullName
-            .ToListAsync();
+            return await _context.VolunteerProfile.Include(v => v.User).FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<VolunteerProfile?> GetByIdAsync(int volunteerId)
+        public async Task<VolunteerProfile> GetByUserIdAsync(int userId)
         {
-            return await _context.VolunteerProfiles
-            .Include(v => v.User).ThenInclude(u => u.UserProfiles) // để lấy được FullName
-            .FirstOrDefaultAsync(v => v.VolunteerId == volunteerId);
+            return await _context.VolunteerProfile.Include(vp => vp.User).FirstOrDefaultAsync(vp => vp.UserId == userId);
         }
 
-        public async Task<VolunteerProfile?> GetByUserIdAsync(int userId)
+        public async Task<List<VolunteerProfile>> GetFilteredProfilesAsync(VolunteerProfileFilterViewModel filter)
         {
-            return await _context.VolunteerProfiles
-            .Include(v => v.User).ThenInclude(v => v.UserProfiles)
-            .FirstOrDefaultAsync(v => v.UserId == userId);
+            var query = _context.VolunteerProfile
+                .Include(vp => vp.User)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(filter.Skill))
+            {
+                query = query.Where(vp => vp.Skills.Contains(filter.Skill));
+            }
+
+            if (!string.IsNullOrEmpty(filter.Location))
+            {
+                query = query.Where(vp => vp.City == filter.Location || vp.Province == filter.Location);
+            }
+
+            return await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
         }
 
-        public async Task<VolunteerProfile> UpdateAsync(VolunteerProfile entity)
+        public async Task UpdateAsync(VolunteerProfile profile)
         {
-            _context.VolunteerProfiles.Update(entity);
+            _context.VolunteerProfile.Update(profile);
             await _context.SaveChangesAsync();
-            return entity;
         }
     }
 }

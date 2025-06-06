@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Models.VolunteerProfile;
 using WebAPI.Service.VolunteerProfileService;
@@ -16,40 +17,47 @@ namespace WebAPI.Controllers
             _service = service;
         }
 
-        // GET: /api/volunteerprofiles
-        [HttpGet]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("{id}")]
+        //[Authorize(Roles = "Volunteer,Organization,Admin,VolunteerCoordinator")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var list = await _service.ListAsync();
-            return Ok(list);
-        }
-
-        // GET: /api/volunteerprofiles/user/5
-        [HttpGet("user/{userId}")]
-        //[Authorize(Roles = "Volunteer,Admin")]
-        public async Task<IActionResult> GetByUserId(int userId)
-        {
-            var profile = await _service.GetByUserIdAsync(userId);
-            return profile == null ? NotFound() : Ok(profile);
-        }
-
-        // POST: /api/volunteerprofiles
-        [HttpPost]
-        //[Authorize(Roles = "Volunteer")]
-        public async Task<IActionResult> Create([FromBody] VolunteerProfileDto dto)
-        {
-            var profile = await _service.AddAsync(dto);
+            var profile = await _service.GetByIdAsync(id);
             return Ok(profile);
         }
 
-        // PUT: /api/volunteerprofiles/user/5
-        [HttpPut("user/{userId}")]
-        //[Authorize(Roles = "Volunteer")]
-        public async Task<IActionResult> Update(int userId, [FromBody] VolunteerProfileDto dto)
+        [HttpGet("user/{userId}")]
+        //[Authorize(Roles = "Volunteer,Organization,Admin,VolunteerCoordinator")]
+        public async Task<IActionResult> GetByUserId(int userId)
         {
-            var profile = await _service.UpdateAsync(userId, dto);
-            return profile == null ? NotFound() : Ok(profile);
+            var profile = await _service.GetByUserIdAsync(userId);
+            return Ok(profile);
+        }
+
+        // FE-02: List Volunteer Profiles
+        [HttpPost("list")]
+        //[Authorize(Roles = "Organization,Admin,VolunteerCoordinator")]
+        public async Task<IActionResult> List([FromBody] VolunteerProfileFilterViewModel filter)
+        {
+            var profiles = await _service.GetFilteredProfilesAsync(filter);
+            return Ok(profiles);
+        }
+
+        // FE-02: Add Volunteer Profile
+        [HttpPost]
+        //[Authorize(Roles = "Volunteer")]
+        public async Task<IActionResult> Add([FromBody] VolunteerProfileViewModel model)
+        {
+            await _service.AddAsync(model);
+            return Ok(new { message = "Volunteer profile created successfully." });
+        }
+
+        // FE-02: Update Volunteer Profile
+        [HttpPut]
+        //[Authorize(Roles = "Volunteer")]
+        public async Task<IActionResult> Update([FromBody] VolunteerProfileViewModel model)
+        {
+            await _service.UpdateAsync(model);
+            return Ok(new { message = "Volunteer profile updated successfully." });
         }
     }
 }

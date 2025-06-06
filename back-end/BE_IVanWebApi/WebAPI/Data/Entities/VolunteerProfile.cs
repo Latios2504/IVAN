@@ -1,55 +1,81 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebAPI.Data.Entities;
-
-public partial class VolunteerProfile
+namespace WebAPI.Data.Entities
 {
-    public int VolunteerId { get; set; }
+    public class VolunteerProfile
+    {
+        [Key]
+        public int Id { get; set; }
 
-    public int UserId { get; set; }
+        [Required]
+        public int UserId { get; set; }
 
-    public string? StudentId { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public string? FirstName { get; set; }
 
-    public string? University { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public string? LastName { get; set; }
 
-    public string? Major { get; set; }
+        [MaxLength(20)]
+        public string? Phone { get; set; }
 
-    public int? YearOfStudy { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
-    public string? Motivation { get; set; }
+        [MaxLength(20)]
+        public string? Gender { get; set; }
 
-    public string? Experience { get; set; }
+        public string? Address { get; set; }
 
-    public string? Availability { get; set; }
+        [MaxLength(100)]
+        public string? City { get; set; }
 
-    public int? VolunteerHours { get; set; }
+        [MaxLength(100)]
+        public string? Province { get; set; }
 
-    public decimal? Rating { get; set; }
+        [MaxLength(200)]
+        public string? EmergencyContactName { get; set; }
 
-    public int? RatingCount { get; set; }
+        [MaxLength(20)]
+        public string? EmergencyContactPhone { get; set; }
 
-    public bool? IsVerified { get; set; }
+        public string? Skills { get; set; } // Lưu dưới dạng chuỗi, ví dụ: "First Aid,Teaching"
 
-    public DateTime? VerifiedAt { get; set; }
+        public string? Interests { get; set; } // Ví dụ: "Environmental Conservation,Education"
 
-    public int? VerifiedBy { get; set; }
+        public string? Availability { get; set; } // Ví dụ: "Weekends,Evenings"
 
-    public DateTime? CreatedAt { get; set; }
+        public int VolunteerHoursCompleted { get; set; } = 0;
 
-    public DateTime? UpdatedAt { get; set; }
+        public string? ProfilePictureUrl { get; set; }
 
-    public virtual ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+        public string? Bio { get; set; }
 
-    public virtual ICollection<EventRegistration> EventRegistrations { get; set; } = new List<EventRegistration>();
+        [MaxLength(300)]
+        public string? FacebookUrl { get; set; }
 
-    public virtual ICollection<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
+        [MaxLength(100)]
+        public string? EducationLevel { get; set; }
 
-    public virtual User User { get; set; } = null!;
+        [MaxLength(100)]
+        public string? Occupation { get; set; }
 
-    public virtual User? VerifiedByNavigation { get; set; }
+        [MaxLength(200)]
+        public string? Company { get; set; }
 
-    public virtual ICollection<VolunteerSchedule> VolunteerSchedules { get; set; } = new List<VolunteerSchedule>();
+        public bool IsBackgroundChecked { get; set; } = false;
 
-    public virtual ICollection<VolunteerSkill> VolunteerSkills { get; set; } = new List<VolunteerSkill>();
+        public DateTime? BackgroundCheckDate { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
+    }
 }
+

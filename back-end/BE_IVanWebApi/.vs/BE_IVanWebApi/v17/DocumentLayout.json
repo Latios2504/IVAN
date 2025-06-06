@@ -7,56 +7,40 @@
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\controllers\\volunteerprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\volunteerprofileservice\\volunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\volunteerprofileservice\\volunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\ivansystemcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\ivansystemcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\repository\\volunteerprofilerepo\\volunteerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\repository\\volunteerprofilerepo\\volunteerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\volunteerprofileservice\\volunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\volunteerprofileservice\\volunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\repository\\volunteerprofilerepo\\ivolunteerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\repository\\volunteerprofilerepo\\ivolunteerprofilerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\volunteerprofile\\volunteerprofileviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\volunteerprofile\\volunteerprofileviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\volunteerprofile\\volunteerprofilefilterviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\volunteerprofile\\volunteerprofilefilterviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\volunteerprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\volunteerprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\volunteerprofileservice\\ivolunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\volunteerprofileservice\\ivolunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\volunteerprofile\\volunteerprofileviewdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\volunteerprofile\\volunteerprofileviewdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\models\\volunteerprofile\\volunteerprofiledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\models\\volunteerprofile\\volunteerprofiledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\helpers\\automapper\\volunteerprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\helpers\\automapper\\volunteerprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\userprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\ivancontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\ivancontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
@@ -67,8 +51,32 @@
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\webapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\helpers\\automapper\\volunteerprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\helpers\\automapper\\volunteerprofilemapping.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\service\\volunteerprofileservice\\ivolunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\service\\volunteerprofileservice\\ivolunteerprofileservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\migrations\\20250528131546_initialdb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\migrations\\20250528131546_initialdb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\data\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\data\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\migrations\\20250528160741_addseeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\migrations\\20250528160741_addseeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|d:\\semester 9\\sep490\\ivan\\back-end\\be_ivanwebapi\\webapi\\migrations\\20250528155725_updatedb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59CCC37A-53CB-4681-8082-DD8739190473}|WebAPI\\WebAPI.csproj|solutionrelative:webapi\\migrations\\20250528155725_updatedb.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -78,7 +86,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 23,
+          "SelectedChildIndex": 21,
           "Children": [
             {
               "$type": "Bookmark",
@@ -154,68 +162,39 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "VolunteerProfileService.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
-              "RelativeToolTip": "WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
-              "ViewState": "AgIAACoAAAAAAAAAAAAiwCoAAABSAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:34:51.992Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Program.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
-              "RelativeToolTip": "WebAPI\\Program.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAuwBgAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:21:19.442Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "IVANSystemContext.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\IVANSystemContext.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\IVANSystemContext.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\IVANSystemContext.cs",
-              "RelativeToolTip": "WebAPI\\Data\\Entities\\IVANSystemContext.cs",
-              "ViewState": "AgIAAGIAAAAAAAAAAAApwFwAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:13:42.865Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "VolunteerProfileViewModel.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewModel.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T14:17:15.619Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "VolunteerProfileRepository.cs",
               "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\VolunteerProfileRepo\\VolunteerProfileRepository.cs",
               "RelativeDocumentMoniker": "WebAPI\\Repository\\VolunteerProfileRepo\\VolunteerProfileRepository.cs",
               "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\VolunteerProfileRepo\\VolunteerProfileRepository.cs",
               "RelativeToolTip": "WebAPI\\Repository\\VolunteerProfileRepo\\VolunteerProfileRepository.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAAwCUAAABCAAAAAAAAAA==",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAABEAAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:30:58.07Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-28T14:31:04.992Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "IVolunteerProfileRepository.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
-              "RelativeToolTip": "WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAA9AAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "VolunteerProfileService.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
+              "RelativeToolTip": "WebAPI\\Service\\VolunteerProfileService\\VolunteerProfileService.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAYwC4AAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:30:42.26Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-28T14:50:13.34Z"
             },
             {
               "$type": "Document",
@@ -225,105 +204,74 @@
               "RelativeDocumentMoniker": "WebAPI\\Controllers\\VolunteerProfileController.cs",
               "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Controllers\\VolunteerProfileController.cs",
               "RelativeToolTip": "WebAPI\\Controllers\\VolunteerProfileController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAA+AAAAAAAAAA==",
+              "ViewState": "AgIAABYAAAAAAAAAAAAqwCMAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-28T15:33:21.441Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 3,
+              "Title": "IVolunteerProfileRepository.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
+              "RelativeToolTip": "WebAPI\\Repository\\VolunteerProfileRepo\\IVolunteerProfileRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T14:31:23.577Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "VolunteerProfileFilterViewModel.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileFilterViewModel.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileFilterViewModel.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileFilterViewModel.cs",
+              "RelativeToolTip": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileFilterViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T14:18:56.15Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "20250528160741_AddSeedData.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528160741_AddSeedData.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Migrations\\20250528160741_AddSeedData.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528160741_AddSeedData.cs",
+              "RelativeToolTip": "WebAPI\\Migrations\\20250528160741_AddSeedData.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAzwBIAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T16:07:41.906Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
               "Title": "IVolunteerProfileService.cs",
               "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\VolunteerProfileService\\IVolunteerProfileService.cs",
               "RelativeDocumentMoniker": "WebAPI\\Service\\VolunteerProfileService\\IVolunteerProfileService.cs",
               "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Service\\VolunteerProfileService\\IVolunteerProfileService.cs",
               "RelativeToolTip": "WebAPI\\Service\\VolunteerProfileService\\IVolunteerProfileService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAABRAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:34:34.092Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-28T14:49:14.562Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "VolunteerProfile.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "RelativeToolTip": "WebAPI\\Data\\Entities\\VolunteerProfile.cs",
-              "ViewState": "AgIAACEAAAAAAAAAAAAkwC8AAAAXAAAAAAAAAA==",
+              "DocumentIndex": 18,
+              "Title": "20250528155725_UpdateDB.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528155725_UpdateDB.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Migrations\\20250528155725_UpdateDB.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528155725_UpdateDB.cs",
+              "RelativeToolTip": "WebAPI\\Migrations\\20250528155725_UpdateDB.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:36:29.753Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-28T15:57:26.304Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "User.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\User.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\User.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\User.cs",
-              "RelativeToolTip": "WebAPI\\Data\\Entities\\User.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAQwAUAAAAVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T12:40:31.092Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "VolunteerProfileViewDto.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewDto.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewDto.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewDto.cs",
-              "RelativeToolTip": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileViewDto.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAwAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:28:07.665Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "UserProfile.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\UserProfile.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\UserProfile.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\UserProfile.cs",
-              "RelativeToolTip": "WebAPI\\Data\\Entities\\UserProfile.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:28:27.295Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "VolunteerProfileDto.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileDto.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileDto.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Models\\VolunteerProfile\\VolunteerProfileDto.cs",
-              "RelativeToolTip": "WebAPI\\Models\\VolunteerProfile\\VolunteerProfileDto.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAxAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-06T05:27:30.947Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "VolunteerProfileMapping.cs",
-              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
-              "RelativeDocumentMoniker": "WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
-              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
-              "RelativeToolTip": "WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-28T14:21:33.68Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 8,
               "Title": "Role.cs",
               "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\Role.cs",
               "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\Role.cs",
@@ -335,7 +283,43 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 6,
+              "Title": "VolunteerProfile.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\VolunteerProfile.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\VolunteerProfile.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\VolunteerProfile.cs",
+              "RelativeToolTip": "WebAPI\\Data\\Entities\\VolunteerProfile.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA8AAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T12:36:29.753Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "IVANContext.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\IVANContext.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Data\\IVANContext.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\IVANContext.cs",
+              "RelativeToolTip": "WebAPI\\Data\\IVANContext.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAAAG4AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T12:43:54.056Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Program.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Program.cs",
+              "RelativeToolTip": "WebAPI\\Program.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAAACgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T12:21:19.442Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "launchSettings.json",
               "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "WebAPI\\Properties\\launchSettings.json",
@@ -347,7 +331,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 11,
               "Title": "WebAPI.http",
               "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\WebAPI.http",
               "RelativeDocumentMoniker": "WebAPI\\WebAPI.http",
@@ -359,7 +343,31 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 12,
+              "Title": "VolunteerProfileMapping.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
+              "RelativeToolTip": "WebAPI\\Helpers\\AutoMapper\\VolunteerProfileMapping.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T14:21:33.68Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "20250528131546_InitialDB.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528131546_InitialDB.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Migrations\\20250528131546_InitialDB.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Migrations\\20250528131546_InitialDB.cs",
+              "RelativeToolTip": "WebAPI\\Migrations\\20250528131546_InitialDB.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T13:15:46.282Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\appsettings.json",
               "RelativeDocumentMoniker": "WebAPI\\appsettings.json",
@@ -368,6 +376,18 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-05-28T12:53:25.116Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "User.cs",
+              "DocumentMoniker": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\User.cs",
+              "RelativeDocumentMoniker": "WebAPI\\Data\\Entities\\User.cs",
+              "ToolTip": "D:\\SEMESTER 9\\SEP490\\IVAN\\back-end\\BE_IVanWebApi\\WebAPI\\Data\\Entities\\User.cs",
+              "RelativeToolTip": "WebAPI\\Data\\Entities\\User.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAkwB8AAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T12:40:31.092Z"
             }
           ]
         },
