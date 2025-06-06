@@ -19,7 +19,7 @@ namespace WebAPI.Service.PartnerProfiles
 
         public async Task<bool> AddPartnerProfile(PartnerProfileInputModel partnerProfileInputModel)
         {
-            var par = _mapper.Map<PartnerProfile>(partnerProfileInputModel);
+            var par = _mapper.Map<Partner>(partnerProfileInputModel);
             par.CreatedAt = DateTime.Now;
             par.UpdatedAt = DateTime.Now;
 
@@ -27,10 +27,10 @@ namespace WebAPI.Service.PartnerProfiles
         }
         public async Task<bool> UpdatePartnerProfile(PartnerProfileViewModel partnerProfileViewModel)
         {
-            var existingPar = await _repository.GetPartnerProfileById(partnerProfileViewModel.Id);
+            var existingPar = await _repository.GetPartnerProfileById(partnerProfileViewModel.PartnerId);
             if(existingPar == null)
             {
-                throw new Exception("PartnerProfile not found");
+                throw new Exception("Partner not found");
             }
 
             _mapper.Map(partnerProfileViewModel, existingPar);
@@ -47,7 +47,7 @@ namespace WebAPI.Service.PartnerProfiles
             var par = await _repository.GetPartnerProfileById(id);
             if(par == null)
             {
-                throw new Exception("PartnerProfile not found");
+                throw new Exception("Partner not found");
             }
 
             return _mapper.Map<PartnerProfileViewModel>(par);

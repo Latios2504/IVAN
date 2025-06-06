@@ -29,28 +29,27 @@ namespace WebAPI.Repository.OrganizationProfiles
             _context = context;
         }
 
-        public async Task<bool> AddOrganizationProfile(OrganizationProfile organizationProfile)
+        public async Task<bool> AddOrganizationProfile(Organization organizationProfile)
         {
-            await _context.OrganizationProfiles.AddAsync(organizationProfile);
+            await _context.Organizations.AddAsync(organizationProfile);
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> UpdateOrganizationProfile(OrganizationProfile organizationProfile)
+        public async Task<bool> UpdateOrganizationProfile(Organization organizationProfile)
         {
             _context.ChangeTracker.Clear();//
-            _context.OrganizationProfiles.Attach(organizationProfile);
+            _context.Organizations.Attach(organizationProfile);
             _context.Entry(organizationProfile).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<IEnumerable<OrganizationProfile>> ListOrganizationProfile(OrganizationProfileFilterModel filter)
+        public async Task<IEnumerable<Organization>> ListOrganizationProfile(OrganizationProfileFilterModel filter)
         {
-            var query = _context.OrganizationProfiles
+            var query = _context.Organizations
                 .Include(x => x.User)
-                .Include(x => x.Events)
-                .Include(x => x.PartnerCollaborations)
-                .Include(x => x.SupportRequests)
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.Type)
                 .AsQueryable();
 
             //return query.ToList();
@@ -60,14 +59,13 @@ namespace WebAPI.Repository.OrganizationProfiles
                 .ToListAsync();
         }
 
-        public async Task<OrganizationProfile> GetOrganizationProfileById(int id)
+        public async Task<Organization> GetOrganizationProfileById(int id)
         {
-            return await _context.OrganizationProfiles
+            return await _context.Organizations
                 .Include(x => x.User)
-                .Include(x => x.Events)
-                .Include(x => x.PartnerCollaborations)
-                .Include(x => x.SupportRequests)
-                .SingleOrDefaultAsync(x => x.Id == id);
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.Type)
+                .SingleOrDefaultAsync(x => x.OrganizationId == id);
         }
     }
 }

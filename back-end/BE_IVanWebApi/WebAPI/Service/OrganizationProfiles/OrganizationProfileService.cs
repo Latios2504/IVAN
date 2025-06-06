@@ -19,7 +19,7 @@ namespace WebAPI.Service.OrganizationProfiles
 
         public async Task<bool> AddOrganizationProfile(OrganizationProfileInputModel organizationProfile)
         {
-            var org = _mapper.Map<OrganizationProfile>(organizationProfile);
+            var org = _mapper.Map<Organization>(organizationProfile);
             org.CreatedAt = DateTime.Now;
             org.UpdatedAt = DateTime.Now;
 
@@ -27,10 +27,10 @@ namespace WebAPI.Service.OrganizationProfiles
         }
         public async Task<bool> UpdateOrganizationProfile(OrganizationProfileViewModel organizationProfile)
         {
-            var existingOrg = await _repository.GetOrganizationProfileById(organizationProfile.Id);
+            var existingOrg = await _repository.GetOrganizationProfileById(organizationProfile.OrganizationId);
             if(existingOrg == null)
             {
-                throw new Exception("OrganizationProfile not found");
+                throw new Exception("Organization not found");
             }
 
             _mapper.Map(organizationProfile, existingOrg);
@@ -47,7 +47,7 @@ namespace WebAPI.Service.OrganizationProfiles
             var org = await _repository.GetOrganizationProfileById(id);
             if(org == null)
             {
-                throw new Exception("OrganizationProfile not found");
+                throw new Exception("Organization not found");
             }
 
             return _mapper.Map<OrganizationProfileViewModel>(org);

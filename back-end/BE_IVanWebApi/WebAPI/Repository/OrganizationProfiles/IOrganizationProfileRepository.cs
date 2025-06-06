@@ -10,9 +10,9 @@ namespace WebAPI.Repository.OrganizationProfiles
         //IEnumerable<OrganizationProfile> ListOrganizationProfile();
         //OrganizationProfile GetOrganizationProfile(int Id);
 
-        Task<bool> AddOrganizationProfile(OrganizationProfile organizationProfile);
-        Task<bool> UpdateOrganizationProfile(OrganizationProfile organizationProfile);
-        Task<IEnumerable<OrganizationProfile>> ListOrganizationProfile(OrganizationProfileFilterModel filter);
-        Task<OrganizationProfile> GetOrganizationProfileById(int id);
+        Task<bool> AddOrganizationProfile(Organization organizationProfile);
+        Task<bool> UpdateOrganizationProfile(Organization organizationProfile);
+        Task<IEnumerable<Organization>> ListOrganizationProfile(OrganizationProfileFilterModel filter);
+        Task<Organization> GetOrganizationProfileById(int id);
     }
 }

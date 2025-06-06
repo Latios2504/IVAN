@@ -8,14 +8,14 @@ namespace WebAPI.Helpers.AutoMapper
     {
         public PartnerProfileMapping()
         {
-            CreateMap<PartnerProfile, PartnerProfileViewModel>();
-            CreateMap<PartnerProfileViewModel, PartnerProfile>();
+            CreateMap<Partner, PartnerProfileViewModel>();
+            CreateMap<PartnerProfileViewModel, Partner>();
 
             CreateMap<PartnerProfileInputModel, PartnerProfileViewModel>();
             CreateMap<PartnerProfileViewModel, PartnerProfileInputModel>();
 
-            CreateMap<PartnerProfile, PartnerProfileInputModel>();
-            CreateMap<PartnerProfileInputModel, PartnerProfile>();
+            CreateMap<Partner, PartnerProfileInputModel>();
+            CreateMap<PartnerProfileInputModel, Partner>();
         }
     }
 }

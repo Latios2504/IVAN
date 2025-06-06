@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebAPI.Data.Entities
+namespace WebAPI.Data_old.Entities
 {
     //[Table("partnership_types")]
     public class PartnershipType

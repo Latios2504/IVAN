@@ -18,7 +18,7 @@ namespace WebAPI.Controllers
             _service = service;
         }
 
-        [HttpGet("list")]
+        [HttpPost("list")]
         public async Task<IActionResult> List([FromBody] OrganizationProfileFilterModel filter)
         {
             var result = await _service.ListOrganizationProfile(filter);

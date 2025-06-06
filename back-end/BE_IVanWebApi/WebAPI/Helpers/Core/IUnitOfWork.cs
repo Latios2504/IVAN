@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
-using WebAPI.Data.Entities;
+using WebAPI.Data_old.Entities;
 
 namespace WebAPI.Helpers.Core
 {

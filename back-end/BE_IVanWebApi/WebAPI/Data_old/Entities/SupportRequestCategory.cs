@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebAPI.Data.Entities
+namespace WebAPI.Data_old.Entities
 {
     //[Table("support_request_categories")]
     public class SupportRequestCategory
@@ -15,7 +15,7 @@ namespace WebAPI.Data.Entities
         public string? Description { get; set; }
         [MaxLength(50)]
         public string? Icon { get; set; }
-        [MaxLength (7)]
+        [MaxLength(7)]
         public string? Color { get; set; }
 
         public bool? IsActive { get; set; }

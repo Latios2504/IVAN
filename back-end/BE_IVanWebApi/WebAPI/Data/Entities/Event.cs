@@ -1,166 +1,123 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.Eventing.Reader;
+﻿using System;
+using System.Collections.Generic;
 
-namespace WebAPI.Data.Entities
+namespace WebAPI.Data.Entities;
+
+public partial class Event
 {
-    //[Table("events")]
-    public class Event
-    {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public int OrganizationId { get; set; }
+    public int EventId { get; set; }
 
-        public int? CategoryId { get; set; }
-        [Required]
-        [MaxLength(300)]
-        public string Title { get; set; } = null!;
-        [MaxLength(1000)]
-        public string? Description { get; set; }
-        [MaxLength(1000)]
-        public string? Objectives { get; set; }
-        [MaxLength(500)]
-        public string? Location { get; set; }
-        [MaxLength(1000)]
-        public string? Address { get; set; }
-        [MaxLength(100)]
-        public string? City { get; set; }
-        [MaxLength(100)]
-        public string? State { get; set; }
-        [MaxLength(20)]
-        public string? PostalCode { get; set; }
-        [MaxLength(100)]
-        public string? Country { get; set; }
+    public int OrganizationId { get; set; }
 
-        public decimal? Latitude { get; set; }
+    public string EventName { get; set; } = null!;
 
-        public decimal? Longitude { get; set; }
-        [Required]
-        public DateOnly StartDate { get; set; }
-        [Required]
-        public DateOnly EndDate { get; set; }
+    public int CategoryId { get; set; }
 
-        public TimeOnly? StartTime { get; set; }
+    public int StatusId { get; set; }
 
-        public TimeOnly? EndTime { get; set; }
+    public string? Description { get; set; }
 
-        public DateOnly? RegistrationStartDate { get; set; }
+    public string? ShortDescription { get; set; }
 
-        public DateOnly? RegistrationEndDate { get; set; }
+    public DateTime StartDate { get; set; }
 
-        public int? MaxVolunteers { get; set; }
+    public DateTime EndDate { get; set; }
 
-        public int? MinVolunteers { get; set; }
+    public DateTime? RegistrationStartDate { get; set; }
 
-        public int? CurrentVolunteers { get; set; }
-        [MaxLength(50)]
-        public string? Status { get; set; }
-        [MaxLength(50)]
-        public string? Visibility { get; set; }
-        [MaxLength(1000)]
-        public string? Requirements { get; set; }
-        [MaxLength(1000)]
-        public string? Benefits { get; set; }
-        [MaxLength(1000)]
-        public string? MaterialsProvided { get; set; }
-        [MaxLength(1000)]
-        public string? WhatToBring { get; set; }
+    public DateTime? RegistrationEndDate { get; set; }
 
-        public int? AgeRequirementMin { get; set; }
+    public string? Location { get; set; }
 
-        public int? AgeRequirementMax { get; set; }
-        [MaxLength(1000)]
-        public string? SkillRequirements { get; set; }
-        [MaxLength(1000)]
-        public string? PhysicalRequirements { get; set; }
+    public string? DetailedAddress { get; set; }
 
-        public bool? BackgroundCheckRequired { get; set; }
+    public string? WardCommune { get; set; }
 
-        public bool? TransportationProvided { get; set; }
+    public string? District { get; set; }
 
-        public bool? MealsProvided { get; set; }
+    public string? Province { get; set; }
 
-        public bool? AccommodationProvided { get; set; }
+    public decimal? Latitude { get; set; }
 
-        public bool? InsuranceProvided { get; set; }
+    public decimal? Longitude { get; set; }
 
-        public bool? CertificateProvided { get; set; }
-        [MaxLength(500)]
-        public string? CoverImageUrl { get; set; }
-        [MaxLength(1000)]
-        public string? GalleryImages { get; set; }
-        [MaxLength(255)]
-        public string? ContactEmail { get; set; }
-        [MaxLength(20)]
-        public string? ContactPhone { get; set; }
-        [MaxLength(200)]
-        public string? EmergencyContact { get; set; }
-        [MaxLength(1000)]
-        public string? Tags { get; set; }
+    public int? MaxVolunteers { get; set; }
 
-        public bool? IsRecurring { get; set; }
-        [MaxLength(100)]
-        public string? RecurringPattern { get; set; }
+    public int? MinVolunteers { get; set; }
 
-        public int? ParentEventId { get; set; }
-        [MaxLength(1000)]
-        public string? EstimatedImpact { get; set; }
+    public int? CurrentVolunteers { get; set; }
 
-        public decimal? Budget { get; set; }
+    public string? RequiredSkills { get; set; }
 
-        public decimal? FundraisingGoal { get; set; }
+    public string? AgeRequirement { get; set; }
 
-        public decimal? CurrentFundsRaised { get; set; }
-        [MaxLength(50)]
-        public string? ApprovalStatus { get; set; }
+    public string? GenderRequirement { get; set; }
 
-        public int? ApprovedBy { get; set; }
+    public string? Requirements { get; set; }
 
-        public DateTime? ApprovedAt { get; set; }
-        [MaxLength(1000)]
-        public string? RejectionReason { get; set; }
-        [Required]
-        public int CreatedBy { get; set; }
+    public string? Benefits { get; set; }
 
-        public DateTime? CreatedAt { get; set; }
+    public string? ContactPerson { get; set; }
 
-        public DateTime? UpdatedAt { get; set; }
+    public string? ContactPhone { get; set; }
 
+    public string? ContactEmail { get; set; }
 
-        public virtual User? ApprovedByNavigation { get; set; }
+    public string? BannerImageUrl { get; set; }
 
-        //public virtual EventCategory? Category { get; set; }
+    public string? GalleryImages { get; set; }
 
-        //public virtual ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+    public bool? IsFeatured { get; set; }
 
-        //public virtual ICollection<CoordinatorTask> CoordinatorTasks { get; set; } = new List<CoordinatorTask>();
+    public bool? IsUrgent { get; set; }
 
-        //public virtual User CreatedByNavigation { get; set; } = null!;
-        //public virtual ICollection<EventReport> EventReports { get; set; } = new List<EventReport>();
+    public int? Priority { get; set; }
 
-        //public virtual ICollection<EventSchedule> EventSchedules { get; set; } = new List<EventSchedule>();
+    public int? ViewCount { get; set; }
 
-        //public virtual ICollection<EventSkillRequirement> EventSkillRequirements { get; set; } = new List<EventSkillRequirement>();
+    public int? RegistrationCount { get; set; }
 
-        //public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public int? CompletedVolunteers { get; set; }
 
-        //public virtual ICollection<Event> InverseParentEvent { get; set; } = new List<Event>();
+    public decimal? Rating { get; set; }
 
-        //public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public int? RatingCount { get; set; }
 
-        //public virtual ICollection<OnsiteTask> OnsiteTasks { get; set; } = new List<OnsiteTask>();
+    public decimal? Budget { get; set; }
 
-        //public virtual OrganizationProfile Organization { get; set; } = null!;
+    public string? Currency { get; set; }
 
-        //public virtual Event? ParentEvent { get; set; }
+    public bool? IsActive { get; set; }
 
-        //public virtual ICollection<PartnerCollaboration> PartnerCollaborations { get; set; } = new List<PartnerCollaboration>();
+    public DateTime? CreatedAt { get; set; }
 
-        //public virtual ICollection<SupportRequest> SupportRequests { get; set; } = new List<SupportRequest>();
+    public DateTime? UpdatedAt { get; set; }
 
-        //public virtual ICollection<VolunteerRegistration> VolunteerRegistrations { get; set; } = new List<VolunteerRegistration>();
+    public int? CreatedBy { get; set; }
 
-        //public virtual ICollection<EventTag> TagsNavigation { get; set; } = new List<EventTag>();
-    }
+    public int? UpdatedBy { get; set; }
+
+    public virtual EventCategory Category { get; set; } = null!;
+
+    public virtual ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+
+    public virtual ICollection<CoordinatorSchedule> CoordinatorSchedules { get; set; } = new List<CoordinatorSchedule>();
+
+    public virtual ICollection<CoordinatorTask> CoordinatorTasks { get; set; } = new List<CoordinatorTask>();
+
+    public virtual User? CreatedByNavigation { get; set; }
+
+    public virtual ICollection<EventRegistration> EventRegistrations { get; set; } = new List<EventRegistration>();
+
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
+    public virtual ICollection<OnSiteTask> OnSiteTasks { get; set; } = new List<OnSiteTask>();
+
+    public virtual Organization Organization { get; set; } = null!;
+
+    public virtual EventStatus Status { get; set; } = null!;
+
+    public virtual User? UpdatedByNavigation { get; set; }
+
+    public virtual ICollection<VolunteerSchedule> VolunteerSchedules { get; set; } = new List<VolunteerSchedule>();
 }

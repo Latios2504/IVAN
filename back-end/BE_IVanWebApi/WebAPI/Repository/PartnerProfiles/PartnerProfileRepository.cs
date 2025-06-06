@@ -28,25 +28,27 @@ namespace WebAPI.Repository.PartnerProfiles
             _context = context;
         }
 
-        public async Task<bool> AddPartnerProfile(PartnerProfile partnerProfile)
+        public async Task<bool> AddPartnerProfile(Partner partnerProfile)
         {
-            await _context.PartnerProfiles.AddAsync(partnerProfile);
+            await _context.Partners.AddAsync(partnerProfile);
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> UpdatePartnerProfile(PartnerProfile partnerProfile)
+        public async Task<bool> UpdatePartnerProfile(Partner partnerProfile)
         {
             _context.ChangeTracker.Clear();//
-            _context.PartnerProfiles.Attach(partnerProfile);
+            _context.Partners.Attach(partnerProfile);
             _context.Entry(partnerProfile).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<IEnumerable<PartnerProfile>> ListPartnerProfile(PartnerProfileFilterModel filter)
+        public async Task<IEnumerable<Partner>> ListPartnerProfile(PartnerProfileFilterModel filter)
         {
-            var query = _context.PartnerProfiles
+            var query = _context.Partners
                 .Include(x => x.User)
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.Industry)
                 .AsQueryable();
 
             //return query.ToList();
@@ -56,11 +58,13 @@ namespace WebAPI.Repository.PartnerProfiles
                 .ToListAsync();
         }
 
-        public async Task<PartnerProfile> GetPartnerProfileById(int id)
+        public async Task<Partner> GetPartnerProfileById(int id)
         {
-            return await _context.PartnerProfiles
+            return await _context.Partners
                 .Include(x => x.User)
-                .SingleOrDefaultAsync(x => x.Id == id);
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.Industry)
+                .SingleOrDefaultAsync(x => x.PartnerId == id);
         }
     }
 }

@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Data;
 using WebAPI.Helpers.AutoMapper;
 using WebAPI.Helpers.Core;
 using WebAPI.Repository.OrganizationProfiles;
 using WebAPI.Service.OrganizationProfiles;
 using WebAPI.Repository.PartnerProfiles;
 using WebAPI.Service.PartnerProfiles;
+using WebAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

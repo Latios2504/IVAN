@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebAPI.Data.Entities
+namespace WebAPI.Data_old.Entities
 {
     //[Table("organization_profiles")]
     public class OrganizationProfile

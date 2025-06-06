@@ -10,9 +10,9 @@ namespace WebAPI.Repository.PartnerProfiles
         //IEnumerable<OrganizationProfile> ListOrganizationProfile();
         //OrganizationProfile GetOrganizationProfile(int Id);
         
-        Task<bool> AddPartnerProfile(PartnerProfile partnerProfile);
-        Task<bool> UpdatePartnerProfile(PartnerProfile partnerProfile);
-        Task<IEnumerable<PartnerProfile>> ListPartnerProfile(PartnerProfileFilterModel filter);
-        Task<PartnerProfile> GetPartnerProfileById(int id);
+        Task<bool> AddPartnerProfile(Partner partnerProfile);
+        Task<bool> UpdatePartnerProfile(Partner partnerProfile);
+        Task<IEnumerable<Partner>> ListPartnerProfile(PartnerProfileFilterModel filter);
+        Task<Partner> GetPartnerProfileById(int id);
     }
 }
