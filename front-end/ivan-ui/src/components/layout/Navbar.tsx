@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,17 +40,23 @@ export default function Navbar() {
               className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
             >
               Tổ chức
-            </Link>
+            </Link>{" "}
             <Link
               to="/events"
               className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
             >
               Sự kiện
             </Link>
-
-            {/* Auth-dependent buttons */}
+            <Link
+              to="/partners"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+            >
+              Đối tác
+            </Link>
+            {/* Auth-dependent buttons */}{" "}
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
+                <NotificationBell />
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   Xin chào, {user?.fullName}
                 </span>

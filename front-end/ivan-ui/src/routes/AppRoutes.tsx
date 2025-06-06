@@ -19,9 +19,42 @@ const OrganizationsPage = lazy(
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const EventsPage = lazy(() => import("@/pages/events/EventsPage"));
 const AdminPage = lazy(() => import("@/pages/admin/AdminPage"));
-const CompanyPage = lazy(() => import("@/pages/company/CompanyPage"));
+const PartnersPage = lazy(() => import("@/pages/partners/PartnersPage"));
 const OrganizationManagementPage = lazy(
   () => import("@/pages/organization/OrganizationManagementPage")
+);
+const EventManagementPage = lazy(
+  () => import("@/pages/organization/EventManagementPage")
+);
+const VolunteerManagementPage = lazy(
+  () => import("@/pages/organization/VolunteerManagementPage")
+);
+const CertificateManagementPage = lazy(
+  () => import("@/pages/organization/CertificateManagementPage")
+);
+const OrganizationReportsPage = lazy(
+  () => import("@/pages/organization/OrganizationReportsPage")
+);
+const OrganizationCoordinatorRequestPage = lazy(
+  () => import("@/pages/organization/OrganizationCoordinatorRequestPage")
+);
+const OrganizationResourcesPage = lazy(
+  () => import("@/pages/organization/OrganizationResourcesPage")
+);
+const OrganizationAnalyticsPage = lazy(
+  () => import("@/pages/organization/OrganizationAnalyticsPage")
+);
+const CoordinatorSchedulePage = lazy(
+  () => import("@/pages/organization/CoordinatorSchedulePage")
+);
+const CoordinatorTaskManagementPage = lazy(
+  () => import("@/pages/organization/CoordinatorTaskManagementPage")
+);
+const PartnerCollaborationPage = lazy(
+  () => import("@/pages/organization/PartnerCollaborationPage")
+);
+const NotificationManagementPage = lazy(
+  () => import("@/pages/organization/NotificationManagementPage")
 );
 
 // Loading component
@@ -43,16 +76,9 @@ export default function AppRoutes() {
         <Route path="/password-reset" element={<PasswordResetPage />} />{" "}
         <Route path="/volunteers" element={<VolunteersPage />} />
         <Route path="/organizations" element={<OrganizationsPage />} />
-        <Route path="/events" element={<EventsPage />} />{" "}
+        <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/events" element={<EventsPage />} />
         {/* Protected routes */}
-        <Route
-          path="/company"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
-              <CompanyPage />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/dashboard"
           element={
@@ -76,12 +102,108 @@ export default function AppRoutes() {
               <AdminPage />
             </ProtectedRoute>
           }
-        />
+        />{" "}
         <Route
           path="/organization/management"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
               <OrganizationManagementPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/organization/events"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <EventManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/volunteers"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <VolunteerManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/certificates"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <CertificateManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/reports"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <OrganizationReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/coordinators"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <OrganizationCoordinatorRequestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/resources"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <OrganizationResourcesPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/organization/analytics"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <OrganizationAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/organization/coordinator-schedule"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <CoordinatorSchedulePage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/organization/coordinator-tasks"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <CoordinatorTaskManagementPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/organization/partners"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <PartnerCollaborationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/notifications"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <NotificationManagementPage />
             </ProtectedRoute>
           }
         />

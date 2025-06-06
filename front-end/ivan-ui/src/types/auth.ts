@@ -1,4 +1,5 @@
 import type {
+  UserProfile,
   VolunteerProfile,
   OrganizationProfile,
   CoordinatorProfile,
@@ -24,21 +25,30 @@ export const PUBLIC_REGISTRATION_ROLES = [
 
 export type PublicRegistrationRole = (typeof PUBLIC_REGISTRATION_ROLES)[number];
 
-export interface User {
-  id: number; // Match database INT
+// API User type matching backend DTO
+export interface ApiUser {
+  userId: number;
   email: string;
-  fullName: string;
-  role: UserRole;
+  roleName: string;
   isActive: boolean;
-  isEmailVerified: boolean; // Add field from database
+  isEmailVerified: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+  profile?: UserProfile;
+}
+
+// Frontend User type with computed properties
+export interface User extends Omit<ApiUser, "userId" | "roleName"> {
+  id: number; // Mapped from userId for frontend consistency
+  fullName: string; // Computed from profile data
+  role: UserRole; // Typed enum instead of string
   profile?:
     | VolunteerProfile
     | OrganizationProfile
     | CoordinatorProfile
     | PartnerProfile;
   organizationId?: number; // For coordinators - liên kết với organization
-  createdAt: string;
-  updatedAt: string;
+  updatedAt?: string; // Optional field
 }
 
 export interface AuthState {
@@ -47,17 +57,36 @@ export interface AuthState {
   isLoading: boolean;
 }
 
-export interface LoginCredentials {
+// Request types matching backend DTOs
+export interface LoginRequest {
   email: string;
   password: string;
 }
 
-export interface RegisterData {
-  // Basic Info
+// Legacy interface name for backward compatibility
+export type LoginCredentials = LoginRequest;
+
+// Backend register request matching DTO
+export interface RegisterRequest {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
+  role: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+}
+
+// Response types matching backend
+export interface LoginResponse {
+  user: ApiUser;
+  token: string;
+  refreshToken: string;
+  expiresAt: string;
+}
+
+// Legacy interface with extended fields (for forms)
+export interface RegisterData extends RegisterRequest {
   role: PublicRegistrationRole; // Only allow public registration roles
 
   // Contact Info

@@ -1,10 +1,4 @@
-import {
-  useState,
-  useEffect,
-  createContext,
-  useContext,
-  type ReactNode,
-} from "react";
+import { useState, useEffect, createContext, type ReactNode } from "react";
 import type {
   User,
   AuthState,
@@ -21,15 +15,9 @@ interface AuthContextType extends AuthState {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -80,7 +68,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log("Login credentials:", credentials);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock user data based on email
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock user data based on email
       let role: "volunteer" | "organization" | "admin";
       let profile: VolunteerProfile | OrganizationProfile | undefined =
         undefined;
@@ -90,89 +80,63 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // No profile for admin users      } else if (credentials.email.includes("org")) {
         role = "organization";
         profile = {
-          profileId: "org-1",
-          userId: "1",
+          profileId: 1,
           firstName: "Tổ chức",
           lastName: "ABC",
           fullName: "Tổ chức ABC",
-          phoneNumber: "0123456789",
+          bio: "Tổ chức hoạt động trong lĩnh vực giáo dục và xã hội",
+          isProfileComplete: true,
           location: {
-            addressLine1: "123 Đường ABC, Quận 1, TP.HCM",
+            addressLine1: "123 Đường ABC, Quận 1",
             city: "TP.HCM",
             province: "TP.HCM",
-            country: "Vietnam",
-            postalCode: "70000",
+            country: "Việt Nam",
           },
-          isVerified: true,
-          avatarUrl: null,
+          phoneNumber: "0123456789",
           organizationName: "Tổ chức ABC",
           organizationType: "NGO",
-          description: "Tổ chức hoạt động trong lĩnh vực giáo dục và xã hội",
+          organizationDescription:
+            "Tổ chức hoạt động trong lĩnh vực giáo dục và xã hội",
           website: "https://org-abc.com",
-          focusAreas: ["Education", "Social"],
-          organizationSize: "medium",
-          foundedYear: 2020,
-          taxId: "0123456789",
-          registrationNumber: "REG123456",
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          contactPersonName: "Nguyễn Văn B",
+          contactPersonTitle: "Giám đốc",
+          focusAreas: ["Giáo dục", "Xã hội"],
+          isVerified: true,
+          verificationDocuments: [],
+          isPublic: true,
+          allowDirectContact: true,
+          autoApproveVolunteers: false,
         } as OrganizationProfile;
       } else {
         role = "volunteer";
         profile = {
-          profileId: "vol-1",
-          userId: "1",
+          profileId: 2,
           firstName: "Nguyễn",
           lastName: "Văn A",
           fullName: "Nguyễn Văn A",
-          phoneNumber: "0123456789",
+          bio: "Tôi là một tình nguyện viên nhiệt tình với niềm đam mê giúp đỡ cộng đồng.",
+          isProfileComplete: true,
           location: {
-            addressLine1: "456 Đường XYZ",
             city: "TP.HCM",
             province: "TP.HCM",
-            country: "Vietnam",
-            postalCode: "70000",
+            country: "Việt Nam",
           },
-          isVerified: false,
-          avatarUrl: null,
-          bio: "Tôi là một tình nguyện viên nhiệt tình với niềm đam mê giúp đỡ cộng đồng.",
-          skills: ["Giảng dạy", "Tiếng Anh", "Tổ chức sự kiện"],
-          interests: ["Giáo dục", "Môi trường", "Chăm sóc trẻ em"],
-          availability: ["weekend", "evening"],
-          totalVolunteerHours: 0,
-          volunteerRank: "Bronze",
+          phoneNumber: "0123456789",
           dateOfBirth: "1995-01-01",
-          gender: "other",
-          occupation: "",
-          company: "",
-          education: "",
-          languages: ["Vietnamese", "English"],
-          emergencyContact: {
-            name: "Nguyễn Văn B",
-            relationship: "Anh/Chị",
-            phoneNumber: "0987654321",
-          },
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          preferences: {
-            emailNotifications: true,
-            smsNotifications: false,
-            pushNotifications: true,
-            weeklyDigest: true,
-            eventReminders: true,
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          occupation: "Sinh viên",
+          emergencyContactName: "Nguyễn Văn B",
+          emergencyContactPhone: "0987654321",
+          emergencyContactRelationship: "Anh/Chị",
+          availabilityNotes: "Cuối tuần và tối thứ 2-6",
+          preferredVolunteerTypes: "Giáo dục, Môi trường, Chăm sóc trẻ em",
+          totalVolunteerHours: 120,
+          volunteerRank: "Tình nguyện viên tích cực",
+          joinedDate: new Date().toISOString(),
+          willingToTravel: true,
+          hasTransportation: false,
+          preferredWorkingHours: "Tối và cuối tuần",
+          languagesSpoken: "Tiếng Việt, Tiếng Anh",
+          skills: ["Giảng dạy", "Tiếng Anh", "Tổ chức sự kiện"],
         } as VolunteerProfile;
       }
       const mockUser: User = {
@@ -189,7 +153,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isEmailVerified: true,
         profile,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       };
 
       localStorage.setItem("user", JSON.stringify(mockUser));
@@ -204,6 +167,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       throw error;
     }
   };
+
   const register = async (data: RegisterData): Promise<void> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
@@ -213,98 +177,65 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
+
       // Auto-login after successful registration
       const fullName = `${data.firstName} ${data.lastName}`.trim();
       let profile: VolunteerProfile | OrganizationProfile | undefined;
       if (data.role === "organization") {
         profile = {
-          profileId: Date.now().toString(),
-          userId: Date.now().toString(),
-          firstName: data.firstName || "Tổ chức",
-          lastName: data.lastName || data.organizationName || "Mới",
-          fullName:
-            data.organizationName ||
-            `${data.firstName} ${data.lastName}`.trim(),
-          phoneNumber: data.phoneNumber || "",
+          profileId: Date.now(),
+          firstName: data.firstName,
+          lastName: data.lastName,
+          fullName: fullName,
+          bio: data.organizationDescription || "Tổ chức mới tham gia",
+          isProfileComplete: false,
           location: {
-            addressLine1: data.address || "",
-            city: data.city || "",
-            province: data.state || "",
-            country: data.country || "Vietnam",
-            postalCode: data.postalCode || "",
+            addressLine1: data.address,
+            city: data.city,
+            province: data.state,
+            country: data.country || "Việt Nam",
+            postalCode: data.postalCode,
           },
-          isVerified: false,
-          avatarUrl: null,
+          phoneNumber: data.phoneNumber,
           organizationName: data.organizationName || fullName,
-          organizationType: "NGO",
-          description: data.organizationDescription || "Tổ chức mới tham gia",
-          website: data.website || "",
-          focusAreas: [],
-          organizationSize: "small",
-          foundedYear: new Date().getFullYear(),
-          taxId: "",
-          registrationNumber: "",
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          organizationType: data.organizationType || "NGO",
+          organizationDescription: data.organizationDescription,
+          website: data.website,
+          contactPersonName: fullName,
+          contactPersonTitle: "Đại diện",
+          focusAreas: data.focusAreas || [],
+          isVerified: false,
+          verificationDocuments: [],
+          isPublic: true,
+          allowDirectContact: true,
+          autoApproveVolunteers: false,
         } as OrganizationProfile;
       } else if (data.role === "volunteer") {
         profile = {
-          profileId: Date.now().toString(),
-          userId: Date.now().toString(),
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
+          profileId: Date.now(),
+          firstName: data.firstName,
+          lastName: data.lastName,
           fullName: fullName,
-          phoneNumber: data.phoneNumber || "",
-          location: {
-            addressLine1: data.address || "",
-            city: data.city || "",
-            province: data.state || "",
-            country: data.country || "Vietnam",
-            postalCode: data.postalCode || "",
-          },
-          isVerified: false,
-          avatarUrl: null,
           bio: "",
-          skills: data.skills || [],
-          interests: data.interests || [],
-          availability: data.availability || [],
+          isProfileComplete: false,
+          location: {
+            city: data.city,
+            province: data.state,
+            country: data.country || "Việt Nam",
+          },
+          phoneNumber: data.phoneNumber,
+          dateOfBirth: data.dateOfBirth,
+          emergencyContactName: data.emergencyContactName,
+          emergencyContactPhone: data.emergencyContactPhone,
+          emergencyContactRelationship: "Người liên hệ khẩn cấp",
+          availabilityNotes: data.availability?.join(", "),
+          preferredVolunteerTypes: data.interests?.join(", "),
           totalVolunteerHours: 0,
-          volunteerRank: "Bronze",
-          dateOfBirth: data.dateOfBirth || "",
-          gender: "other",
-          occupation: "",
-          company: "",
-          education: "",
-          languages: ["Vietnamese"],
-          emergencyContact:
-            data.emergencyContactName && data.emergencyContactPhone
-              ? {
-                  name: data.emergencyContactName,
-                  relationship: "Emergency Contact",
-                  phoneNumber: data.emergencyContactPhone,
-                }
-              : undefined,
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          preferences: {
-            emailNotifications: true,
-            smsNotifications: false,
-            pushNotifications: true,
-            weeklyDigest: true,
-            eventReminders: true,
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          volunteerRank: "Người mới",
+          joinedDate: new Date().toISOString(),
+          willingToTravel: false,
+          hasTransportation: false,
+          skills: data.skills || [],
         } as VolunteerProfile;
       }
       const mockUser: User = {
@@ -316,7 +247,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isEmailVerified: false, // New registrations need email verification
         profile,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       };
 
       localStorage.setItem("user", JSON.stringify(mockUser));
@@ -340,6 +270,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       isLoading: false,
     });
   };
+
   const updateUser = (userData: Partial<User>) => {
     if (authState.user) {
       const updatedUser = { ...authState.user, ...userData };

@@ -320,8 +320,7 @@ export default function VolunteerManagementPage() {
                                 ].label
                               }
                             </Badge>
-                          </div>
-
+                          </div>{" "}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
                             <div className="flex items-center gap-1">
                               <Phone className="h-3 w-3" />
@@ -343,7 +342,6 @@ export default function VolunteerManagementPage() {
                               {volunteer.totalHours} giờ tình nguyện
                             </div>
                           </div>
-
                           <div className="flex flex-wrap gap-2 mb-3">
                             {volunteer.skills.map((skill, index) => (
                               <Badge key={index} variant="secondary">
@@ -351,7 +349,6 @@ export default function VolunteerManagementPage() {
                               </Badge>
                             ))}
                           </div>
-
                           <div className="flex items-center gap-4 text-sm">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />

@@ -1,10 +1,4 @@
-import {
-  useState,
-  useEffect,
-  createContext,
-  useContext,
-  type ReactNode,
-} from "react";
+import { useState, useEffect, createContext, type ReactNode } from "react";
 import type {
   User,
   AuthState,
@@ -21,15 +15,9 @@ interface AuthContextType extends AuthState {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -80,7 +68,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log("Login credentials:", credentials);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock user data based on email
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock user data based on email
       let role: "volunteer" | "organization" | "admin";
       let profile: VolunteerProfile | OrganizationProfile | undefined =
         undefined;
@@ -175,6 +165,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           updatedAt: new Date().toISOString(),
         } as VolunteerProfile;
       }
+
       const mockUser: User = {
         id: 1,
         email: credentials.email,
@@ -204,6 +195,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       throw error;
     }
   };
+
   const register = async (data: RegisterData): Promise<void> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
@@ -213,75 +205,58 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
+
       // Auto-login after successful registration
       const fullName = `${data.firstName} ${data.lastName}`.trim();
       let profile: VolunteerProfile | OrganizationProfile | undefined;
+
       if (data.role === "organization") {
         profile = {
-          profileId: Date.now().toString(),
+          id: Date.now().toString(),
           userId: Date.now().toString(),
-          firstName: data.firstName || "Tổ chức",
-          lastName: data.lastName || data.organizationName || "Mới",
-          fullName:
-            data.organizationName ||
-            `${data.firstName} ${data.lastName}`.trim(),
-          phoneNumber: data.phoneNumber || "",
-          location: {
-            addressLine1: data.address || "",
-            city: data.city || "",
-            province: data.state || "",
-            country: data.country || "Vietnam",
-            postalCode: data.postalCode || "",
-          },
-          isVerified: false,
-          avatarUrl: null,
           organizationName: data.organizationName || fullName,
-          organizationType: "NGO",
           description: data.organizationDescription || "Tổ chức mới tham gia",
-          website: data.website || "",
-          focusAreas: [],
-          organizationSize: "small",
-          foundedYear: new Date().getFullYear(),
-          taxId: "",
-          registrationNumber: "",
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
+          website: data.website,
+          industry: "Social",
+          size: "small" as const,
+          location: {
+            address: data.address || "",
+            city: data.city || "",
+            state: data.state || "",
+            country: data.country || "Vietnam",
+            zipCode: data.postalCode,
+          },
+          contactInfo: {
+            phoneNumber: data.phoneNumber,
+            email: data.email,
+          },
+          verification: {
+            isVerified: false,
+            documents: [],
+          },
+          settings: {
+            isPublic: true,
+            allowDirectContact: true,
+            autoApproveVolunteers: false,
           },
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         } as OrganizationProfile;
       } else if (data.role === "volunteer") {
         profile = {
-          profileId: Date.now().toString(),
+          id: Date.now().toString(),
           userId: Date.now().toString(),
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          fullName: fullName,
-          phoneNumber: data.phoneNumber || "",
-          location: {
-            addressLine1: data.address || "",
-            city: data.city || "",
-            province: data.state || "",
-            country: data.country || "Vietnam",
-            postalCode: data.postalCode || "",
-          },
-          isVerified: false,
-          avatarUrl: null,
           bio: "",
           skills: data.skills || [],
-          interests: data.interests || [],
+          experience: "",
           availability: data.availability || [],
-          totalVolunteerHours: 0,
-          volunteerRank: "Bronze",
-          dateOfBirth: data.dateOfBirth || "",
-          gender: "other",
-          occupation: "",
-          company: "",
-          education: "",
-          languages: ["Vietnamese"],
+          location: {
+            city: data.city || "",
+            state: data.state || "",
+            country: data.country || "Vietnam",
+          },
+          phoneNumber: data.phoneNumber,
+          dateOfBirth: data.dateOfBirth,
           emergencyContact:
             data.emergencyContactName && data.emergencyContactPhone
               ? {
@@ -290,23 +265,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                   phoneNumber: data.emergencyContactPhone,
                 }
               : undefined,
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
+          socialMedia: {},
           preferences: {
             emailNotifications: true,
             smsNotifications: false,
-            pushNotifications: true,
-            weeklyDigest: true,
-            eventReminders: true,
+            volunteerTypes: data.interests || [],
           },
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         } as VolunteerProfile;
       }
+
       const mockUser: User = {
         id: Date.now(),
         email: data.email,
@@ -340,6 +309,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       isLoading: false,
     });
   };
+
   const updateUser = (userData: Partial<User>) => {
     if (authState.user) {
       const updatedUser = { ...authState.user, ...userData };

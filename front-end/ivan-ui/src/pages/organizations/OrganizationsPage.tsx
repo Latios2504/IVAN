@@ -18,8 +18,8 @@ const mockOrganizations: (OrganizationProfile & {
   user: { fullName: string; email: string };
 })[] = [
   {
-    id: "1",
-    userId: "1",
+    id: 1,
+    userId: 1,
     user: { fullName: "Quỹ Giáo dục Xanh", email: "contact@greenedu.org" },
     organizationName: "Quỹ Giáo dục Xanh",
     description:
@@ -52,8 +52,8 @@ const mockOrganizations: (OrganizationProfile & {
     updatedAt: "2024-01-15T00:00:00Z",
   },
   {
-    id: "2",
-    userId: "2",
+    id: 2,
+    userId: 2,
     user: {
       fullName: "Trung tâm Hỗ trợ Người cao tuổi",
       email: "info@eldercare.vn",
@@ -89,8 +89,8 @@ const mockOrganizations: (OrganizationProfile & {
     updatedAt: "2024-02-01T00:00:00Z",
   },
   {
-    id: "3",
-    userId: "3",
+    id: 3,
+    userId: 3,
     user: {
       fullName: "Tổ chức Y tế Cộng đồng",
       email: "hello@communityhealth.org",

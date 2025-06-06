@@ -103,8 +103,9 @@ export default function VolunteerDashboard() {
               <Badge variant="secondary">Cộng đồng</Badge>
             </div>
             <div className="flex space-x-2">
+              {" "}
               <Button asChild className="flex-1">
-                <Link to="/company">Xem trang công ty</Link>
+                <Link to="/organizations">Xem trang tổ chức</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link to="/schedule">Lịch trình</Link>

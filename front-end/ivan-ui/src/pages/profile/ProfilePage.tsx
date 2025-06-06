@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -21,7 +21,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserRole } from "@/types/auth";
+import { UserRole, type User } from "@/types/auth";
+import type {
+  UserProfile,
+  VolunteerProfile,
+  OrganizationProfile,
+} from "@/types/profile";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -34,31 +39,17 @@ export default function ProfilePage() {
       </div>
     );
   }
-
   const getUserDisplayName = () => {
-    if (user.role === UserRole.VOLUNTEER) {
-      return `${user.profile?.firstName} ${user.profile?.lastName}`;
-    } else if (user.role === UserRole.ORGANIZATION) {
-      return user.profile?.name;
-    }
-    return user.email;
+    return user.fullName;
   };
 
   const getUserInitials = () => {
-    if (user.role === UserRole.VOLUNTEER) {
-      const firstName = user.profile?.firstName || "";
-      const lastName = user.profile?.lastName || "";
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    } else if (user.role === UserRole.ORGANIZATION) {
-      const name = user.profile?.name || "";
-      return name
-        .split(" ")
-        .map((n: string) => n.charAt(0))
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    return user.email.charAt(0).toUpperCase();
+    return user.fullName
+      .split(" ")
+      .map((n: string) => n.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -68,8 +59,8 @@ export default function ProfilePage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
+              {" "}
               <Avatar className="h-20 w-20">
-                <AvatarImage src={user.profile?.avatar} />
                 <AvatarFallback className="text-lg">
                   {getUserInitials()}
                 </AvatarFallback>
@@ -84,9 +75,11 @@ export default function ProfilePage() {
                       : user.role === UserRole.ORGANIZATION
                       ? "Tổ chức"
                       : "Quản trị viên"}
-                  </Badge>
+                  </Badge>{" "}
                   {user.role === UserRole.ORGANIZATION &&
-                    user.profile?.verified && (
+                    user.profile &&
+                    "isVerified" in user.profile &&
+                    user.profile.isVerified && (
                       <Badge className="bg-green-100 text-green-800">
                         Đã xác thực
                       </Badge>
@@ -127,9 +120,18 @@ function VolunteerProfile({
   user,
   isEditing,
 }: {
-  user: any;
+  user: User;
   isEditing: boolean;
 }) {
+  const isVolunteerProfile = (
+    profile: UserProfile | undefined
+  ): profile is VolunteerProfile => {
+    return profile != null && "skills" in profile;
+  };
+
+  const volunteerProfile = isVolunteerProfile(user.profile)
+    ? user.profile
+    : null;
   return (
     <Tabs defaultValue="personal" className="space-y-4">
       <TabsList>
@@ -148,6 +150,7 @@ function VolunteerProfile({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {" "}
               <div className="space-y-2">
                 <Label htmlFor="firstName">Họ</Label>
                 <Input
@@ -168,7 +171,7 @@ function VolunteerProfile({
                 <Label htmlFor="phone">Số điện thoại</Label>
                 <Input
                   id="phone"
-                  defaultValue={user.profile?.phone}
+                  defaultValue={user.profile?.phoneNumber}
                   disabled={!isEditing}
                 />
               </div>
@@ -186,7 +189,7 @@ function VolunteerProfile({
               <Label htmlFor="address">Địa chỉ</Label>
               <Input
                 id="address"
-                defaultValue={user.profile?.address}
+                defaultValue={user.profile?.location?.addressLine1}
                 disabled={!isEditing}
               />
             </div>
@@ -213,33 +216,35 @@ function VolunteerProfile({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {" "}
             <div className="space-y-2">
               <Label>Kỹ năng</Label>
               <div className="flex flex-wrap gap-2">
-                {user.profile?.skills?.map((skill: string, index: number) => (
-                  <Badge key={index} variant="secondary">
-                    {skill}
-                  </Badge>
-                ))}
-                {(!user.profile?.skills ||
-                  user.profile.skills.length === 0) && (
+                {volunteerProfile?.skills?.map(
+                  (skill: string, index: number) => (
+                    <Badge key={index} variant="secondary">
+                      {skill}
+                    </Badge>
+                  )
+                )}
+                {(!volunteerProfile?.skills ||
+                  volunteerProfile.skills.length === 0) && (
                   <p className="text-gray-500">Chưa có kỹ năng nào</p>
                 )}
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Sở thích</Label>
+              <Label>Sở thích/Lĩnh vực quan tâm</Label>
               <div className="flex flex-wrap gap-2">
-                {user.profile?.interests?.map(
-                  (interest: string, index: number) => (
+                {volunteerProfile?.preferredVolunteerTypes
+                  ?.split(", ")
+                  .map((interest: string, index: number) => (
                     <Badge key={index} variant="outline">
                       {interest}
                     </Badge>
-                  )
-                )}
-                {(!user.profile?.interests ||
-                  user.profile.interests.length === 0) && (
-                  <p className="text-gray-500">Chưa có sở thích nào</p>
+                  ))}
+                {!volunteerProfile?.preferredVolunteerTypes && (
+                  <p className="text-gray-500">Chưa có lĩnh vực quan tâm nào</p>
                 )}
               </div>
             </div>
@@ -306,9 +311,16 @@ function OrganizationProfile({
   user,
   isEditing,
 }: {
-  user: any;
+  user: User;
   isEditing: boolean;
 }) {
+  const isOrgProfile = (
+    profile: UserProfile | undefined
+  ): profile is OrganizationProfile => {
+    return profile != null && "organizationName" in profile;
+  };
+
+  const orgProfile = isOrgProfile(user.profile) ? user.profile : null;
   return (
     <Tabs defaultValue="info" className="space-y-4">
       <TabsList>
@@ -327,11 +339,12 @@ function OrganizationProfile({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {" "}
               <div className="space-y-2">
                 <Label htmlFor="orgName">Tên tổ chức</Label>
                 <Input
                   id="orgName"
-                  defaultValue={user.profile?.name}
+                  defaultValue={orgProfile?.organizationName}
                   disabled={!isEditing}
                 />
               </div>
@@ -340,16 +353,18 @@ function OrganizationProfile({
                 <Select disabled={!isEditing}>
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={user.profile?.type || "Chọn loại tổ chức"}
+                      placeholder={
+                        orgProfile?.organizationType || "Chọn loại tổ chức"
+                      }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ngo">Tổ chức phi chính phủ</SelectItem>
-                    <SelectItem value="charity">Tổ chức từ thiện</SelectItem>
-                    <SelectItem value="government">
+                    <SelectItem value="NGO">Tổ chức phi chính phủ</SelectItem>
+                    <SelectItem value="Non-profit">Tổ chức từ thiện</SelectItem>
+                    <SelectItem value="Government">
                       Cơ quan chính phủ
                     </SelectItem>
-                    <SelectItem value="educational">
+                    <SelectItem value="Educational">
                       Tổ chức giáo dục
                     </SelectItem>
                   </SelectContent>
@@ -359,7 +374,7 @@ function OrganizationProfile({
                 <Label htmlFor="orgPhone">Số điện thoại</Label>
                 <Input
                   id="orgPhone"
-                  defaultValue={user.profile?.contactInfo?.phone}
+                  defaultValue={orgProfile?.phoneNumber}
                   disabled={!isEditing}
                 />
               </div>
@@ -367,16 +382,16 @@ function OrganizationProfile({
                 <Label htmlFor="orgWebsite">Website</Label>
                 <Input
                   id="orgWebsite"
-                  defaultValue={user.profile?.contactInfo?.website}
+                  defaultValue={orgProfile?.website}
                   disabled={!isEditing}
                 />
               </div>
-            </div>
+            </div>{" "}
             <div className="space-y-2">
               <Label htmlFor="orgAddress">Địa chỉ</Label>
               <Input
                 id="orgAddress"
-                defaultValue={user.profile?.contactInfo?.address}
+                defaultValue={orgProfile?.location?.addressLine1}
                 disabled={!isEditing}
               />
             </div>
@@ -384,7 +399,7 @@ function OrganizationProfile({
               <Label htmlFor="orgDescription">Mô tả tổ chức</Label>
               <Textarea
                 id="orgDescription"
-                defaultValue={user.profile?.description}
+                defaultValue={orgProfile?.organizationDescription}
                 disabled={!isEditing}
                 rows={4}
               />
@@ -450,9 +465,9 @@ function OrganizationProfile({
             <CardDescription>
               Thông tin về việc xác thực tổ chức
             </CardDescription>
-          </CardHeader>
+          </CardHeader>{" "}
           <CardContent>
-            {user.profile?.verified ? (
+            {orgProfile?.isVerified ? (
               <div className="flex items-center space-x-2 text-green-600">
                 <div className="h-4 w-4 bg-green-500 rounded-full"></div>
                 <span>Tổ chức đã được xác thực</span>
@@ -478,7 +493,7 @@ function OrganizationProfile({
 }
 
 // Admin Profile Component
-function AdminProfile({ user, isEditing }: { user: any; isEditing: boolean }) {
+function AdminProfile({ user, isEditing }: { user: User; isEditing: boolean }) {
   return (
     <Card>
       <CardHeader>
@@ -488,10 +503,10 @@ function AdminProfile({ user, isEditing }: { user: any; isEditing: boolean }) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="adminName">Họ tên</Label>
+            <Label htmlFor="adminName">Họ tên</Label>{" "}
             <Input
               id="adminName"
-              defaultValue={user.profile?.name || ""}
+              defaultValue={user.fullName || ""}
               disabled={!isEditing}
             />
           </div>
@@ -499,7 +514,7 @@ function AdminProfile({ user, isEditing }: { user: any; isEditing: boolean }) {
             <Label htmlFor="adminPhone">Số điện thoại</Label>
             <Input
               id="adminPhone"
-              defaultValue={user.profile?.phone || ""}
+              defaultValue={user.profile?.phoneNumber || ""}
               disabled={!isEditing}
             />
           </div>

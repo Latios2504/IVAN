@@ -1,152 +1,113 @@
-export interface VolunteerProfile {
-  id: number; // Match database INT
-  userId: number; // Match database INT
-
-  // Vietnamese-specific fields (align with database)
-  studentId?: string;
-  university?: string;
-  major?: string;
-  yearOfStudy?: number;
-
-  bio?: string;
-  skills: string[];
-  experience?: string;
-  motivation?: string; // Added from database
-  availability: string[];
-
-  location: {
-    city: string;
-    state: string;
-    country: string;
-  };
-
+// Base profile types matching backend DTOs
+export interface UserProfile {
+  profileId: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
   phoneNumber?: string;
   dateOfBirth?: string;
+  gender?: string;
+  avatarUrl?: string;
+  bio?: string;
+  location?: Location;
+  isProfileComplete: boolean;
+}
 
-  emergencyContact?: {
-    name: string;
-    relationship: string;
-    phoneNumber: string;
-  };
+export interface Location {
+  addressLine1?: string;
+  ward?: string;
+  district?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  country?: string;
+}
 
-  socialMedia?: {
-    facebook?: string;
-    linkedin?: string;
-    twitter?: string;
-  };
+export interface VolunteerProfile extends UserProfile {
+  // Volunteer-specific fields matching backend
+  occupation?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelationship?: string;
 
-  preferences: {
-    emailNotifications: boolean;
-    smsNotifications: boolean;
-    volunteerTypes: string[];
-  };
+  // Availability
+  availabilityNotes?: string;
+  preferredVolunteerTypes?: string;
 
-  // Performance tracking (align with database)
-  volunteerHours: number;
-  rating: number;
-  ratingCount: number;
+  // Experience and ranking
+  totalVolunteerHours: number;
+  volunteerRank: string;
+  joinedDate: string;
+  lastActiveDate?: string;
+
+  // Preferences
+  willingToTravel: boolean;
+  hasTransportation: boolean;
+  preferredWorkingHours?: string;
+  languagesSpoken?: string;
+
+  // Skills (from separate table)
+  skills: string[];
+}
+
+export interface OrganizationProfile extends UserProfile {
+  // Organization-specific fields matching backend
+  organizationName: string;
+  organizationType: string;
+  organizationDescription?: string;
+  website?: string;
+  contactPersonName?: string;
+  contactPersonTitle?: string;
+
+  // Focus areas (from separate table)
+  focusAreas: string[];
+
+  // Verification
   isVerified: boolean;
+  verificationDocuments: string[];
   verifiedAt?: string;
 
-  createdAt: string;
-  updatedAt: string;
+  // Settings
+  isPublic: boolean;
+  allowDirectContact: boolean;
+  autoApproveVolunteers: boolean;
 }
 
-export interface OrganizationProfile {
-  id: number; // Match database INT
-  userId: number; // Match database INT
-  organizationName: string;
-  description: string;
-  website?: string;
+export interface CoordinatorProfile extends UserProfile {
+  // Coordinator belongs to ONE organization only
+  organizationId: number;
+
+  // Coordinator-specific fields
+  responsibilities: string[];
+  departments: string[];
+  managedEvents: number[]; // Event IDs they coordinate
+
+  // Authorization level within organization
+  canCreateEvents: boolean;
+  canManageVolunteers: boolean;
+  canViewReports: boolean;
+  canManagePartners: boolean;
+}
+
+export interface PartnerProfile extends UserProfile {
+  // Partner-specific fields matching backend
+  companyName: string;
   industry: string;
-  foundedYear?: number;
-  size: "small" | "medium" | "large" | "enterprise";
-  location: {
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    zipCode?: string;
-  };
-  contactInfo: {
-    phoneNumber?: string;
-    email?: string;
-  };
-  verification: {
-    isVerified: boolean;
-    documents: string[];
-    verificationDate?: string;
-  };
-  settings: {
-    isPublic: boolean;
-    allowDirectContact: boolean;
-    autoApproveVolunteers: boolean;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CoordinatorProfile {
-  id: number; // Match database INT
-  userId: number; // Match database INT
-  organizationId: number; // IMPORTANT: Coordinator belongs to ONE organization only
-
-  bio?: string;
-  skills: string[];
-  experience?: string;
-  responsibilities: string[]; // Vai trò và trách nhiệm
-
-  location: {
-    city: string;
-    state: string;
-    country: string;
-  };
-
-  phoneNumber?: string;
-
-  preferences: {
-    emailNotifications: boolean;
-    smsNotifications: boolean;
-  };
-
-  // Performance tracking
-  rating: number;
-  ratingCount: number;
-
-  // Organization relationship
-  assignedBy: number; // Admin user ID who created this coordinator
-  assignedAt: string;
-
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PartnerProfile {
-  id: number; // Match database INT
-  userId: number; // Match database INT
-  organizationName: string;
-  partnerType: "corporate" | "government" | "ngo" | "educational" | "other";
-  description: string;
+  companyDescription?: string;
   website?: string;
-  industry: string;
-  location: {
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    zipCode?: string;
-  };
-  contactInfo: {
-    phoneNumber?: string;
-    email?: string;
-    contactPersonName?: string;
-    contactPersonTitle?: string;
-  };
-  collaborationAreas: string[]; // Lĩnh vực hợp tác
-  settings: {
-    isPublic: boolean;
-    allowDirectContact: boolean;
-  };
-  createdAt: string;
-  updatedAt: string;
+  partnerType: string;
+
+  // Partnership details
+  partnershipInterests: string[];
+  expectedPartnership?: string;
+  donationHistory: string[];
+
+  // Contact information
+  contactPersonName?: string;
+  contactPersonTitle?: string;
+
+  // Verification
+  isVerified: boolean;
+  verificationDocuments: string[];
+  verifiedAt?: string;
 }
