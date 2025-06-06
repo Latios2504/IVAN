@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WebAPI.Data;
+using WebAPI.Data.Entities;
 using WebAPI.Helpers.AutoMapper;
 using WebAPI.Repository.VolunteerProfileRepo;
 using WebAPI.Service.VolunteerProfileService;
@@ -13,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<IVANContext>(options => {
+builder.Services.AddDbContext<IVANSystemContext>(options => {
     options.UseSqlServer(builder.Configuration["ConnectionStrings:SystemDB"]);
 });
 

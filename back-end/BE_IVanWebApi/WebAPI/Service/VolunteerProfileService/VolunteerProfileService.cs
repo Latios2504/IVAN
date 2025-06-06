@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using WebAPI.Data.Entities;
+﻿using WebAPI.Data.Entities;
 using WebAPI.Models.VolunteerProfile;
 using WebAPI.Repository.VolunteerProfileRepo;
 
@@ -7,51 +6,78 @@ namespace WebAPI.Service.VolunteerProfileService
 {
     public class VolunteerProfileService : IVolunteerProfileService
     {
-        private readonly IVolunteerProfileRepository _repository;
-        private readonly IMapper _mapper;
+        private readonly IVolunteerProfileRepository _repo;
 
-        public VolunteerProfileService(IVolunteerProfileRepository repository, IMapper mapper)
+        public VolunteerProfileService(IVolunteerProfileRepository repo)
         {
-            _repository = repository;
-            _mapper = mapper;
+            _repo = repo;
         }
 
-        public async Task AddAsync(VolunteerProfileViewModel model)
+        public async Task<VolunteerProfile> AddAsync(VolunteerProfileDto dto)
         {
-            var profile = _mapper.Map<VolunteerProfile>(model);
-            profile.CreatedAt = DateTime.UtcNow;
-            profile.UpdatedAt = DateTime.UtcNow;
-            await _repository.AddAsync(profile);
+            var entity = new VolunteerProfile
+            {
+                UserId = dto.UserId,
+                StudentId = dto.StudentId,
+                University = dto.University,
+                Major = dto.Major,
+                YearOfStudy = dto.YearOfStudy,
+                Motivation = dto.Motivation,
+                Experience = dto.Experience,
+                Availability = dto.Availability,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            return await _repo.AddAsync(entity);
         }
 
-        public async Task<VolunteerProfileViewModel> GetByIdAsync(int id)
+        public async Task<VolunteerProfileViewDto?> GetByUserIdAsync(int userId)
         {
-            var profile = await _repository.GetByIdAsync(id);
-            if (profile == null) throw new Exception("Volunteer not founded!");
-            return _mapper.Map<VolunteerProfileViewModel>(profile);
+            var v = await _repo.GetByUserIdAsync(userId);
+            if (v == null) return null;
+
+            return new VolunteerProfileViewDto
+            {
+                VolunteerId = v.VolunteerId,
+                UserId = v.UserId,
+                FullName = v.User.UserProfiles.FirstOrDefault()?.FullName ?? "N/A",
+                University = v.University,
+                YearOfStudy = v.YearOfStudy,
+                Motivation = v.Motivation,
+                Rating = v.Rating
+            };
         }
 
-        public async Task<VolunteerProfileViewModel> GetByUserIdAsync(int userId)
+        public async Task<List<VolunteerProfileViewDto>> ListAsync()
         {
-            var profile = await _repository.GetByUserIdAsync(userId);
-            if (profile == null) throw new Exception("Volunteer profile not found for this user.");
-            return _mapper.Map<VolunteerProfileViewModel>(profile);
+            var list = await _repo.GetAllAsync();
+            return list.Select(v => new VolunteerProfileViewDto
+            {
+                VolunteerId = v.VolunteerId,
+                UserId = v.UserId,
+                FullName = v.User.UserProfiles.FirstOrDefault()?.FullName ?? "N/A",
+                University = v.University,
+                YearOfStudy = v.YearOfStudy,
+                Motivation = v.Motivation,
+                Rating = v.Rating
+            }).ToList();
         }
 
-        public async Task<List<VolunteerProfileViewModel>> GetFilteredProfilesAsync(VolunteerProfileFilterViewModel filter)
+        public async Task<VolunteerProfile?> UpdateAsync(int userId, VolunteerProfileDto dto)
         {
-            var profiles = await _repository.GetFilteredProfilesAsync(filter);
-            return _mapper.Map<List<VolunteerProfileViewModel>>(profiles);
-        }
+            var entity = await _repo.GetByUserIdAsync(userId);
+            if (entity == null) return null;
 
-        public async Task UpdateAsync(VolunteerProfileViewModel model)
-        {
-            var existingProfile = await _repository.GetByIdAsync(model.Id);
-            if (existingProfile == null) throw new Exception("Volunteer profile not found.");
+            entity.StudentId = dto.StudentId;
+            entity.University = dto.University;
+            entity.Major = dto.Major;
+            entity.YearOfStudy = dto.YearOfStudy;
+            entity.Motivation = dto.Motivation;
+            entity.Experience = dto.Experience;
+            entity.Availability = dto.Availability;
+            entity.UpdatedAt = DateTime.UtcNow;
 
-            _mapper.Map(model, existingProfile);
-            existingProfile.UpdatedAt = DateTime.UtcNow;
-            await _repository.UpdateAsync(existingProfile);
+            return await _repo.UpdateAsync(entity);
         }
     }
 }
