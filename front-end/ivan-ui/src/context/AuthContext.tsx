@@ -74,10 +74,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       let role: "volunteer" | "organization" | "admin";
       let profile: VolunteerProfile | OrganizationProfile | undefined =
         undefined;
-
       if (credentials.email.includes("admin")) {
         role = "admin";
-        // No profile for admin users      } else if (credentials.email.includes("org")) {
+        // No profile for admin users
+      } else if (credentials.email.includes("org")) {
         role = "organization";
         profile = {
           profileId: 1,
