@@ -1,0 +1,6 @@
+@ivan_api_HostAddress = http://localhost:5283
+
+GET {{ivan_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
