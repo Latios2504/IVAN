@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
-import { apiClient } from "@/services/api/apiClient";
+import apiClient from "@/services/api/apiClient";
 import type { ApiResponse } from "@/types/common";
 
 interface UseApiOptions {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: unknown) => void;
   onError?: (error: string) => void;
 }
 
-export function useApi<T = any>(options: UseApiOptions = {}) {
+export function useApi<T = unknown>(options: UseApiOptions = {}) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,8 +16,8 @@ export function useApi<T = any>(options: UseApiOptions = {}) {
     async (
       method: "get" | "post" | "put" | "patch" | "delete",
       endpoint: string,
-      payload?: any,
-      params?: Record<string, any>
+      payload?: unknown,
+      params?: Record<string, string | number | boolean | undefined | null>
     ) => {
       try {
         setLoading(true);
@@ -65,23 +65,26 @@ export function useApi<T = any>(options: UseApiOptions = {}) {
   );
 
   const get = useCallback(
-    (endpoint: string, params?: Record<string, any>) =>
-      execute("get", endpoint, undefined, params),
+    (
+      endpoint: string,
+      params?: Record<string, string | number | boolean | undefined | null>
+    ) => execute("get", endpoint, undefined, params),
     [execute]
   );
 
   const post = useCallback(
-    (endpoint: string, payload?: any) => execute("post", endpoint, payload),
+    (endpoint: string, payload?: unknown) => execute("post", endpoint, payload),
     [execute]
   );
 
   const put = useCallback(
-    (endpoint: string, payload?: any) => execute("put", endpoint, payload),
+    (endpoint: string, payload?: unknown) => execute("put", endpoint, payload),
     [execute]
   );
 
   const patch = useCallback(
-    (endpoint: string, payload?: any) => execute("patch", endpoint, payload),
+    (endpoint: string, payload?: unknown) =>
+      execute("patch", endpoint, payload),
     [execute]
   );
 

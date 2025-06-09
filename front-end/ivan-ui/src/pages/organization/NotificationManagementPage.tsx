@@ -60,8 +60,33 @@ import {
   Archive,
 } from "lucide-react";
 
+// Notification interface
+interface Notification {
+  id: string;
+  title: string;
+  content: string;
+  type:
+    | "recruitment"
+    | "update"
+    | "reminder"
+    | "announcement"
+    | "alert"
+    | "appreciation";
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "draft" | "scheduled" | "sent" | "failed";
+  targetAudience: string;
+  recipientCount: number;
+  openRate: number;
+  clickRate: number;
+  channels: string[];
+  scheduledTime: string | null;
+  sentTime: string | null;
+  createdBy: string;
+  tags: string[];
+}
+
 // Mock data for notifications
-const mockNotifications = [
+const mockNotifications: Notification[] = [
   {
     id: "notif-001",
     title: "Thông báo tuyển tình nguyện viên",
@@ -200,7 +225,8 @@ const typeIcons = {
 };
 
 export default function NotificationManagementPage() {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] =
+    useState<Notification[]>(mockNotifications);
   const [templates, setTemplates] = useState(mockTemplates);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -208,7 +234,8 @@ export default function NotificationManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
 
@@ -256,13 +283,12 @@ export default function NotificationManagementPage() {
       .filter((n) => n.clickRate > 0)
       .reduce((sum, n, _, arr) => sum + n.clickRate / arr.length, 0),
   };
-
-  const handleViewNotification = (notification) => {
+  const handleViewNotification = (notification: Notification) => {
     setSelectedNotification(notification);
     setIsViewDialogOpen(true);
   };
 
-  const handleSendNotification = (notifId) => {
+  const handleSendNotification = (notifId: string) => {
     setNotifications((prev) =>
       prev.map((n) =>
         n.id === notifId
@@ -271,13 +297,12 @@ export default function NotificationManagementPage() {
       )
     );
   };
-
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString: string | null) => {
     if (!dateString) return "Chưa xác định";
     return new Date(dateString).toLocaleString("vi-VN");
   };
 
-  const formatPercentage = (value) => {
+  const formatPercentage = (value: number) => {
     return `${(value * 100).toFixed(1)}%`;
   };
 

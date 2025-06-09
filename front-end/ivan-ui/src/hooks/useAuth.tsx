@@ -10,8 +10,8 @@ import type {
   AuthState,
   LoginCredentials,
   RegisterData,
-} from "@/types/auth";
-import type { VolunteerProfile, OrganizationProfile } from "@/types/profile";
+} from "../types/auth";
+import { authService } from "../services/api/authService";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -71,131 +71,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     checkAuth();
   }, []);
-
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
 
-      // TODO: Replace with actual API call
-      console.log("Login credentials:", credentials);
+      const { user } = await authService.login(credentials);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock user data based on email
-      let role: "volunteer" | "organization" | "admin";
-      let profile: VolunteerProfile | OrganizationProfile | undefined =
-        undefined;
-
-      if (credentials.email.includes("admin")) {
-        role = "admin";
-        // No profile for admin users      } else if (credentials.email.includes("org")) {
-        role = "organization";
-        profile = {
-          profileId: "org-1",
-          userId: "1",
-          firstName: "Tổ chức",
-          lastName: "ABC",
-          fullName: "Tổ chức ABC",
-          phoneNumber: "0123456789",
-          location: {
-            addressLine1: "123 Đường ABC, Quận 1, TP.HCM",
-            city: "TP.HCM",
-            province: "TP.HCM",
-            country: "Vietnam",
-            postalCode: "70000",
-          },
-          isVerified: true,
-          avatarUrl: null,
-          organizationName: "Tổ chức ABC",
-          organizationType: "NGO",
-          description: "Tổ chức hoạt động trong lĩnh vực giáo dục và xã hội",
-          website: "https://org-abc.com",
-          focusAreas: ["Education", "Social"],
-          organizationSize: "medium",
-          foundedYear: 2020,
-          taxId: "0123456789",
-          registrationNumber: "REG123456",
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as OrganizationProfile;
-      } else {
-        role = "volunteer";
-        profile = {
-          profileId: "vol-1",
-          userId: "1",
-          firstName: "Nguyễn",
-          lastName: "Văn A",
-          fullName: "Nguyễn Văn A",
-          phoneNumber: "0123456789",
-          location: {
-            addressLine1: "456 Đường XYZ",
-            city: "TP.HCM",
-            province: "TP.HCM",
-            country: "Vietnam",
-            postalCode: "70000",
-          },
-          isVerified: false,
-          avatarUrl: null,
-          bio: "Tôi là một tình nguyện viên nhiệt tình với niềm đam mê giúp đỡ cộng đồng.",
-          skills: ["Giảng dạy", "Tiếng Anh", "Tổ chức sự kiện"],
-          interests: ["Giáo dục", "Môi trường", "Chăm sóc trẻ em"],
-          availability: ["weekend", "evening"],
-          totalVolunteerHours: 0,
-          volunteerRank: "Bronze",
-          dateOfBirth: "1995-01-01",
-          gender: "other",
-          occupation: "",
-          company: "",
-          education: "",
-          languages: ["Vietnamese", "English"],
-          emergencyContact: {
-            name: "Nguyễn Văn B",
-            relationship: "Anh/Chị",
-            phoneNumber: "0987654321",
-          },
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          preferences: {
-            emailNotifications: true,
-            smsNotifications: false,
-            pushNotifications: true,
-            weeklyDigest: true,
-            eventReminders: true,
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as VolunteerProfile;
-      }
-      const mockUser: User = {
-        id: 1,
-        email: credentials.email,
-        fullName:
-          role === "volunteer"
-            ? "Nguyễn Văn A"
-            : role === "organization"
-            ? "Tổ chức ABC"
-            : "Admin User",
-        role: role,
-        isActive: true,
-        isEmailVerified: true,
-        profile,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      localStorage.setItem("user", JSON.stringify(mockUser));
+      // Store user data and token
+      localStorage.setItem("user", JSON.stringify(user));
 
       setAuthState({
-        user: mockUser,
+        user,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -208,132 +94,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
 
-      // TODO: Replace with actual API call
-      console.log("Registration data:", data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // Auto-login after successful registration
-      const fullName = `${data.firstName} ${data.lastName}`.trim();
-      let profile: VolunteerProfile | OrganizationProfile | undefined;
-      if (data.role === "organization") {
-        profile = {
-          profileId: Date.now().toString(),
-          userId: Date.now().toString(),
-          firstName: data.firstName || "Tổ chức",
-          lastName: data.lastName || data.organizationName || "Mới",
-          fullName:
-            data.organizationName ||
-            `${data.firstName} ${data.lastName}`.trim(),
-          phoneNumber: data.phoneNumber || "",
-          location: {
-            addressLine1: data.address || "",
-            city: data.city || "",
-            province: data.state || "",
-            country: data.country || "Vietnam",
-            postalCode: data.postalCode || "",
-          },
-          isVerified: false,
-          avatarUrl: null,
-          organizationName: data.organizationName || fullName,
-          organizationType: "NGO",
-          description: data.organizationDescription || "Tổ chức mới tham gia",
-          website: data.website || "",
-          focusAreas: [],
-          organizationSize: "small",
-          foundedYear: new Date().getFullYear(),
-          taxId: "",
-          registrationNumber: "",
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as OrganizationProfile;
-      } else if (data.role === "volunteer") {
-        profile = {
-          profileId: Date.now().toString(),
-          userId: Date.now().toString(),
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          fullName: fullName,
-          phoneNumber: data.phoneNumber || "",
-          location: {
-            addressLine1: data.address || "",
-            city: data.city || "",
-            province: data.state || "",
-            country: data.country || "Vietnam",
-            postalCode: data.postalCode || "",
-          },
-          isVerified: false,
-          avatarUrl: null,
-          bio: "",
-          skills: data.skills || [],
-          interests: data.interests || [],
-          availability: data.availability || [],
-          totalVolunteerHours: 0,
-          volunteerRank: "Bronze",
-          dateOfBirth: data.dateOfBirth || "",
-          gender: "other",
-          occupation: "",
-          company: "",
-          education: "",
-          languages: ["Vietnamese"],
-          emergencyContact:
-            data.emergencyContactName && data.emergencyContactPhone
-              ? {
-                  name: data.emergencyContactName,
-                  relationship: "Emergency Contact",
-                  phoneNumber: data.emergencyContactPhone,
-                }
-              : undefined,
-          socialLinks: {
-            facebook: "",
-            twitter: "",
-            linkedin: "",
-            instagram: "",
-          },
-          preferences: {
-            emailNotifications: true,
-            smsNotifications: false,
-            pushNotifications: true,
-            weeklyDigest: true,
-            eventReminders: true,
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as VolunteerProfile;
-      }
-      const mockUser: User = {
-        id: Date.now(),
+      // Create simplified registration request for backend
+      const registerRequest = {
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
-        fullName: fullName,
+        password: data.password,
         role: data.role,
-        isActive: true,
-        isEmailVerified: false, // New registrations need email verification
-        profile,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        phoneNumber: data.phoneNumber,
+        dateOfBirth: data.dateOfBirth,
       };
 
-      localStorage.setItem("user", JSON.stringify(mockUser));
+      await authService.register(registerRequest);
 
-      setAuthState({
-        user: mockUser,
-        isAuthenticated: true,
-        isLoading: false,
-      });
+      // After successful registration, attempt login
+      await login({ email: data.email, password: data.password });
     } catch (error) {
       setAuthState((prev) => ({ ...prev, isLoading: false }));
       throw error;
     }
   };
-
   const logout = () => {
-    localStorage.removeItem("user");
+    authService.logout();
     setAuthState({
       user: null,
       isAuthenticated: false,
@@ -350,20 +132,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }));
     }
   };
-
   const refreshUser = async (): Promise<void> => {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
 
-      // TODO: Replace with actual API call to refresh user data
+      // Try to get fresh user data from API
+      const user = await authService.getCurrentUser();
+      localStorage.setItem("user", JSON.stringify(user));
+
+      setAuthState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+      // If API call fails, try localStorage as fallback
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
-        const user = JSON.parse(storedUser);
-        setAuthState({
-          user,
-          isAuthenticated: true,
-          isLoading: false,
-        });
+        try {
+          const user = JSON.parse(storedUser);
+          setAuthState({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch {
+          // If localStorage data is corrupted, logout
+          authService.logout();
+          setAuthState({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
       } else {
         setAuthState({
           user: null,
@@ -371,13 +173,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           isLoading: false,
         });
       }
-    } catch (error) {
-      console.error("Error refreshing user:", error);
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
     }
   };
 

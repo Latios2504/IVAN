@@ -13,115 +13,117 @@ import {
 } from "@/components/ui/card";
 import type { OrganizationProfile } from "@/types/profile";
 
-// Mock data for organizations
+// Mock data based on OrganizationProfile interface
 const mockOrganizations: (OrganizationProfile & {
   user: { fullName: string; email: string };
 })[] = [
   {
-    id: 1,
-    userId: 1,
+    profileId: 1,
+    firstName: "Quỹ",
+    lastName: "Giáo dục Xanh",
+    fullName: "Quỹ Giáo dục Xanh",
+    phoneNumber: "+84 28 1234 5678",
+    dateOfBirth: "2018-01-01",
+    gender: "Organization",
+    avatarUrl: undefined,
+    bio: "Tổ chức phi lợi nhuận chuyên về giáo dục môi trường và phát triển bền vững cho trẻ em và thanh thiếu niên.",
+    location: {
+      addressLine1: "123 Đường Cây Xanh",
+      city: "Hồ Chí Minh",
+      province: "Hồ Chí Minh",
+      country: "Việt Nam",
+      postalCode: "70000",
+    },
+    isProfileComplete: true,
     user: { fullName: "Quỹ Giáo dục Xanh", email: "contact@greenedu.org" },
     organizationName: "Quỹ Giáo dục Xanh",
-    description:
+    organizationType: "Non-profit",
+    organizationDescription:
       "Tổ chức phi lợi nhuận chuyên về giáo dục môi trường và phát triển bền vững cho trẻ em và thanh thiếu niên.",
     website: "https://greenedu.org",
-    industry: "Giáo dục",
-    foundedYear: 2018,
-    size: "medium",
-    location: {
-      address: "123 Đường Cây Xanh",
-      city: "Hồ Chí Minh",
-      state: "Hồ Chí Minh",
-      country: "Việt Nam",
-      zipCode: "70000",
-    },
-    contactInfo: {
-      phoneNumber: "+84 28 1234 5678",
-    },
-    verification: {
-      isVerified: true,
-      documents: ["business-license.pdf"],
-      verificationDate: "2024-01-15T00:00:00Z",
-    },
-    settings: {
-      isPublic: true,
-      allowDirectContact: true,
-      autoApproveVolunteers: false,
-    },
-    createdAt: "2024-01-10T00:00:00Z",
-    updatedAt: "2024-01-15T00:00:00Z",
+    contactPersonName: "Nguyễn Thị Lan",
+    contactPersonTitle: "Giám đốc",
+    focusAreas: ["Giáo dục", "Môi trường", "Trẻ em"],
+    isVerified: true,
+    verificationDocuments: ["business-license.pdf"],
+    verifiedAt: "2024-01-15T00:00:00Z",
+    isPublic: true,
+    allowDirectContact: true,
+    autoApproveVolunteers: false,
   },
   {
-    id: 2,
-    userId: 2,
+    profileId: 2,
+    firstName: "Trung tâm",
+    lastName: "Hỗ trợ Người cao tuổi",
+    fullName: "Trung tâm Hỗ trợ Người cao tuổi",
+    phoneNumber: "+84 24 9876 5432",
+    dateOfBirth: "2015-01-01",
+    gender: "Organization",
+    avatarUrl: undefined,
+    bio: "Chăm sóc và hỗ trợ người cao tuổi trong cộng đồng thông qua các hoạt động tình nguyện và dịch vụ xã hội.",
+    location: {
+      addressLine1: "456 Phố Nhân Ái",
+      city: "Hà Nội",
+      province: "Hà Nội",
+      country: "Việt Nam",
+      postalCode: "10000",
+    },
+    isProfileComplete: true,
     user: {
       fullName: "Trung tâm Hỗ trợ Người cao tuổi",
       email: "info@eldercare.vn",
     },
     organizationName: "Trung tâm Hỗ trợ Người cao tuổi",
-    description:
+    organizationType: "NGO",
+    organizationDescription:
       "Chăm sóc và hỗ trợ người cao tuổi trong cộng đồng thông qua các hoạt động tình nguyện và dịch vụ xã hội.",
     website: "https://eldercare.vn",
-    industry: "Chăm sóc xã hội",
-    foundedYear: 2015,
-    size: "large",
-    location: {
-      address: "456 Phố Nhân Ái",
-      city: "Hà Nội",
-      state: "Hà Nội",
-      country: "Việt Nam",
-      zipCode: "10000",
-    },
-    contactInfo: {
-      phoneNumber: "+84 24 9876 5432",
-    },
-    verification: {
-      isVerified: true,
-      documents: ["ngo-license.pdf", "tax-exempt.pdf"],
-      verificationDate: "2024-02-01T00:00:00Z",
-    },
-    settings: {
-      isPublic: true,
-      allowDirectContact: true,
-      autoApproveVolunteers: true,
-    },
-    createdAt: "2024-01-20T00:00:00Z",
-    updatedAt: "2024-02-01T00:00:00Z",
+    contactPersonName: "Lê Văn Minh",
+    contactPersonTitle: "Trưởng phòng",
+    focusAreas: ["Chăm sóc xã hội", "Người cao tuổi", "Cộng đồng"],
+    isVerified: true,
+    verificationDocuments: ["ngo-license.pdf", "tax-exempt.pdf"],
+    verifiedAt: "2024-02-01T00:00:00Z",
+    isPublic: true,
+    allowDirectContact: true,
+    autoApproveVolunteers: true,
   },
   {
-    id: 3,
-    userId: 3,
+    profileId: 3,
+    firstName: "Tổ chức",
+    lastName: "Y tế Cộng đồng",
+    fullName: "Tổ chức Y tế Cộng đồng",
+    phoneNumber: "+84 236 1111 2222",
+    dateOfBirth: "2020-01-01",
+    gender: "Organization",
+    avatarUrl: undefined,
+    bio: "Cung cấp dịch vụ y tế miễn phí và giáo dục sức khỏe cho các vùng khó khăn và cộng đồng thiệt thòi.",
+    location: {
+      addressLine1: "789 Đường Y Tế",
+      city: "Đà Nẵng",
+      province: "Đà Nẵng",
+      country: "Việt Nam",
+      postalCode: "50000",
+    },
+    isProfileComplete: true,
     user: {
       fullName: "Tổ chức Y tế Cộng đồng",
       email: "hello@communityhealth.org",
     },
     organizationName: "Tổ chức Y tế Cộng đồng",
-    description:
+    organizationType: "Non-profit",
+    organizationDescription:
       "Cung cấp dịch vụ y tế miễn phí và giáo dục sức khỏe cho các vùng khó khăn và cộng đồng thiệt thòi.",
-    industry: "Y tế",
-    foundedYear: 2020,
-    size: "small",
-    location: {
-      address: "789 Đường Y Tế",
-      city: "Đà Nẵng",
-      state: "Đà Nẵng",
-      country: "Việt Nam",
-      zipCode: "50000",
-    },
-    contactInfo: {
-      phoneNumber: "+84 236 1111 2222",
-    },
-    verification: {
-      isVerified: false,
-      documents: [],
-    },
-    settings: {
-      isPublic: true,
-      allowDirectContact: false,
-      autoApproveVolunteers: false,
-    },
-    createdAt: "2024-02-10T00:00:00Z",
-    updatedAt: "2024-02-10T00:00:00Z",
+    website: undefined,
+    contactPersonName: "Phạm Thị Hoa",
+    contactPersonTitle: "Phối điều viên",
+    focusAreas: ["Y tế", "Cộng đồng", "Giáo dục sức khỏe"],
+    isVerified: false,
+    verificationDocuments: [],
+    verifiedAt: undefined,
+    isPublic: true,
+    allowDirectContact: false,
+    autoApproveVolunteers: false,
   },
 ];
 
@@ -134,9 +136,15 @@ export default function OrganizationsPage() {
   const filteredOrganizations = organizations.filter(
     (org) =>
       org.organizationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.location.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.description.toLowerCase().includes(searchTerm.toLowerCase())
+      org.focusAreas.some((area) =>
+        area.toLowerCase().includes(searchTerm.toLowerCase())
+      ) ||
+      (org.location?.city &&
+        org.location.city.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (org.organizationDescription &&
+        org.organizationDescription
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()))
   );
 
   const getInitials = (name: string) => {
@@ -148,14 +156,17 @@ export default function OrganizationsPage() {
       .slice(0, 2);
   };
 
-  const getSizeLabel = (size: string) => {
-    const labels = {
-      small: "Nhỏ (1-10 người)",
-      medium: "Trung bình (11-50 người)",
-      large: "Lớn (51-200 người)",
-      enterprise: "Rất lớn (200+ người)",
+  const getSizeLabel = (orgType: string) => {
+    const labels: Record<string, string> = {
+      "Non-profit": "Tổ chức phi lợi nhuận",
+      NGO: "Tổ chức phi chính phủ",
+      Government: "Cơ quan chính phủ",
+      Educational: "Giáo dục",
+      Religious: "Tôn giáo",
+      Corporate: "Doanh nghiệp",
+      Other: "Khác",
     };
-    return labels[size as keyof typeof labels] || size;
+    return labels[orgType] || orgType;
   };
 
   return (
@@ -198,12 +209,18 @@ export default function OrganizationsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredOrganizations.map((org) => (
-              <Card key={org.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={org.profileId}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader className="pb-4">
                   <div className="flex items-start space-x-4">
                     <Avatar className="w-16 h-16">
                       <AvatarImage
-                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${org.organizationName}`}
+                        src={
+                          org.avatarUrl ||
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${org.organizationName}`
+                        }
                       />
                       <AvatarFallback className="text-lg">
                         {getInitials(org.organizationName)}
@@ -214,7 +231,7 @@ export default function OrganizationsPage() {
                         <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                           {org.organizationName}
                         </CardTitle>
-                        {org.verification.isVerified && (
+                        {org.isVerified && (
                           <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                             <svg
                               className="w-3 h-3 text-white"
@@ -231,7 +248,7 @@ export default function OrganizationsPage() {
                         )}
                       </div>
                       <CardDescription className="text-sm text-gray-600 dark:text-gray-300">
-                        {org.location.city}, {org.location.country}
+                        {org.location?.city}, {org.location?.country}
                       </CardDescription>
                     </div>
                   </div>
@@ -240,20 +257,26 @@ export default function OrganizationsPage() {
                   <div className="space-y-4">
                     {/* Description */}
                     <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-                      {org.description}
+                      {org.organizationDescription || org.bio}
                     </p>
 
-                    {/* Industry and Size */}
+                    {/* Focus Areas and Type */}
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {org.industry}
-                      </Badge>
+                      {org.focusAreas.slice(0, 2).map((area, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
+                          {area}
+                        </Badge>
+                      ))}
                       <Badge variant="outline" className="text-xs">
-                        {getSizeLabel(org.size)}
+                        {getSizeLabel(org.organizationType)}
                       </Badge>
-                      {org.foundedYear && (
+                      {org.dateOfBirth && (
                         <Badge variant="outline" className="text-xs">
-                          Thành lập {org.foundedYear}
+                          Thành lập {new Date(org.dateOfBirth).getFullYear()}
                         </Badge>
                       )}
                     </div>
@@ -285,7 +308,7 @@ export default function OrganizationsPage() {
                           </a>
                         </div>
                       )}
-                      {org.settings.allowDirectContact && (
+                      {org.allowDirectContact && org.phoneNumber && (
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                           <svg
                             className="w-4 h-4 text-gray-400"
@@ -300,16 +323,14 @@ export default function OrganizationsPage() {
                               d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                             />
                           </svg>
-                          <span className="truncate">
-                            {org.contactInfo.phoneNumber}
-                          </span>
+                          <span className="truncate">{org.phoneNumber}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Status badges */}
                     <div className="flex flex-wrap gap-1">
-                      {org.verification.isVerified && (
+                      {org.isVerified && (
                         <Badge
                           variant="default"
                           className="text-xs bg-green-500"
@@ -317,7 +338,7 @@ export default function OrganizationsPage() {
                           Đã xác thực
                         </Badge>
                       )}
-                      {org.settings.autoApproveVolunteers && (
+                      {org.autoApproveVolunteers && (
                         <Badge variant="secondary" className="text-xs">
                           Duyệt tự động
                         </Badge>
