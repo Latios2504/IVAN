@@ -21,9 +21,9 @@ namespace WebAPI.Repository.PartnerProfiles
 
         //public OrganizationProfile GetOrganizationProfile(int Id) => _OrganizationProfileDAO.GetById(Id);
 
-        private readonly IVANSystemContext _context;
+        private readonly IVANContext _context;
 
-        public PartnerProfileRepository(IVANSystemContext context)
+        public PartnerProfileRepository(IVANContext context)
         {
             _context = context;
         }

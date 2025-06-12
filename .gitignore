@@ -2,11 +2,3 @@
 *.v2
 *.vsidx
 *.bin
-*.vsidx
-*.bin
-*.db
-*.vsidx
-*.db-wal
-*.db-shm
-*.v2
-*.vsidx

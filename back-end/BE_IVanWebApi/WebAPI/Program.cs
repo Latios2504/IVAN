@@ -1,46 +1,45 @@
-﻿using Microsoft.EntityFrameworkCore;
-using WebAPI.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 using WebAPI.Helpers.AutoMapper;
-using WebAPI.Repository.OnSiteTasks;
+using WebAPI.Helpers.Core;
 using WebAPI.Repository.OrganizationProfiles;
-using WebAPI.Repository.PartnerProfiles;
-using WebAPI.Repository.VolunteerProfileRepo;
-using WebAPI.Service.OnSiteTasks;
 using WebAPI.Service.OrganizationProfiles;
+using WebAPI.Repository.PartnerProfiles;
 using WebAPI.Service.PartnerProfiles;
-using WebAPI.Service.VolunteerProfileService;
+using WebAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// 1. Thêm Swagger vào DI container
+builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllers();
-builder.Services.AddDbContext<IVANSystemContext>(options => {
+builder.Services.AddDbContext<IVANContext>(options => {
     options.UseSqlServer(builder.Configuration["ConnectionStrings:SystemDB"]);
 });
 
 // Configure AutoMapper
-builder.Services.AddAutoMapper(typeof(VolunteerProfileMapping));
 builder.Services.AddAutoMapper(typeof(OrganizationProfileMapping));
 builder.Services.AddAutoMapper(typeof(PartnerProfileMapping));
-builder.Services.AddAutoMapper(typeof(OnSiteTaskMapping));
 
 // Configure Dependency Injection
-builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
-builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
-
 builder.Services.AddScoped<IOrganizationProfileRepository, OrganizationProfileRepository>();
 builder.Services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();
 
 builder.Services.AddScoped<IPartnerProfileRepository, PartnerProfileRepository>();
 builder.Services.AddScoped<IPartnerProfileService, PartnerProfileService>();
 
-builder.Services.AddScoped<IOnSiteTaskRepository, OnSiteTaskRepository>();
-builder.Services.AddScoped<IOnSiteTaskService, OnSiteTaskService>();
+
+//builder.Services.AddDbContext<IVANContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("SystemDB")), ServiceLifetime.Transient);
+//builder.Services.AddScoped<DbContext, IVANContext>();
+
+//builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+//builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+//builder.Services.AddTransient<IOrganizationProfileRepository, OrganizationProfileRepository>();//
+//builder.Services.AddTransient<OrganizationProfileDAO>();
 
 var app = builder.Build();
 
@@ -55,7 +54,7 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(); // Mặc định hiển thị ở /swagger
+    app.UseSwaggerUI();
 }
 
 app.Run();
