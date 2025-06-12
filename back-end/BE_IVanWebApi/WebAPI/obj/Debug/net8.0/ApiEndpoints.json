@@ -1,0 +1,65 @@
+[
+  {
+    "ContainingType": "WebAPI.Controllers.VolunteerProfileController",
+    "Method": "GetAll",
+    "RelativePath": "api/VolunteerProfile",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.VolunteerProfileController",
+    "Method": "Create",
+    "RelativePath": "api/VolunteerProfile",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "WebAPI.Models.VolunteerProfile.VolunteerProfileDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.VolunteerProfileController",
+    "Method": "GetByUserId",
+    "RelativePath": "api/VolunteerProfile/user/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebAPI.Controllers.VolunteerProfileController",
+    "Method": "Update",
+    "RelativePath": "api/VolunteerProfile/user/{userId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "WebAPI.Models.VolunteerProfile.VolunteerProfileDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
