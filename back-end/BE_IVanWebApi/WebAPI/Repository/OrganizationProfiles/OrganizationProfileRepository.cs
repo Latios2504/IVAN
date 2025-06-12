@@ -22,9 +22,9 @@ namespace WebAPI.Repository.OrganizationProfiles
 
         //public OrganizationProfile GetOrganizationProfile(int Id) => _OrganizationProfileDAO.GetById(Id);
 
-        private readonly IVANContext _context;
+        private readonly IVANSystemContext _context;
 
-        public OrganizationProfileRepository(IVANContext context)
+        public OrganizationProfileRepository(IVANSystemContext context)
         {
             _context = context;
         }
