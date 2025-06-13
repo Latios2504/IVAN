@@ -8,8 +8,8 @@ namespace WebAPI.Helpers.AutoMapper
     {
         public OnSiteTaskMapping()
         {
-            CreateMap<OnSiteTask, OnSiteTask>();
-            CreateMap<OnSiteTask, OnSiteTask>();
+            CreateMap<OnSiteTask, OnSiteTaskViewModel>();
+            CreateMap<OnSiteTaskViewModel, OnSiteTask>();
 
             CreateMap<OnSiteTaskInputModel, OnSiteTask>();
             CreateMap<OnSiteTask, OnSiteTaskInputModel>();
