@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -8,6 +8,8 @@ using ivan_api.Services;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Services.VolunteerProfileServ;
 using ivan_api.Mapping.Profiles;
+using ivan_api.Repository.EventRepo;
+using ivan_api.Services.EventServ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +57,10 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddAutoMapper(typeof(VolunteerProfileMapping));
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
 builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
+
+// Đăng ký Repository & Service
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
