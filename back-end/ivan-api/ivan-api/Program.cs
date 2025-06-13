@@ -90,7 +90,7 @@ builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<IEventService, EventService>();
+//builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
