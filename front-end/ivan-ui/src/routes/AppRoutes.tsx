@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { ProtectedRoute } from "@/components/layout";
 import { UserRole } from "@/types/auth";
 
 // Lazy loading pages
@@ -11,10 +11,15 @@ const ForgotPasswordPage = lazy(
   () => import("@/pages/auth/ForgotPasswordPage")
 );
 const PasswordResetPage = lazy(() => import("@/pages/auth/PasswordResetPage"));
+const ChangePasswordPage = lazy(
+  () => import("@/pages/auth/ChangePasswordPage")
+);
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
-const VolunteersPage = lazy(() => import("@/pages/volunteers/VolunteersPage"));
+const VolunteersPage = lazy(
+  () => import("@/pages/volunteer/VolunteersListPage")
+);
 const OrganizationsPage = lazy(
-  () => import("@/pages/organizations/OrganizationsPage")
+  () => import("@/pages/organization/OrganizationsListPage")
 );
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const EventsPage = lazy(() => import("@/pages/events/EventsPage"));
@@ -86,7 +91,7 @@ export default function AppRoutes() {
               <DashboardPage />
             </ProtectedRoute>
           }
-        />
+        />{" "}
         <Route
           path="/profile"
           element={
@@ -94,7 +99,15 @@ export default function AppRoutes() {
               <ProfilePage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePasswordPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={

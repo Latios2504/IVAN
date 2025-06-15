@@ -19,11 +19,23 @@ import {
   Briefcase,
   Bell,
   Shield,
+  MessageCircle,
+  Bot,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import ChatBot from "@/components/chatbot/ChatBot";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false);
+
+  const toggleChatBot = () => {
+    setIsChatBotOpen(!isChatBotOpen);
+  };
+
+  // Chỉ admin mới được sử dụng chatbot
+  const isAdmin = user?.role === "admin";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,7 +47,6 @@ export default function AdminDashboard() {
           Quản lý toàn bộ hệ thống IVAN và giám sát hoạt động
         </p>
       </div>
-
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
@@ -84,7 +95,6 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* User Management */}
         <Card>
@@ -270,7 +280,25 @@ export default function AdminDashboard() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </div>{" "}
+      {/* Floating ChatBot Button - Chỉ hiển thị cho Admin */}
+      {isAdmin && !isChatBotOpen && (
+        <div className="fixed bottom-4 right-4 z-40">
+          <Button
+            onClick={toggleChatBot}
+            className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg border-2 border-white"
+            size="lg"
+            title="IVAN AI Assistant - Chỉ dành cho Admin"
+          >
+            <div className="relative">
+              <Bot className="h-6 w-6 text-white" />
+              <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+            </div>
+          </Button>
+        </div>
+      )}
+      {/* ChatBot Component - Chỉ cho Admin */}
+      {isAdmin && <ChatBot isOpen={isChatBotOpen} onToggle={toggleChatBot} />}
     </div>
   );
 }

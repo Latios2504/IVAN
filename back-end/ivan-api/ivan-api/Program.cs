@@ -27,6 +27,16 @@ builder.Services.AddSingleton(jwtConfig);
 // Email Configuration
 builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
 
+// Gemini Configuration
+var geminiConfig = new GeminiConfiguration();
+builder.Configuration.GetSection("Gemini").Bind(geminiConfig);
+builder.Services.AddSingleton(geminiConfig);
+
+// Google Sheets Configuration
+var googleSheetsConfig = new GoogleSheetsConfiguration();
+builder.Configuration.GetSection("GoogleSheets").Bind(googleSheetsConfig);
+builder.Services.AddSingleton(googleSheetsConfig);
+
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -74,6 +84,18 @@ builder.Services.AddSwaggerGen(c =>
 // Authorization
 builder.Services.AddAuthorization();
 
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("http://localhost:5173", "http://localhost:5174") // Vite dev server ports
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
+});
+
 // Custom Services
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -82,6 +104,18 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+
+// N8N Webhook Service
+builder.Services.AddHttpClient<IN8nWebhookService, N8nWebhookService>();
+builder.Services.AddScoped<IN8nWebhookService, N8nWebhookService>();
+
+// ChatBot Service
+builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
+builder.Services.AddScoped<IChatBotService, ChatBotService>();
+
+// Google Sheets Service
+builder.Services.AddHttpClient<IGoogleSheetsService, GoogleSheetsService>();
+builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
 
 // Volunteer Profile DI
 builder.Services.AddAutoMapper(typeof(VolunteerProfileMapping));
@@ -107,6 +141,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// CORS middleware (must be before Authentication)
+app.UseCors();
 
 // Authentication & Authorization middleware (order matters!)
 app.UseAuthentication();

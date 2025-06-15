@@ -10,6 +10,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly IPasswordHashingService _passwordHashingService;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IEmailService _emailService;
+    private readonly IN8nWebhookService _n8nWebhookService;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
@@ -17,12 +18,14 @@ public class AuthenticationService : IAuthenticationService
         IPasswordHashingService passwordHashingService,
         IJwtTokenService jwtTokenService,
         IEmailService emailService,
+        IN8nWebhookService n8nWebhookService,
         ILogger<AuthenticationService> logger)
     {
         _context = context;
         _passwordHashingService = passwordHashingService;
         _jwtTokenService = jwtTokenService;
         _emailService = emailService;
+        _n8nWebhookService = n8nWebhookService;
         _logger = logger;
     }
 
@@ -146,13 +149,16 @@ public class AuthenticationService : IAuthenticationService
                 EmailVerificationToken = Guid.NewGuid().ToString(),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(newUser);
+            };            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
             // Send email verification (for now, just log)
-            await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);            return new ApiResponseDTO<SuccessResponseDTO>
+            await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);
+
+            // Send webhook to N8N for Google Sheets integration
+            await _n8nWebhookService.SendUserRegistrationAsync(newUser.UserId, newUser.Email, role.RoleName);
+
+            return new ApiResponseDTO<SuccessResponseDTO>
             {
                 Success = true,
                 Message = "Registration successful. Please check your email for verification.",
