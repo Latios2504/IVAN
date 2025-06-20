@@ -76,6 +76,12 @@ const PartnerProfileManagementPage = lazy(
 const AdminPartnerListPage = lazy(
   () => import("@/pages/admin/partner/AdminPartnerListPage")
 );
+const UserManagementPage = lazy(
+  () => import("@/pages/admin/UserManagementPage")
+);
+const AdminNotificationManagementPage = lazy(
+  () => import("@/pages/admin/AdminNotificationManagementPage")
+);
 
 // Loading component
 const PageLoader = () => (
@@ -226,7 +232,8 @@ export default function AppRoutes() {
               <PartnerCollaborationPage />
             </ProtectedRoute>
           }
-        />        <Route
+        />{" "}
+        <Route
           path="/organization/notifications"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
@@ -237,11 +244,14 @@ export default function AppRoutes() {
         <Route
           path="/organization/profile"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION, UserRole.ADMIN]}>
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.ADMIN]}
+            >
               <OrganizationProfileManagementPage />
             </ProtectedRoute>
           }
-        />        <Route
+        />{" "}
+        <Route
           path="/admin/organizations"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
@@ -250,10 +260,26 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
           path="/admin/partners"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <AdminPartnerListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminNotificationManagementPage />
             </ProtectedRoute>
           }
         />

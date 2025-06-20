@@ -1,26 +1,45 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import type { 
+import type {
   OrganizationProfileData,
   OrganizationProfileFilters,
   OrganizationType,
-  OrganizationStats
+  OrganizationStats,
 } from "@/types/organization-profile";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { 
-  Building2, 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
+import {
+  Building2,
+  Search,
+  Filter,
+  Eye,
+  Edit,
   Shield,
   ShieldCheck,
   ShieldX,
@@ -31,14 +50,14 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 /**
  * Admin Organization List Page
  * Implements admin view for FE-03: List Organization Profiles
- * 
+ *
  * Features:
  * - List all organizations with filtering and search
  * - Organization verification status management
@@ -49,28 +68,59 @@ import { Link } from "react-router-dom";
 const AdminOrganizationListPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [organizations, setOrganizations] = useState<OrganizationProfileData[]>([]);
-  const [filteredOrganizations, setFilteredOrganizations] = useState<OrganizationProfileData[]>([]);
-  const [organizationTypes, setOrganizationTypes] = useState<OrganizationType[]>([]);
+  const [organizations, setOrganizations] = useState<OrganizationProfileData[]>(
+    []
+  );
+  const [filteredOrganizations, setFilteredOrganizations] = useState<
+    OrganizationProfileData[]
+  >([]);
+  const [organizationTypes, setOrganizationTypes] = useState<
+    OrganizationType[]
+  >([]);
   const [stats, setStats] = useState<OrganizationStats | null>(null);
   const [currentTab, setCurrentTab] = useState("all");
-  
+
   // Filter state
   const [filters, setFilters] = useState<OrganizationProfileFilters>({
-    searchTerm: '',
+    searchTerm: "",
     typeId: undefined,
-    province: '',
+    province: "",
     isVerified: undefined,
-    isActive: undefined
+    isActive: undefined,
   });
 
   // Sample organization types
   const sampleOrganizationTypes: OrganizationType[] = [
-    { typeId: 1, typeName: "Tổ chức phi lợi nhuận", description: "NGO, từ thiện, tình nguyện", isActive: true },
-    { typeId: 2, typeName: "Doanh nghiệp", description: "Công ty tư nhân, CSR", isActive: true },
-    { typeId: 3, typeName: "Tổ chức nhà nước", description: "Cơ quan chính phủ, công lập", isActive: true },
-    { typeId: 4, typeName: "Trường học", description: "Trường đại học, phổ thông", isActive: true },
-    { typeId: 5, typeName: "Tôn giáo", description: "Tổ chức tôn giáo, tín ngưỡng", isActive: true }
+    {
+      typeId: 1,
+      typeName: "Tổ chức phi lợi nhuận",
+      description: "NGO, từ thiện, tình nguyện",
+      isActive: true,
+    },
+    {
+      typeId: 2,
+      typeName: "Doanh nghiệp",
+      description: "Công ty tư nhân, CSR",
+      isActive: true,
+    },
+    {
+      typeId: 3,
+      typeName: "Tổ chức nhà nước",
+      description: "Cơ quan chính phủ, công lập",
+      isActive: true,
+    },
+    {
+      typeId: 4,
+      typeName: "Trường học",
+      description: "Trường đại học, phổ thông",
+      isActive: true,
+    },
+    {
+      typeId: 5,
+      typeName: "Tôn giáo",
+      description: "Tổ chức tôn giáo, tín ngưỡng",
+      isActive: true,
+    },
   ];
 
   // Sample organizations data
@@ -102,7 +152,7 @@ const AdminOrganizationListPage = () => {
       totalVolunteers: 1250,
       isActive: true,
       createdAt: "2023-12-01T09:00:00Z",
-      updatedAt: "2024-06-15T14:30:00Z"
+      updatedAt: "2024-06-15T14:30:00Z",
     },
     {
       organizationId: 2,
@@ -131,7 +181,7 @@ const AdminOrganizationListPage = () => {
       totalVolunteers: 780,
       isActive: true,
       createdAt: "2024-01-10T10:00:00Z",
-      updatedAt: "2024-06-10T16:45:00Z"
+      updatedAt: "2024-06-10T16:45:00Z",
     },
     {
       organizationId: 3,
@@ -159,7 +209,7 @@ const AdminOrganizationListPage = () => {
       totalVolunteers: 320,
       isActive: true,
       createdAt: "2024-03-15T11:30:00Z",
-      updatedAt: "2024-06-01T09:20:00Z"
+      updatedAt: "2024-06-01T09:20:00Z",
     },
     {
       organizationId: 4,
@@ -188,7 +238,7 @@ const AdminOrganizationListPage = () => {
       totalVolunteers: 890,
       isActive: true,
       createdAt: "2024-02-01T13:15:00Z",
-      updatedAt: "2024-06-12T11:30:00Z"
+      updatedAt: "2024-06-12T11:30:00Z",
     },
     {
       organizationId: 5,
@@ -205,7 +255,7 @@ const AdminOrganizationListPage = () => {
       wardCommune: "Phường 4",
       district: "Quận 1",
       province: "TP. Hồ Chí Minh",
-      contactPersonName: "Hoàng Văn Đức",  
+      contactPersonName: "Hoàng Văn Đức",
       contactPersonTitle: "Thư ký",
       contactEmail: "contact@hoasen.org.vn",
       contactPhone: "028 1234 9876",
@@ -216,8 +266,8 @@ const AdminOrganizationListPage = () => {
       totalVolunteers: 156,
       isActive: false,
       createdAt: "2024-05-01T09:45:00Z",
-      updatedAt: "2024-06-05T14:20:00Z"
-    }
+      updatedAt: "2024-06-05T14:20:00Z",
+    },
   ];
 
   // Sample stats data
@@ -229,7 +279,7 @@ const AdminOrganizationListPage = () => {
     totalEvents: 234,
     totalVolunteers: 5680,
     averageRating: 4.3,
-    monthlyGrowth: 8.5
+    monthlyGrowth: 8.5,
   };
 
   // Load data on component mount
@@ -237,15 +287,14 @@ const AdminOrganizationListPage = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        
+
         // Simulate API calls
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         setOrganizationTypes(sampleOrganizationTypes);
         setOrganizations(sampleOrganizations);
         setFilteredOrganizations(sampleOrganizations);
         setStats(sampleStats);
-        
       } catch (error) {
         console.error("Error loading organizations:", error);
       } finally {
@@ -263,59 +312,65 @@ const AdminOrganizationListPage = () => {
     // Search filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
-      filtered = filtered.filter(org => 
-        org.organizationName.toLowerCase().includes(searchLower) ||
-        org.shortName?.toLowerCase().includes(searchLower) ||
-        org.contactEmail?.toLowerCase().includes(searchLower) ||
-        org.contactPersonName?.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (org) =>
+          org.organizationName.toLowerCase().includes(searchLower) ||
+          org.shortName?.toLowerCase().includes(searchLower) ||
+          org.contactEmail?.toLowerCase().includes(searchLower) ||
+          org.contactPersonName?.toLowerCase().includes(searchLower)
       );
     }
 
     // Type filter
     if (filters.typeId) {
-      filtered = filtered.filter(org => org.typeId === filters.typeId);
+      filtered = filtered.filter((org) => org.typeId === filters.typeId);
     }
 
-    // Province filter  
+    // Province filter
     if (filters.province) {
-      filtered = filtered.filter(org => org.province === filters.province);
+      filtered = filtered.filter((org) => org.province === filters.province);
     }
 
     // Verification filter
     if (filters.isVerified !== undefined) {
-      filtered = filtered.filter(org => org.isVerified === filters.isVerified);
+      filtered = filtered.filter(
+        (org) => org.isVerified === filters.isVerified
+      );
     }
 
     // Active status filter
     if (filters.isActive !== undefined) {
-      filtered = filtered.filter(org => org.isActive === filters.isActive);
+      filtered = filtered.filter((org) => org.isActive === filters.isActive);
     }
 
     // Tab filter
     if (currentTab === "verified") {
-      filtered = filtered.filter(org => org.isVerified === true);
+      filtered = filtered.filter((org) => org.isVerified === true);
     } else if (currentTab === "pending") {
-      filtered = filtered.filter(org => org.isVerified === false);
+      filtered = filtered.filter((org) => org.isVerified === false);
     } else if (currentTab === "inactive") {
-      filtered = filtered.filter(org => org.isActive === false);
+      filtered = filtered.filter((org) => org.isActive === false);
     }
 
     setFilteredOrganizations(filtered);
   }, [filters, organizations, currentTab]);
 
   // Handle filter changes
-  const handleFilterChange = (key: keyof OrganizationProfileFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const handleFilterChange = (
+    key: keyof OrganizationProfileFilters,
+    value: any
+  ) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   // Clear all filters
   const clearFilters = () => {
     setFilters({
-      searchTerm: '',
+      searchTerm: "",
       typeId: undefined,
-      province: '',
+      province: "",
       isVerified: undefined,
-      isActive: undefined
+      isActive: undefined,
     });
   };
 
@@ -323,15 +378,15 @@ const AdminOrganizationListPage = () => {
   const getVerificationStatus = (isVerified?: boolean) => {
     if (isVerified === true) {
       return {
-        color: 'bg-green-100 text-green-800 border-green-200',
+        color: "bg-green-100 text-green-800 border-green-200",
         icon: <ShieldCheck className="w-3 h-3" />,
-        text: 'Đã xác thực'
+        text: "Đã xác thực",
       };
     } else {
       return {
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        color: "bg-yellow-100 text-yellow-800 border-yellow-200",
         icon: <Clock className="w-3 h-3" />,
-        text: 'Chờ xác thực'
+        text: "Chờ xác thực",
       };
     }
   };
@@ -340,21 +395,21 @@ const AdminOrganizationListPage = () => {
   const getActiveStatus = (isActive?: boolean) => {
     if (isActive === true) {
       return {
-        color: 'bg-green-100 text-green-800',
-        text: 'Hoạt động'
+        color: "bg-green-100 text-green-800",
+        text: "Hoạt động",
       };
     } else {
       return {
-        color: 'bg-red-100 text-red-800',
-        text: 'Tạm khóa'
+        color: "bg-red-100 text-red-800",
+        text: "Tạm khóa",
       };
     }
   };
 
   // Format date
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
   // Render stars rating
@@ -365,9 +420,9 @@ const AdminOrganizationListPage = () => {
           <Star
             key={star}
             className={`w-3 h-3 ${
-              star <= rating 
-                ? 'text-yellow-400 fill-yellow-400' 
-                : 'text-gray-300'
+              star <= rating
+                ? "text-yellow-400 fill-yellow-400"
+                : "text-gray-300"
             }`}
           />
         ))}
@@ -411,44 +466,56 @@ const AdminOrganizationListPage = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Tổng tổ chức</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.totalOrganizations}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Tổng tổ chức
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.totalOrganizations}
+                </p>
               </div>
               <Building2 className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Đã xác thực</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.verifiedOrganizations}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.verifiedOrganizations}
+                </p>
               </div>
               <ShieldCheck className="w-8 h-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Chờ xác thực</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.pendingVerification}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Chờ xác thực
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.pendingVerification}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Tăng trưởng</p>
-                <p className="text-2xl font-bold text-gray-900">+{stats?.monthlyGrowth}%</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  +{stats?.monthlyGrowth}%
+                </p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-600" />
             </div>
@@ -473,26 +540,37 @@ const AdminOrganizationListPage = () => {
                 <Input
                   id="search"
                   placeholder="Tên tổ chức, email..."
-                  value={filters.searchTerm || ''}
-                  onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+                  value={filters.searchTerm || ""}
+                  onChange={(e) =>
+                    handleFilterChange("searchTerm", e.target.value)
+                  }
                   className="pl-10"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Loại tổ chức</Label>
+              <Label htmlFor="type">Loại tổ chức</Label>{" "}
               <Select
-                value={filters.typeId?.toString() || ''}
-                onValueChange={(value) => handleFilterChange('typeId', value ? parseInt(value) : undefined)}
+                value={filters.typeId?.toString() || "all"}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    "typeId",
+                    value === "all" ? undefined : parseInt(value)
+                  )
+                }
               >
                 <SelectTrigger>
+                  {" "}
                   <SelectValue placeholder="Tất cả loại" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả loại</SelectItem>
-                  {organizationTypes.map(type => (
-                    <SelectItem key={type.typeId} value={type.typeId.toString()}>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  {organizationTypes.map((type) => (
+                    <SelectItem
+                      key={type.typeId}
+                      value={type.typeId.toString()}
+                    >
                       {type.typeName}
                     </SelectItem>
                   ))}
@@ -501,17 +579,21 @@ const AdminOrganizationListPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="province">Tỉnh/Thành phố</Label>
+              <Label htmlFor="province">Tỉnh/Thành phố</Label>{" "}
               <Select
-                value={filters.province || ''}
-                onValueChange={(value) => handleFilterChange('province', value)}
+                value={filters.province || "all"}
+                onValueChange={(value) =>
+                  handleFilterChange("province", value === "all" ? "" : value)
+                }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Tất cả tỉnh" />
+                  <SelectValue placeholder="Tất cả tỉnh" />{" "}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả tỉnh</SelectItem>
-                  <SelectItem value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</SelectItem>
+                  <SelectItem value="all">Tất cả tỉnh</SelectItem>
+                  <SelectItem value="TP. Hồ Chí Minh">
+                    TP. Hồ Chí Minh
+                  </SelectItem>
                   <SelectItem value="Hà Nội">Hà Nội</SelectItem>
                   <SelectItem value="Đà Nẵng">Đà Nẵng</SelectItem>
                   <SelectItem value="Hải Phòng">Hải Phòng</SelectItem>
@@ -520,23 +602,29 @@ const AdminOrganizationListPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="verification">Trạng thái</Label>
+              <Label htmlFor="verification">Trạng thái</Label>{" "}
               <Select
-                value={filters.isVerified?.toString() || ''}
-                onValueChange={(value) => handleFilterChange('isVerified', value === '' ? undefined : value === 'true')}
+                value={filters.isVerified?.toString() || "all"}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    "isVerified",
+                    value === "all" ? undefined : value === "true"
+                  )
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  {" "}
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="true">Đã xác thực</SelectItem>
                   <SelectItem value="false">Chờ xác thực</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          
+
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={clearFilters}>
               Xóa bộ lọc
@@ -556,7 +644,11 @@ const AdminOrganizationListPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4">
+          <Tabs
+            value={currentTab}
+            onValueChange={setCurrentTab}
+            className="space-y-4"
+          >
             <TabsList>
               <TabsTrigger value="all">Tất cả</TabsTrigger>
               <TabsTrigger value="verified">Đã xác thực</TabsTrigger>
@@ -592,9 +684,15 @@ const AdminOrganizationListPage = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredOrganizations.map((organization) => {
-                        const verificationStatus = getVerificationStatus(organization.isVerified);
-                        const activeStatus = getActiveStatus(organization.isActive);
-                        const orgType = organizationTypes.find(t => t.typeId === organization.typeId);
+                        const verificationStatus = getVerificationStatus(
+                          organization.isVerified
+                        );
+                        const activeStatus = getActiveStatus(
+                          organization.isActive
+                        );
+                        const orgType = organizationTypes.find(
+                          (t) => t.typeId === organization.typeId
+                        );
 
                         return (
                           <TableRow key={organization.organizationId}>
@@ -613,7 +711,7 @@ const AdminOrganizationListPage = () => {
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">
-                                {orgType?.typeName || 'N/A'}
+                                {orgType?.typeName || "N/A"}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -633,7 +731,9 @@ const AdminOrganizationListPage = () => {
                               <div className="space-y-2">
                                 <Badge className={verificationStatus.color}>
                                   {verificationStatus.icon}
-                                  <span className="ml-1">{verificationStatus.text}</span>
+                                  <span className="ml-1">
+                                    {verificationStatus.text}
+                                  </span>
                                 </Badge>
                                 <Badge className={activeStatus.color}>
                                   {activeStatus.text}
@@ -662,13 +762,15 @@ const AdminOrganizationListPage = () => {
                             </TableCell>
                             <TableCell>
                               <p className="text-sm text-gray-600">
-                                {formatDate(organization.createdAt || '')}
+                                {formatDate(organization.createdAt || "")}
                               </p>
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end space-x-2">
                                 <Button variant="ghost" size="sm" asChild>
-                                  <Link to={`/organization/profile?id=${organization.organizationId}`}>
+                                  <Link
+                                    to={`/organization/profile?id=${organization.organizationId}`}
+                                  >
                                     <Eye className="w-4 h-4" />
                                   </Link>
                                 </Button>

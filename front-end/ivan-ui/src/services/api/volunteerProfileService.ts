@@ -4,18 +4,24 @@ import type { ApiResponse } from "../../types/common";
 // DTOs aligned with backend
 export interface VolunteerSkillCreateDto {
   skillId: number;
-  proficiencyLevel: string;
+  proficiencyLevel?: string;
+  yearsOfExperience?: number;
+  description?: string;
 }
 
 export interface VolunteerSkillUpdateDto {
   skillId: number;
-  proficiencyLevel: string;
+  proficiencyLevel?: string;
+  yearsOfExperience?: number;
+  description?: string;
 }
 
 export interface VolunteerSkillDto {
   skillId: number;
   skillName: string;
-  proficiencyLevel: string;
+  proficiencyLevel?: string;
+  yearsOfExperience?: number;
+  description?: string;
 }
 
 export interface VolunteerProfileCreateDto {
@@ -68,10 +74,9 @@ export interface VolunteerProfileDetailDto {
   rating?: number;
   ratingCount: number;
   skills: VolunteerSkillDto[];
-  isVerified: boolean;
+  isVerified?: boolean;
   verifiedAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  verifiedBy?: number;
 }
 
 /**
