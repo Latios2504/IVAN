@@ -61,6 +61,21 @@ const PartnerCollaborationPage = lazy(
 const NotificationManagementPage = lazy(
   () => import("@/pages/organization/NotificationManagementPage")
 );
+const OrganizationProfileManagementPage = lazy(
+  () => import("@/pages/organization/OrganizationProfileManagementPage")
+);
+const AdminOrganizationListPage = lazy(
+  () => import("@/pages/admin/organization/AdminOrganizationListPage")
+);
+const SupportRequestManagementPage = lazy(
+  () => import("@/pages/support/SupportRequestManagementPage")
+);
+const PartnerProfileManagementPage = lazy(
+  () => import("@/pages/partner/PartnerProfileManagementPage")
+);
+const AdminPartnerListPage = lazy(
+  () => import("@/pages/admin/partner/AdminPartnerListPage")
+);
 
 // Loading component
 const PageLoader = () => (
@@ -211,12 +226,50 @@ export default function AppRoutes() {
               <PartnerCollaborationPage />
             </ProtectedRoute>
           }
-        />
-        <Route
+        />        <Route
           path="/organization/notifications"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
               <NotificationManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/profile"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION, UserRole.ADMIN]}>
+              <OrganizationProfileManagementPage />
+            </ProtectedRoute>
+          }
+        />        <Route
+          path="/admin/organizations"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminOrganizationListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/partners"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminPartnerListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partner/profile"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.PARTNER, UserRole.ADMIN]}>
+              <PartnerProfileManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <ProtectedRoute>
+              <SupportRequestManagementPage />
             </ProtectedRoute>
           }
         />

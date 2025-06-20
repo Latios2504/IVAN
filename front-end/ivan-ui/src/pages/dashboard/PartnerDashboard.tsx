@@ -224,11 +224,10 @@ export default function PartnerDashboard() {
                 <Building2 className="mr-2 h-4 w-4" />
                 Khám phá tổ chức
               </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/profile">
+            </Button>            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link to="/partner/profile">
                 <Settings className="mr-2 h-4 w-4" />
-                Cập nhật hồ sơ
+                Quản lý hồ sơ đối tác
               </Link>
             </Button>
           </CardContent>

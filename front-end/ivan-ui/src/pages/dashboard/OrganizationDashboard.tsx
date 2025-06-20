@@ -91,8 +91,13 @@ export default function OrganizationDashboard() {
             <CardDescription>
               Các chức năng quản lý cốt lõi của tổ chức
             </CardDescription>
-          </CardHeader>{" "}
-          <CardContent className="space-y-3">
+          </CardHeader>{" "}          <CardContent className="space-y-3">
+            <Button className="w-full justify-start" asChild>
+              <Link to="/organization/profile">
+                <Settings className="mr-2 h-4 w-4" />
+                Quản lý hồ sơ tổ chức
+              </Link>
+            </Button>
             <Button className="w-full justify-start" asChild>
               <Link to="/organization/management">
                 <Settings className="mr-2 h-4 w-4" />

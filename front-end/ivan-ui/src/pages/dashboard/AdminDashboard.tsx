@@ -142,11 +142,16 @@ export default function AdminDashboard() {
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Báo cáo hệ thống
               </Link>
-            </Button>
-            <Button className="w-full justify-start" asChild>
+            </Button>            <Button className="w-full justify-start" asChild>
               <Link to="/admin/blog">
                 <FileText className="mr-2 h-4 w-4" />
                 Quản lý blog
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" asChild>
+              <Link to="/support">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Quản lý hỗ trợ
               </Link>
             </Button>
           </CardContent>
