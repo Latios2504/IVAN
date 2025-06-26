@@ -10,6 +10,8 @@ using ivan_api.Services.VolunteerProfileServ;
 using ivan_api.Mapping.Profiles;
 using ivan_api.Repository.EventRepo;
 using ivan_api.Services.EventServ;
+using ivan_api.Repository.CoordinatorTaskRepo;
+using ivan_api.Services.CoordinatorTaskServ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,9 +120,13 @@ builder.Services.AddHttpClient<IGoogleSheetsService, GoogleSheetsService>();
 builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
 
 // Volunteer Profile DI
-builder.Services.AddAutoMapper(typeof(VolunteerProfileMapping));
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
 builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
+
+// Coordinator Task DI
+builder.Services.AddScoped<ICoordinatorTaskRepository, CoordinatorTaskRepository>();
+builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
