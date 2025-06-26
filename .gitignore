@@ -10,3 +10,4 @@
 *.db-shm
 *.v2
 *.vsidx
+/back-end/BE_IVanWebApi/.vs
