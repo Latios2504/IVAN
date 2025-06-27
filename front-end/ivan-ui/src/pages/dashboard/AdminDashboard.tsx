@@ -138,6 +138,12 @@ export default function AdminDashboard() {
               </Link>
             </Button>
             <Button className="w-full justify-start" asChild>
+              <Link to="/admin/ai-instructions">
+                <Bot className="mr-2 h-4 w-4" />
+                Quản lý AI Instructions
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" asChild>
               <Link to="/admin/reports">
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Báo cáo hệ thống

@@ -82,6 +82,9 @@ const UserManagementPage = lazy(
 const AdminNotificationManagementPage = lazy(
   () => import("@/pages/admin/AdminNotificationManagementPage")
 );
+const AIInstructionsManagementPage = lazy(
+  () => import("@/pages/admin/AIInstructionsManagementPage")
+);
 
 // Loading component
 const PageLoader = () => (
@@ -280,6 +283,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <AdminNotificationManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/ai-instructions"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AIInstructionsManagementPage />
             </ProtectedRoute>
           }
         />
