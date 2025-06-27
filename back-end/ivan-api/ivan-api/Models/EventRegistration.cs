@@ -57,6 +57,9 @@ public partial class EventRegistration
 
     public DateTime? UpdatedAt { get; set; }
 
+    // Additional properties for AI features
+    public DateTime? RegistrationDate { get; set; }
+
     public virtual User? ApprovedByNavigation { get; set; }
 
     public virtual Event Event { get; set; } = null!;

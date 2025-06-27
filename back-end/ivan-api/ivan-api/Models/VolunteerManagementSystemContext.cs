@@ -49,6 +49,15 @@ public partial class VolunteerManagementSystemContext : DbContext
 
     public virtual DbSet<Partner> Partners { get; set; }
 
+    // AI Database Access DbSets
+    public virtual DbSet<AiCustomInstruction> AiCustomInstructions { get; set; }
+
+    public virtual DbSet<AiQueryAnalytic> AiQueryAnalytics { get; set; }
+
+    public virtual DbSet<AiQueryCategory> AiQueryCategories { get; set; }
+
+    public virtual DbSet<AiConversationContext> AiConversationContexts { get; set; }
+
     public virtual DbSet<PartnerCollaboration> PartnerCollaborations { get; set; }
 
     public virtual DbSet<PartnerIndustry> PartnerIndustries { get; set; }
@@ -992,6 +1001,72 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Volunteer).WithMany(p => p.VolunteerSkills)
                 .HasForeignKey(d => d.VolunteerId)
                 .HasConstraintName("FK__Volunteer__Volun__59FA5E80");
+        });
+
+        // AI Custom Instructions Configuration
+        modelBuilder.Entity<AiCustomInstruction>(entity =>
+        {
+            entity.HasKey(e => e.InstructionId).HasName("PK__AiCustom__Instructions");
+
+            entity.Property(e => e.InstructionName).HasMaxLength(200);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsDefault).HasDefaultValue(false);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany()
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__AiCustomInstructions__CreatedBy");
+        });
+
+        // AI Query Analytics Configuration
+        modelBuilder.Entity<AiQueryAnalytic>(entity =>
+        {
+            entity.HasKey(e => e.QueryId).HasName("PK__AiQueryAnalytics__QueryId");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__AiQueryAnalytics__UserId");
+
+            entity.HasOne(d => d.Instruction).WithMany(p => p.AiQueryAnalytics)
+                .HasForeignKey(d => d.InstructionId)
+                .HasConstraintName("FK__AiQueryAnalytics__InstructionId");
+        });
+
+        // AI Query Categories Configuration
+        modelBuilder.Entity<AiQueryCategory>(entity =>
+        {
+            entity.HasKey(e => e.CategoryId).HasName("PK__AiQueryCategories__CategoryId");
+
+            entity.Property(e => e.CategoryName).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+        });
+
+        // AI Conversation Context Configuration
+        modelBuilder.Entity<AiConversationContext>(entity =>
+        {
+            entity.HasKey(e => e.ContextId).HasName("PK__AiConversationContexts__ContextId");
+
+            entity.HasIndex(e => e.ConversationId).IsUnique();
+
+            entity.Property(e => e.ConversationId).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__AiConversationContexts__UserId");
+
+            entity.HasOne(d => d.Instruction).WithMany(p => p.AiConversationContexts)
+                .HasForeignKey(d => d.InstructionId)
+                .HasConstraintName("FK__AiConversationContexts__InstructionId");
         });
 
         OnModelCreatingPartial(modelBuilder);

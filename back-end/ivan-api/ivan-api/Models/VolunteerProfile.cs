@@ -39,6 +39,13 @@ public partial class VolunteerProfile
 
     public DateTime? UpdatedAt { get; set; }
 
+    // Additional properties for AI features
+    public DateTime? LastActiveDate { get; set; }
+    
+    public int? TotalHoursVolunteered { get; set; }
+    
+    public string? Skills { get; set; }
+
     public virtual ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
 
     public virtual ICollection<EventRegistration> EventRegistrations { get; set; } = new List<EventRegistration>();

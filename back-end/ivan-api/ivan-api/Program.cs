@@ -117,6 +117,16 @@ builder.Services.AddScoped<IChatBotService, ChatBotService>();
 builder.Services.AddHttpClient<IGoogleSheetsService, GoogleSheetsService>();
 builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
 
+// AI Database Services
+builder.Services.AddScoped<IAIDatabaseService, AIDatabaseService>();
+builder.Services.AddScoped<IAIQueryEngine, AIQueryEngine>();
+builder.Services.AddScoped<IAIInstructionService, AIInstructionService>();
+
+// Phase 4: Advanced AI Services
+builder.Services.AddScoped<IAIConversationService, AIConversationService>();
+builder.Services.AddScoped<IMultiModelAIService, MultiModelAIService>();
+builder.Services.AddScoped<IAIRecommendationService, AIRecommendationService>();
+
 // Volunteer Profile DI
 builder.Services.AddAutoMapper(typeof(VolunteerProfileMapping));
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();

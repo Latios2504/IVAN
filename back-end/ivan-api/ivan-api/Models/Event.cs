@@ -97,6 +97,13 @@ public partial class Event
 
     public int? UpdatedBy { get; set; }
 
+    // Additional properties for AI features
+    public string? EventType { get; set; }
+    
+    public int? MaxParticipants { get; set; }
+    
+    public int? CreatedByUserId { get; set; }
+
     public virtual EventCategory Category { get; set; } = null!;
 
     public virtual ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();

@@ -1,0 +1,487 @@
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+using ivan_api.DTOs;
+using ivan_api.Models;
+
+namespace ivan_api.Services;
+
+public class AIDatabaseService : IAIDatabaseService
+{
+    private readonly VolunteerManagementSystemContext _context;
+    private readonly ILogger<AIDatabaseService> _logger;
+
+    public AIDatabaseService(VolunteerManagementSystemContext context, ILogger<AIDatabaseService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    public async Task<AIDatabaseResponseDTO> GetContextualDataAsync(QueryAnalysisDTO queryAnalysis)
+    {
+        var startTime = DateTime.UtcNow;
+        
+        try
+        {
+            var data = queryAnalysis.QueryCategory.ToLower() switch
+            {
+                "volunteer analytics" => await GetVolunteerAnalyticsAsync(queryAnalysis.QueryType, queryAnalysis.Parameters),
+                "event performance" => await GetEventPerformanceAsync(queryAnalysis.QueryType, queryAnalysis.Parameters),
+                "partner insights" => await GetPartnerInsightsAsync(queryAnalysis.QueryType, queryAnalysis.Parameters),
+                "trend analysis" => await GetTrendAnalysisAsync(queryAnalysis.QueryType, queryAnalysis.Parameters),
+                _ => await GetGeneralDataAsync(queryAnalysis.RequiredTables)
+            };
+
+            var executionTime = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
+
+            return new AIDatabaseResponseDTO
+            {
+                Success = data.Success,
+                Data = data.Data,
+                QueryCategory = queryAnalysis.QueryCategory,
+                TablesAccessed = string.Join(", ", queryAnalysis.RequiredTables),
+                ExecutionTimeMs = executionTime,
+                ErrorMessage = data.ErrorMessage
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting contextual data for query analysis");
+            return new AIDatabaseResponseDTO
+            {
+                Success = false,
+                ErrorMessage = "Lỗi khi truy vấn dữ liệu từ hệ thống"
+            };
+        }
+    }
+
+    public async Task<DatabaseSummaryDTO> GetRelevantDataAsync(string queryCategory)
+    {
+        try
+        {
+            var data = new Dictionary<string, object>();
+            var tablesIncluded = new List<string>();
+
+            switch (queryCategory.ToLower())
+            {
+                case "volunteer analytics":
+                    var volunteerData = await GetVolunteerSummaryData();
+                    data.Add("volunteers", volunteerData);
+                    tablesIncluded.AddRange(new[] { "VolunteerProfiles", "VolunteerSkills", "EventRegistrations" });
+                    break;
+
+                case "event performance":
+                    var eventData = await GetEventSummaryData();
+                    data.Add("events", eventData);
+                    tablesIncluded.AddRange(new[] { "Events", "EventRegistrations", "Feedback" });
+                    break;
+
+                case "partner insights":
+                    var partnerData = await GetPartnerSummaryData();
+                    data.Add("partners", partnerData);
+                    tablesIncluded.AddRange(new[] { "Partners", "PartnerCollaborations", "Organizations" });
+                    break;
+
+                default:
+                    var generalData = await GetGeneralSystemData();
+                    data.Add("general", generalData);
+                    tablesIncluded.AddRange(new[] { "Users", "Events", "VolunteerProfiles", "Organizations" });
+                    break;
+            }
+
+            return new DatabaseSummaryDTO
+            {
+                Summary = await FormatDataForAIAsync(data, "summary"),
+                Data = data,
+                TablesIncluded = tablesIncluded,
+                GeneratedAt = DateTime.UtcNow
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting relevant data for category: {Category}", queryCategory);
+            throw;
+        }
+    }
+
+    public async Task<string> FormatDataForAIAsync(object data, string format = "natural")
+    {
+        try
+        {
+            if (data is Dictionary<string, object> dict)
+            {
+                var sb = new StringBuilder();
+                
+                foreach (var kvp in dict)
+                {
+                    sb.AppendLine($"\n=== {kvp.Key.ToUpper()} ===");
+                    
+                    if (kvp.Value is IEnumerable<object> list)
+                    {
+                        var count = 0;
+                        foreach (var item in list)
+                        {
+                            if (count++ > 10) // Limit to first 10 items for AI context
+                            {
+                                sb.AppendLine("... (và nhiều hơn nữa)");
+                                break;
+                            }
+                            sb.AppendLine($"- {item}");
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine(kvp.Value?.ToString() ?? "N/A");
+                    }
+                }
+                
+                return sb.ToString();
+            }
+            
+            return data?.ToString() ?? "Không có dữ liệu";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error formatting data for AI");
+            return "Lỗi định dạng dữ liệu";
+        }
+    }
+
+    public async Task<AIDatabaseResponseDTO> GetVolunteerAnalyticsAsync(string query, Dictionary<string, object>? parameters = null)
+    {
+        try
+        {
+            var volunteers = await _context.VolunteerProfiles
+                .Include(v => v.User)
+                .Include(v => v.VolunteerSkills)
+                .ThenInclude(vs => vs.Skill)
+                .Where(v => v.User.IsActive == true)
+                .ToListAsync();
+
+            var totalVolunteers = volunteers.Count;
+            var activeVolunteers = volunteers.Count(v => v.IsVerified.HasValue && v.IsVerified.Value);
+            var skillDistribution = volunteers
+                .SelectMany(v => v.VolunteerSkills)
+                .GroupBy(vs => vs.Skill.SkillName)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var summary = $"""
+                THỐNG KÊ TÌNH NGUYỆN VIÊN:
+                - Tổng số tình nguyện viên: {totalVolunteers}
+                - Tình nguyện viên đã xác thực: {activeVolunteers}
+                - Tỷ lệ xác thực: {(activeVolunteers * 100.0 / Math.Max(totalVolunteers, 1)):F1}%
+                
+                PHÂN BỐ KỸ NĂNG:
+                {string.Join("\n", skillDistribution.Take(10).Select(kv => $"- {kv.Key}: {kv.Value} người"))}
+                """;
+
+            return new AIDatabaseResponseDTO
+            {
+                Success = true,
+                Data = summary,
+                QueryCategory = "Volunteer Analytics",
+                TablesAccessed = "VolunteerProfiles, Users, VolunteerSkills, Skills"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting volunteer analytics");
+            return new AIDatabaseResponseDTO
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    public async Task<AIDatabaseResponseDTO> GetEventPerformanceAsync(string query, Dictionary<string, object>? parameters = null)
+    {
+        try
+        {
+            var events = await _context.Events
+                .Include(e => e.EventRegistrations)
+                .Include(e => e.Category)
+                .Include(e => e.Organization)
+                .Where(e => e.IsActive.HasValue && e.IsActive.Value)
+                .ToListAsync();
+
+            var totalEvents = events.Count;
+            var completedEvents = events.Count(e => e.Status.StatusName == "Completed");
+            var avgRegistrations = events.Average(e => e.CurrentVolunteers ?? 0);
+
+            var topEvents = events
+                .OrderByDescending(e => e.Rating ?? 0)
+                .Take(5)
+                .Select(e => $"{e.EventName} - Rating: {e.Rating:F1}")
+                .ToList();
+
+            var summary = $"""
+                HIỆU SUẤT SỰ KIỆN:
+                - Tổng số sự kiện: {totalEvents}
+                - Sự kiện đã hoàn thành: {completedEvents}
+                - Trung bình tình nguyện viên/sự kiện: {avgRegistrations:F1}
+                
+                TOP 5 SỰ KIỆN ĐƯỢC ĐÁNH GIÁ CAO:
+                {string.Join("\n", topEvents.Select(e => $"- {e}"))}
+                """;
+
+            return new AIDatabaseResponseDTO
+            {
+                Success = true,
+                Data = summary,
+                QueryCategory = "Event Performance",
+                TablesAccessed = "Events, EventRegistrations, EventCategories, Organizations"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting event performance");
+            return new AIDatabaseResponseDTO
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    public async Task<AIDatabaseResponseDTO> GetPartnerInsightsAsync(string query, Dictionary<string, object>? parameters = null)
+    {
+        try
+        {
+            var partners = await _context.Partners
+                .Include(p => p.User)
+                .Where(p => p.IsActive.HasValue && p.IsActive.Value)
+                .ToListAsync();
+
+            var totalPartners = partners.Count;
+            var verifiedPartners = partners.Count(p => p.IsVerified.HasValue && p.IsVerified.Value);
+
+            var summary = $"""
+                THÔNG TIN ĐỐI TÁC:
+                - Tổng số đối tác: {totalPartners}
+                - Đối tác đã xác thực: {verifiedPartners}
+                - Tỷ lệ xác thực: {(verifiedPartners * 100.0 / Math.Max(totalPartners, 1)):F1}%
+                """;
+
+            return new AIDatabaseResponseDTO
+            {
+                Success = true,
+                Data = summary,
+                QueryCategory = "Partner Insights",
+                TablesAccessed = "Partners, Users"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting partner insights");
+            return new AIDatabaseResponseDTO
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    public async Task<AIDatabaseResponseDTO> GetTrendAnalysisAsync(string query, Dictionary<string, object>? parameters = null)
+    {
+        try
+        {
+            var last30Days = DateTime.UtcNow.AddDays(-30);
+            
+            var recentUsers = await _context.Users
+                .Where(u => u.CreatedAt >= last30Days)
+                .GroupBy(u => u.CreatedAt.HasValue ? u.CreatedAt.Value.Date : DateTime.MinValue.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var recentEvents = await _context.Events
+                .Where(e => e.CreatedAt >= last30Days)
+                .GroupBy(e => e.CreatedAt.HasValue ? e.CreatedAt.Value.Date : DateTime.MinValue.Date)
+                .Select(g => new { Date = g.Key, Count = g.Count() })
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var summary = $"""
+                XU HƯỚNG 30 NGÀY QUA:
+                
+                NGƯỜI DÙNG MỚI:
+                {string.Join("\n", recentUsers.Take(10).Select(u => $"- {u.Date:dd/MM}: {u.Count} người"))}
+                
+                SỰ KIỆN MỚI:
+                {string.Join("\n", recentEvents.Take(10).Select(e => $"- {e.Date:dd/MM}: {e.Count} sự kiện"))}
+                """;
+
+            return new AIDatabaseResponseDTO
+            {
+                Success = true,
+                Data = summary,
+                QueryCategory = "Trend Analysis",
+                TablesAccessed = "Users, Events"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting trend analysis");
+            return new AIDatabaseResponseDTO
+            {
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    public async Task<List<string>> GetRelatedTablesAsync(List<string> baseTables)
+    {
+        // Define table relationships for intelligent data fetching
+        var tableRelationships = new Dictionary<string, List<string>>
+        {
+            ["VolunteerProfiles"] = new() { "Users", "VolunteerSkills", "Skills", "EventRegistrations" },
+            ["Events"] = new() { "EventCategories", "EventRegistrations", "Organizations", "Feedback" },
+            ["Partners"] = new() { "Users", "PartnerCollaborations", "Organizations" },
+            ["Organizations"] = new() { "Users", "OrganizationTypes", "Events", "PartnerCollaborations" }
+        };
+
+        var relatedTables = new HashSet<string>(baseTables);
+        
+        foreach (var table in baseTables)
+        {
+            if (tableRelationships.ContainsKey(table))
+            {
+                foreach (var related in tableRelationships[table])
+                {
+                    relatedTables.Add(related);
+                }
+            }
+        }
+
+        return relatedTables.ToList();
+    }
+
+    public async Task<Dictionary<string, object>> GetDataSummaryAsync(List<string> tableNames)
+    {
+        var summary = new Dictionary<string, object>();
+
+        foreach (var tableName in tableNames)
+        {
+            try
+            {
+                var count = tableName.ToLower() switch
+                {
+                    "users" => await _context.Users.CountAsync(),
+                    "volunteerprofiles" => await _context.VolunteerProfiles.CountAsync(),
+                    "events" => await _context.Events.CountAsync(),
+                    "partners" => await _context.Partners.CountAsync(),
+                    "organizations" => await _context.Organizations.CountAsync(),
+                    _ => 0
+                };
+
+                summary[tableName] = $"{count} records";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Could not get count for table {TableName}: {Error}", tableName, ex.Message);
+                summary[tableName] = "Unknown";
+            }
+        }
+
+        return summary;
+    }
+
+    public async Task LogQueryExecutionAsync(int userId, string query, string tablesAccessed, int executionTime, int? instructionId = null)
+    {
+        try
+        {
+            var analytics = new AiQueryAnalytic
+            {
+                UserId = userId,
+                InstructionId = instructionId,
+                QueryText = query,
+                DataTablesAccessed = tablesAccessed,
+                ExecutionTime = executionTime,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.AiQueryAnalytics.Add(analytics);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging query execution for user {UserId}", userId);
+        }
+    }
+
+    // Private helper methods
+    private async Task<object> GetVolunteerSummaryData()
+    {
+        return await _context.VolunteerProfiles
+            .Include(v => v.User)
+            .Select(v => new
+            {
+                v.VolunteerId,
+                v.User.Email,
+                v.IsVerified,
+                v.VolunteerHours,
+                v.Rating
+            })
+            .Take(50)
+            .ToListAsync();
+    }
+
+    private async Task<object> GetEventSummaryData()
+    {
+        return await _context.Events
+            .Include(e => e.Category)
+            .Select(e => new
+            {
+                e.EventId,
+                e.EventName,
+                e.Category.CategoryName,
+                e.CurrentVolunteers,
+                e.Rating,
+                e.CreatedAt
+            })
+            .Take(50)
+            .ToListAsync();
+    }
+
+    private async Task<object> GetPartnerSummaryData()
+    {
+        return await _context.Partners
+            .Include(p => p.User)
+            .Select(p => new
+            {
+                p.PartnerId,
+                p.CompanyName,
+                p.User.Email,
+                p.IsVerified,
+                p.Rating
+            })
+            .Take(50)
+            .ToListAsync();
+    }
+
+    private async Task<object> GetGeneralSystemData()
+    {
+        return new
+        {
+            TotalUsers = await _context.Users.CountAsync(),
+            TotalVolunteers = await _context.VolunteerProfiles.CountAsync(),
+            TotalEvents = await _context.Events.CountAsync(),
+            TotalPartners = await _context.Partners.CountAsync(),
+            TotalOrganizations = await _context.Organizations.CountAsync()
+        };
+    }
+
+    private async Task<AIDatabaseResponseDTO> GetGeneralDataAsync(List<string> requiredTables)
+    {
+        var summary = await GetDataSummaryAsync(requiredTables);
+        
+        return new AIDatabaseResponseDTO
+        {
+            Success = true,
+            Data = await FormatDataForAIAsync(summary),
+            QueryCategory = "General",
+            TablesAccessed = string.Join(", ", requiredTables)
+        };
+    }
+}
