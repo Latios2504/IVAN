@@ -7,7 +7,6 @@ using ivan_api.Models;
 using ivan_api.Services;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Services.VolunteerProfileServ;
-using ivan_api.Mapping.Profiles;
 using ivan_api.Repository.EventRepo;
 using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;

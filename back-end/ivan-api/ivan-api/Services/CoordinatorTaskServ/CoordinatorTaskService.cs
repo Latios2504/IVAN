@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using ClosedXML.Excel;
-using ivan_api.DTOs.CoordinatorTask;
+﻿using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.Models;
 using ivan_api.Repository.CoordinatorTaskRepo;
 
@@ -8,89 +6,104 @@ namespace ivan_api.Services.CoordinatorTaskServ
 {
     public class CoordinatorTaskService : ICoordinatorTaskService
     {
-        private readonly ICoordinatorTaskRepository _repo;
-        private readonly IMapper _mapper;
+        private readonly ICoordinatorTaskRepository _repository;
 
-        public CoordinatorTaskService(ICoordinatorTaskRepository repo, IMapper mapper)
+        public CoordinatorTaskService(ICoordinatorTaskRepository repository)
         {
-            _repo = repo;
-            _mapper = mapper;
-        }
-
-        public async Task<int> CreateTaskAsync(CoordinatorTaskCreateDto dto, int creatorId)
-        {
-            var task = _mapper.Map<CoordinatorTask>(dto);
-            task.CreatedBy = creatorId;
-            task.CreatedAt = DateTime.UtcNow;
-            task.UpdatedAt = DateTime.UtcNow;
-
-            await _repo.AddAsync(task);
-            await _repo.SaveChangesAsync();
-            return task.TaskId;
-        }
-
-        public async Task<bool> DeleteTaskAsync(int id)
-        {
-            var task = await _repo.GetByIdAsync(id);
-            if (task == null) return false;
-
-            _repo.Delete(task);
-            return await _repo.SaveChangesAsync();
-        }
-
-        public async Task<byte[]> ExportToExcelAsync()
-        {
-            var tasks = await _repo.GetAllAsync();
-
-            using var workbook = new XLWorkbook();
-            var sheet = workbook.Worksheets.Add("Coordinator Tasks");
-
-            sheet.Cell(1, 1).Value = "Task ID";
-            sheet.Cell(1, 2).Value = "Task Name";
-            sheet.Cell(1, 3).Value = "Coordinator";
-            sheet.Cell(1, 4).Value = "Event";
-            sheet.Cell(1, 5).Value = "Status";
-            sheet.Cell(1, 6).Value = "Due Date";
-
-            int row = 2;
-            foreach (var t in tasks)
-            {
-                sheet.Cell(row, 1).Value = t.TaskId;
-                sheet.Cell(row, 2).Value = t.TaskName;
-                sheet.Cell(row, 3).Value = t.Coordinator?.Email ?? "";
-                sheet.Cell(row, 4).Value = t.Event?.EventName ?? "";
-                sheet.Cell(row, 5).Value = t.Status ?? "";
-                sheet.Cell(row, 6).Value = t.DueDate?.ToString("yyyy-MM-dd");
-                row++;
-            }
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            return stream.ToArray();
+            _repository = repository;
         }
 
         public async Task<IEnumerable<CoordinatorTaskDto>> GetAllTasksAsync()
         {
-            var tasks = await _repo.GetAllAsync();
-            return tasks.Select(_mapper.Map<CoordinatorTaskDto>);
+            var tasks = await _repository.GetAllAsync();
+            var listTaskDTO = tasks.Select(x => new CoordinatorTaskDto
+            {
+                EventId = x.EventId,
+                CoordinatorId = x.CoordinatorId,
+                TaskName = x.TaskName,
+                Description = x.Description,
+                DueDate = x.DueDate,
+                Priority = x.Priority,
+                Status = x.Status,
+                Category = x.Category,
+                EstimatedHours = x.EstimatedHours,
+                ActualHours = x.ActualHours,
+                CompletedAt = x.CompletedAt,
+                Notes = x.Notes
+            });
+            return listTaskDTO;
         }
 
-        public async Task<CoordinatorTaskDto?> GetTaskByIdAsync(int id)
+        public async Task<CoordinatorTaskDto> GetTaskByIdAsync(int id)
         {
-            var task = await _repo.GetByIdAsync(id);
-            return task == null ? null : _mapper.Map<CoordinatorTaskDto>(task);
+            var tasks = await _repository.GetByIdAsync(id);
+            if (tasks == null) return null!; // Handle not found case
+            var taskDto = new CoordinatorTaskDto
+            {
+                EventId = tasks.EventId,
+                CoordinatorId = tasks.CoordinatorId,
+                TaskName = tasks.TaskName,
+                Description = tasks.Description,
+                DueDate = tasks.DueDate,
+                Priority = tasks.Priority,
+                Status = tasks.Status,
+                Category = tasks.Category,
+                EstimatedHours = tasks.EstimatedHours,
+                ActualHours = tasks.ActualHours,
+                CompletedAt = tasks.CompletedAt,
+                Notes = tasks.Notes
+            };
+            return taskDto;
         }
 
-        public async Task<bool> UpdateTaskAsync(int id, CoordinatorTaskUpdateDto dto)
+        public async Task<CoordinatorTask> CreateTaskAsync(CoordinatorTaskDto dto, int createdBy)
         {
-            var task = await _repo.GetByIdAsync(id);
-            if (task == null) return false;
+            var task = new CoordinatorTask
+            {
+                EventId = dto.EventId,
+                CoordinatorId = dto.CoordinatorId,
+                TaskName = dto.TaskName,
+                Description = dto.Description,
+                DueDate = dto.DueDate,
+                Priority = dto.Priority,
+                Status = dto.Status ?? "Chưa bắt đầu",
+                Category = dto.Category,
+                EstimatedHours = dto.EstimatedHours,
+                ActualHours = dto.ActualHours,
+                CompletedAt = dto.CompletedAt,
+                Notes = dto.Notes,
+                CreatedBy = createdBy,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-            _mapper.Map(dto, task); // chỉ map trường nào không null (do dùng .Condition)
+            await _repository.AddAsync(task);
+            await _repository.SaveChangesAsync();
+
+            return task;
+        }
+
+        public async Task<CoordinatorTask?> UpdateTaskAsync(int id, CoordinatorTaskDto dto)
+        {
+            var task = await _repository.GetByIdAsync(id);
+            if (task == null) return null;
+
+            task.TaskName = dto.TaskName;
+            task.Description = dto.Description;
+            task.DueDate = dto.DueDate;
+            task.Priority = dto.Priority;
+            task.Status = dto.Status;
+            task.Category = dto.Category;
+            task.EstimatedHours = dto.EstimatedHours;
+            task.ActualHours = dto.ActualHours;
+            task.CompletedAt = dto.CompletedAt;
+            task.Notes = dto.Notes;
             task.UpdatedAt = DateTime.UtcNow;
 
-            _repo.Update(task);
-            return await _repo.SaveChangesAsync();
+            _repository.Update(task);
+            await _repository.SaveChangesAsync();
+
+            return task;
         }
     }
 }

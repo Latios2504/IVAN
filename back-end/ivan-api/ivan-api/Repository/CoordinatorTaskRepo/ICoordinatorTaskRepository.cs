@@ -8,7 +8,6 @@ namespace ivan_api.Repository.CoordinatorTaskRepo
         Task<CoordinatorTask?> GetByIdAsync(int id);
         Task AddAsync(CoordinatorTask task);
         void Update(CoordinatorTask task);
-        void Delete(CoordinatorTask task);
-        Task<bool> SaveChangesAsync();
+        Task SaveChangesAsync();
     }
 }
