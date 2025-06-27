@@ -11,6 +11,7 @@ using ivan_api.Repository.EventRepo;
 using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,7 +132,10 @@ builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 //builder.Services.AddScoped<IEventService, EventService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(opt =>
+{
+    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+}); ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
