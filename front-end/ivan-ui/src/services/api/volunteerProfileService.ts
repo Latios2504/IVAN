@@ -84,7 +84,7 @@ export interface VolunteerProfileDetailDto {
  * Implements FE-02: Manage Volunteer Profile use cases
  */
 export class VolunteerProfileService {
-  private readonly baseEndpoint = "/api/volunteerprofile";
+  private readonly baseEndpoint = "/VolunteerProfile";
 
   /**
    * Get all volunteer profiles (Admin only)

@@ -1,10 +1,15 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
+import {
   Eye,
   X,
   Bot,
@@ -12,12 +17,12 @@ import {
   Shield,
   Database,
   Check,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
-import type { 
-  InstructionTemplate, 
+import type {
+  InstructionTemplate,
   InstructionFormData,
-  AiCustomInstructionDTO 
+  AiCustomInstructionDTO,
 } from "@/types/ai-instructions";
 
 interface InstructionPreviewProps {
@@ -27,91 +32,70 @@ interface InstructionPreviewProps {
   showUseButton?: boolean;
 }
 
-export default function InstructionPreview({ 
-  data, 
-  onClose, 
-  onUse, 
-  showUseButton = false 
+export default function InstructionPreview({
+  data,
+  onClose,
+  onUse,
+  showUseButton = false,
 }: InstructionPreviewProps) {
   if (!data) return null;
 
   // Determine data type and extract fields
-  const isTemplate = 'category' in data && 'tags' in data;
-  const isFormData = 'isActive' in data && !('instructionId' in data);
-  const isInstruction = 'instructionId' in data;
+  const isTemplate = "category" in data && "tags" in data;
+  const isFormData = "isActive" in data && !("instructionId" in data);
+  const isInstruction = "instructionId" in data;
 
-  const instructionName = isTemplate ? data.name : 
-                         'instructionName' in data ? data.instructionName : '';
-  const systemPrompt = 'systemPrompt' in data ? data.systemPrompt : '';
-  const behaviorInstructions = 'behaviorInstructions' in data ? data.behaviorInstructions : '';
-  const dataAccessRules = 'dataAccessRules' in data ? data.dataAccessRules : '';
-  const description = isTemplate ? data.description : '';
+  const instructionName = isTemplate
+    ? data.name
+    : "instructionName" in data
+    ? data.instructionName
+    : "";
+  const systemPrompt = "systemPrompt" in data ? data.systemPrompt : "";
+  const behaviorInstructions =
+    "behaviorInstructions" in data ? data.behaviorInstructions : "";
+  const dataAccessRules = "dataAccessRules" in data ? data.dataAccessRules : "";
+  const description = isTemplate ? data.description : "";
   const tags = isTemplate ? data.tags : [];
-  const isActive = isFormData ? data.isActive : isInstruction ? data.isActive : true;
-
-  // Sample query for demonstration
-  const sampleQuery = "Làm thế nào để tôi có thể tăng số lượng tình nguyện viên tham gia các hoạt động?";
-  
+  const isActive = isFormData
+    ? data.isActive
+    : isInstruction
+    ? data.isActive
+    : true;
   // Generate sample response based on the instruction
   const generateSampleResponse = () => {
-    if (instructionName.toLowerCase().includes('tình nguyện viên')) {
-      return `Dựa trên dữ liệu hiện tại của tổ chức, tôi khuyến nghị các chiến lược sau để tăng tham gia của tình nguyện viên:
+    if (isTemplate) {
+      return `Dựa trên template này, tôi sẽ hỗ trợ bạn theo vai trò được định nghĩa:
 
-1. **Cải thiện quy trình tuyển dụng:**
-   - Đơn giản hóa form đăng ký
-   - Tăng cường quảng bá trên social media
-   - Tạo video giới thiệu hoạt động
+**Phân tích:**
+- Đánh giá tình huống hiện tại
+- Xác định các yếu tố quan trọng
+- Phân tích dữ liệu có sẵn
 
-2. **Nâng cao trải nghiệm:**
-   - Cung cấp training đầy đủ
-   - Ghi nhận và tôn vinh đóng góp
-   - Tạo cơ hội networking
+**Khuyến nghị:**
+1. **Strategic Planning**: Approach có tính hệ thống
+2. **Data-driven Decisions**: Dựa trên evidence và metrics
+3. **Action Items**: Các bước cụ thể để thực hiện
+4. **Follow-up**: Monitoring và evaluation process
 
-3. **Phân tích dữ liệu cho thấy:**
-   - 70% tình nguyện viên quan tâm đến flexibility
-   - Các hoạt động cuối tuần có tỷ lệ tham gia cao hơn 40%
-
-Bạn có muốn tôi phân tích chi tiết hơn về một khía cạnh nào không?`;
-    }
-    
-    if (instructionName.toLowerCase().includes('sự kiện')) {
-      return `Để tăng hiệu quả tổ chức sự kiện và thu hút tình nguyện viên, tôi đề xuất:
-
-1. **Lập kế hoạch sự kiện hấp dẫn:**
-   - Chọn chủ đề phù hợp với sứ mệnh tổ chức
-   - Lên timeline chi tiết và realistic
-   - Đảm bảo logistics đầy đủ
-
-2. **Chiến lược recruitment:**
-   - Tạo job description rõ ràng cho từng vị trí
-   - Sử dụng network hiện tại để referral
-   - Đăng tuyển sớm và đa kênh
-
-3. **Dựa trên phân tích event trước:**
-   - Events có catering thu hút nhiều volunteers hơn 25%
-   - Thời gian 2-4 tiếng là optimal
-   - Weekend events có retention rate cao hơn
-
-Tôi có thể hỗ trợ bạn lập timeline cụ thể cho sự kiện sắp tới không?`;
+Bạn có muốn tôi đi sâu vào chi tiết cụ thể nào không?`;
     }
 
-    return `Dựa trên vai trò của tôi như được định nghĩa, tôi sẽ phân tích câu hỏi của bạn và cung cấp những insights dựa trên dữ liệu và kinh nghiệm quản lý tổ chức.
+    return `Dựa trên vai trò của tôi như được định nghĩa, tôi sẽ phân tích câu hỏi của bạn và cung cấp những insights dựa trên dữ liệu và kinh nghiệm.
 
-Để tăng số lượng tình nguyện viên tham gia, tôi khuyến nghị:
+**Approach của tôi:**
+1. **Data-driven Analysis**: Sử dụng available data để đưa ra insights
+2. **Strategic Thinking**: Nhìn từ góc độ strategic và long-term impact  
+3. **Actionable Recommendations**: Đưa ra specific steps có thể implement
+4. **Continuous Learning**: Learn từ feedback để improve future responses
 
-1. **Phân tích dữ liệu hiện tại** để hiểu patterns và preferences
-2. **Cải thiện communication strategy** để reach target audience
-3. **Tối ưu hóa onboarding process** để giảm dropout rate
-4. **Xây dựng community** để tăng long-term engagement
-
-Bạn có muốn tôi đi sâu vào từng chiến lược cụ thể không?`;
+Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+      <div className="bg-white rounded-lg max-w-4xl w-full h-[95vh] flex flex-col">
+        {/* Fixed Header */}
+        <div className="flex items-center justify-between p-6 border-b bg-white rounded-t-lg flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Eye className="h-5 w-5 text-blue-600" />
@@ -138,9 +122,9 @@ Bạn có muốn tôi đi sâu vào từng chiến lược cụ thể không?`;
           </div>
         </div>
 
-        {/* Content */}
-        <ScrollArea className="flex-1 p-6">
-          <div className="space-y-6">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-6">
             {/* Basic Info */}
             <Card>
               <CardHeader>
@@ -158,23 +142,35 @@ Bạn có muốn tôi đi sâu vào từng chiến lược cụ thể không?`;
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Tên hướng dẫn</Label>
-                  <p className="mt-1 text-sm text-gray-900">{instructionName || "Chưa đặt tên"}</p>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Tên hướng dẫn
+                  </Label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {instructionName || "Chưa đặt tên"}
+                  </p>
                 </div>
-                
+
                 {description && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Mô tả</Label>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Mô tả
+                    </Label>
                     <p className="mt-1 text-sm text-gray-600">{description}</p>
                   </div>
                 )}
 
                 {tags.length > 0 && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Tags</Label>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Tags
+                    </Label>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -248,52 +244,60 @@ Bạn có muốn tôi đi sâu vào từng chiến lược cụ thể không?`;
               </Card>
             )}
 
-            {/* Sample Interaction */}
+            {/* Sample Response */}
             <Card>
               <CardHeader>
-                <CardTitle>Ví dụ tương tác</CardTitle>
+                <CardTitle className="flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Ví dụ phản hồi</span>
+                </CardTitle>
                 <CardDescription>
                   Mô phỏng cách AI sẽ phản hồi với hướng dẫn này
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* User Question */}
-                <div className="flex space-x-3">
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-medium text-gray-600">U</span>
+              <CardContent>
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+                  <div className="mb-3">
+                    <div className="text-xs text-gray-500 mb-2">
+                      <strong>Câu hỏi mẫu:</strong> "Làm thế nào để tăng số
+                      lượng tình nguyện viên tham gia sự kiện?"
+                    </div>
+                    <Separator className="mb-3" />
+                    <div className="text-sm text-gray-700">
+                      <strong>AI Response:</strong>
+                    </div>
                   </div>
-                  <div className="bg-gray-100 rounded-lg p-3 flex-1">
-                    <p className="text-sm text-gray-800">{sampleQuery}</p>
-                  </div>
-                </div>
 
-                {/* AI Response */}
-                <div className="flex space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-3 flex-1">
-                    <pre className="text-sm text-blue-800 whitespace-pre-wrap font-sans">
+                  <div className="bg-white rounded p-3 border border-purple-200">
+                    <pre className="text-sm text-gray-800 whitespace-pre-wrap font-sans">
                       {generateSampleResponse()}
                     </pre>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-2 text-xs text-gray-500 mt-4">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>Đây chỉ là ví dụ mô phỏng, phản hồi thực tế có thể khác</span>
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 mt-4">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>
+                      Đây chỉ là ví dụ mô phỏng, phản hồi thực tế có thể khác
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </div>
   );
 }
 
 // Helper Label component for consistent styling
-function Label({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Label({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <label className={`block text-sm font-medium text-gray-700 ${className}`}>
       {children}

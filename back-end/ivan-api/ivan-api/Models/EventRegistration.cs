@@ -53,12 +53,11 @@ public partial class EventRegistration
 
     public string? Review { get; set; }
 
+    public DateTime? RegistrationDate { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-
-    // Additional properties for AI features
-    public DateTime? RegistrationDate { get; set; }
 
     public virtual User? ApprovedByNavigation { get; set; }
 

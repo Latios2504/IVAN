@@ -35,16 +35,15 @@ public partial class VolunteerProfile
 
     public int? VerifiedBy { get; set; }
 
+    public DateTime? LastActiveDate { get; set; }
+
+    public int? TotalHoursVolunteered { get; set; }
+
+    public string? Skills { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-
-    // Additional properties for AI features
-    public DateTime? LastActiveDate { get; set; }
-    
-    public int? TotalHoursVolunteered { get; set; }
-    
-    public string? Skills { get; set; }
 
     public virtual ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
 

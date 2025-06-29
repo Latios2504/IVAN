@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
+import {
   Bot,
   Plus,
   Search,
@@ -46,20 +52,20 @@ import {
   Clock,
   TrendingUp,
   Users,
-  Settings
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import InstructionTemplates from "@/components/ai/InstructionTemplates";
 import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
 import InstructionPreview from "@/components/ai/InstructionPreview";
 import TestingPlayground from "@/components/ai/TestingPlayground";
-import type { 
+import type {
   AiCustomInstructionDTO,
   AiCustomInstructionCreateDTO,
   AiCustomInstructionUpdateDTO,
   InstructionTemplate,
   InstructionFormData,
-  InstructionFilters
+  InstructionFilters,
 } from "@/types/ai-instructions";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
 
@@ -68,17 +74,26 @@ type ViewMode = "overview" | "templates" | "builder" | "preview" | "testing";
 export default function AIInstructionsManagementPage() {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
-  const [instructions, setInstructions] = useState<AiCustomInstructionDTO[]>([]);
-  const [filteredInstructions, setFilteredInstructions] = useState<AiCustomInstructionDTO[]>([]);
+  const [instructions, setInstructions] = useState<AiCustomInstructionDTO[]>(
+    []
+  );
+  const [filteredInstructions, setFilteredInstructions] = useState<
+    AiCustomInstructionDTO[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<InstructionFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modal states
-  const [previewData, setPreviewData] = useState<InstructionTemplate | InstructionFormData | null>(null);
-  const [editingInstruction, setEditingInstruction] = useState<AiCustomInstructionDTO | null>(null);
-  const [testingInstruction, setTestingInstruction] = useState<AiCustomInstructionDTO | null>(null);
-  const [builderData, setBuilderData] = useState<AiCustomInstructionCreateDTO | null>(null);
+  const [previewData, setPreviewData] = useState<
+    InstructionTemplate | InstructionFormData | AiCustomInstructionDTO | null
+  >(null);
+  const [editingInstruction, setEditingInstruction] =
+    useState<AiCustomInstructionDTO | null>(null);
+  const [testingInstruction, setTestingInstruction] =
+    useState<AiCustomInstructionDTO | null>(null);
+  const [builderData, setBuilderData] =
+    useState<AiCustomInstructionCreateDTO | null>(null);
 
   // Stats
   const [stats, setStats] = useState({
@@ -102,7 +117,7 @@ export default function AIInstructionsManagementPage() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        instruction =>
+        (instruction) =>
           instruction.instructionName.toLowerCase().includes(query) ||
           instruction.systemPrompt.toLowerCase().includes(query) ||
           instruction.behaviorInstructions?.toLowerCase().includes(query)
@@ -111,12 +126,16 @@ export default function AIInstructionsManagementPage() {
 
     // Status filter
     if (filters.isActive !== undefined) {
-      filtered = filtered.filter(instruction => instruction.isActive === filters.isActive);
+      filtered = filtered.filter(
+        (instruction) => instruction.isActive === filters.isActive
+      );
     }
 
     // Default filter
     if (filters.isDefault !== undefined) {
-      filtered = filtered.filter(instruction => instruction.isDefault === filters.isDefault);
+      filtered = filtered.filter(
+        (instruction) => instruction.isDefault === filters.isDefault
+      );
     }
 
     setFilteredInstructions(filtered);
@@ -129,9 +148,9 @@ export default function AIInstructionsManagementPage() {
       setInstructions(data);
 
       // Calculate stats
-      const activeCount = data.filter(i => i.isActive).length;
-      const templateCount = data.filter(i => i.isDefault).length;
-      
+      const activeCount = data.filter((i) => i.isActive).length;
+      const templateCount = data.filter((i) => i.isDefault).length;
+
       setStats({
         total: data.length,
         active: activeCount,
@@ -146,7 +165,9 @@ export default function AIInstructionsManagementPage() {
     }
   };
 
-  const handleCreateInstruction = async (data: AiCustomInstructionCreateDTO) => {
+  const handleCreateInstruction = async (
+    data: AiCustomInstructionCreateDTO
+  ) => {
     try {
       await aiInstructionsService.createInstruction(data);
       await loadInstructions();
@@ -158,11 +179,16 @@ export default function AIInstructionsManagementPage() {
     }
   };
 
-  const handleUpdateInstruction = async (data: AiCustomInstructionUpdateDTO) => {
+  const handleUpdateInstruction = async (
+    data: AiCustomInstructionUpdateDTO
+  ) => {
     if (!editingInstruction) return;
 
     try {
-      await aiInstructionsService.updateInstruction(editingInstruction.instructionId, data);
+      await aiInstructionsService.updateInstruction(
+        editingInstruction.instructionId,
+        data
+      );
       await loadInstructions();
       setViewMode("overview");
       setEditingInstruction(null);
@@ -172,11 +198,27 @@ export default function AIInstructionsManagementPage() {
     }
   };
 
+  const handleSaveInstruction = async (
+    data: AiCustomInstructionCreateDTO | AiCustomInstructionUpdateDTO
+  ) => {
+    if (editingInstruction) {
+      // It's an update - add isActive field
+      const updateData: AiCustomInstructionUpdateDTO = {
+        ...data,
+        isActive: "isActive" in data ? data.isActive : true,
+      };
+      await handleUpdateInstruction(updateData);
+    } else {
+      // It's a create
+      await handleCreateInstruction(data as AiCustomInstructionCreateDTO);
+    }
+  };
+
   const handleDeleteInstruction = async (instructionId: number) => {
     if (!confirm("Bạn có chắc chắn muốn xóa hướng dẫn AI này?")) return;
 
     try {
-      await aiInstructionsService.deleteInstruction(instructionId);
+      await aiInstructionsService.adminDeleteInstruction(instructionId);
       await loadInstructions();
     } catch (error) {
       console.error("Failed to delete instruction:", error);
@@ -217,22 +259,45 @@ export default function AIInstructionsManagementPage() {
     setTestingInstruction(instruction);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return "N/A";
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+
+      return date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Invalid Date";
+    }
   };
 
   const getStatusBadge = (instruction: AiCustomInstructionDTO) => {
     if (instruction.isDefault) {
-      return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Template</Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="bg-purple-50 text-purple-700 border-purple-200"
+        >
+          Template
+        </Badge>
+      );
     }
     if (instruction.isActive) {
-      return <Badge variant="default" className="bg-green-50 text-green-700 border-green-200">Hoạt động</Badge>;
+      return (
+        <Badge
+          variant="default"
+          className="bg-green-50 text-green-700 border-green-200"
+        >
+          Hoạt động
+        </Badge>
+      );
     }
     return <Badge variant="secondary">Tạm dừng</Badge>;
   };
@@ -246,8 +311,12 @@ export default function AIInstructionsManagementPage() {
             <div className="flex items-center space-x-2">
               <Bot className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Tổng hướng dẫn</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Tổng hướng dẫn
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -258,8 +327,12 @@ export default function AIInstructionsManagementPage() {
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Đang hoạt động</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Đang hoạt động
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.active}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -271,7 +344,9 @@ export default function AIInstructionsManagementPage() {
               <Zap className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm font-medium text-gray-600">Templates</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.templates}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.templates}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -282,8 +357,12 @@ export default function AIInstructionsManagementPage() {
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Chất lượng TB</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.avgQuality}/5</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Chất lượng TB
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.avgQuality}/5
+                </p>
               </div>
             </div>
           </CardContent>
@@ -294,8 +373,12 @@ export default function AIInstructionsManagementPage() {
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-cyan-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Tổng queries</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalQueries}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Tổng queries
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalQueries}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -317,8 +400,15 @@ export default function AIInstructionsManagementPage() {
                 />
               </div>
             </div>
-            
-            <Select onValueChange={(value) => setFilters(prev => ({ ...prev, isActive: value === "all" ? undefined : value === "active" }))}>
+
+            <Select
+              onValueChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  isActive: value === "all" ? undefined : value === "active",
+                }))
+              }
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
@@ -329,7 +419,15 @@ export default function AIInstructionsManagementPage() {
               </SelectContent>
             </Select>
 
-            <Select onValueChange={(value) => setFilters(prev => ({ ...prev, isDefault: value === "all" ? undefined : value === "templates" }))}>
+            <Select
+              onValueChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  isDefault:
+                    value === "all" ? undefined : value === "templates",
+                }))
+              }
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Loại" />
               </SelectTrigger>
@@ -399,20 +497,28 @@ export default function AIInstructionsManagementPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => setPreviewData(instruction)}>
+                          <DropdownMenuItem
+                            onClick={() => setPreviewData(instruction)}
+                          >
                             <Eye className="h-4 w-4 mr-2" />
                             Xem chi tiết
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleTestInstruction(instruction)}>
+                          <DropdownMenuItem
+                            onClick={() => handleTestInstruction(instruction)}
+                          >
                             <Play className="h-4 w-4 mr-2" />
                             Test hướng dẫn
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEditInstruction(instruction)}>
+                          <DropdownMenuItem
+                            onClick={() => handleEditInstruction(instruction)}
+                          >
                             <Edit className="h-4 w-4 mr-2" />
                             Chỉnh sửa
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleToggleStatus(instruction)}>
+                          <DropdownMenuItem
+                            onClick={() => handleToggleStatus(instruction)}
+                          >
                             {instruction.isActive ? (
                               <>
                                 <PowerOff className="h-4 w-4 mr-2" />
@@ -426,9 +532,11 @@ export default function AIInstructionsManagementPage() {
                             )}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
-                            onClick={() => handleDeleteInstruction(instruction.instructionId)}
+                            onClick={() =>
+                              handleDeleteInstruction(instruction.instructionId)
+                            }
                             disabled={instruction.isDefault}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -459,7 +567,7 @@ export default function AIInstructionsManagementPage() {
             Tùy chỉnh hành vi và chuyên môn của AI assistant
           </p>
         </div>
-        
+
         {viewMode !== "overview" && (
           <Button
             variant="outline"
@@ -476,7 +584,7 @@ export default function AIInstructionsManagementPage() {
 
       {/* Content based on view mode */}
       {viewMode === "overview" && renderOverview()}
-      
+
       {viewMode === "templates" && (
         <InstructionTemplates
           onSelectTemplate={handleSelectTemplate}
@@ -488,7 +596,7 @@ export default function AIInstructionsManagementPage() {
         <CustomInstructionBuilder
           initialData={builderData || undefined}
           editingInstruction={editingInstruction || undefined}
-          onSave={editingInstruction ? handleUpdateInstruction : handleCreateInstruction}
+          onSave={handleSaveInstruction}
           onPreview={handlePreviewFormData}
           onCancel={() => {
             setViewMode("overview");
@@ -504,7 +612,7 @@ export default function AIInstructionsManagementPage() {
           data={previewData}
           onClose={() => setPreviewData(null)}
           onUse={() => {
-            if ('category' in previewData) {
+            if ("category" in previewData) {
               // It's a template
               const template = previewData as InstructionTemplate;
               handleSelectTemplate({
@@ -516,7 +624,7 @@ export default function AIInstructionsManagementPage() {
             }
             setPreviewData(null);
           }}
-          showUseButton={'category' in previewData}
+          showUseButton={"category" in previewData}
         />
       )}
 

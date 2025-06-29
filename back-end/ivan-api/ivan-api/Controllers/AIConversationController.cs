@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using ivan_api.Services;
+using ivan_api.Services.AIConversationServ;
 using ivan_api.DTOs;
+using ivan_api.DTOs.AIDatabaseManage;
 
 namespace ivan_api.Controllers;
 

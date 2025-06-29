@@ -34,6 +34,9 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { AsyncWrapper } from "@/components/common/AsyncWrapper";
+import { useAsyncData, useFetchData } from "@/hooks/useAsyncData";
+import { useToast } from "@/context/ToastContext";
 import {
   Building2,
   Search,
@@ -67,17 +70,30 @@ import { Link } from "react-router-dom";
 
 const AdminOrganizationListPage = () => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [organizations, setOrganizations] = useState<OrganizationProfileData[]>(
-    []
-  );
+  const { showNotification } = useToast();
+
+  // Use the new data fetching pattern
+  const {
+    data: organizationsData,
+    loading,
+    error,
+    refetch,
+  } = useFetchData<{
+    organizations: OrganizationProfileData[];
+    types: OrganizationType[];
+    stats: OrganizationStats;
+  }>("/admin/organizations", {
+    transformData: () => ({
+      organizations: sampleOrganizations,
+      types: sampleOrganizationTypes,
+      stats: sampleStats,
+    }),
+    showErrorToast: true,
+  });
+
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     OrganizationProfileData[]
   >([]);
-  const [organizationTypes, setOrganizationTypes] = useState<
-    OrganizationType[]
-  >([]);
-  const [stats, setStats] = useState<OrganizationStats | null>(null);
   const [currentTab, setCurrentTab] = useState("all");
 
   // Filter state
@@ -282,32 +298,11 @@ const AdminOrganizationListPage = () => {
     monthlyGrowth: 8.5,
   };
 
-  // Load data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-
-        // Simulate API calls
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        setOrganizationTypes(sampleOrganizationTypes);
-        setOrganizations(sampleOrganizations);
-        setFilteredOrganizations(sampleOrganizations);
-        setStats(sampleStats);
-      } catch (error) {
-        console.error("Error loading organizations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
   // Apply filters and search
   useEffect(() => {
-    let filtered = [...organizations];
+    if (!organizationsData?.organizations) return;
+
+    let filtered = [...organizationsData.organizations];
 
     // Search filter
     if (filters.searchTerm) {

@@ -15,19 +15,19 @@ import type {
  * Implements Phase 5: Custom Instructions UI/UX integration with backend
  */
 class AIInstructionsService {
-  private readonly baseEndpoint = "/api/aiinstructions";
+  private readonly baseEndpoint = "/AIInstructions";
 
   private get api() {
     return apiClient;
   }
 
   /**
-   * Get all AI instructions for current user (Admin only)
+   * Get all AI instructions in the system (Admin only)
    */
   async getAllInstructions(): Promise<AiCustomInstructionDTO[]> {
     try {
       const response = await this.api.get<AiCustomInstructionDTO[]>(
-        this.baseEndpoint
+        `${this.baseEndpoint}/all`
       );
 
       if (!response.success || !response.data) {
@@ -94,7 +94,7 @@ class AIInstructionsService {
   }
 
   /**
-   * Update an existing AI instruction
+   * Update an existing AI instruction (Admin can update any instruction)
    */
   async updateInstruction(
     instructionId: number,
@@ -102,7 +102,7 @@ class AIInstructionsService {
   ): Promise<AiCustomInstructionDTO> {
     try {
       const response = await this.api.put<AiCustomInstructionDTO>(
-        `${this.baseEndpoint}/${instructionId}`,
+        `${this.baseEndpoint}/admin/${instructionId}`,
         data
       );
 
@@ -123,13 +123,36 @@ class AIInstructionsService {
   }
 
   /**
-   * Delete an AI instruction
+   * Delete an AI instruction (Admin can delete any instruction)
    */
   async deleteInstruction(instructionId: number): Promise<void> {
     try {
-      const response = await this.api.delete<boolean>(
-        `${this.baseEndpoint}/${instructionId}`
-      );
+      const deleteUrl = `${this.baseEndpoint}/admin/${instructionId}`;
+      console.log("🔄 Deleting instruction with URL:", deleteUrl);
+      const response = await this.api.delete<boolean>(deleteUrl);
+
+      if (!response.success) {
+        throw new ApiError(
+          response.message || "Failed to delete AI instruction",
+          400
+        );
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to delete AI instruction", 500);
+    }
+  }
+
+  /**
+   * Delete an AI instruction as admin (force new method to bypass cache)
+   */
+  async adminDeleteInstruction(instructionId: number): Promise<void> {
+    try {
+      const deleteUrl = `${this.baseEndpoint}/admin/${instructionId}`;
+      console.log("🔄 Admin deleting instruction with URL:", deleteUrl);
+      const response = await this.api.delete<boolean>(deleteUrl);
 
       if (!response.success) {
         throw new ApiError(
@@ -227,7 +250,7 @@ class AIInstructionsService {
   ): Promise<string> {
     try {
       const response = await this.api.post<string>(
-        `${this.baseEndpoint}/${instructionId}/test`,
+        `${this.baseEndpoint}/admin/${instructionId}/test`,
         request
       );
 
@@ -244,6 +267,32 @@ class AIInstructionsService {
         throw error;
       }
       throw new ApiError("Failed to test AI instruction", 500);
+    }
+  }
+
+  /**
+   * Test an AI instruction with a specific model (Admin only)
+   */
+  async testInstructionWithModel(
+    instructionId: number,
+    sampleQuery: string,
+    model: string
+  ): Promise<ApiResponse<string>> {
+    try {
+      const response = await this.api.post<string>(
+        `${this.baseEndpoint}/admin/${instructionId}/test-with-model`,
+        {
+          sampleQuery,
+          model,
+        }
+      );
+
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to test AI instruction with model", 500);
     }
   }
 
@@ -314,6 +363,28 @@ class AIInstructionsService {
         throw error;
       }
       throw new ApiError("Failed to fetch analytics", 500);
+    }
+  }
+
+  /**
+   * Get AI instructions for current user only
+   */
+  async getUserInstructions(): Promise<AiCustomInstructionDTO[]> {
+    try {
+      const response = await this.api.get<AiCustomInstructionDTO[]>(
+        this.baseEndpoint
+      );
+
+      if (!response.success || !response.data) {
+        throw new ApiError("Failed to fetch user AI instructions", 400);
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to fetch user AI instructions", 500);
     }
   }
 
@@ -391,8 +462,10 @@ Nhiệm vụ chính:
 - Đề xuất chiến lược giữ chân và phát triển tình nguyện viên
 
 Luôn ưu tiên sự an toàn, phúc lợi và sự phát triển của tình nguyện viên.`,
-        behaviorInstructions: "Luôn thân thiện, hỗ trợ và đưa ra lời khuyên thực tế. Tôn trọng thời gian và khả năng của từng tình nguyện viên.",
-        dataAccessRules: "Truy cập: volunteer profiles, skills, availability, performance metrics, event assignments, training records",
+        behaviorInstructions:
+          "Luôn thân thiện, hỗ trợ và đưa ra lời khuyên thực tế. Tôn trọng thời gian và khả năng của từng tình nguyện viên.",
+        dataAccessRules:
+          "Truy cập: volunteer profiles, skills, availability, performance metrics, event assignments, training records",
       },
       "event-planner": {
         instructionName: "Chuyên gia Tổ chức Sự kiện",
@@ -405,8 +478,10 @@ Chuyên môn:
 - Đánh giá thành công và đưa ra cải thiện
 
 Mục tiêu: Tạo ra những sự kiện có ý nghĩa, an toàn và hiệu quả.`,
-        behaviorInstructions: "Tập trung vào tính thực tế và khả thi. Luôn xem xét ngân sách và nguồn lực có sẵn.",
-        dataAccessRules: "Truy cập: events, registrations, feedback, performance data, volunteer allocations, budget information",
+        behaviorInstructions:
+          "Tập trung vào tính thực tế và khả thi. Luôn xem xét ngân sách và nguồn lực có sẵn.",
+        dataAccessRules:
+          "Truy cập: events, registrations, feedback, performance data, volunteer allocations, budget information",
       },
     };
 
@@ -418,6 +493,40 @@ Mục tiêu: Tạo ra những sự kiện có ý nghĩa, an toàn và hiệu qu�
         dataAccessRules: "",
       }
     );
+  }
+
+  /**
+   * Get current Gemini configuration (Admin only)
+   */
+  async getGeminiConfig(): Promise<ApiResponse<object>> {
+    try {
+      const response = await this.api.get<object>(
+        `${this.baseEndpoint}/admin/gemini-config`
+      );
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to fetch Gemini configuration", 500);
+    }
+  }
+
+  /**
+   * Get available Gemini models (Admin only)
+   */
+  async getAvailableModels(): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await this.api.get<string[]>(
+        `${this.baseEndpoint}/admin/gemini-models`
+      );
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to fetch available Gemini models", 500);
+    }
   }
 }
 

@@ -20,14 +20,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -38,6 +30,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DataTable,
+  type TableColumn,
+  type TableAction,
+} from "@/components/common/DataTable";
+import { AsyncWrapper } from "@/components/common/AsyncWrapper";
+import { useModal } from "@/hooks/useModal";
+import { useToast } from "@/context/ToastContext";
+import { useAsyncData } from "@/hooks/useAsyncData";
 import {
   Bell,
   Plus,
@@ -231,13 +232,16 @@ export default function NotificationManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] =
     useState<Notification | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
+
+  // Hooks
+  const createModal = useModal();
+  const templateModal = useModal();
+  const settingsModal = useModal();
+  const viewModal = useModal();
+  const { showNotification } = useToast();
 
   // Notification settings
   const [notificationSettings, setNotificationSettings] = useState({
@@ -285,7 +289,7 @@ export default function NotificationManagementPage() {
   };
   const handleViewNotification = (notification: Notification) => {
     setSelectedNotification(notification);
-    setIsViewDialogOpen(true);
+    viewModal.open();
   };
 
   const handleSendNotification = (notifId: string) => {
@@ -296,7 +300,160 @@ export default function NotificationManagementPage() {
           : n
       )
     );
+    showNotification("Thông báo đã được gửi thành công", "success");
   };
+
+  // DataTable columns configuration
+  const notificationColumns: TableColumn<Notification>[] = [
+    {
+      key: "title",
+      header: "Thông báo",
+      render: (_, notification) => (
+        <div>
+          <div className="font-medium">{notification.title}</div>
+          <div className="text-sm text-gray-500 truncate max-w-64">
+            {notification.content}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "type",
+      header: "Loại",
+      render: (_, notification) => {
+        const TypeIcon =
+          typeIcons[notification.type as keyof typeof typeIcons] || Bell;
+        const typeLabels: Record<string, string> = {
+          recruitment: "Tuyển dụng",
+          update: "Cập nhật",
+          announcement: "Thông báo",
+          appreciation: "Cảm ơn",
+          reminder: "Nhắc nhở",
+          alert: "Cảnh báo",
+        };
+        return (
+          <div className="flex items-center gap-2">
+            <TypeIcon className="w-4 h-4 text-gray-500" />
+            <span>{typeLabels[notification.type] || notification.type}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "priority",
+      header: "Ưu tiên",
+      render: (_, notification) => {
+        const priorityLabels: Record<string, string> = {
+          low: "Thấp",
+          medium: "Trung bình",
+          high: "Cao",
+          urgent: "Khẩn cấp",
+        };
+        return (
+          <Badge
+            className={
+              priorityColors[
+                notification.priority as keyof typeof priorityColors
+              ]
+            }
+          >
+            {priorityLabels[notification.priority]}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      render: (_, notification) => {
+        const statusLabels: Record<string, string> = {
+          draft: "Nháp",
+          scheduled: "Đã lên lịch",
+          sent: "Đã gửi",
+          failed: "Thất bại",
+        };
+        return (
+          <Badge
+            className={
+              statusColors[notification.status as keyof typeof statusColors]
+            }
+          >
+            {statusLabels[notification.status]}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "recipientCount",
+      header: "Người nhận",
+      render: (_, notification) => (
+        <div className="flex items-center gap-1">
+          <Users className="w-4 h-4 text-gray-400" />
+          {notification.recipientCount.toLocaleString()}
+        </div>
+      ),
+    },
+    {
+      key: "openRate",
+      header: "Tỷ lệ mở",
+      render: (_, notification) =>
+        notification.openRate > 0 ? (
+          <div className="space-y-1">
+            <div className="text-sm font-medium">
+              {formatPercentage(notification.openRate)}
+            </div>
+            <div className="text-xs text-gray-500">
+              Click: {formatPercentage(notification.clickRate)}
+            </div>
+          </div>
+        ) : (
+          <span className="text-gray-400">-</span>
+        ),
+    },
+    {
+      key: "sentTime",
+      header: "Thời gian",
+      render: (_, notification) => (
+        <div className="text-sm">
+          <div>
+            {formatDateTime(
+              notification.sentTime || notification.scheduledTime
+            )}
+          </div>
+          <div className="text-gray-500">{notification.createdBy}</div>
+        </div>
+      ),
+    },
+  ];
+
+  const notificationActions: TableAction<Notification>[] = [
+    {
+      label: "Xem chi tiết",
+      onClick: handleViewNotification,
+    },
+    {
+      label: "Gửi ngay",
+      onClick: (notification: Notification) =>
+        handleSendNotification(notification.id),
+      visible: (notification: Notification) => notification.status === "draft",
+    },
+    {
+      label: "Chỉnh sửa lịch",
+      onClick: () => {},
+      visible: (notification: Notification) =>
+        notification.status === "scheduled",
+    },
+    {
+      label: "Sao chép",
+      onClick: () => {},
+    },
+    {
+      label: "Xóa",
+      onClick: () => {},
+      variant: "destructive" as const,
+    },
+  ];
+
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return "Chưa xác định";
     return new Date(dateString).toLocaleString("vi-VN");
@@ -320,8 +477,10 @@ export default function NotificationManagementPage() {
         </div>
         <div className="flex gap-3">
           <Dialog
-            open={isSettingsDialogOpen}
-            onOpenChange={setIsSettingsDialogOpen}
+            open={settingsModal.isOpen}
+            onOpenChange={(open) =>
+              open ? settingsModal.open() : settingsModal.close()
+            }
           >
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -462,11 +621,11 @@ export default function NotificationManagementPage() {
                 <div className="flex justify-end gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => setIsSettingsDialogOpen(false)}
+                    onClick={() => settingsModal.close()}
                   >
                     Hủy
                   </Button>
-                  <Button onClick={() => setIsSettingsDialogOpen(false)}>
+                  <Button onClick={() => settingsModal.close()}>
                     Lưu cài đặt
                   </Button>
                 </div>
@@ -475,8 +634,10 @@ export default function NotificationManagementPage() {
           </Dialog>
 
           <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
+            open={createModal.isOpen}
+            onOpenChange={(open) =>
+              open ? createModal.open() : createModal.close()
+            }
           >
             <DialogTrigger asChild>
               <Button>
@@ -604,16 +765,11 @@ export default function NotificationManagementPage() {
                 </div>
 
                 <div className="flex justify-end gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCreateDialogOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => createModal.close()}>
                     Hủy
                   </Button>
                   <Button variant="outline">Lưu nháp</Button>
-                  <Button onClick={() => setIsCreateDialogOpen(false)}>
-                    Gửi ngay
-                  </Button>
+                  <Button onClick={() => createModal.close()}>Gửi ngay</Button>
                 </div>
               </div>
             </DialogContent>
@@ -744,148 +900,13 @@ export default function NotificationManagementPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Thông báo</TableHead>
-                      <TableHead>Loại</TableHead>
-                      <TableHead>Ưu tiên</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Người nhận</TableHead>
-                      <TableHead>Tỷ lệ mở</TableHead>
-                      <TableHead>Thời gian</TableHead>
-                      <TableHead>Hành động</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredNotifications.map((notification) => {
-                      const TypeIcon = typeIcons[notification.type] || Bell;
-
-                      return (
-                        <TableRow key={notification.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {notification.title}
-                              </div>
-                              <div className="text-sm text-gray-500 truncate max-w-64">
-                                {notification.content}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <TypeIcon className="w-4 h-4 text-gray-500" />
-                              <span className="capitalize">
-                                {notification.type === "recruitment" &&
-                                  "Tuyển dụng"}
-                                {notification.type === "update" && "Cập nhật"}
-                                {notification.type === "announcement" &&
-                                  "Thông báo"}
-                                {notification.type === "appreciation" &&
-                                  "Cảm ơn"}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={priorityColors[notification.priority]}
-                            >
-                              {notification.priority === "low" && "Thấp"}
-                              {notification.priority === "medium" &&
-                                "Trung bình"}
-                              {notification.priority === "high" && "Cao"}
-                              {notification.priority === "urgent" && "Khẩn cấp"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={statusColors[notification.status]}
-                            >
-                              {notification.status === "draft" && "Nháp"}
-                              {notification.status === "scheduled" &&
-                                "Đã lên lịch"}
-                              {notification.status === "sent" && "Đã gửi"}
-                              {notification.status === "failed" && "Thất bại"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Users className="w-4 h-4 text-gray-400" />
-                              {notification.recipientCount.toLocaleString()}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {notification.openRate > 0 ? (
-                              <div className="space-y-1">
-                                <div className="text-sm font-medium">
-                                  {formatPercentage(notification.openRate)}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Click:{" "}
-                                  {formatPercentage(notification.clickRate)}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <div>
-                                {formatDateTime(
-                                  notification.sentTime ||
-                                    notification.scheduledTime
-                                )}
-                              </div>
-                              <div className="text-gray-500">
-                                {notification.createdBy}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleViewNotification(notification)
-                                  }
-                                >
-                                  Xem chi tiết
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                {notification.status === "draft" && (
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleSendNotification(notification.id)
-                                    }
-                                  >
-                                    Gửi ngay
-                                  </DropdownMenuItem>
-                                )}
-                                {notification.status === "scheduled" && (
-                                  <DropdownMenuItem>
-                                    Chỉnh sửa lịch
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem>Sao chép</DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
-                                  Xóa
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <DataTable
+                  data={filteredNotifications}
+                  columns={notificationColumns}
+                  actions={notificationActions}
+                  emptyMessage="Không tìm thấy thông báo nào"
+                  className="min-w-full"
+                />
               </div>
 
               {filteredNotifications.length === 0 && (
@@ -1001,8 +1022,10 @@ export default function NotificationManagementPage() {
                 Tạo mẫu để tái sử dụng cho các thông báo tương tự
               </p>
               <Dialog
-                open={isTemplateDialogOpen}
-                onOpenChange={setIsTemplateDialogOpen}
+                open={templateModal.isOpen}
+                onOpenChange={(open) =>
+                  open ? templateModal.open() : templateModal.close()
+                }
               >
                 <DialogTrigger asChild>
                   <Button>
@@ -1064,11 +1087,11 @@ export default function NotificationManagementPage() {
                     <div className="flex justify-end gap-3">
                       <Button
                         variant="outline"
-                        onClick={() => setIsTemplateDialogOpen(false)}
+                        onClick={() => templateModal.close()}
                       >
                         Hủy
                       </Button>
-                      <Button onClick={() => setIsTemplateDialogOpen(false)}>
+                      <Button onClick={() => templateModal.close()}>
                         Tạo mẫu
                       </Button>
                     </div>
@@ -1081,7 +1104,10 @@ export default function NotificationManagementPage() {
       </Tabs>
 
       {/* Notification Detail Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+      <Dialog
+        open={viewModal.isOpen}
+        onOpenChange={(open) => (open ? viewModal.open() : viewModal.close())}
+      >
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Chi tiết thông báo</DialogTitle>

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ivan_api.Models;
 
@@ -10,19 +11,19 @@ public partial class AiQueryAnalytic
 
     public int? InstructionId { get; set; }
 
-    public string QueryText { get; set; } = null!;
+    public string? QueryText { get; set; }
 
     public int? ResponseQuality { get; set; }
 
-    public int ExecutionTime { get; set; }
+    public int? ExecutionTime { get; set; }
 
     public string? DataTablesAccessed { get; set; }
 
+    public DateTime? CreatedAt { get; set; }
+
     public string? ConversationId { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public virtual AiCustomInstruction? Instruction { get; set; }
 
     public virtual User User { get; set; } = null!;
-
-    public virtual AiCustomInstruction? Instruction { get; set; }
 }

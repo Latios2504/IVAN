@@ -87,6 +87,10 @@ public partial class Event
 
     public string? Currency { get; set; }
 
+    public string? EventType { get; set; }
+
+    public int? MaxParticipants { get; set; }
+
     public bool? IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
@@ -96,13 +100,6 @@ public partial class Event
     public int? CreatedBy { get; set; }
 
     public int? UpdatedBy { get; set; }
-
-    // Additional properties for AI features
-    public string? EventType { get; set; }
-    
-    public int? MaxParticipants { get; set; }
-    
-    public int? CreatedByUserId { get; set; }
 
     public virtual EventCategory Category { get; set; } = null!;
 

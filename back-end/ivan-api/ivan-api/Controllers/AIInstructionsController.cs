@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ivan_api.DTOs;
-using ivan_api.Services;
+using ivan_api.DTOs.AIDatabaseManage;
+using ivan_api.Services.AIInstructionServ;
 
 namespace ivan_api.Controllers;
 
@@ -147,6 +148,70 @@ public class AIInstructionsController : ControllerBase
     }
 
     /// <summary>
+    /// Delete any AI instruction (Admin only - bypasses ownership check)
+    /// </summary>
+    [HttpDelete("admin/{instructionId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<bool>>> DeleteAnyInstruction(int instructionId)
+    {
+        try
+        {
+            var result = await _instructionService.DeleteAnyInstructionAsync(instructionId);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            if (result.Message?.Contains("not found") == true)
+                return NotFound(result);
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in DeleteAnyInstruction endpoint for instruction {InstructionId}", instructionId);
+            return StatusCode(500, new ApiResponseDTO<bool>
+            {
+                Success = false,
+                Message = "An internal error occurred"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Update any AI instruction (Admin only - bypasses ownership check)
+    /// </summary>
+    [HttpPut("admin/{instructionId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> UpdateAnyInstruction(int instructionId, [FromBody] AiCustomInstructionUpdateDTO request)
+    {
+        try
+        {
+            var result = await _instructionService.UpdateAnyInstructionAsync(instructionId, request);
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            if (result.Message?.Contains("not found") == true)
+                return NotFound(result);
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in UpdateAnyInstruction endpoint for instruction {InstructionId}", instructionId);
+            return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
+            {
+                Success = false,
+                Message = "An internal error occurred"
+            });
+        }
+    }
+
+    /// <summary>
     /// Get a specific AI instruction
     /// </summary>
     [HttpGet("{instructionId}")]
@@ -181,6 +246,35 @@ public class AIInstructionsController : ControllerBase
         {
             _logger.LogError(ex, "Error in GetInstruction endpoint for instruction {InstructionId}", instructionId);
             return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
+            {
+                Success = false,
+                Message = "An internal error occurred"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get all AI instructions in the system (Admin only)
+    /// </summary>
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<List<AiCustomInstructionDTO>>>> GetAllInstructions()
+    {
+        try
+        {
+            var result = await _instructionService.GetAllInstructionsAsync();
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in GetAllInstructions endpoint");
+            return StatusCode(500, new ApiResponseDTO<List<AiCustomInstructionDTO>>
             {
                 Success = false,
                 Message = "An internal error occurred"
@@ -338,6 +432,48 @@ public class AIInstructionsController : ControllerBase
     }
 
     /// <summary>
+    /// Test any AI instruction with a sample query (Admin only - bypasses ownership check)
+    /// </summary>
+    [HttpPost("admin/{instructionId}/test")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<string>>> TestAnyInstruction(int instructionId, [FromBody] TestInstructionRequestDTO request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.SampleQuery))
+            {
+                return BadRequest(new ApiResponseDTO<string>
+                {
+                    Success = false,
+                    Message = "Sample query is required"
+                });
+            }
+
+            var result = await _instructionService.TestAnyInstructionAsync(instructionId, request.SampleQuery);
+
+            if (result.Success)
+            {
+                _logger.LogInformation("AI instruction {InstructionId} tested successfully by admin", instructionId);
+                return Ok(result);
+            }
+
+            if (result.Message?.Contains("not found") == true)
+                return NotFound(result);
+
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in TestAnyInstruction endpoint for instruction {InstructionId}", instructionId);
+            return StatusCode(500, new ApiResponseDTO<string>
+            {
+                Success = false,
+                Message = "An internal error occurred"
+            });
+        }
+    }
+
+    /// <summary>
     /// Validate an AI instruction without saving it (Admin only)
     /// </summary>
     [HttpPost("validate")]
@@ -449,10 +585,93 @@ public class AIInstructionsController : ControllerBase
         }
         return null;
     }
+
+    /// <summary>
+    /// Get current Gemini model configuration (Admin only)
+    /// </summary>
+    [HttpGet("admin/gemini-config")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<object>>> GetGeminiConfig()
+    {
+        try
+        {
+            var config = await _instructionService.GetGeminiConfigAsync();
+            return Ok(config);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting Gemini configuration");
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Lỗi khi lấy cấu hình Gemini"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get available Gemini models (Admin only)
+    /// </summary>
+    [HttpGet("admin/gemini-models")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<List<string>>>> GetAvailableModels()
+    {
+        try
+        {
+            var models = await _instructionService.GetAvailableGeminiModelsAsync();
+            return Ok(models);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting available Gemini models");
+            return StatusCode(500, new ApiResponseDTO<List<string>>
+            {
+                Success = false,
+                Message = "Lỗi khi lấy danh sách mô hình Gemini"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Test any AI instruction with specific model (Admin only)
+    /// </summary>
+    [HttpPost("admin/{instructionId}/test-with-model")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponseDTO<string>>> TestAnyInstructionWithModel(int instructionId, [FromBody] TestInstructionWithModelRequestDTO request)
+    {
+        try
+        {
+            var result = await _instructionService.TestAnyInstructionWithModelAsync(instructionId, request.SampleQuery, request.Model);
+
+            if (result.Success)
+            {
+                _logger.LogInformation("AI instruction {InstructionId} tested successfully with model {Model} (admin)", instructionId, request.Model);
+                return Ok(result);
+            }
+
+            _logger.LogWarning("Failed to test AI instruction {InstructionId} with model {Model} (admin): {Message}", instructionId, request.Model, result.Message);
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error testing AI instruction {InstructionId} with model {Model} (admin)", instructionId, request.Model);
+            return StatusCode(500, new ApiResponseDTO<string>
+            {
+                Success = false,
+                Message = "Lỗi khi thử nghiệm instruction với model được chỉ định"
+            });
+        }
+    }
 }
 
 // Request DTOs
 public class TestInstructionRequestDTO
 {
     public string SampleQuery { get; set; } = string.Empty;
+}
+
+public class TestInstructionWithModelRequestDTO
+{
+    public string SampleQuery { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
 }

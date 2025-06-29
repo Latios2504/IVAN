@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ivan_api.DTOs;
-using ivan_api.Services;
+using ivan_api.DTOs.AIDatabaseManage;
+using ivan_api.Services.AIQueryServ;
 
 namespace ivan_api.Controllers;
 

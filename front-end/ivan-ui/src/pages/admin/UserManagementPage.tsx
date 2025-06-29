@@ -2,31 +2,44 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { User, UserRole } from "@/types/auth";
 import type { UserProfile } from "@/types/profile";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { CoordinatorCreationDialog } from "@/components/admin/CoordinatorCreationDialog";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  UserPlus, 
-  Shield, 
+import {
+  Users,
+  Search,
+  Filter,
+  UserPlus,
+  Shield,
   ShieldCheck,
   AlertCircle,
   Clock,
-  MoreHorizontal
+  MoreHorizontal,
+  Eye,
+  Edit,
 } from "lucide-react";
-// Simple notification function for demo
-const showNotification = (message: string, type: "success" | "error" = "success") => {
-  console.log(`${type.toUpperCase()}: ${message}`);
-  // In a real app, this would be replaced with a proper toast system
-};
+import { useToast } from "@/context/ToastContext";
+import { useModal, useModalWithData } from "@/hooks/useModal";
+import { DataTable } from "@/components/common/DataTable";
+import type { TableColumn, TableAction } from "@/components/common/DataTable";
 
 /**
  * User Management Page for Admin
@@ -59,7 +72,8 @@ const mockUsers: UserListItem[] = [
     lastLoginAt: "2024-06-20T08:30:00Z",
     createdAt: "2024-01-15T10:00:00Z",
     lastActivity: "2024-06-20T08:30:00Z",
-    eventsParticipated: 15,    profile: undefined,
+    eventsParticipated: 15,
+    profile: undefined,
   },
   {
     id: 2,
@@ -71,7 +85,8 @@ const mockUsers: UserListItem[] = [
     lastLoginAt: "2024-06-19T14:20:00Z",
     createdAt: "2024-02-10T09:30:00Z",
     lastActivity: "2024-06-19T14:20:00Z",
-    eventsCreated: 8,    profile: undefined,
+    eventsCreated: 8,
+    profile: undefined,
   },
   {
     id: 3,
@@ -83,7 +98,8 @@ const mockUsers: UserListItem[] = [
     lastLoginAt: "2024-06-10T11:15:00Z",
     createdAt: "2024-03-05T16:45:00Z",
     lastActivity: "2024-06-10T11:15:00Z",
-    totalCollaborations: 3,    profile: undefined,
+    totalCollaborations: 3,
+    profile: undefined,
   },
 ];
 
@@ -105,11 +121,12 @@ const USER_STATUSES = [
 
 export default function UserManagementPage() {
   const { user: currentUser } = useAuth();
+  const { showNotification } = useToast();
+  const userDetailsModal = useModalWithData<UserListItem>();
+  const coordinatorDialog = useModal();
+
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
-  const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
-  const [isCoordinatorDialogOpen, setIsCoordinatorDialogOpen] = useState(false);
 
   const [filters, setFilters] = useState<UserFilters>({
     role: "all",
@@ -143,9 +160,9 @@ export default function UserManagementPage() {
       // TODO: Replace with actual API call
       // const response = await userService.getAllUsers();
       // setUsers(response.data);
-      
+
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       setUsers(mockUsers);
     } catch (error) {
       showNotification("Không thể tải danh sách người dùng", "error");
@@ -156,21 +173,24 @@ export default function UserManagementPage() {
   };
 
   const handleViewUser = (user: UserListItem) => {
-    setSelectedUser(user);
-    setIsUserDetailsOpen(true);
+    userDetailsModal.openWith(user);
   };
   const handleUserUpdate = (updatedUser: User) => {
     // Convert User back to UserListItem for internal state management
-    setUsers(prev => prev.map(user => 
-      user.id === updatedUser.id ? {
-        ...user,
-        ...updatedUser,
-        lastActivity: user.lastActivity, // Preserve UserListItem-specific fields
-        eventsParticipated: user.eventsParticipated,
-        eventsCreated: user.eventsCreated,
-        totalCollaborations: user.totalCollaborations,
-      } : user
-    ));
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === updatedUser.id
+          ? {
+              ...user,
+              ...updatedUser,
+              lastActivity: user.lastActivity, // Preserve UserListItem-specific fields
+              eventsParticipated: user.eventsParticipated,
+              eventsCreated: user.eventsCreated,
+              totalCollaborations: user.totalCollaborations,
+            }
+          : user
+      )
+    );
     showNotification("Cập nhật thông tin người dùng thành công");
   };
 
@@ -178,11 +198,13 @@ export default function UserManagementPage() {
     try {
       // TODO: API call to toggle user status
       // await userService.updateUserStatus(userId, newStatus);
-      
-      setUsers(prev => prev.map(user => 
-        user.id === userId ? { ...user, isActive: newStatus } : user
-      ));
-        showNotification(
+
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === userId ? { ...user, isActive: newStatus } : user
+        )
+      );
+      showNotification(
         newStatus ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản"
       );
     } catch (error) {
@@ -190,17 +212,17 @@ export default function UserManagementPage() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users.filter((user) => {
     const matchesRole = filters.role === "all" || user.role === filters.role;
-    const matchesStatus = 
+    const matchesStatus =
       filters.status === "all" ||
       (filters.status === "active" && user.isActive) ||
       (filters.status === "inactive" && !user.isActive) ||
       (filters.status === "unverified" && !user.isEmailVerified);
-    const matchesSearch = 
+    const matchesSearch =
       user.fullName.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(filters.searchTerm.toLowerCase());
-    
+
     return matchesRole && matchesStatus && matchesSearch;
   });
 
@@ -236,6 +258,62 @@ export default function UserManagementPage() {
     return roleMap[role] || role;
   };
 
+  // Table configuration
+  const tableColumns: TableColumn<UserListItem>[] = [
+    {
+      key: "fullName",
+      header: "Người dùng",
+      render: (_, user) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+            {getRoleIcon(user.role)}
+          </div>
+          <div>
+            <div className="font-medium">{user.fullName}</div>
+            <div className="text-sm text-gray-600">{user.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "role",
+      header: "Vai trò",
+      render: (role) => getRoleDisplayName(role),
+    },
+    {
+      key: "isActive",
+      header: "Trạng thái",
+      render: (_, user) => getUserStatusBadge(user),
+    },
+    {
+      key: "lastActivity",
+      header: "Hoạt động cuối",
+      render: (lastActivity) =>
+        new Date(lastActivity).toLocaleDateString("vi-VN"),
+    },
+    {
+      key: "eventsParticipated",
+      header: "Sự kiện tham gia",
+      render: (count) => count || 0,
+    },
+  ];
+
+  const tableActions: TableAction<UserListItem>[] = [
+    {
+      label: "Chi tiết",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: handleViewUser,
+      variant: "outline",
+      size: "sm",
+    },
+    {
+      label: "Kích hoạt/Vô hiệu",
+      onClick: (user) => handleToggleUserStatus(user.id, !user.isActive),
+      variant: "outline",
+      size: "sm",
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -258,7 +336,7 @@ export default function UserManagementPage() {
           </p>
         </div>
         <Button
-          onClick={() => setIsCoordinatorDialogOpen(true)}
+          onClick={coordinatorDialog.open}
           className="flex items-center gap-2"
         >
           <UserPlus className="h-4 w-4" />
@@ -286,7 +364,7 @@ export default function UserManagementPage() {
               <div>
                 <p className="text-sm text-gray-600">Đang hoạt động</p>
                 <p className="text-2xl font-bold">
-                  {users.filter(u => u.isActive).length}
+                  {users.filter((u) => u.isActive).length}
                 </p>
               </div>
             </div>
@@ -299,7 +377,7 @@ export default function UserManagementPage() {
               <div>
                 <p className="text-sm text-gray-600">Bị vô hiệu hóa</p>
                 <p className="text-2xl font-bold">
-                  {users.filter(u => !u.isActive).length}
+                  {users.filter((u) => !u.isActive).length}
                 </p>
               </div>
             </div>
@@ -312,7 +390,7 @@ export default function UserManagementPage() {
               <div>
                 <p className="text-sm text-gray-600">Chưa xác thực</p>
                 <p className="text-2xl font-bold">
-                  {users.filter(u => !u.isEmailVerified).length}
+                  {users.filter((u) => !u.isEmailVerified).length}
                 </p>
               </div>
             </div>
@@ -335,19 +413,26 @@ export default function UserManagementPage() {
               <Input
                 placeholder="Tìm kiếm tên hoặc email..."
                 value={filters.searchTerm}
-                onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    searchTerm: e.target.value,
+                  }))
+                }
                 className="pl-10"
               />
             </div>
             <Select
               value={filters.role}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, role: value }))}
+              onValueChange={(value) =>
+                setFilters((prev) => ({ ...prev, role: value }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
-                {USER_ROLES.map(role => (
+                {USER_ROLES.map((role) => (
                   <SelectItem key={role.value} value={role.value}>
                     {role.label}
                   </SelectItem>
@@ -356,13 +441,15 @@ export default function UserManagementPage() {
             </Select>
             <Select
               value={filters.status}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+              onValueChange={(value) =>
+                setFilters((prev) => ({ ...prev, status: value }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                {USER_STATUSES.map(status => (
+                {USER_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
                   </SelectItem>
@@ -371,12 +458,14 @@ export default function UserManagementPage() {
             </Select>
             <Button
               variant="outline"
-              onClick={() => setFilters({
-                role: "all",
-                status: "all",
-                searchTerm: "",
-                dateRange: "all",
-              })}
+              onClick={() =>
+                setFilters({
+                  role: "all",
+                  status: "all",
+                  searchTerm: "",
+                  dateRange: "all",
+                })
+              }
             >
               Xóa bộ lọc
             </Button>
@@ -387,84 +476,37 @@ export default function UserManagementPage() {
       {/* User List */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Danh sách người dùng ({filteredUsers.length})
-          </CardTitle>
+          <CardTitle>Danh sách người dùng ({filteredUsers.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    {getRoleIcon(user.role)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{user.fullName}</span>
-                      {getUserStatusBadge(user)}
-                    </div>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                      <span>{getRoleDisplayName(user.role)}</span>
-                      <span>•</span>
-                      <span>
-                        Hoạt động cuối: {new Date(user.lastActivity).toLocaleDateString('vi-VN')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewUser(user)}
-                  >
-                    Xem chi tiết
-                  </Button>
-                  <Button
-                    variant={user.isActive ? "destructive" : "default"}
-                    size="sm"
-                    onClick={() => handleToggleUserStatus(user.id, !user.isActive)}
-                  >
-                    {user.isActive ? "Vô hiệu hóa" : "Kích hoạt"}
-                  </Button>
-                </div>
-              </div>
-            ))}
-            
-            {filteredUsers.length === 0 && (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Không tìm thấy người dùng nào</p>
-              </div>
-            )}
-          </div>
+          <DataTable
+            data={filteredUsers}
+            columns={tableColumns}
+            actions={tableActions}
+            loading={isLoading}
+            emptyMessage="Không tìm thấy người dùng nào"
+          />
         </CardContent>
       </Card>
 
       {/* User Details Modal */}
-      {selectedUser && (
+      {userDetailsModal.data && (
         <UserDetailsModal
-          user={selectedUser}
-          isOpen={isUserDetailsOpen}
-          onClose={() => {
-            setIsUserDetailsOpen(false);
-            setSelectedUser(null);
-          }}
+          user={userDetailsModal.data}
+          isOpen={userDetailsModal.isOpen}
+          onClose={userDetailsModal.closeAndClear}
           onUserUpdate={handleUserUpdate}
         />
       )}
 
       {/* Coordinator Creation Dialog */}
       <CoordinatorCreationDialog
-        isOpen={isCoordinatorDialogOpen}
-        onClose={() => setIsCoordinatorDialogOpen(false)}        onSuccess={(newCoordinator: any) => {
+        isOpen={coordinatorDialog.isOpen}
+        onClose={coordinatorDialog.close}
+        onSuccess={(newCoordinator: any) => {
           // In a real app, this would properly handle the new coordinator data
           showNotification("Tạo tài khoản Coordinator thành công");
+          coordinatorDialog.close();
         }}
       />
     </div>

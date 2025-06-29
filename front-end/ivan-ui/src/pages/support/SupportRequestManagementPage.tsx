@@ -43,15 +43,10 @@ import {
   Edit,
   Star,
 } from "lucide-react";
-
-// Simple notification function for demo
-const showNotification = (
-  message: string,
-  type: "success" | "error" = "success"
-) => {
-  console.log(`${type.toUpperCase()}: ${message}`);
-  // In a real app, this would be replaced with a proper toast system
-};
+import { useToast } from "@/context/ToastContext";
+import { useModal, useModalWithData } from "@/hooks/useModal";
+import { DataTable } from "@/components/common/DataTable";
+import type { TableColumn, TableAction } from "@/components/common/DataTable";
 
 /**
  * Support Request Management Page
@@ -68,6 +63,10 @@ const showNotification = (
 
 const SupportRequestManagementPage = () => {
   const { user } = useAuth();
+  const { showNotification } = useToast();
+  const createDialog = useModal();
+  const detailsModal = useModalWithData<SupportRequest>();
+
   const [supportRequests, setSupportRequests] = useState<SupportRequest[]>([]);
   const [categories, setCategories] = useState<SupportCategory[]>([]);
   const [stats, setStats] = useState<SupportRequestStats | null>(null);
@@ -79,11 +78,8 @@ const SupportRequestManagementPage = () => {
     dateRange: "all",
   });
   const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState<SupportRequest | null>(
-    null
-  );
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentTab, setCurrentTab] = useState("all");
+
   // Check if user can manage support requests (admin/organization)
   const canManageRequests =
     user?.role === "admin" || user?.role === "organization";
@@ -383,7 +379,7 @@ const SupportRequestManagementPage = () => {
       );
 
       showNotification("Yêu cầu hỗ trợ đã được tạo thành công");
-      setShowCreateDialog(false);
+      createDialog.close();
     } catch (error) {
       console.error("Error creating support request:", error);
       showNotification("Có lỗi xảy ra khi tạo yêu cầu hỗ trợ", "error");
@@ -458,7 +454,7 @@ const SupportRequestManagementPage = () => {
         </div>
 
         <Button
-          onClick={() => setShowCreateDialog(true)}
+          onClick={createDialog.open}
           className="bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -783,7 +779,7 @@ const SupportRequestManagementPage = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedRequest(request)}
+                          onClick={() => detailsModal.openWith(request)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           Xem
@@ -793,7 +789,7 @@ const SupportRequestManagementPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSelectedRequest(request)}
+                            onClick={() => detailsModal.openWith(request)}
                           >
                             <Edit className="w-4 h-4 mr-1" />
                             Sửa
@@ -810,24 +806,24 @@ const SupportRequestManagementPage = () => {
       </Tabs>
       {/* Create Support Request Dialog */}
       <CreateSupportRequestDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        open={createDialog.isOpen}
+        onOpenChange={createDialog.toggle}
         onSubmit={handleCreateRequest}
         categories={categories}
       />{" "}
       {/* Support Request Details Modal */}
-      {selectedRequest && (
+      {detailsModal.data && (
         <SupportRequestDetailsModal
-          request={selectedRequest}
-          open={!!selectedRequest}
-          onOpenChange={(open: boolean) => !open && setSelectedRequest(null)}
+          request={detailsModal.data}
+          open={detailsModal.isOpen}
+          onOpenChange={detailsModal.toggle}
           onUpdate={(updatedRequest: SupportRequest) => {
             setSupportRequests((prev) =>
               prev.map((r) =>
                 r.requestId === updatedRequest.requestId ? updatedRequest : r
               )
             );
-            setSelectedRequest(null);
+            detailsModal.closeAndClear();
           }}
           canUpdate={canUpdateStatus}
           categories={categories}
