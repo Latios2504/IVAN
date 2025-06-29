@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ActionButton } from "@/components/dashboard/ActionButton";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CalendarDays, Users, Award, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -27,55 +30,30 @@ export default function VolunteerDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Sự kiện tham gia
-            </CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 tháng này</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Giờ tình nguyện
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground">+24 giờ tháng này</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chứng chỉ</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">Đã xác nhận</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Điểm tín nhiệm
-            </CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">850</div>
-            <p className="text-xs text-muted-foreground">Xuất sắc</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Sự kiện tham gia"
+          value={12}
+          icon={CalendarDays}
+          trend={{ value: "+2 tháng này" }}
+        />
+        <StatsCard
+          title="Giờ tình nguyện"
+          value={128}
+          icon={Users}
+          trend={{ value: "+24 giờ tháng này" }}
+        />
+        <StatsCard
+          title="Chứng chỉ"
+          value={5}
+          icon={Award}
+          description="Đã xác nhận"
+        />
+        <StatsCard
+          title="Điểm tín nhiệm"
+          value={850}
+          icon={Settings}
+          description="Xuất sắc"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -131,7 +109,7 @@ export default function VolunteerDashboard() {
                     Thứ 7, 15/06 • 8:00-12:00
                   </p>
                 </div>
-                <Badge>Đã đăng ký</Badge>
+                <StatusBadge variant="success">Đã đăng ký</StatusBadge>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
@@ -140,7 +118,7 @@ export default function VolunteerDashboard() {
                     Chủ nhật, 16/06 • 7:00-11:00
                   </p>
                 </div>
-                <Badge variant="outline">Chờ xác nhận</Badge>
+                <StatusBadge variant="pending">Chờ xác nhận</StatusBadge>
               </div>
             </div>
             <Button variant="outline" className="w-full" asChild>
@@ -189,24 +167,15 @@ export default function VolunteerDashboard() {
             <CardDescription>Các tác vụ thường dùng</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" asChild>
-              <Link to="/events">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Tìm sự kiện mới
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/organizations">
-                <Users className="mr-2 h-4 w-4" />
-                Khám phá tổ chức
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/profile">
-                <Settings className="mr-2 h-4 w-4" />
-                Cập nhật hồ sơ
-              </Link>
-            </Button>
+            <ActionButton to="/events" icon={CalendarDays}>
+              Tìm sự kiện mới
+            </ActionButton>
+            <ActionButton to="/organizations" icon={Users} variant="outline">
+              Khám phá tổ chức
+            </ActionButton>
+            <ActionButton to="/profile" icon={Settings} variant="outline">
+              Cập nhật hồ sơ
+            </ActionButton>
           </CardContent>
         </Card>
       </div>

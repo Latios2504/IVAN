@@ -2,9 +2,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 using ivan_api.Configuration;
 using ivan_api.Models;
 using ivan_api.Services;
+using ivan_api.Services.AIDatabaseServ;
+using ivan_api.Services.AIInstructionServ;
+using ivan_api.Services.AIQueryServ;
+using ivan_api.Services.AIConversationServ;
+using ivan_api.Services.AIMultiModelServ;
+using ivan_api.Services.AIRecommendationServ;
+using ivan_api.Services.AISecurityServ;
+using ivan_api.Services.AIPerformanceServ;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Services.VolunteerProfileServ;
 using ivan_api.Repository.EventRepo;
@@ -16,6 +25,12 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 // Database Context
 builder.Services.AddDbContext<VolunteerManagementSystemContext>(options =>
@@ -33,11 +48,6 @@ builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection(
 var geminiConfig = new GeminiConfiguration();
 builder.Configuration.GetSection("Gemini").Bind(geminiConfig);
 builder.Services.AddSingleton(geminiConfig);
-
-// Google Sheets Configuration
-var googleSheetsConfig = new GoogleSheetsConfiguration();
-builder.Configuration.GetSection("GoogleSheets").Bind(googleSheetsConfig);
-builder.Services.AddSingleton(googleSheetsConfig);
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -86,6 +96,9 @@ builder.Services.AddSwaggerGen(c =>
 // Authorization
 builder.Services.AddAuthorization();
 
+// Memory Cache (required by AI services)
+builder.Services.AddMemoryCache();
+
 // CORS Configuration
 builder.Services.AddCors(options =>
 {
@@ -107,17 +120,24 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
-// N8N Webhook Service
-builder.Services.AddHttpClient<IN8nWebhookService, N8nWebhookService>();
-builder.Services.AddScoped<IN8nWebhookService, N8nWebhookService>();
-
 // ChatBot Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
 builder.Services.AddScoped<IChatBotService, ChatBotService>();
 
-// Google Sheets Service
-builder.Services.AddHttpClient<IGoogleSheetsService, GoogleSheetsService>();
-builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
+// AI Database Services
+builder.Services.AddScoped<IAIDatabaseService, AIDatabaseService>();
+builder.Services.AddScoped<IAIQueryEngine, AIQueryEngine>();
+builder.Services.AddHttpClient<IAIInstructionService, AIInstructionService>();
+builder.Services.AddScoped<IAIInstructionService, AIInstructionService>();
+
+// Phase 4: Advanced AI Services
+builder.Services.AddScoped<IAIConversationService, AIConversationService>();
+builder.Services.AddScoped<IMultiModelAIService, MultiModelAIService>();
+builder.Services.AddScoped<IAIRecommendationService, AIRecommendationService>();
+
+// Phase 6: Security & Performance Services
+builder.Services.AddScoped<IAISecurityService, AISecurityService>();
+builder.Services.AddScoped<IAIPerformanceService, AIPerformanceService>();
 
 // Volunteer Profile DI
 builder.Services.AddAutoMapper(typeof(Program));

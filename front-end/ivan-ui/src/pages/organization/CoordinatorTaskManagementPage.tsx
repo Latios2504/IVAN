@@ -20,13 +20,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  DataTable,
+  type TableColumn,
+  type TableAction,
+} from "@/components/common/DataTable";
+import { useModal } from "@/hooks/useModal";
+import { useToast } from "@/context/ToastContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -157,9 +156,12 @@ export default function CoordinatorTaskManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  // Hooks
+  const createModal = useModal();
+  const viewModal = useModal();
+  const { showNotification } = useToast();
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter((task) => {
@@ -245,30 +247,171 @@ export default function CoordinatorTaskManagementPage() {
     document.body.removeChild(link);
   };
 
-  const handleViewTask = (task: Task) => {
-    setSelectedTask(task);
-    setIsViewDialogOpen(true);
-  };
-
-  const handleUpdateTaskStatus = (
-    taskId: string,
-    newStatus: Task["status"]
-  ) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              status: newStatus,
-              completedDate:
-                newStatus === "completed"
-                  ? new Date().toISOString().slice(0, 10)
-                  : task.completedDate,
+  // DataTable columns configuration
+  const taskColumns: TableColumn<Task>[] = [
+    {
+      key: "title",
+      header: "Nhiệm vụ",
+      render: (_, task) => (
+        <div>
+          <div className="font-medium">{task.title}</div>
+          <div className="text-sm text-gray-500 truncate max-w-64">
+            {task.description}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "coordinatorName",
+      header: "Điều phối viên",
+      render: (_, task) => (
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-gray-400" />
+          <span>{task.coordinatorName}</span>
+        </div>
+      ),
+    },
+    {
+      key: "eventName",
+      header: "Sự kiện",
+      render: (_, task) => <div className="text-sm">{task.eventName}</div>,
+    },
+    {
+      key: "priority",
+      header: "Ưu tiên",
+      render: (_, task) => {
+        const priorityLabels: Record<string, string> = {
+          low: "Thấp",
+          medium: "Trung bình",
+          high: "Cao",
+          urgent: "Khẩn cấp",
+        };
+        return (
+          <Badge
+            className={
+              priorityColors[task.priority as keyof typeof priorityColors]
             }
-          : task
-      )
-    );
-  };
+          >
+            {priorityLabels[task.priority]}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      render: (_, task) => {
+        const StatusIcon = statusIcons[task.status as keyof typeof statusIcons];
+        const statusLabels: Record<string, string> = {
+          pending: "Chờ xử lý",
+          in_progress: "Đang thực hiện",
+          completed: "Hoàn thành",
+          overdue: "Quá hạn",
+          cancelled: "Đã hủy",
+        };
+        return (
+          <div className="flex items-center gap-2">
+            <StatusIcon className="w-4 h-4" />
+            <Badge
+              className={statusColors[task.status as keyof typeof statusColors]}
+            >
+              {statusLabels[task.status]}
+            </Badge>
+          </div>
+        );
+      },
+    },
+    {
+      key: "dueDate",
+      header: "Hạn chót",
+      render: (_, task) => {
+        const isOverdue =
+          new Date(task.dueDate) < new Date() && task.status !== "completed";
+        return (
+          <div
+            className={`text-sm ${isOverdue ? "text-red-600 font-medium" : ""}`}
+          >
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              {new Date(task.dueDate).toLocaleDateString("vi-VN")}
+            </div>
+            {isOverdue && <div className="text-xs text-red-500">Quá hạn</div>}
+          </div>
+        );
+      },
+    },
+    {
+      key: "progress",
+      header: "Tiến độ",
+      render: (_, task) => {
+        const progress =
+          task.status === "completed"
+            ? 100
+            : task.status === "in_progress"
+            ? 65
+            : task.status === "pending"
+            ? 0
+            : 0;
+        return (
+          <div className="space-y-1">
+            <div className="text-sm font-medium">{progress}%</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  progress === 100
+                    ? "bg-green-500"
+                    : progress > 50
+                    ? "bg-blue-500"
+                    : "bg-gray-400"
+                }`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="text-xs text-gray-500">
+              {task.actualHours}h / {task.estimatedHours}h
+            </div>
+          </div>
+        );
+      },
+    },
+  ];
+
+  const taskActions: TableAction<Task>[] = [
+    {
+      label: "Xem chi tiết",
+      onClick: (task) => {
+        setSelectedTask(task);
+        viewModal.open();
+      },
+    },
+    {
+      label: "Chỉnh sửa",
+      onClick: () => {},
+    },
+    {
+      label: "Đánh dấu hoàn thành",
+      onClick: (task) => {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id
+              ? {
+                  ...t,
+                  status: "completed",
+                  completedDate: new Date().toISOString(),
+                }
+              : t
+          )
+        );
+        showNotification("Đã đánh dấu nhiệm vụ hoàn thành", "success");
+      },
+      visible: (task) => task.status !== "completed",
+    },
+    {
+      label: "Xóa",
+      onClick: () => {},
+      variant: "destructive" as const,
+    },
+  ];
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -287,10 +430,7 @@ export default function CoordinatorTaskManagementPage() {
             <Download className="w-4 h-4 mr-2" />
             Xuất Excel
           </Button>
-          <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-          >
+          <Dialog open={createModal.isOpen} onOpenChange={createModal.toggle}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
@@ -355,13 +495,10 @@ export default function CoordinatorTaskManagementPage() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCreateDialogOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => createModal.close()}>
                     Hủy
                   </Button>
-                  <Button onClick={() => setIsCreateDialogOpen(false)}>
+                  <Button onClick={() => createModal.close()}>
                     Tạo nhiệm vụ
                   </Button>
                 </div>
@@ -482,126 +619,12 @@ export default function CoordinatorTaskManagementPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nhiệm vụ</TableHead>
-                  <TableHead>Điều phối viên</TableHead>
-                  <TableHead>Sự kiện</TableHead>
-                  <TableHead>Ưu tiên</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Hạn chót</TableHead>
-                  <TableHead>Tiến độ</TableHead>
-                  <TableHead>Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTasks.map((task) => {
-                  const StatusIcon = statusIcons[task.status];
-                  const progressPercentage =
-                    task.estimatedHours > 0
-                      ? Math.round(
-                          (task.actualHours / task.estimatedHours) * 100
-                        )
-                      : 0;
-
-                  return (
-                    <TableRow key={task.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{task.title}</div>
-                          <div className="text-sm text-gray-500 truncate max-w-48">
-                            {task.description}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          {task.coordinatorName}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-48">
-                        <div className="truncate">{task.eventName}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={priorityColors[task.priority]}>
-                          {task.priority === "low" && "Thấp"}
-                          {task.priority === "medium" && "Trung bình"}
-                          {task.priority === "high" && "Cao"}
-                          {task.priority === "urgent" && "Khẩn cấp"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusColors[task.status]}>
-                          <StatusIcon className="w-3 h-3 mr-1" />
-                          {task.status === "pending" && "Chờ xử lý"}
-                          {task.status === "in_progress" && "Đang thực hiện"}
-                          {task.status === "completed" && "Hoàn thành"}
-                          {task.status === "overdue" && "Quá hạn"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          {task.dueDate}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span>
-                              {task.actualHours}h / {task.estimatedHours}h
-                            </span>
-                            <span>{progressPercentage}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full"
-                              style={{
-                                width: `${Math.min(progressPercentage, 100)}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => handleViewTask(task)}
-                            >
-                              Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleUpdateTaskStatus(task.id, "in_progress")
-                              }
-                            >
-                              Bắt đầu thực hiện
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleUpdateTaskStatus(task.id, "completed")
-                              }
-                            >
-                              Đánh dấu hoàn thành
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <DataTable
+              columns={taskColumns}
+              data={filteredTasks}
+              actions={taskActions}
+              className="cursor-pointer transition-colors"
+            />
           </div>
 
           {filteredTasks.length === 0 && (
@@ -613,7 +636,7 @@ export default function CoordinatorTaskManagementPage() {
       </Card>
 
       {/* Task Detail Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+      <Dialog open={viewModal.isOpen} onOpenChange={viewModal.toggle}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Chi tiết nhiệm vụ</DialogTitle>

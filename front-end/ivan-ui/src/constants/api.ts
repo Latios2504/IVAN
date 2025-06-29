@@ -51,6 +51,16 @@ export const API_ENDPOINTS = {
     SCHEDULE: "/volunteers/schedule",
   },
 
+  // Volunteer Profiles (FE-02)
+  VOLUNTEER_PROFILES: {
+    LIST: "/api/volunteerprofile",
+    CREATE: "/api/volunteerprofile",
+    DETAIL: (userId: number) => `/api/volunteerprofile/${userId}`,
+    UPDATE: (userId: number) => `/api/volunteerprofile/${userId}`,
+    DELETE: (userId: number) => `/api/volunteerprofile/${userId}`,
+    STATS: (userId: number) => `/api/volunteerprofile/${userId}/stats`,
+  },
+
   // Partners
   PARTNERS: {
     LIST: "/partners",

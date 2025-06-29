@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useVolunteerProfile } from "@/hooks/useVolunteerProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,19 +124,86 @@ function VolunteerProfile({
   user: User;
   isEditing: boolean;
 }) {
-  const isVolunteerProfile = (
-    profile: UserProfile | undefined
-  ): profile is VolunteerProfile => {
-    return profile != null && "skills" in profile;
+  const [isEditingVolunteer, setIsEditingVolunteer] = useState(false);
+  const {
+    profile: volunteerProfile,
+    loading,
+    error,
+    loadProfile,
+    updateProfile,
+    createProfile,
+    hasProfile,
+  } = useVolunteerProfile({ userId: user.id, autoLoad: true });
+
+  // Form state for editing
+  const [formData, setFormData] = useState({
+    studentId: "",
+    university: "",
+    major: "",
+    yearOfStudy: "",
+    motivation: "",
+    experience: "",
+    availability: "",
+  });
+
+  // Update form data when profile loads
+  useEffect(() => {
+    if (volunteerProfile) {
+      setFormData({
+        studentId: volunteerProfile.studentId || "",
+        university: volunteerProfile.university || "",
+        major: volunteerProfile.major || "",
+        yearOfStudy: volunteerProfile.yearOfStudy?.toString() || "",
+        motivation: volunteerProfile.motivation || "",
+        experience: volunteerProfile.experience || "",
+        availability: volunteerProfile.availability || "",
+      });
+    }
+  }, [volunteerProfile]);
+
+  const handleSave = async () => {
+    try {
+      const updateData = {
+        ...formData,
+        yearOfStudy: formData.yearOfStudy
+          ? parseInt(formData.yearOfStudy)
+          : undefined,
+        skills: volunteerProfile?.skills || [], // Keep existing skills for now
+      };
+
+      if (hasProfile) {
+        await updateProfile(updateData);
+      } else {
+        await createProfile({
+          userId: user.id,
+          ...updateData,
+          skills: [],
+        });
+      }
+      setIsEditingVolunteer(false);
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+    }
   };
 
-  const volunteerProfile = isVolunteerProfile(user.profile)
-    ? user.profile
-    : null;
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2">Đang tải hồ sơ tình nguyện viên...</span>
+      </div>
+    );
+  }
+
   return (
     <Tabs defaultValue="personal" className="space-y-4">
       <TabsList>
         <TabsTrigger value="personal">Thông tin cá nhân</TabsTrigger>
+        <TabsTrigger value="volunteer">Hồ sơ tình nguyện</TabsTrigger>
         <TabsTrigger value="skills">Kỹ năng</TabsTrigger>
         <TabsTrigger value="activities">Hoạt động</TabsTrigger>
       </TabsList>
@@ -150,59 +218,207 @@ function VolunteerProfile({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {" "}
               <div className="space-y-2">
-                <Label htmlFor="firstName">Họ</Label>
+                <Label htmlFor="fullName">Họ và tên</Label>
                 <Input
-                  id="firstName"
-                  defaultValue={user.profile?.firstName}
-                  disabled={!isEditing}
+                  id="fullName"
+                  defaultValue={volunteerProfile?.fullName || user.fullName}
+                  disabled={true}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Tên</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="lastName"
-                  defaultValue={user.profile?.lastName}
-                  disabled={!isEditing}
+                  id="email"
+                  defaultValue={volunteerProfile?.email || user.email}
+                  disabled={true}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Số điện thoại</Label>
                 <Input
                   id="phone"
-                  defaultValue={user.profile?.phoneNumber}
-                  disabled={!isEditing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Ngày sinh</Label>
-                <Input
-                  id="dateOfBirth"
-                  type="date"
-                  defaultValue={user.profile?.dateOfBirth}
+                  defaultValue={volunteerProfile?.phoneNumber || ""}
                   disabled={!isEditing}
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Địa chỉ</Label>
-              <Input
-                id="address"
-                defaultValue={user.profile?.location?.addressLine1}
-                disabled={!isEditing}
-              />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="volunteer">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Hồ sơ tình nguyện viên</CardTitle>
+                <CardDescription>
+                  Cập nhật thông tin về việc tình nguyện của bạn
+                </CardDescription>
+              </div>
+              <Button
+                variant={isEditingVolunteer ? "outline" : "default"}
+                onClick={() => setIsEditingVolunteer(!isEditingVolunteer)}
+              >
+                {isEditingVolunteer ? "Hủy" : "Chỉnh sửa"}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="bio">Giới thiệu bản thân</Label>
-              <Textarea
-                id="bio"
-                defaultValue={user.profile?.bio}
-                disabled={!isEditing}
-                rows={4}
-              />
-            </div>
-            {isEditing && <Button className="w-full">Lưu thay đổi</Button>}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-600">Có lỗi xảy ra: {error}</p>
+              </div>
+            )}
+
+            {!hasProfile && !isEditingVolunteer && (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">
+                  Bạn chưa có hồ sơ tình nguyện viên
+                </p>
+                <Button onClick={() => setIsEditingVolunteer(true)}>
+                  Tạo hồ sơ tình nguyện viên
+                </Button>
+              </div>
+            )}
+
+            {(hasProfile || isEditingVolunteer) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="studentId">Mã sinh viên</Label>
+                  <Input
+                    id="studentId"
+                    value={formData.studentId}
+                    onChange={(e) =>
+                      handleInputChange("studentId", e.target.value)
+                    }
+                    disabled={!isEditingVolunteer}
+                    placeholder="Nhập mã sinh viên..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="university">Trường đại học</Label>
+                  <Input
+                    id="university"
+                    value={formData.university}
+                    onChange={(e) =>
+                      handleInputChange("university", e.target.value)
+                    }
+                    disabled={!isEditingVolunteer}
+                    placeholder="Nhập tên trường..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="major">Chuyên ngành</Label>
+                  <Input
+                    id="major"
+                    value={formData.major}
+                    onChange={(e) => handleInputChange("major", e.target.value)}
+                    disabled={!isEditingVolunteer}
+                    placeholder="Nhập chuyên ngành..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="yearOfStudy">Năm học</Label>
+                  <Select
+                    value={formData.yearOfStudy}
+                    onValueChange={(value) =>
+                      handleInputChange("yearOfStudy", value)
+                    }
+                    disabled={!isEditingVolunteer}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn năm học" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Năm 1</SelectItem>
+                      <SelectItem value="2">Năm 2</SelectItem>
+                      <SelectItem value="3">Năm 3</SelectItem>
+                      <SelectItem value="4">Năm 4</SelectItem>
+                      <SelectItem value="5">Năm 5</SelectItem>
+                      <SelectItem value="6">Năm 6</SelectItem>
+                      <SelectItem value="7">Sau đại học</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {(hasProfile || isEditingVolunteer) && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="motivation">Động lực tình nguyện</Label>
+                  <Textarea
+                    id="motivation"
+                    value={formData.motivation}
+                    onChange={(e) =>
+                      handleInputChange("motivation", e.target.value)
+                    }
+                    disabled={!isEditingVolunteer}
+                    rows={3}
+                    placeholder="Chia sẻ về động lực tham gia hoạt động tình nguyện..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Kinh nghiệm</Label>
+                  <Textarea
+                    id="experience"
+                    value={formData.experience}
+                    onChange={(e) =>
+                      handleInputChange("experience", e.target.value)
+                    }
+                    disabled={!isEditingVolunteer}
+                    rows={3}
+                    placeholder="Mô tả kinh nghiệm tình nguyện của bạn..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="availability">Thời gian rảnh</Label>
+                  <Textarea
+                    id="availability"
+                    value={formData.availability}
+                    onChange={(e) =>
+                      handleInputChange("availability", e.target.value)
+                    }
+                    disabled={!isEditingVolunteer}
+                    rows={2}
+                    placeholder="Mô tả thời gian rảnh của bạn..."
+                  />
+                </div>
+
+                {hasProfile && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">
+                        {volunteerProfile?.volunteerHours || 0}
+                      </p>
+                      <p className="text-sm text-gray-600">Giờ tình nguyện</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">
+                        {volunteerProfile?.rating
+                          ? volunteerProfile.rating.toFixed(1)
+                          : "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-600">Đánh giá</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">
+                        {volunteerProfile?.ratingCount || 0}
+                      </p>
+                      <p className="text-sm text-gray-600">Lượt đánh giá</p>
+                    </div>
+                  </div>
+                )}
+
+                {isEditingVolunteer && (
+                  <Button onClick={handleSave} className="w-full">
+                    {hasProfile ? "Cập nhật hồ sơ" : "Tạo hồ sơ"}
+                  </Button>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
@@ -210,55 +426,39 @@ function VolunteerProfile({
       <TabsContent value="skills">
         <Card>
           <CardHeader>
-            <CardTitle>Kỹ năng & Sở thích</CardTitle>
+            <CardTitle>Kỹ năng</CardTitle>
             <CardDescription>
-              Quản lý kỹ năng và sở thích của bạn
+              Quản lý kỹ năng chuyên môn của bạn
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {" "}
             <div className="space-y-2">
-              <Label>Kỹ năng</Label>
+              <Label>Kỹ năng hiện tại</Label>
               <div className="flex flex-wrap gap-2">
-                {volunteerProfile?.skills?.map(
-                  (skill: string, index: number) => (
-                    <Badge key={index} variant="secondary">
-                      {skill}
-                    </Badge>
-                  )
-                )}
+                {volunteerProfile?.skills?.map((skill, index) => (
+                  <Badge key={index} variant="secondary">
+                    {skill.skillName}
+                    {skill.proficiencyLevel && ` • ${skill.proficiencyLevel}`}
+                  </Badge>
+                ))}
                 {(!volunteerProfile?.skills ||
                   volunteerProfile.skills.length === 0) && (
                   <p className="text-gray-500">Chưa có kỹ năng nào</p>
                 )}
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Sở thích/Lĩnh vực quan tâm</Label>
-              <div className="flex flex-wrap gap-2">
-                {volunteerProfile?.preferredVolunteerTypes
-                  ?.split(", ")
-                  .map((interest: string, index: number) => (
-                    <Badge key={index} variant="outline">
-                      {interest}
-                    </Badge>
-                  ))}
-                {!volunteerProfile?.preferredVolunteerTypes && (
-                  <p className="text-gray-500">Chưa có lĩnh vực quan tâm nào</p>
-                )}
-              </div>
-            </div>
-            {isEditing && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newSkill">Thêm kỹ năng mới</Label>
-                  <Input id="newSkill" placeholder="Nhập kỹ năng..." />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newInterest">Thêm sở thích mới</Label>
-                  <Input id="newInterest" placeholder="Nhập sở thích..." />
-                </div>
-                <Button>Cập nhật kỹ năng</Button>
+            {hasProfile && volunteerProfile?.isVerified && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                <Badge className="bg-green-100 text-green-800">
+                  ✓ Đã xác thực
+                </Badge>
+                <span className="text-sm text-green-700">
+                  Hồ sơ của bạn đã được xác thực
+                  {volunteerProfile.verifiedAt &&
+                    ` vào ${new Date(
+                      volunteerProfile.verifiedAt
+                    ).toLocaleDateString("vi-VN")}`}
+                </span>
               </div>
             )}
           </CardContent>
@@ -274,30 +474,14 @@ function VolunteerProfile({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Mock activity data */}
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold">
-                  Hỗ trợ giáo dục trẻ em vùng cao
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Tổ chức ABC • 15/03/2024 - 22/03/2024
-                </p>
-                <p className="text-sm">
-                  Tham gia giảng dạy và hỗ trợ học tập cho trẻ em
-                </p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold">
-                  Chương trình bảo vệ môi trường
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Tổ chức XYZ • 01/02/2024 - 03/02/2024
-                </p>
-                <p className="text-sm">
-                  Tham gia làm sạch bãi biển và trồng cây
-                </p>
-              </div>
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">
+                Tính năng này sẽ được phát triển trong phiên bản tiếp theo
+              </p>
+              <p className="text-sm text-gray-400">
+                Sẽ hiển thị lịch sử tham gia các sự kiện và hoạt động tình
+                nguyện
+              </p>
             </div>
           </CardContent>
         </Card>
