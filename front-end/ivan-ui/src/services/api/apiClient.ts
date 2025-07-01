@@ -35,7 +35,7 @@ class ApiClient {
 
   private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json; charset=utf-8",
     };
 
     if (this.token) {
@@ -136,7 +136,9 @@ class ApiClient {
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const fullUrl = `${this.baseURL}${endpoint}`;
+    console.log("🔄 API DELETE request to:", fullUrl);
+    const response = await fetch(fullUrl, {
       method: "DELETE",
       headers: this.getHeaders(),
     });

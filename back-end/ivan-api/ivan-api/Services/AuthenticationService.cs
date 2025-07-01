@@ -33,7 +33,8 @@ public class AuthenticationService : IAuthenticationService
             // Find user by email
             var user = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);            if (user == null)
+                .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);           
+            if (user == null)
             {
                 return new ApiResponseDTO<LoginResponseDTO>
                 {
@@ -70,7 +71,8 @@ public class AuthenticationService : IAuthenticationService
             await _context.SaveChangesAsync();
 
             // Generate JWT token
-            var loginResponse = _jwtTokenService.CreateLoginResponse(user, user.Role);            return new ApiResponseDTO<LoginResponseDTO>
+            var loginResponse = _jwtTokenService.CreateLoginResponse(user, user.Role);           
+            return new ApiResponseDTO<LoginResponseDTO>
             {
                 Success = true,
                 Message = "Login successful",
@@ -146,13 +148,13 @@ public class AuthenticationService : IAuthenticationService
                 EmailVerificationToken = Guid.NewGuid().ToString(),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(newUser);
+            };            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
             // Send email verification (for now, just log)
-            await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);            return new ApiResponseDTO<SuccessResponseDTO>
+            await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);
+
+            return new ApiResponseDTO<SuccessResponseDTO>
             {
                 Success = true,
                 Message = "Registration successful. Please check your email for verification.",

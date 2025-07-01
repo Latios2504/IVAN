@@ -47,6 +47,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useToast } from "@/context/ToastContext";
+import { useModal, useModalWithData } from "@/hooks/useModal";
+import { DataTable } from "@/components/common/DataTable";
+import type { TableColumn, TableAction } from "@/components/common/DataTable";
 
 interface CoordinatorRequest {
   id: string;
@@ -117,12 +121,12 @@ const mockCoordinatorRequests: CoordinatorRequest[] = [
 ];
 
 export default function OrganizationCoordinatorRequestPage() {
+  const { showNotification } = useToast();
+  const createDialog = useModal();
+  const viewModal = useModalWithData<CoordinatorRequest>();
+
   const [requests] = useState<CoordinatorRequest[]>(mockCoordinatorRequests);
   const [selectedTab, setSelectedTab] = useState("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] =
-    useState<CoordinatorRequest | null>(null);
   const [formData, setFormData] = useState<CoordinatorRequestFormData>({
     coordinatorFirstName: "",
     coordinatorLastName: "",
@@ -189,6 +193,40 @@ export default function OrganizationCoordinatorRequestPage() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     };
+
+  // Table configuration
+  const tableColumns: TableColumn<CoordinatorRequest>[] = [
+    {
+      key: "coordinatorName",
+      header: "Tên Coordinator",
+      render: (name) => <div className="font-medium">{name}</div>,
+    },
+    {
+      key: "coordinatorEmail",
+      header: "Email",
+      render: (email) => <div className="text-sm text-gray-600">{email}</div>,
+    },
+    {
+      key: "requestDate",
+      header: "Ngày yêu cầu",
+      render: (date) => new Date(date).toLocaleDateString("vi-VN"),
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      render: (status) => getStatusBadge(status),
+    },
+  ];
+
+  const tableActions: TableAction<CoordinatorRequest>[] = [
+    {
+      label: "Xem chi tiết",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: (request) => viewModal.openWith(request),
+      variant: "outline",
+      size: "sm",
+    },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -285,64 +323,14 @@ export default function OrganizationCoordinatorRequestPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Coordinator</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Ngày yêu cầu</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Ngày phản hồi</TableHead>
-                      <TableHead>Hành động</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRequests.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {request.coordinatorName}
-                            </div>
-                            {request.phoneNumber && (
-                              <div className="text-sm text-gray-500">
-                                {request.phoneNumber}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{request.coordinatorEmail}</TableCell>
-                        <TableCell>{request.requestDate}</TableCell>
-                        <TableCell>{getStatusBadge(request.status)}</TableCell>
-                        <TableCell>
-                          {request.responseDate || "Chưa có"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewRequest(request)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Xem
-                            </Button>
-                            {request.status === "pending" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewRequest(request)}
-                              >
-                                <MessageSquare className="h-4 w-4 mr-1" />
-                                Liên hệ
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataTable
+                  columns={tableColumns}
+                  data={filteredRequests}
+                  actions={tableActions}
+                  pagination
+                  search
+                  rowClassName="cursor-pointer"
+                />
               </CardContent>
             </Card>
           </TabsContent>

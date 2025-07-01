@@ -87,6 +87,10 @@ public partial class Event
 
     public string? Currency { get; set; }
 
+    public string? EventType { get; set; }
+
+    public int? MaxParticipants { get; set; }
+
     public bool? IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }

@@ -1,3 +1,5 @@
+﻿using ivan_api.DTOs.EventManage;
+using ivan_api.Services.EventServ;
 ﻿using ivan_api.DTOs;
 using ivan_api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,16 +12,50 @@ namespace ivan_api.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IEventService _eventService;
-        public EventsController(IEventService eventService)
+        private readonly IEventService _service;
+        public EventsController(IEventService service) => _service = service;
+
+        // GET: api/events
+        [HttpGet, AllowAnonymous]
+        public async Task<IActionResult> GetAll() =>
+            Ok(await _service.GetAllAsync());
+
+        // GET: api/events/5
+        
+        [HttpGet("{id}"), AllowAnonymous]
+        public async Task<IActionResult> Get(int id)
         {
-            _eventService = eventService;
+            var evt = await _service.GetByIdAsync(id);
+            if (evt == null) return NotFound();
+            return Ok(evt);
         }
-        [HttpGet("{eventId}")]
+
+        // POST: api/events
+        // Chỉ Organization được thêm sự kiện
+        [HttpPost]
+        //[Authorize(Roles = "Organization")]
+        public async Task<IActionResult> Create([FromBody] CreateEventDto dto)
+        {
+            var newId = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(Get), new { id = newId }, null);
+        }
+
+        // PUT: api/events/5
+        // Chỉ Organization được cập nhật
+        [HttpPut("{id}")]
+        //[Authorize(Roles = "Organization")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateEventDto dto)
+        {
+            if (!await _service.UpdateAsync(id, dto))
+                return NotFound();
+            return NoContent();
+        }
+
         [AllowAnonymous]
+        [HttpGet("GetEvent/{eventId}")]
         public async Task<ActionResult<ApiResponseDTO<EventDTO>>> GetEvent(int eventId)
         {
-            var result = await _eventService.GetEventAsync(eventId);
+            var result = await _service.GetEventAsync(eventId);
             if (!result.Success)
             {
                 return result.Errors.Any(e => e.Contains("not found")) ? NotFound(result) : StatusCode(500, result);

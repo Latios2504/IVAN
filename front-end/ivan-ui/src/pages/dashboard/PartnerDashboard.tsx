@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ActionButton } from "@/components/dashboard/ActionButton";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
   Handshake,
   FileText,
@@ -33,51 +36,30 @@ export default function PartnerDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đơn hợp tác</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">+2 tháng này</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Được chấp nhận
-            </CardTitle>
-            <Handshake className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">Đang hoạt động</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dự án hợp tác</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Đang triển khai</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tin nhắn</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">4 chưa đọc</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Đơn hợp tác"
+          value={8}
+          icon={FileText}
+          trend={{ value: "+2 tháng này" }}
+        />
+        <StatsCard
+          title="Được chấp nhận"
+          value={5}
+          icon={Handshake}
+          description="Đang hoạt động"
+        />
+        <StatsCard
+          title="Dự án hợp tác"
+          value={3}
+          icon={Building2}
+          description="Đang triển khai"
+        />
+        <StatsCard
+          title="Tin nhắn"
+          value={12}
+          icon={MessageSquare}
+          description="4 chưa đọc"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -89,18 +71,15 @@ export default function PartnerDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Button className="w-full justify-start" asChild>
-                <Link to="/partner/collaborate/admin">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Gửi đơn đến Admin
-                </Link>
-              </Button>
-              <Button className="w-full justify-start" asChild>
-                <Link to="/partner/collaborate/organizations">
-                  <Building2 className="mr-2 h-4 w-4" />
-                  Gửi đơn đến Tổ chức
-                </Link>
-              </Button>
+              <ActionButton to="/partner/collaborate/admin" icon={FileText}>
+                Gửi đơn đến Admin
+              </ActionButton>
+              <ActionButton
+                to="/partner/collaborate/organizations"
+                icon={Building2}
+              >
+                Gửi đơn đến Tổ chức
+              </ActionButton>
             </div>
             <div className="border-t pt-4">
               <h4 className="font-medium mb-2">Mẫu đề xuất phổ biến:</h4>
@@ -129,25 +108,21 @@ export default function PartnerDashboard() {
                   <h4 className="font-medium">Quỹ Tấm Lòng Việt</h4>
                   <p className="text-sm text-gray-600">Tài trợ thiết bị y tế</p>
                 </div>
-                <Badge className="bg-green-100 text-green-800">
-                  Đã chấp nhận
-                </Badge>
+                <StatusBadge variant="success">Đã chấp nhận</StatusBadge>
               </div>
               <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                 <div>
                   <h4 className="font-medium">Tổ chức Giáo dục ABC</h4>
                   <p className="text-sm text-gray-600">Đào tạo kỹ năng</p>
                 </div>
-                <Badge className="bg-yellow-100 text-yellow-800">
-                  Đang xem xét
-                </Badge>
+                <StatusBadge variant="warning">Đang xem xét</StatusBadge>
               </div>
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div>
                   <h4 className="font-medium">Admin IVAN</h4>
                   <p className="text-sm text-gray-600">Hợp tác chiến lược</p>
                 </div>
-                <Badge className="bg-blue-100 text-blue-800">Mới gửi</Badge>
+                <StatusBadge variant="active">Mới gửi</StatusBadge>
               </div>
             </div>
             <Button variant="outline" className="w-full" asChild>
@@ -224,11 +199,11 @@ export default function PartnerDashboard() {
                 <Building2 className="mr-2 h-4 w-4" />
                 Khám phá tổ chức
               </Link>
-            </Button>
+            </Button>{" "}
             <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/profile">
+              <Link to="/partner/profile">
                 <Settings className="mr-2 h-4 w-4" />
-                Cập nhật hồ sơ
+                Quản lý hồ sơ đối tác
               </Link>
             </Button>
           </CardContent>

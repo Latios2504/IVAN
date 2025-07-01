@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { ProtectedRoute } from "@/components/layout";
 import { UserRole } from "@/types/auth";
 
 // Lazy loading pages
@@ -11,10 +11,15 @@ const ForgotPasswordPage = lazy(
   () => import("@/pages/auth/ForgotPasswordPage")
 );
 const PasswordResetPage = lazy(() => import("@/pages/auth/PasswordResetPage"));
+const ChangePasswordPage = lazy(
+  () => import("@/pages/auth/ChangePasswordPage")
+);
 const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
-const VolunteersPage = lazy(() => import("@/pages/volunteers/VolunteersPage"));
+const VolunteersPage = lazy(
+  () => import("@/pages/volunteer/VolunteersListPage")
+);
 const OrganizationsPage = lazy(
-  () => import("@/pages/organizations/OrganizationsPage")
+  () => import("@/pages/organization/OrganizationsListPage")
 );
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const EventsPage = lazy(() => import("@/pages/events/EventsPage"));
@@ -56,6 +61,30 @@ const PartnerCollaborationPage = lazy(
 const NotificationManagementPage = lazy(
   () => import("@/pages/organization/NotificationManagementPage")
 );
+const OrganizationProfileManagementPage = lazy(
+  () => import("@/pages/organization/OrganizationProfileManagementPage")
+);
+const AdminOrganizationListPage = lazy(
+  () => import("@/pages/admin/organization/AdminOrganizationListPage")
+);
+const SupportRequestManagementPage = lazy(
+  () => import("@/pages/support/SupportRequestManagementPage")
+);
+const PartnerProfileManagementPage = lazy(
+  () => import("@/pages/partner/PartnerProfileManagementPage")
+);
+const AdminPartnerListPage = lazy(
+  () => import("@/pages/admin/partner/AdminPartnerListPage")
+);
+const UserManagementPage = lazy(
+  () => import("@/pages/admin/UserManagementPage")
+);
+const AdminNotificationManagementPage = lazy(
+  () => import("@/pages/admin/AdminNotificationManagementPage")
+);
+const AIInstructionsManagementPage = lazy(
+  () => import("@/pages/admin/AIInstructionsManagementPage")
+);
 
 // Loading component
 const PageLoader = () => (
@@ -86,7 +115,7 @@ export default function AppRoutes() {
               <DashboardPage />
             </ProtectedRoute>
           }
-        />
+        />{" "}
         <Route
           path="/profile"
           element={
@@ -94,7 +123,15 @@ export default function AppRoutes() {
               <ProfilePage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePasswordPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={
@@ -198,12 +235,78 @@ export default function AppRoutes() {
               <PartnerCollaborationPage />
             </ProtectedRoute>
           }
-        />
+        />{" "}
         <Route
           path="/organization/notifications"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
               <NotificationManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/profile"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.ADMIN]}
+            >
+              <OrganizationProfileManagementPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/admin/organizations"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminOrganizationListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
+          path="/admin/partners"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminPartnerListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminNotificationManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/ai-instructions"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AIInstructionsManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partner/profile"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.PARTNER, UserRole.ADMIN]}>
+              <PartnerProfileManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <ProtectedRoute>
+              <SupportRequestManagementPage />
             </ProtectedRoute>
           }
         />

@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ActionButton } from "@/components/dashboard/ActionButton";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Users, Calendar, UserCheck, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -27,57 +30,30 @@ export default function CoordinatorDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tình nguyện viên phụ trách
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">Đang hoạt động</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Sự kiện được phân công
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">3 đang diễn ra</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Đăng ký chờ duyệt
-            </CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Cần xem xét</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Nhiệm vụ tuần này
-            </CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">7 hoàn thành</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tình nguyện viên phụ trách"
+          value={24}
+          icon={Users}
+          description="Đang hoạt động"
+        />
+        <StatsCard
+          title="Sự kiện được phân công"
+          value={5}
+          icon={Calendar}
+          description="3 đang diễn ra"
+        />
+        <StatsCard
+          title="Đăng ký chờ duyệt"
+          value={8}
+          icon={UserCheck}
+          description="Cần xem xét"
+        />
+        <StatsCard
+          title="Nhiệm vụ tuần này"
+          value={12}
+          icon={Settings}
+          description="7 hoàn thành"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -98,9 +74,7 @@ export default function CoordinatorDashboard() {
                     15 tình nguyện viên • 7 ngày
                   </p>
                 </div>
-                <Badge className="bg-blue-100 text-blue-800">
-                  Đang diễn ra
-                </Badge>
+                <StatusBadge variant="active">Đang diễn ra</StatusBadge>
               </div>
               <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                 <div>
@@ -109,17 +83,12 @@ export default function CoordinatorDashboard() {
                     9 tình nguyện viên • 5 ngày
                   </p>
                 </div>
-                <Badge className="bg-yellow-100 text-yellow-800">
-                  Chuẩn bị
-                </Badge>
+                <StatusBadge variant="warning">Chuẩn bị</StatusBadge>
               </div>
             </div>
-            <Button className="w-full" asChild>
-              <Link to="/coordinator/schedule">
-                <Calendar className="mr-2 h-4 w-4" />
-                Quản lý lịch trình
-              </Link>
-            </Button>
+            <ActionButton to="/coordinator/schedule" icon={Calendar}>
+              Quản lý lịch trình
+            </ActionButton>
           </CardContent>
         </Card>
 
@@ -145,22 +114,19 @@ export default function CoordinatorDashboard() {
                   <span className="font-medium">Chờ duyệt</span>
                   <p className="text-sm text-gray-600">8 đăng ký mới</p>
                 </div>
-                <Badge className="bg-yellow-100 text-yellow-800">8</Badge>
+                <StatusBadge variant="warning">8</StatusBadge>
               </div>
               <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                 <div>
                   <span className="font-medium">Từ chối</span>
                   <p className="text-sm text-gray-600">2 đăng ký</p>
                 </div>
-                <Badge className="bg-red-100 text-red-800">2</Badge>
+                <StatusBadge variant="error">2</StatusBadge>
               </div>
             </div>
-            <Button className="w-full" asChild>
-              <Link to="/coordinator/registrations">
-                <UserCheck className="mr-2 h-4 w-4" />
-                Xử lý đăng ký
-              </Link>
-            </Button>
+            <ActionButton to="/coordinator/registrations" icon={UserCheck}>
+              Xử lý đăng ký
+            </ActionButton>
           </CardContent>
         </Card>
 
@@ -210,24 +176,19 @@ export default function CoordinatorDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" asChild>
-              <Link to="/coordinator/schedule">
-                <Calendar className="mr-2 h-4 w-4" />
-                Cập nhật lịch trình
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/coordinator/registrations">
-                <UserCheck className="mr-2 h-4 w-4" />
-                Duyệt đăng ký mới
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/profile">
-                <Settings className="mr-2 h-4 w-4" />
-                Cập nhật thông tin
-              </Link>
-            </Button>
+            <ActionButton to="/coordinator/schedule" icon={Calendar}>
+              Cập nhật lịch trình
+            </ActionButton>
+            <ActionButton
+              to="/coordinator/registrations"
+              icon={UserCheck}
+              variant="outline"
+            >
+              Duyệt đăng ký mới
+            </ActionButton>
+            <ActionButton to="/profile" icon={Settings} variant="outline">
+              Cập nhật thông tin
+            </ActionButton>
           </CardContent>
         </Card>
       </div>

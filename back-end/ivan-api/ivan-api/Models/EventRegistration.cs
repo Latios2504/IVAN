@@ -53,6 +53,8 @@ public partial class EventRegistration
 
     public string? Review { get; set; }
 
+    public DateTime? RegistrationDate { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }

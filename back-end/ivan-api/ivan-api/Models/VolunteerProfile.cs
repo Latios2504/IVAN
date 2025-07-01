@@ -35,6 +35,12 @@ public partial class VolunteerProfile
 
     public int? VerifiedBy { get; set; }
 
+    public DateTime? LastActiveDate { get; set; }
+
+    public int? TotalHoursVolunteered { get; set; }
+
+    public string? Skills { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }

@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ActionButton } from "@/components/dashboard/ActionButton";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
   Users,
   Calendar,
@@ -34,53 +37,30 @@ export default function OrganizationDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tình nguyện viên
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">156</div>
-            <p className="text-xs text-muted-foreground">+12 tháng này</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Sự kiện hoạt động
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">+3 tháng này</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Coordinators</CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Đang hoạt động</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chứng chỉ cấp</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-muted-foreground">Tháng này</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tình nguyện viên"
+          value={156}
+          icon={Users}
+          trend={{ value: "+12 tháng này" }}
+        />
+        <StatsCard
+          title="Sự kiện hoạt động"
+          value={23}
+          icon={Calendar}
+          trend={{ value: "+3 tháng này" }}
+        />
+        <StatsCard
+          title="Coordinators"
+          value={8}
+          icon={UserPlus}
+          description="Đang hoạt động"
+        />
+        <StatsCard
+          title="Chứng chỉ cấp"
+          value={89}
+          icon={Award}
+          description="Tháng này"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -93,36 +73,28 @@ export default function OrganizationDashboard() {
             </CardDescription>
           </CardHeader>{" "}
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" asChild>
-              <Link to="/organization/management">
-                <Settings className="mr-2 h-4 w-4" />
-                Trang quản lý tổng hợp
-              </Link>
-            </Button>
-            <Button className="w-full justify-start" asChild>
-              <Link to="/organization/events">
-                <Calendar className="mr-2 h-4 w-4" />
-                Quản lý sự kiện
-              </Link>
-            </Button>
-            <Button className="w-full justify-start" asChild>
-              <Link to="/organization/volunteers">
-                <Users className="mr-2 h-4 w-4" />
-                Quản lý tình nguyện viên
-              </Link>
-            </Button>
-            <Button className="w-full justify-start" asChild>
-              <Link to="/volunteers">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Danh sách tình nguyện viên
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/organization/reports">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Báo cáo dữ liệu
-              </Link>
-            </Button>
+            <ActionButton to="/organization/profile" icon={Settings}>
+              Quản lý hồ sơ tổ chức
+            </ActionButton>
+            <ActionButton to="/organization/management" icon={Settings}>
+              Trang quản lý tổng hợp
+            </ActionButton>
+            <ActionButton to="/organization/events" icon={Calendar}>
+              Quản lý sự kiện
+            </ActionButton>
+            <ActionButton to="/organization/volunteers" icon={Users}>
+              Quản lý tình nguyện viên
+            </ActionButton>
+            <ActionButton to="/volunteers" icon={UserPlus}>
+              Danh sách tình nguyện viên
+            </ActionButton>
+            <ActionButton
+              to="/organization/reports"
+              icon={BarChart3}
+              variant="outline"
+            >
+              Báo cáo dữ liệu
+            </ActionButton>
           </CardContent>
         </Card>
 
@@ -133,24 +105,19 @@ export default function OrganizationDashboard() {
             <CardDescription>Điều phối và quản lý coordinator</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" asChild>
-              <Link to="/organization/coordinators">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Lịch trình Coordinators
-              </Link>
-            </Button>
-            <Button className="w-full justify-start" asChild>
-              <Link to="/organization/coordinator-tasks">
-                <Settings className="mr-2 h-4 w-4" />
-                Nhiệm vụ Coordinators
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link to="/organization/certificates">
-                <Award className="mr-2 h-4 w-4" />
-                Quản lý chứng chỉ
-              </Link>
-            </Button>
+            <ActionButton to="/organization/coordinators" icon={UserPlus}>
+              Lịch trình Coordinators
+            </ActionButton>
+            <ActionButton to="/organization/coordinator-tasks" icon={Settings}>
+              Nhiệm vụ Coordinators
+            </ActionButton>
+            <ActionButton
+              to="/organization/certificates"
+              icon={Award}
+              variant="outline"
+            >
+              Quản lý chứng chỉ
+            </ActionButton>
           </CardContent>
         </Card>
 
@@ -169,9 +136,7 @@ export default function OrganizationDashboard() {
                     45 tình nguyện viên • Hoàn thành
                   </p>
                 </div>
-                <Badge className="bg-green-100 text-green-800">
-                  Thành công
-                </Badge>
+                <StatusBadge variant="success">Thành công</StatusBadge>
               </div>
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div>
@@ -180,9 +145,7 @@ export default function OrganizationDashboard() {
                     32 tình nguyện viên • Đang diễn ra
                   </p>
                 </div>
-                <Badge className="bg-blue-100 text-blue-800">
-                  Đang diễn ra
-                </Badge>
+                <StatusBadge variant="active">Đang diễn ra</StatusBadge>
               </div>
             </div>
             <Button variant="outline" className="w-full" asChild>
@@ -215,7 +178,7 @@ export default function OrganizationDashboard() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Đánh giá trung bình</span>
-                <Badge className="bg-yellow-100 text-yellow-800">4.8/5</Badge>
+                <StatusBadge variant="warning">4.8/5</StatusBadge>
               </div>
             </div>
             <Button variant="outline" className="w-full" asChild>
