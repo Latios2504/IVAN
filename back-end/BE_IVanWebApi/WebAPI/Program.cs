@@ -7,12 +7,14 @@ using WebAPI.Repository.CertificateTemplates;
 using WebAPI.Repository.OnSiteTasks;
 using WebAPI.Repository.OrganizationProfiles;
 using WebAPI.Repository.PartnerProfiles;
+using WebAPI.Repository.Reports;
 using WebAPI.Repository.VolunteerProfileRepo;
 using WebAPI.Service.Certificates;
 using WebAPI.Service.CertificateTemplates;
 using WebAPI.Service.OnSiteTasks;
 using WebAPI.Service.OrganizationProfiles;
 using WebAPI.Service.PartnerProfiles;
+using WebAPI.Service.Reports;
 using WebAPI.Service.VolunteerProfileService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +39,7 @@ builder.Services.AddAutoMapper(typeof(PartnerProfileMapping));
 builder.Services.AddAutoMapper(typeof(OnSiteTaskMapping));
 builder.Services.AddAutoMapper(typeof(CertificateMapping));
 builder.Services.AddAutoMapper(typeof(CertificateTemplateMapping));
+builder.Services.AddAutoMapper(typeof(ReportMapping));
 
 // Configure Dependency Injection
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
@@ -56,6 +59,9 @@ builder.Services.AddScoped<ICertificateService, CertificateService>();
 
 builder.Services.AddScoped<ICertificateTemplateRepository, CertificateTemplateRepository>();
 builder.Services.AddScoped<ICertificateTemplateService, CertificateTemplateService>();
+
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 var app = builder.Build();
 
