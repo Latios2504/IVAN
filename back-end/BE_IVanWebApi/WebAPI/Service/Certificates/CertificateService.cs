@@ -48,9 +48,7 @@ namespace WebAPI.Service.Certificates
 
         public async Task<PdfDocument> DownloadCertificateById(int id)
         {
-            var doc = await _repository.DownloadCertificateById(id);
-
-            return doc;
+            return await _repository.DownloadCertificateById(id);
         }
     }
 }
