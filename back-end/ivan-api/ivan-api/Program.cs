@@ -21,6 +21,8 @@ using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
 using System.Text.Json.Serialization;
+using ivan_api.Services.PartnerCollaborationServ;
+using ivan_api.Repository.PartnerCollaborationRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -148,14 +150,19 @@ builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 builder.Services.AddScoped<ICoordinatorTaskRepository, CoordinatorTaskRepository>();
 builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 
+// Partner Collaboration DI
+builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
+builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
+
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 //builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddControllers().AddJsonOptions(opt =>
 {
-    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-}); ;
+    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

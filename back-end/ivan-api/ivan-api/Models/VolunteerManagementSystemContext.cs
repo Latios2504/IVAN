@@ -108,8 +108,14 @@ public partial class VolunteerManagementSystemContext : DbContext
     public virtual DbSet<VolunteerSkill> VolunteerSkills { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("server=DESKTOP-DT219D9;database=VolunteerManagementSystem;uid=sa;pwd=12345678;TrustServerCertificate=True;");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            string ConnectionStr = config.GetConnectionString("MyCnn");
+            optionsBuilder.UseSqlServer(ConnectionStr);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
