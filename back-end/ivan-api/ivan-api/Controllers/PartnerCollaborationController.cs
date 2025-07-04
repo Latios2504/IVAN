@@ -1,4 +1,5 @@
-﻿using ivan_api.Services.PartnerCollaborationServ;
+﻿using ivan_api.DTOs.PartnerCollaboration;
+using ivan_api.Services.PartnerCollaborationServ;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ivan_api.Controllers
@@ -29,6 +30,20 @@ namespace ivan_api.Controllers
             try
             {
                 var result = await _service.GetCollaborationDetail(collaborationId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [HttpPost("createCollaboration")]
+        public async Task<IActionResult> CreateCollaboration(PartnerCollaborationCreateDto dto)
+        {
+            try
+            {
+                var result = await _service.CreateCollaboration(dto);
                 return Ok(result);
             }
             catch (Exception ex)

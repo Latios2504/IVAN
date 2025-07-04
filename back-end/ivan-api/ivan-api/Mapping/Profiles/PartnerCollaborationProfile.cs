@@ -17,6 +17,8 @@ namespace ivan_api.Mapping.Profiles
                 .ForMember(d => d.OrganizationName, o => o.MapFrom(s => s.Organization.OrganizationName))
                 .ForMember(d => d.PartnerName, o => o.MapFrom(s => s.Partner.CompanyName))
                 .ForMember(d => d.TypeName, o => o.MapFrom(s => s.Type.TypeName));
+
+            CreateMap<PartnerCollaborationCreateDto, PartnerCollaboration>();
         }
     }
 }

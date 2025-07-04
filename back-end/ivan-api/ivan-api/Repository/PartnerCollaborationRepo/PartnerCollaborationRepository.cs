@@ -19,6 +19,23 @@ namespace ivan_api.Repository.PartnerCollaborationRepo
             _mapper = mapper;
         }
 
+
+        public async Task<int> CreateCollaboration(PartnerCollaboration newPC)
+        {
+            var existingCollaboration = await _context.PartnerCollaborations
+                .Where(pc => pc.OrganizationId == newPC.OrganizationId && pc.PartnerId == newPC.PartnerId 
+                    && pc.CollaborationName.ToLower().Equals(newPC.CollaborationName.ToLower()))
+                .FirstOrDefaultAsync();
+            if (existingCollaboration != null)
+            {
+                throw new Exception("Đã tồn tại hợp tác: "+newPC.CollaborationName);
+            }
+
+            _context.PartnerCollaborations.Add(newPC);
+            await _context.SaveChangesAsync();
+            return newPC.CollaborationId;
+        }
+
         public async Task<CollaborationDetailDto?> GetCollaborationDetailAsync(int collaborationId)
         {
             var dto = await _context.PartnerCollaborations
@@ -55,5 +72,7 @@ namespace ivan_api.Repository.PartnerCollaborationRepo
                 PageSize = PageSize
             };
         }
+    
+    
     }
 }
