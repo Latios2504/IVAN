@@ -21,12 +21,9 @@ using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
 using System.Text.Json.Serialization;
-<<<<<<< HEAD
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
-=======
 using ivan_api.Services.PublicContentServ;
->>>>>>> he176119
 
 var builder = WebApplication.CreateBuilder(args);
 
