@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   Save,
   AlertTriangle,
   CheckCircle,
@@ -15,20 +21,22 @@ import {
   Wand2,
   RotateCcw,
   FileText,
-  Eye
+  Eye,
 } from "lucide-react";
-import type { 
+import type {
   AiCustomInstructionCreateDTO,
   AiCustomInstructionUpdateDTO,
   AiCustomInstructionDTO,
-  InstructionFormData 
+  InstructionFormData,
 } from "@/types/ai-instructions";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
 
 interface CustomInstructionBuilderProps {
   initialData?: AiCustomInstructionCreateDTO;
   editingInstruction?: AiCustomInstructionDTO;
-  onSave: (data: AiCustomInstructionCreateDTO | AiCustomInstructionUpdateDTO) => Promise<void>;
+  onSave: (
+    data: AiCustomInstructionCreateDTO | AiCustomInstructionUpdateDTO
+  ) => Promise<void>;
   onPreview: (data: InstructionFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -94,15 +102,17 @@ export default function CustomInstructionBuilder({
   useEffect(() => {
     if (editingInstruction || initialData) {
       const original = editingInstruction || initialData;
-      const changed = 
+      const changed =
         formData.instructionName !== (original?.instructionName || "") ||
         formData.systemPrompt !== (original?.systemPrompt || "") ||
-        formData.behaviorInstructions !== (original?.behaviorInstructions || "") ||
+        formData.behaviorInstructions !==
+          (original?.behaviorInstructions || "") ||
         formData.dataAccessRules !== (original?.dataAccessRules || "") ||
-        (editingInstruction && formData.isActive !== editingInstruction.isActive);
+        (editingInstruction &&
+          formData.isActive !== editingInstruction.isActive);
       setHasChanges(Boolean(changed));
     } else {
-      const hasData = 
+      const hasData =
         formData.instructionName.trim() !== "" ||
         formData.systemPrompt.trim() !== "" ||
         formData.behaviorInstructions.trim() !== "" ||
@@ -111,8 +121,11 @@ export default function CustomInstructionBuilder({
     }
   }, [formData, editingInstruction, initialData]);
 
-  const handleInputChange = (field: keyof InstructionFormData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (
+    field: keyof InstructionFormData,
+    value: string | boolean
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
@@ -178,10 +191,9 @@ export default function CustomInstructionBuilder({
             {isEditing ? "Chỉnh sửa Hướng dẫn AI" : "Tạo Hướng dẫn AI Mới"}
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            {isEditing 
+            {isEditing
               ? "Cập nhật thông tin hướng dẫn AI hiện tại"
-              : "Xây dựng hướng dẫn AI tùy chỉnh cho tổ chức của bạn"
-            }
+              : "Xây dựng hướng dẫn AI tùy chỉnh cho tổ chức của bạn"}
           </p>
         </div>
         {hasChanges && (
@@ -208,7 +220,9 @@ export default function CustomInstructionBuilder({
               id="instructionName"
               placeholder="Ví dụ: Trợ lý Quản lý Tình nguyện viên"
               value={formData.instructionName}
-              onChange={(e) => handleInputChange("instructionName", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("instructionName", e.target.value)
+              }
               maxLength={200}
             />
             <p className="text-xs text-gray-500">
@@ -220,7 +234,9 @@ export default function CustomInstructionBuilder({
             <div className="flex items-center space-x-2">
               <Switch
                 checked={formData.isActive}
-                onCheckedChange={(checked) => handleInputChange("isActive", checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("isActive", checked)
+                }
               />
               <Label>Kích hoạt hướng dẫn</Label>
             </div>
@@ -235,7 +251,8 @@ export default function CustomInstructionBuilder({
             <span>System Prompt</span>
           </CardTitle>
           <CardDescription>
-            Định nghĩa vai trò và nhiệm vụ chính của AI. Đây là phần quan trọng nhất quyết định hành vi của AI.
+            Định nghĩa vai trò và nhiệm vụ chính của AI. Đây là phần quan trọng
+            nhất quyết định hành vi của AI.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -247,12 +264,13 @@ export default function CustomInstructionBuilder({
               id="systemPrompt"
               placeholder="Bạn là trợ lý AI chuyên về..."
               value={formData.systemPrompt}
-              onChange={(e) => handleInputChange("systemPrompt", e.target.value)}
-              className="min-h-[120px]"
-              maxLength={10000}
+              onChange={(e) =>
+                handleInputChange("systemPrompt", e.target.value)
+              }
+              className="min-h-[120px] max-h-[300px] overflow-y-auto resize-y"
             />
             <p className="text-xs text-gray-500">
-              {formData.systemPrompt.length}/10,000 ký tự
+              {formData.systemPrompt.length} ký tự
             </p>
           </div>
         </CardContent>
@@ -262,24 +280,24 @@ export default function CustomInstructionBuilder({
         <CardHeader>
           <CardTitle>Hướng dẫn hành vi</CardTitle>
           <CardDescription>
-            Định nghĩa phong cách giao tiếp và cách thức AI tương tác với người dùng.
+            Định nghĩa phong cách giao tiếp và cách thức AI tương tác với người
+            dùng.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="behaviorInstructions">
-              Hướng dẫn hành vi
-            </Label>
+            <Label htmlFor="behaviorInstructions">Hướng dẫn hành vi</Label>
             <Textarea
               id="behaviorInstructions"
               placeholder="Luôn thân thiện, hữu ích và chuyên nghiệp..."
               value={formData.behaviorInstructions}
-              onChange={(e) => handleInputChange("behaviorInstructions", e.target.value)}
-              className="min-h-[80px]"
-              maxLength={5000}
+              onChange={(e) =>
+                handleInputChange("behaviorInstructions", e.target.value)
+              }
+              className="min-h-[80px] max-h-[200px] overflow-y-auto resize-y"
             />
             <p className="text-xs text-gray-500">
-              {formData.behaviorInstructions.length}/5,000 ký tự
+              {formData.behaviorInstructions.length} ký tự
             </p>
           </div>
         </CardContent>
@@ -289,24 +307,24 @@ export default function CustomInstructionBuilder({
         <CardHeader>
           <CardTitle>Quy tắc truy cập dữ liệu</CardTitle>
           <CardDescription>
-            Định nghĩa dữ liệu nào AI có thể truy cập và sử dụng để trả lời câu hỏi.
+            Định nghĩa dữ liệu nào AI có thể truy cập và sử dụng để trả lời câu
+            hỏi.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="dataAccessRules">
-              Quy tắc truy cập dữ liệu
-            </Label>
+            <Label htmlFor="dataAccessRules">Quy tắc truy cập dữ liệu</Label>
             <Textarea
               id="dataAccessRules"
               placeholder="Truy cập: volunteer profiles, events, performance metrics..."
               value={formData.dataAccessRules}
-              onChange={(e) => handleInputChange("dataAccessRules", e.target.value)}
-              className="min-h-[80px]"
-              maxLength={2000}
+              onChange={(e) =>
+                handleInputChange("dataAccessRules", e.target.value)
+              }
+              className="min-h-[80px] max-h-[150px] overflow-y-auto resize-y"
             />
             <p className="text-xs text-gray-500">
-              {formData.dataAccessRules.length}/2,000 ký tự
+              {formData.dataAccessRules.length} ký tự
             </p>
           </div>
         </CardContent>
@@ -373,18 +391,16 @@ export default function CustomInstructionBuilder({
         </div>
 
         <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             Hủy
           </Button>
           <Button
             onClick={handleSave}
             disabled={!validation.isValid || !hasChanges || isLoading}
           >
-            {isLoading && <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />}
+            {isLoading && (
+              <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+            )}
             <Save className="h-4 w-4 mr-2" />
             {isEditing ? "Cập nhật" : "Lưu"}
           </Button>
@@ -394,7 +410,9 @@ export default function CustomInstructionBuilder({
       {validation.isValid && hasChanges && (
         <div className="flex items-center space-x-2 text-green-600 text-sm">
           <CheckCircle className="h-4 w-4" />
-          <span>Hướng dẫn AI đã sẵn sàng để {isEditing ? "cập nhật" : "lưu"}</span>
+          <span>
+            Hướng dẫn AI đã sẵn sàng để {isEditing ? "cập nhật" : "lưu"}
+          </span>
         </div>
       )}
     </div>

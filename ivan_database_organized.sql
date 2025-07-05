@@ -1530,3 +1530,244 @@ PRINT '=====================================================';
 --
 -- If characters display correctly, the setup is successful!
 -- =====================================================
+
+-- =========================================================
+-- SECTION 22: AI-FOCUSED EXTENDED SAMPLE DATA
+-- =========================================================
+-- This section adds more detailed and interconnected data to power the specified AI features.
+
+-- Re-acquire IDs from previously inserted data to ensure they are in scope for this batch.
+DECLARE @AdminUserId INT = (SELECT TOP 1 UserId FROM Users WHERE Email = 'admin@ivan.vn');
+
+DECLARE @OrgUser1_email NVARCHAR(255) = 'contact@greenearth.vn';
+DECLARE @OrgUser3_email NVARCHAR(255) = 'admin@healthcareplus.vn';
+DECLARE @OrgUser4_email NVARCHAR(255) = 'contact@youthdevvn.org';
+DECLARE @OrgUser3 INT = (SELECT TOP 1 UserId FROM Users WHERE Email = @OrgUser3_email);
+DECLARE @OrgUser4 INT = (SELECT TOP 1 UserId FROM Users WHERE Email = @OrgUser4_email);
+DECLARE @Org3 INT = (SELECT TOP 1 OrganizationId FROM Organizations WHERE ContactEmail = @OrgUser3_email);
+DECLARE @Org4 INT = (SELECT TOP 1 OrganizationId FROM Organizations WHERE ContactEmail = @OrgUser4_email);
+
+DECLARE @VolUser1_email NVARCHAR(255) = 'nguyen.van.a@gmail.com';
+DECLARE @VolUser2_email NVARCHAR(255) = 'tran.thi.b@gmail.com';
+DECLARE @VolUser3_email NVARCHAR(255) = 'le.minh.c@gmail.com';
+DECLARE @VolUser4_email NVARCHAR(255) = 'pham.thu.d@gmail.com';
+DECLARE @VolUser5_email NVARCHAR(255) = 'hoang.van.e@gmail.com';
+DECLARE @VolUser1 INT = (SELECT TOP 1 UserId FROM Users WHERE Email = @VolUser1_email);
+DECLARE @VolUser2 INT = (SELECT TOP 1 UserId FROM Users WHERE Email = @VolUser2_email);
+DECLARE @VolUser3 INT = (SELECT TOP 1 UserId FROM Users WHERE Email = @VolUser3_email);
+
+DECLARE @Vol1 INT = (SELECT TOP 1 VolunteerId FROM VolunteerProfiles WHERE UserId = @VolUser1);
+DECLARE @Vol2 INT = (SELECT TOP 1 VolunteerId FROM VolunteerProfiles WHERE UserId = @VolUser2);
+DECLARE @Vol3 INT = (SELECT TOP 1 VolunteerId FROM VolunteerProfiles WHERE UserId = @VolUser3);
+DECLARE @Vol4 INT = (SELECT TOP 1 VolunteerId FROM VolunteerProfiles WHERE UserId = (SELECT UserId FROM Users WHERE Email = @VolUser4_email));
+DECLARE @Vol5 INT = (SELECT TOP 1 VolunteerId FROM VolunteerProfiles WHERE UserId = (SELECT UserId FROM Users WHERE Email = @VolUser5_email));
+
+DECLARE @CoordUser1_email NVARCHAR(255) = 'coordinator1@greenearth.vn';
+DECLARE @CoordUser1 INT = (SELECT TOP 1 UserId FROM Users WHERE Email = @CoordUser1_email);
+
+DECLARE @Event1Name NVARCHAR(300) = N'Chiến dịch Làm sạch Sông Hồng 2025';
+DECLARE @Event5Name NVARCHAR(300) = N'Trồng cây xanh tại Công viên Thống Nhất';
+DECLARE @Event1 INT = (SELECT TOP 1 EventId FROM Events WHERE EventName = @Event1Name);
+DECLARE @Event5 INT = (SELECT TOP 1 EventId FROM Events WHERE EventName = @Event5Name);
+
+-- Declare more variables for new data
+DECLARE @VolUser6 INT, @VolUser7 INT, @VolUser8 INT, @VolUser9 INT, @VolUser10 INT;
+DECLARE @Vol6 INT, @Vol7 INT, @Vol8 INT, @Vol9 INT, @Vol10 INT;
+DECLARE @Event7 INT, @Event8 INT;
+DECLARE @TaskCat1 INT, @TaskCat2 INT, @TaskCat3 INT;
+DECLARE @TaskStat1 INT, @TaskStat2 INT, @TaskStat3 INT;
+DECLARE @CertTemplate1 INT, @CertTemplate2 INT, @CertTemplate3 INT;
+
+-- Insert 5 more volunteer users
+INSERT INTO Users (Email, PasswordHash, Salt, RoleId, IsActive, IsEmailVerified) VALUES
+('dinh.tuan.f@gmail.com', 'hash_dtf', 'salt_dtf', 3, 1, 1),
+('mai.anh.g@gmail.com', 'hash_mag', 'salt_mag', 3, 1, 1),
+('vu.hoang.h@gmail.com', 'hash_vhh', 'salt_vhh', 3, 1, 1),
+('do.phuong.i@gmail.com', 'hash_dpi', 'salt_dpi', 3, 1, 1),
+('tran.xuan.k@gmail.com', 'hash_txk', 'salt_txk', 3, 1, 1);
+
+SET @VolUser6 = SCOPE_IDENTITY() - 4;
+SET @VolUser7 = SCOPE_IDENTITY() - 3;
+SET @VolUser8 = SCOPE_IDENTITY() - 2;
+SET @VolUser9 = SCOPE_IDENTITY() - 1;
+SET @VolUser10 = SCOPE_IDENTITY();
+
+-- Insert user profiles for new volunteers
+INSERT INTO UserProfiles (UserId, FirstName, LastName, PhoneNumber, DateOfBirth, Gender, Address, District, Province, EmergencyContactName, EmergencyContactPhone) VALUES
+(@VolUser6, N'Đinh', N'Tuấn F', N'0911111111', '1994-01-20', N'Nam', N'11 Cầu Giấy', N'Cầu Giấy', N'Hà Nội', N'Đinh Thị Lan', N'0911111110'),
+(@VolUser7, N'Mai', N'Anh G', N'0922222222', '2000-11-11', N'Nữ', N'22 Pasteur', N'Quận 3', N'TP. Hồ Chí Minh', N'Mai Văn Hùng', N'0922222220'),
+(@VolUser8, N'Vũ', N'Hoàng H', N'0933333333', '1993-02-25', N'Nam', N'33 Đà Nẵng', N'Ngô Quyền', N'Hải Phòng', N'Vũ Thị Thu', N'0933333330'),
+(@VolUser9, N'Đỗ', N'Phương I', N'0944444444', '2001-09-09', N'Nữ', N'44 Tôn Đức Thắng', N'Đống Đa', N'Hà Nội', N'Đỗ Văn Nam', N'0944444440'),
+(@VolUser10, N'Trần', N'Xuân K', N'0955555555', '1992-06-16', N'Nam', N'55 Nguyễn Thị Minh Khai', N'Quận 1', N'TP. Hồ Chí Minh', N'Trần Thị Nga', N'0955555550');
+
+-- Update existing volunteer profiles with more detailed availability
+UPDATE VolunteerProfiles SET Availability = N'Các ngày cuối tuần (Cả ngày), Tối thứ 3, 5' WHERE VolunteerId = @Vol1;
+UPDATE VolunteerProfiles SET Availability = N'Thứ 7 (Cả ngày), Chủ nhật (Sáng)' WHERE VolunteerId = @Vol2;
+UPDATE VolunteerProfiles SET Availability = N'Linh hoạt trong tuần, cần báo trước 3 ngày' WHERE VolunteerId = @Vol3;
+UPDATE VolunteerProfiles SET Availability = N'Các buổi tối trong tuần (Từ 18h)' WHERE VolunteerId = @Vol4;
+UPDATE VolunteerProfiles SET Availability = N'Chỉ rảnh Chủ nhật' WHERE VolunteerId = @Vol5;
+
+-- Insert new volunteer profiles with detailed availability
+INSERT INTO VolunteerProfiles (UserId, University, Major, YearOfStudy, Motivation, Experience, Availability, IsVerified, VerifiedAt, VerifiedBy) VALUES
+(@VolUser6, N'Đại học FPT', N'Kỹ thuật phần mềm', 4, N'Áp dụng kỹ năng IT để giúp đỡ các tổ chức xã hội.', N'Phát triển website cho một CLB tình nguyện.', N'Cuối tuần (Cả ngày)', 1, GETDATE(), @AdminUserId),
+(@VolUser7, N'Đại học RMIT', N'Thiết kế', 2, N'Muốn sử dụng khả năng thiết kế để tạo ra các sản phẩm truyền thông ý nghĩa.', N'Thiết kế poster cho các sự kiện của trường.', N'Thứ 7 (Cả ngày), Các buổi chiều trong tuần', 1, GETDATE(), @AdminUserId),
+(@VolUser8, N'Đã tốt nghiệp', N'Logistics', 0, N'Có kinh nghiệm điều phối, muốn hỗ trợ công tác hậu cần cho sự kiện.', N'Quản lý kho cho công ty cũ.', N'Linh hoạt', 1, GETDATE(), @AdminUserId),
+(@VolUser9, N'Đại học Khoa học Xã hội và Nhân văn', N'Tâm lý học', 3, N'Muốn lắng nghe, chia sẻ và hỗ trợ tinh thần cho những người yếu thế.', N'Tham gia các workshop về tâm lý.', N'Các ngày cuối tuần', 1, GETDATE(), @AdminUserId),
+(@VolUser10, N'Đã tốt nghiệp', N'Đầu bếp', 0, N'Yêu thích nấu ăn và muốn phục vụ các bữa ăn cho người có hoàn cảnh khó khăn.', N'Bếp phó tại nhà hàng 3 năm.', N'Thứ 2, 3, 4', 1, GETDATE(), @AdminUserId);
+
+SET @Vol6 = SCOPE_IDENTITY() - 4;
+SET @Vol7 = SCOPE_IDENTITY() - 3;
+SET @Vol8 = SCOPE_IDENTITY() - 2;
+SET @Vol9 = SCOPE_IDENTITY() - 1;
+SET @Vol10 = SCOPE_IDENTITY();
+
+-- Add more diverse skills to create a richer skill pool
+DELETE FROM VolunteerSkills; -- Clear existing skills to avoid duplicates
+INSERT INTO VolunteerSkills (VolunteerId, SkillId, ProficiencyLevel) VALUES
+(@Vol1, 12, N'Cao'), (@Vol1, 1, N'Trung bình'), (@Vol1, 11, N'Cơ bản'), -- IT, Teaching, Marketing
+(@Vol2, 1, N'Cao'), (@Vol2, 4, N'Cao'), (@Vol2, 3, N'Trung bình'), -- Teaching, English, Event Org
+(@Vol3, 2, N'Cao'), (@Vol3, 10, N'Cao'), -- Medical, First-aid
+(@Vol4, 1, N'Cao'), (@Vol4, 4, N'Cao'), -- Teaching, English
+(@Vol5, 11, N'Trung bình'), (@Vol5, 5, N'Trung bình'), (@Vol5, 6, N'Cơ bản'), -- Marketing, Design, Photography
+(@Vol6, 12, N'Cao'), (@Vol6, 5, N'Cơ bản'), -- IT, Design
+(@Vol7, 5, N'Cao'), (@Vol7, 6, N'Cao'), (@Vol7, 11, N'Trung bình'), -- Design, Photography, Marketing
+(@Vol8, 3, N'Cao'), (@Vol8, 9, N'Trung bình'), -- Event Org, Driving
+(@Vol9, 1, N'Trung bình'), -- Teaching (Psychology context)
+(@Vol10, 8, N'Cao'); -- Cooking
+
+-- == AI FEATURE: SKILL GAP ANALYSIS ==
+-- Insert an event with a required skill that NO volunteer has, to demonstrate a skill gap.
+-- Let's add "Phân tích dữ liệu y tế" (Healthcare Data Analysis) as a new skill
+INSERT INTO Skills (SkillName, Category, Description) VALUES (N'Phân tích dữ liệu y tế', N'Y tế', N'Sử dụng công cụ để phân tích dữ liệu khám chữa bệnh');
+DECLARE @SkillDataAnalysis INT = SCOPE_IDENTITY();
+
+-- Now create an event that requires this skill. Organization 3 (Healthcare Plus) is a good fit.
+INSERT INTO Events (OrganizationId, EventName, CategoryId, StatusId, Description, StartDate, EndDate, RegistrationStartDate, RegistrationEndDate, Location, MaxVolunteers, RequiredSkills, Benefits, CreatedBy) VALUES
+(@Org3, N'Phân tích xu hướng bệnh dịch tại cộng đồng', 3, 1, N'Dự án phân tích dữ liệu y tế thu thập được để tìm ra các xu hướng bệnh dịch, nhằm đưa ra các giải pháp phòng ngừa hiệu quả.', '2025-10-01 09:00:00', '2025-10-31 17:00:00', '2025-09-01 00:00:00', '2025-09-25 23:59:59', N'Văn phòng Healthcare Plus', 5, N'Phân tích dữ liệu y tế, Chăm sóc y tế', N'Cơ hội làm việc với dữ liệu thực tế, chứng chỉ chuyên môn', @OrgUser3);
+SET @Event7 = SCOPE_IDENTITY();
+
+-- == AI FEATURE: PERSONALIZED SCHEDULES & 360-DEGREE FEEDBACK ==
+-- Create detailed tasks for an event and assign them, then populate feedback.
+-- We'll use Event 5: "Trồng cây xanh tại Công viên Thống Nhất".
+UPDATE Events SET StatusId=5, EndDate='2025-06-30 11:00:01' WHERE EventId = @Event5; -- Mark as ended to give feedback
+
+-- Insert Task Categories and Status if they don't exist
+INSERT INTO TaskCategories (CategoryName, Color) VALUES (N'Hậu cần', N'#808080'), (N'Truyền thông', N'#0000FF'), (N'Hoạt động chính', N'#008000');
+SET @TaskCat1 = SCOPE_IDENTITY() - 2; SET @TaskCat2 = SCOPE_IDENTITY() - 1; SET @TaskCat3 = SCOPE_IDENTITY();
+INSERT INTO TaskStatus (StatusName, Color) VALUES (N'Chưa bắt đầu', N'#CCCCCC'), (N'Đang tiến hành', N'#FFA500'), (N'Hoàn thành', N'#008000');
+SET @TaskStat1 = SCOPE_IDENTITY() - 2; SET @TaskStat2 = SCOPE_IDENTITY() - 1; SET @TaskStat3 = SCOPE_IDENTITY();
+
+-- Add tasks for Event 5
+INSERT INTO OnSiteTasks (EventId, CategoryId, StatusId, TaskName, Description, StartTime, EndTime, RequiredVolunteers, RequiredSkills, CreatedBy) VALUES
+(@Event5, @TaskCat1, @TaskStat3, N'Vận chuyển cây giống', N'Vận chuyển cây từ điểm tập kết ra các vị trí trồng.', '2025-06-30 06:00:00', '2025-06-30 07:00:00', 5, N'Sức khỏe tốt', @CoordUser1),
+(@Event5, @TaskCat3, @TaskStat3, N'Đào hố và trồng cây', N'Đào hố theo kích thước chuẩn và trồng cây.', '2025-06-30 07:00:00', '2025-06-30 10:00:00', 40, N'Trồng cây', @CoordUser1),
+(@Event5, @TaskCat3, @TaskStat3, N'Tưới nước', N'Tưới nước cho cây sau khi trồng.', '2025-06-30 10:00:00', '2025-06-30 11:00:00', 15, N'Không yêu cầu', @CoordUser1),
+(@Event5, @TaskCat2, @TaskStat3, N'Chụp ảnh sự kiện', N'Ghi lại các khoảnh khắc của sự kiện để làm tư liệu truyền thông.', '2025-06-30 06:00:00', '2025-06-30 11:00:00', 2, N'Nhiếp ảnh', @CoordUser1);
+DECLARE @Task1 INT = SCOPE_IDENTITY() - 3, @Task2 INT = SCOPE_IDENTITY() - 2, @Task3 INT = SCOPE_IDENTITY() - 1, @Task4 INT = SCOPE_IDENTITY();
+
+-- Assign tasks to volunteers who registered for Event 5 (@Vol1, @Vol3) and new volunteers (@Vol7, @Vol8)
+-- Let's add registrations for them first
+INSERT INTO EventRegistrations(EventId, VolunteerId, StatusId, ApplicationDate) VALUES (@Event5, @Vol7, 2, '2025-06-17 10:00:00'), (@Event5, @Vol8, 2, '2025-06-18 11:00:00');
+
+-- Task Assignments
+INSERT INTO TaskAssignments(TaskId, VolunteerId, AssignedBy, Status, HoursWorked) VALUES
+(@Task2, @Vol1, @CoordUser1, N'Hoàn thành', 3),
+(@Task2, @Vol3, @CoordUser1, N'Hoàn thành', 3),
+(@Task4, @Vol7, @CoordUser1, N'Hoàn thành', 5);
+
+-- Personalized Schedules based on tasks
+INSERT INTO VolunteerSchedules (VolunteerId, EventId, Title, Description, StartDateTime, EndDateTime, ScheduleType) VALUES
+(@Vol1, @Event5, N'Nhiệm vụ: Đào hố và trồng cây', N'Tham gia trồng cây tại Công viên Thống Nhất', '2025-06-30 07:00:00', '2025-06-30 10:00:00', N'Nhiệm vụ sự kiện'),
+(@Vol3, @Event5, N'Nhiệm vụ: Đào hố và trồng cây', N'Tham gia trồng cây tại Công viên Thống Nhất', '2025-06-30 07:00:00', '2025-06-30 10:00:00', N'Nhiệm vụ sự kiện'),
+(@Vol7, @Event5, N'Nhiệm vụ: Chụp ảnh sự kiện', N'Chụp ảnh tư liệu cho sự kiện Trồng cây', '2025-06-30 06:00:00', '2025-06-30 11:00:00', N'Nhiệm vụ sự kiện');
+
+-- 360-Degree Feedback Data: Update EventRegistrations for Event 5
+UPDATE EventRegistrations 
+SET 
+    Performance = 'Xuất sắc', 
+    PerformanceNotes = N'Nguyễn Văn A rất chủ động, hoàn thành xuất sắc nhiệm vụ được giao và còn hỗ trợ các bạn khác.', 
+    Rating = 5, 
+    Review = N'Sự kiện rất ý nghĩa, công tác tổ chức chuyên nghiệp. Tôi đã có một ngày cuối tuần tuyệt vời!',
+    CertificateIssued = 1, CertificateIssuedDate = GETDATE(), ActualHours = 5
+WHERE VolunteerId = @Vol1 AND EventId = @Event5;
+
+UPDATE EventRegistrations 
+SET 
+    Performance = 'Tốt', 
+    PerformanceNotes = N'Lê Minh C có thể lực tốt, hoàn thành tốt công việc. Cần chủ động hơn trong giao tiếp.', 
+    Rating = 4, 
+    Review = N'Mọi thứ đều ổn, nhưng nên có thêm khu vực nghỉ ngơi cho tình nguyện viên.',
+    CertificateIssued = 1, CertificateIssuedDate = GETDATE(), ActualHours = 5
+WHERE VolunteerId = @Vol3 AND EventId = @Event5;
+
+UPDATE EventRegistrations 
+SET 
+    Performance = 'Xuất sắc', 
+    PerformanceNotes = N'Mai Anh G đã cung cấp những bức ảnh rất đẹp và chuyên nghiệp, bắt được nhiều khoảnh khắc ý nghĩa.', 
+    Rating = 5, 
+    Review = N'Tôi rất vui vì được đóng góp kỹ năng của mình. BTC rất nhiệt tình.',
+    CertificateIssued = 1, CertificateIssuedDate = GETDATE(), ActualHours = 5
+WHERE VolunteerId = @Vol7 AND EventId = @Event5;
+
+-- == AI FEATURE: FEEDBACK SUMMARIZATION ==
+-- Add more feedback for Event 1 ("Làm sạch Sông Hồng") to be summarized. Let's mark it as ended.
+UPDATE Events SET StatusId=5, EndDate='2025-07-15 16:00:01' WHERE EventId = @Event1;
+-- Feedback from @Vol1 already exists. Add more.
+UPDATE EventRegistrations SET Performance = 'Tốt', Rating = 5, Review = N'Sự kiện tuyệt vời!', CertificateIssued=1, ActualHours=8 WHERE EventId = @Event1 and VolunteerId = @Vol1;
+UPDATE EventRegistrations SET Performance = 'Khá', Rating = 3, Review = N'Ý tưởng tốt nhưng khâu hậu cần hơi lộn xộn, thiếu nước uống cho TNV.', CertificateIssued=1, ActualHours=8 WHERE EventId = @Event1 and VolunteerId = @Vol2;
+-- More registrations & feedback for Event 1
+INSERT INTO EventRegistrations(EventId, VolunteerId, StatusId, ApplicationDate, Performance, Rating, Review, CertificateIssued, ActualHours) VALUES 
+(@Event1, @Vol6, 2, '2025-06-23', 'Tốt', 4, N'Rất đông vui và ý nghĩa. Tuy nhiên nên phân chia khu vực rõ ràng hơn.', 1, 8),
+(@Event1, @Vol8, 2, '2025-06-24', 'Xuất sắc', 5, N'Tôi rất ấn tượng với quy mô và sự chuyên nghiệp. Chắc chắn sẽ tham gia lần nữa.', 1, 8),
+(@Event1, @Vol9, 3, '2025-06-25', 'Trung bình', 2, N'Công việc quá nặng so với mô tả. Tôi bị kiệt sức và không có ai hỗ trợ.', 0, 4); -- Rejected volunteer gives feedback
+-- Add to Feedback table as well
+INSERT INTO Feedback (EventId, UserId, CategoryId, Subject, Content, Rating, IsAnonymous) VALUES
+(@Event1, @VolUser2, 3, N'Cần cải thiện hậu cần', N'Sự kiện nên chuẩn bị nhiều nước uống và đồ ăn nhẹ hơn cho tình nguyện viên. Thời tiết rất nóng.', 3, 0),
+(@Event1, @VolUser6, 1, N'Góp ý về phân công', N'Việc phân công ban đầu hơi lộn xộn, mất thời gian. Về sau thì ổn hơn. Nhưng nhìn chung là một sự kiện thành công.', 4, 0),
+(@Event1, @AdminUserId, 5, N'Cần thêm thùng rác', N'Khu vực tập kết rác quá ít thùng chứa, dẫn đến quá tải.', 3, 1);
+
+-- == AI FEATURE: INTELLIGENT NOTIFICATIONS ==
+-- 1. Notify volunteer with matching skills about a new event
+-- Volunteer @Vol6 has IT skills, let's create a tech event and notify them.
+INSERT INTO Events (OrganizationId, EventName, CategoryId, StatusId, Description, StartDate, EndDate, RegistrationStartDate, RegistrationEndDate, Location, MaxVolunteers, RequiredSkills, Benefits, CreatedBy) VALUES
+(@Org4, N'Xây dựng website cho trung tâm trẻ em mồ côi', 4, 2, N'Dự án xây dựng website giới thiệu và kêu gọi tài trợ cho Trung tâm trẻ em mồ côi Ánh Sao.', '2025-11-01', '2025-11-30', '2025-10-01', '2025-10-25', N'Làm việc online', 10, N'IT Support, Thiết kế đồ họa, Marketing', N'Giấy chứng nhận, kinh nghiệm thực tế', @OrgUser4);
+SET @Event8 = SCOPE_IDENTITY();
+INSERT INTO Notifications(UserId, Title, Content) VALUES 
+(@VolUser6, N'Cơ hội tình nguyện mới phù hợp với kỹ năng của bạn!', N'Sự kiện "Xây dựng website cho trung tâm trẻ em mồ côi" đang tuyển tình nguyện viên có kỹ năng IT Support. Xem chi tiết và đăng ký ngay!');
+
+-- 2. Remind a volunteer about an upcoming event
+INSERT INTO Notifications(UserId, Title, Content, SendDate) VALUES
+(@VolUser3, N'Nhắc nhở: Sự kiện "Khám bệnh miễn phí cho người cao tuổi" sắp diễn ra', N'Chỉ còn 3 ngày nữa là sự kiện bạn đã đăng ký sẽ diễn ra. Hãy chuẩn bị sẵn sàng nhé!', '2025-07-17 09:00:00');
+
+-- 3. Notify about certificate issuance
+INSERT INTO Notifications(UserId, Title, Content) VALUES
+(@VolUser1, N'Chúc mừng! Bạn đã nhận được chứng chỉ từ sự kiện "Trồng cây xanh"', N'Cảm ơn sự đóng góp của bạn. Bạn có thể tải chứng chỉ của mình từ trang cá nhân ngay bây giờ.');
+
+-- == AI FEATURE: CERTIFICATE DESIGN SUGGESTIONS ==
+-- Insert more certificate templates for AI to learn from.
+INSERT INTO CertificateTemplates(TemplateName, Description, TemplateType, OrganizationId, CreatedBy, IsDefault) VALUES
+(N'Chứng chỉ Hoàn thành Sự kiện', N'Mẫu chung cho các tình nguyện viên hoàn thành sự kiện.', N'Completion', NULL, @AdminUserId, 1),
+(N'Chứng chỉ Đóng góp Xuất sắc', N'Vinh danh các tình nguyện viên có đóng góp nổi bật và hiệu suất cao.', N'Excellence', NULL, @AdminUserId, 0),
+(N'Chứng chỉ Kỹ năng Chuyên môn', N'Ghi nhận việc áp dụng thành công kỹ năng chuyên môn (IT, Y tế, Thiết kế...).', N'Specialized Skill', @Org4, @OrgUser4, 0);
+SET @CertTemplate1 = SCOPE_IDENTITY() - 2; SET @CertTemplate2 = SCOPE_IDENTITY() - 1; SET @CertTemplate3 = SCOPE_IDENTITY();
+
+-- Issue certificates for Event 5 using different templates based on performance
+INSERT INTO Certificates(VolunteerId, EventId, TemplateId, CertificateNumber, CertificateName, HoursCompleted, PerformanceLevel, IssuedBy, VerificationCode) VALUES
+(@Vol1, @Event5, @CertTemplate2, 'EV5-VOL1-EXC', N'Chứng chỉ Đóng góp Xuất sắc - Trồng cây 2025', 5, 'Xuất sắc', @CoordUser1, 'VC-EV5-VOL1-UNIQUE'),
+(@Vol3, @Event5, @CertTemplate1, 'EV5-VOL3-CMP', N'Chứng nhận Hoàn thành - Trồng cây 2025', 5, 'Tốt', @CoordUser1, 'VC-EV5-VOL3-UNIQUE'),
+(@Vol7, @Event5, @CertTemplate3, 'EV5-VOL7-SKI', N'Chứng chỉ Kỹ năng Nhiếp ảnh - Trồng cây 2025', 5, 'Xuất sắc', @CoordUser1, 'VC-EV5-VOL7-UNIQUE');
+
+PRINT 'AI-Focused sample data insertion completed successfully!';
+PRINT 'Added:';
+PRINT '- 5 new volunteers with detailed profiles';
+PRINT '- Detailed availability for all 10 volunteers';
+PRINT '- Richer skill distribution among volunteers';
+PRINT '- A new event designed to create a "skill gap"';
+PRINT '- Detailed tasks, assignments, and schedules for an event';
+PRINT '- 360-degree feedback data (performance & reviews)';
+PRINT '- Diverse event feedback for summarization';
+PRINT '- Sample notifications for different scenarios';
+PRINT '- Multiple certificate templates and issued certificates';
+PRINT '';
+PRINT 'Database is now primed for AI-driven features!';
+PRINT '=====================================================';

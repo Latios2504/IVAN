@@ -543,6 +543,37 @@ public class AIRecommendationController : ControllerBase
     }
 
     #endregion
+
+    /// <summary>
+    /// Pure AI Natural Language Query Analysis
+    /// </summary>
+    [HttpPost("analyze-query")]
+    public async Task<ActionResult<AIQueryResponseDTO>> AnalyzeQueryAsync([FromBody] AIQueryRequestDTO request)
+    {
+        try
+        {
+            _logger.LogInformation("Processing Pure AI query: '{Query}'", request.NaturalLanguageQuery);
+            
+            var result = await _recommendationService.ProcessPureAIQueryAsync(request.NaturalLanguageQuery);
+            
+            return Ok(new AIQueryResponseDTO
+            {
+                Analysis = result,
+                Success = true,
+                ProcessedAt = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing Pure AI query: '{Query}'", request.NaturalLanguageQuery);
+            return StatusCode(500, new AIQueryResponseDTO
+            {
+                Analysis = $"Có lỗi xảy ra khi xử lý câu hỏi: {ex.Message}",
+                Success = false,
+                ProcessedAt = DateTime.UtcNow
+            });
+        }
+    }
 }
 
 // Additional DTOs for the controller
@@ -551,4 +582,17 @@ public class TrendAnalysisRequestDTO
     public string AnalysisType { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+}
+
+// Pure AI Query DTOs
+public class AIQueryRequestDTO
+{
+    public string NaturalLanguageQuery { get; set; } = string.Empty;
+}
+
+public class AIQueryResponseDTO
+{
+    public string Analysis { get; set; } = string.Empty;
+    public bool Success { get; set; }
+    public DateTime ProcessedAt { get; set; }
 }

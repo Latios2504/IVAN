@@ -454,14 +454,7 @@ public class AIInstructionService : IAIInstructionService
             if (instruction.InstructionName?.Length > 200)
                 errors.Add("Instruction name must be 200 characters or less");
 
-            if (instruction.SystemPrompt?.Length > 10000)
-                errors.Add("System prompt must be 10,000 characters or less");
-
-            if (instruction.BehaviorInstructions?.Length > 5000)
-                errors.Add("Behavior instructions must be 5,000 characters or less");
-
-            if (instruction.DataAccessRules?.Length > 2000)
-                errors.Add("Data access rules must be 2,000 characters or less");
+            // No character limits for SystemPrompt, BehaviorInstructions, and DataAccessRules
 
             // Check for duplicate names (would need userId context for this)
             // This is a simplified validation
@@ -1061,6 +1054,12 @@ public class AIInstructionService : IAIInstructionService
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var url = $"{_geminiConfig.GetFullUrl(model)}?key={_geminiConfig.ApiKey}";
+            
+            _logger.LogInformation("🔗 Calling Gemini API with model {Model}", model);
+            _logger.LogInformation("🌐 URL: {Url}", url.Replace(_geminiConfig.ApiKey, "***"));
+            _logger.LogInformation("📤 Request: {Request}", json);
+            _logger.LogInformation("🎯 MaxTokens setting: {MaxTokens}", _geminiConfig.MaxTokens);
+            
             var response = await _httpClient.PostAsync(url, content);
 
             if (!response.IsSuccessStatusCode)
@@ -1076,11 +1075,23 @@ public class AIInstructionService : IAIInstructionService
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("📥 Gemini Response for model {Model}: {Response}", model, responseContent);
+            
             var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDTO>(responseContent, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
+
+            _logger.LogInformation("🧠 Parsed Response - Candidates count: {Count}", geminiResponse?.Candidates?.Count ?? 0);
+            
+            if (geminiResponse?.Candidates?.Count > 0)
+            {
+                var firstCandidate = geminiResponse.Candidates[0];
+                _logger.LogInformation("🎯 First candidate content: {Content}", JsonSerializer.Serialize(firstCandidate.Content));
+                _logger.LogInformation("🎯 First candidate content parts count: {Count}", 
+                    firstCandidate.Content?.Parts?.Count ?? 0);
+            }
 
             if (geminiResponse?.Candidates?.Count > 0 && 
                 geminiResponse.Candidates[0].Content?.Parts?.Count > 0)
@@ -1095,10 +1106,25 @@ public class AIInstructionService : IAIInstructionService
                 };
             }
 
+            // Check if the response was truncated due to token limits
+            if (geminiResponse?.Candidates?.Count > 0)
+            {
+                // Log additional details from the raw response to understand the issue
+                _logger.LogWarning("🚨 Gemini response issue - checking for token limit issue...");
+                if (responseContent.Contains("MAX_TOKENS"))
+                {
+                    return new ApiResponseDTO<string>
+                    {
+                        Success = false,
+                        Message = $"Response từ Gemini API bị cắt ngắn do giới hạn token. Vui lòng thử với câu hỏi ngắn hơn hoặc tăng MaxTokens limit."
+                    };
+                }
+            }
+
             return new ApiResponseDTO<string>
             {
                 Success = false,
-                Message = $"Không nhận được phản hồi từ Gemini API với model {model}"
+                Message = $"Không nhận được phản hồi từ Gemini API với model {model}. Gemini có thể đã trả về response trống hoặc bị lỗi format."
             };
         }
         catch (Exception ex)

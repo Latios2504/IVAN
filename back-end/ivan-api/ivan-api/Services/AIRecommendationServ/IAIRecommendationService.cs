@@ -46,4 +46,7 @@ public interface IAIRecommendationService
     Task<RecommendationSettingsDTO> GetRecommendationSettingsAsync(int? userId = null, string? organizationId = null);
     Task<bool> RecordUserFeedbackAsync(RecommendationFeedbackDTO feedback);
     Task<bool> UpdateRecommendationModelAsync(string modelType, Dictionary<string, object> parameters);
+    
+    // Pure AI Natural Language Processing
+    Task<string> ProcessPureAIQueryAsync(string naturalLanguageQuery);
 }

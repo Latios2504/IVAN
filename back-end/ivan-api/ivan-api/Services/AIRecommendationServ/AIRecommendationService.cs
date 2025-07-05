@@ -4,6 +4,7 @@ using ivan_api.Models;
 using ivan_api.Services;
 using ivan_api.Services.AIDatabaseServ;
 using ivan_api.Services.AIQueryServ;
+using ivan_api.Services.AIRecommendationServ.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services.AIRecommendationServ;
@@ -14,6 +15,10 @@ public class AIRecommendationService : IAIRecommendationService
     private readonly IAIDatabaseService _aiDatabaseService;
     private readonly IAIQueryEngine _queryEngine;
     private readonly ILogger<AIRecommendationService> _logger;
+    private readonly SchedulingRecommendationHelper _schedulingHelper;
+    private readonly SkillGapAnalysisHelper _skillGapHelper;
+    private readonly PredictiveAnalyticsHelper _predictiveHelper;
+    private readonly RecommendationUtilityHelper _utilityHelper;
 
     public AIRecommendationService(
         VolunteerManagementSystemContext context,
@@ -25,6 +30,14 @@ public class AIRecommendationService : IAIRecommendationService
         _aiDatabaseService = aiDatabaseService;
         _queryEngine = queryEngine;
         _logger = logger;
+        _schedulingHelper = new SchedulingRecommendationHelper(context, logger);
+        _skillGapHelper = new SkillGapAnalysisHelper(context, logger);
+        _predictiveHelper = new PredictiveAnalyticsHelper(context, logger);
+        
+        // Create a generic logger for the utility helper
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var utilityLogger = loggerFactory.CreateLogger<RecommendationUtilityHelper>();
+        _utilityHelper = new RecommendationUtilityHelper(context, utilityLogger);
     }
 
     #region Proactive Insights
@@ -41,7 +54,7 @@ public class AIRecommendationService : IAIRecommendationService
             insights.AddRange(await GetResourceOptimizationInsightsAsync(organizationId));
 
             // Sort by priority and relevance
-            return insights.OrderByDescending(i => GetPriorityScore(i.Priority))
+            return insights.OrderByDescending(i => RecommendationUtilityHelper.GetPriorityScore(i.Priority))
                           .ThenByDescending(i => i.GeneratedAt)
                           .Take(20) // Limit to top 20 insights
                           .ToList();
@@ -110,7 +123,7 @@ public class AIRecommendationService : IAIRecommendationService
             }
 
             // Insight 3: Skill distribution analysis
-            var skillGaps = await AnalyzeSkillDistribution();
+            var skillGaps = await RecommendationUtilityHelper.AnalyzeSkillDistribution(_context);
             if (skillGaps.Any())
             {
                 insights.Add(new ProactiveInsightDTO
@@ -288,7 +301,7 @@ public class AIRecommendationService : IAIRecommendationService
             alerts.AddRange(await CheckEventCapacityAlertsAsync());
             alerts.AddRange(await CheckPerformanceAnomaliesAsync());
 
-            return alerts.OrderByDescending(a => GetSeverityScore(a.Severity))
+            return alerts.OrderByDescending(a => RecommendationUtilityHelper.GetSeverityScore(a.Severity))
                         .ThenByDescending(a => a.TriggeredAt)
                         .ToList();
         }
@@ -464,8 +477,8 @@ public class AIRecommendationService : IAIRecommendationService
                 .OrderBy(r => r.RegistrationDate)
                 .ToList();
 
-            var engagementTrend = CalculateEngagementTrend(recentActivity);
-            var predictedEngagement = PredictEngagement(engagementTrend, daysAhead);
+            var engagementTrend = _predictiveHelper.CalculateEngagementTrend(recentActivity);
+            var predictedEngagement = _predictiveHelper.PredictEngagement(engagementTrend, daysAhead);
 
             return new PredictiveAnalyticsDTO
             {
@@ -476,8 +489,8 @@ public class AIRecommendationService : IAIRecommendationService
                 CurrentMetrics = new Dictionary<string, object>
                 {
                     ["recent_events"] = recentActivity.Count,
-                    ["last_activity"] = volunteer.LastActiveDate,
-                    ["total_hours"] = volunteer.TotalHoursVolunteered
+                    ["last_activity"] = volunteer.LastActiveDate ?? DateTime.MinValue,
+                    ["total_hours"] = volunteer.TotalHoursVolunteered ?? 0
                 },
                 PredictedMetrics = new Dictionary<string, object>
                 {
@@ -493,7 +506,7 @@ public class AIRecommendationService : IAIRecommendationService
                     "Xu hướng hoạt động",
                     "Thời gian không hoạt động"
                 },
-                Recommendations = GenerateEngagementRecommendations(predictedEngagement),
+                Recommendations = _predictiveHelper.GenerateEngagementRecommendations(predictedEngagement),
                 ModelUsed = "Linear Trend Analysis"
             };
         }
@@ -523,8 +536,8 @@ public class AIRecommendationService : IAIRecommendationService
                 .Include(e => e.EventRegistrations)
                 .ToListAsync();
 
-            var attendancePattern = AnalyzeAttendancePattern(similarEvents);
-            var predictedAttendance = PredictAttendance(eventItem, attendancePattern);
+            var attendancePattern = _predictiveHelper.AnalyzeAttendancePattern(similarEvents);
+            var predictedAttendance = _predictiveHelper.PredictAttendance(eventItem, attendancePattern);
 
             return new PredictiveAnalyticsDTO
             {
@@ -535,7 +548,7 @@ public class AIRecommendationService : IAIRecommendationService
                 CurrentMetrics = new Dictionary<string, object>
                 {
                     ["current_registrations"] = eventItem.EventRegistrations.Count,
-                    ["max_participants"] = eventItem.MaxParticipants,
+                    ["max_participants"] = eventItem.MaxParticipants ?? 0,
                     ["days_until_event"] = (eventItem.StartDate - DateTime.UtcNow).Days
                 },
                 PredictedMetrics = new Dictionary<string, object>
@@ -551,7 +564,7 @@ public class AIRecommendationService : IAIRecommendationService
                     "Thời gian còn lại đến sự kiện",
                     "Số lượng đăng ký hiện tại"
                 },
-                Recommendations = GenerateAttendanceRecommendations(predictedAttendance),
+                Recommendations = _predictiveHelper.GenerateAttendanceRecommendations(predictedAttendance),
                 ModelUsed = "Historical Pattern Analysis"
             };
         }
@@ -583,7 +596,7 @@ public class AIRecommendationService : IAIRecommendationService
                 ? await _context.VolunteerProfiles.Where(v => v.UserId == userId.Value).ToListAsync()
                 : await _context.VolunteerProfiles.ToListAsync();
 
-            var churnAnalysis = AnalyzeChurnRisk(volunteers);
+            var churnAnalysis = _predictiveHelper.AnalyzeChurnRisk(volunteers);
 
             return new PredictiveAnalyticsDTO
             {
@@ -603,7 +616,7 @@ public class AIRecommendationService : IAIRecommendationService
                     ["volunteers_at_risk"] = churnAnalysis.VolunteersAtRisk
                 },
                 ConfidenceScore = churnAnalysis.ConfidenceScore,
-                Recommendations = GenerateChurnPreventionRecommendations(churnAnalysis),
+                Recommendations = _predictiveHelper.GenerateChurnPreventionRecommendations(churnAnalysis),
                 ModelUsed = "Churn Risk Assessment"
             };
         }
@@ -625,14 +638,23 @@ public class AIRecommendationService : IAIRecommendationService
             var actionableRecommendations = await GetActionableRecommendationsAsync(userId, userRole);
             var widgetRecommendations = await GetWidgetRecommendationsAsync(userId, userRole);
 
+            var usageAnalytics = await _utilityHelper.GetUserUsageAnalyticsAsync(userId);
+
             return new DashboardRecommendationsDTO
             {
                 UserId = userId,
                 UserRole = userRole,
                 ActionableRecommendations = actionableRecommendations,
                 WidgetRecommendations = widgetRecommendations,
-                PersonalizedTips = GeneratePersonalizedTips(userRole),
-                UsageAnalytics = await GetUserUsageAnalytics(userId)
+                PersonalizedTips = RecommendationUtilityHelper.GeneratePersonalizedTips(userRole),
+                UsageAnalytics = new Dictionary<string, object>
+                {
+                    ["total_sessions"] = usageAnalytics.TotalSessions,
+                    ["total_time_spent"] = usageAnalytics.TotalTimeSpent.TotalHours,
+                    ["last_login"] = usageAnalytics.LastLoginDate,
+                    ["engagement_score"] = usageAnalytics.EngagementScore
+                },
+                GeneratedAt = DateTime.UtcNow
             };
         }
         catch (Exception ex)
@@ -652,14 +674,34 @@ public class AIRecommendationService : IAIRecommendationService
             {
                 case "admin":
                 case "coordinator":
-                    recommendations.AddRange(await GetCoordinatorRecommendations(userId));
+                    var coordinatorRecs = await _utilityHelper.GetCoordinatorRecommendationsAsync(userId);
+                    recommendations.AddRange(coordinatorRecs.Select(r => new ActionableRecommendationDTO
+                    {
+                        RecommendationId = r.Id,
+                        Title = r.Title,
+                        Description = r.Description,
+                        Category = r.Type,
+                        Priority = r.Priority.ToString(),
+                        RecommendationType = "Process",
+                        ActionSteps = new List<string> { r.RecommendationReason }
+                    }));
                     break;
                 case "volunteer":
-                    recommendations.AddRange(await GetVolunteerRecommendations(userId));
+                    var volunteerRecs = await _utilityHelper.GetVolunteerRecommendationsAsync(userId);
+                    recommendations.AddRange(volunteerRecs.Select(r => new ActionableRecommendationDTO
+                    {
+                        RecommendationId = r.Id,
+                        Title = r.Title,
+                        Description = r.Description,
+                        Category = r.Type,
+                        Priority = r.Priority.ToString(),
+                        RecommendationType = "Process",
+                        ActionSteps = new List<string> { r.RecommendationReason }
+                    }));
                     break;
             }
 
-            return recommendations.OrderByDescending(r => GetPriorityScore(r.Priority)).Take(10).ToList();
+            return recommendations.OrderByDescending(r => RecommendationUtilityHelper.GetPriorityScore(r.Priority)).Take(10).ToList();
         }
         catch (Exception ex)
         {
@@ -678,10 +720,10 @@ public class AIRecommendationService : IAIRecommendationService
             {
                 case "admin":
                 case "coordinator":
-                    widgets.AddRange(GetCoordinatorWidgets());
+                    widgets.AddRange(RecommendationUtilityHelper.GetCoordinatorWidgets());
                     break;
                 case "volunteer":
-                    widgets.AddRange(GetVolunteerWidgets());
+                    widgets.AddRange(RecommendationUtilityHelper.GetVolunteerWidgets());
                     break;
             }
 
@@ -696,271 +738,70 @@ public class AIRecommendationService : IAIRecommendationService
 
     #endregion
 
-    #region Helper Methods
-
-    private async Task<List<string>> AnalyzeSkillDistribution()
-    {
-        // Simplified skill gap analysis
-        var requiredSkills = new List<string> { "Leadership", "Communication", "Technical", "Event Planning" };
-        var availableSkills = await _context.VolunteerProfiles
-            .Where(v => !string.IsNullOrEmpty(v.Skills))
-            .Select(v => v.Skills)
-            .ToListAsync();
-
-        return requiredSkills.Where(skill => 
-            !availableSkills.Any(available => available.Contains(skill))).ToList();
-    }
-
-    private int GetPriorityScore(string priority)
-    {
-        return priority.ToLower() switch
-        {
-            "critical" => 4,
-            "high" => 3,
-            "medium" => 2,
-            "low" => 1,
-            _ => 0
-        };
-    }
-
-    private int GetSeverityScore(string severity)
-    {
-        return severity.ToLower() switch
-        {
-            "critical" => 4,
-            "high" => 3,
-            "medium" => 2,
-            "low" => 1,
-            _ => 0
-        };
-    }
-
-    private EngagementPrediction CalculateEngagementTrend(List<EventRegistration> recentActivity)
-    {
-        // Simplified engagement prediction logic
-        var activityByWeek = recentActivity
-            .Where(r => r.RegistrationDate.HasValue)
-            .GroupBy(r => r.RegistrationDate!.Value.Date.AddDays(-(int)r.RegistrationDate!.Value.DayOfWeek))
-            .OrderBy(g => g.Key)
-            .Select(g => g.Count())
-            .ToList();
-
-        var trend = activityByWeek.Count > 1 ? 
-            (activityByWeek.Last() - activityByWeek.First()) / (double)activityByWeek.Count : 0;
-
-        return new EngagementPrediction
-        {
-            PredictedEvents = Math.Max(0, (int)(activityByWeek.LastOrDefault() + trend)),
-            EngagementProbability = Math.Min(1.0, Math.Max(0.1, 0.7 + (trend * 0.1))),
-            RiskLevel = trend < -0.5 ? "High" : trend < 0 ? "Medium" : "Low",
-            ConfidenceScore = activityByWeek.Count > 4 ? 0.8 : 0.6
-        };
-    }
-
-    private EngagementPrediction PredictEngagement(EngagementPrediction current, int daysAhead)
-    {
-        // Apply time decay to prediction
-        var timeDecay = Math.Max(0.5, 1.0 - (daysAhead / 365.0));
-        current.ConfidenceScore *= timeDecay;
-        return current;
-    }
-
-    private AttendancePrediction AnalyzeAttendancePattern(List<Event> similarEvents)
-    {
-        if (!similarEvents.Any())
-        {
-            return new AttendancePrediction
-            {
-                AttendanceRate = 0.75, // Default assumption
-                ConfidenceScore = 0.3
-            };
-        }
-
-        var attendanceRates = similarEvents
-            .Where(e => e.EventRegistrations.Any())
-            .Select(e => 
-            {
-                var registered = e.EventRegistrations.Count;
-                var attended = e.EventRegistrations.Count(r => r.AttendanceStatus == "Attended");
-                return attended / (double)registered;
-            })
-            .ToList();
-
-        return new AttendancePrediction
-        {
-            AttendanceRate = attendanceRates.Average(),
-            ConfidenceScore = Math.Min(0.9, 0.5 + (attendanceRates.Count * 0.1))
-        };
-    }
-
-    private AttendancePrediction PredictAttendance(Event eventItem, AttendancePrediction pattern)
-    {
-        var currentRegistrations = eventItem.EventRegistrations.Count;
-        var daysUntilEvent = (eventItem.StartDate - DateTime.UtcNow).Days;
-        
-        // Estimate final registrations based on time remaining
-        var registrationGrowthFactor = daysUntilEvent > 7 ? 1.2 : daysUntilEvent > 3 ? 1.1 : 1.05;
-        var finalRegistrations = (int)(currentRegistrations * registrationGrowthFactor);
-        
-        return new AttendancePrediction
-        {
-            FinalRegistrations = finalRegistrations,
-            ExpectedAttendees = (int)(finalRegistrations * pattern.AttendanceRate),
-            AttendanceRate = pattern.AttendanceRate,
-            ConfidenceScore = pattern.ConfidenceScore
-        };
-    }
-
-    private ChurnAnalysis AnalyzeChurnRisk(List<VolunteerProfile> volunteers)
-    {
-        var highRisk = volunteers.Count(v => v.LastActiveDate < DateTime.UtcNow.AddDays(-30));
-        var mediumRisk = volunteers.Count(v => v.LastActiveDate < DateTime.UtcNow.AddDays(-14) && 
-                                               v.LastActiveDate >= DateTime.UtcNow.AddDays(-30));
-
-        return new ChurnAnalysis
-        {
-            HighRiskCount = highRisk,
-            MediumRiskCount = mediumRisk,
-            PredictedChurnRate = (highRisk / (double)volunteers.Count) * 100,
-            VolunteersAtRisk = highRisk + mediumRisk,
-            ConfidenceScore = volunteers.Count > 20 ? 0.8 : 0.6
-        };
-    }
-
-    private List<string> GenerateEngagementRecommendations(EngagementPrediction prediction)
-    {
-        var recommendations = new List<string>();
-
-        if (prediction.RiskLevel == "High")
-        {
-            recommendations.Add("Liên hệ trực tiếp để hiểu lý do giảm hoạt động");
-            recommendations.Add("Mời tham gia sự kiện phù hợp với sở thích");
-        }
-        else if (prediction.RiskLevel == "Medium")
-        {
-            recommendations.Add("Gửi thông báo về các cơ hội tình nguyện mới");
-            recommendations.Add("Mời tham gia hoạt động nhóm");
-        }
-        else
-        {
-            recommendations.Add("Duy trì mức độ tham gia hiện tại");
-            recommendations.Add("Xem xét giao thêm trách nhiệm");
-        }
-
-        return recommendations;
-    }
-
-    private List<string> GenerateAttendanceRecommendations(AttendancePrediction prediction)
-    {
-        var recommendations = new List<string>();
-
-        if (prediction.AttendanceRate < 0.6)
-        {
-            recommendations.Add("Cải thiện thông tin và mô tả sự kiện");
-            recommendations.Add("Nhắc nhở tham dự trước 24-48 giờ");
-        }
-        else if (prediction.AttendanceRate < 0.8)
-        {
-            recommendations.Add("Gửi email xác nhận tham dự");
-            recommendations.Add("Chuẩn bị cho số lượng tham dự dự kiến");
-        }
-
-        return recommendations;
-    }
-
-    private List<string> GenerateChurnPreventionRecommendations(ChurnAnalysis analysis)
-    {
-        return new List<string>
-        {
-            "Triển khai chương trình mentor cho tình nguyện viên mới",
-            "Tạo cơ hội phát triển kỹ năng và nghề nghiệp",
-            "Tăng cường ghi nhận và đánh giá đóng góp",
-            "Tổ chức sự kiện giao lưu và xây dựng cộng đồng"
-        };
-    }
-
-    private async Task<List<ActionableRecommendationDTO>> GetCoordinatorRecommendations(int userId)
-    {
-        // Implementation for coordinator-specific recommendations
-        return new List<ActionableRecommendationDTO>();
-    }
-
-    private async Task<List<ActionableRecommendationDTO>> GetVolunteerRecommendations(int userId)
-    {
-        // Implementation for volunteer-specific recommendations
-        return new List<ActionableRecommendationDTO>();
-    }
-
-    private List<DashboardWidgetRecommendationDTO> GetCoordinatorWidgets()
-    {
-        return new List<DashboardWidgetRecommendationDTO>
-        {
-            new()
-            {
-                WidgetId = "volunteer-engagement",
-                WidgetName = "Tình nguyện viên tích cực",
-                WidgetType = "Metric",
-                Description = "Theo dõi mức độ tham gia của tình nguyện viên",
-                RecommendationReason = "Giúp theo dõi sức khỏe cộng đồng tình nguyện",
-                Priority = 9
-            }
-        };
-    }
-
-    private List<DashboardWidgetRecommendationDTO> GetVolunteerWidgets()
-    {
-        return new List<DashboardWidgetRecommendationDTO>
-        {
-            new()
-            {
-                WidgetId = "my-impact",
-                WidgetName = "Tác động của tôi",
-                WidgetType = "Chart",
-                Description = "Hiển thị tổng quan về đóng góp cá nhân",
-                RecommendationReason = "Tăng động lực thông qua thấy được tác động",
-                Priority = 8
-            }
-        };
-    }
-
-    private List<string> GeneratePersonalizedTips(string userRole)
-    {
-        return userRole.ToLower() switch
-        {
-            "admin" or "coordinator" => new List<string>
-            {
-                "Thường xuyên ghi nhận đóng góp của tình nguyện viên",
-                "Sử dụng dữ liệu để cải thiện hiệu quả chương trình",
-                "Tạo môi trường hỗ trợ cho tình nguyện viên"
-            },
-            "volunteer" => new List<string>
-            {
-                "Tham gia đều đặn để xây dựng kinh nghiệm",
-                "Chia sẻ phản hồi để cải thiện chương trình",
-                "Kết nối với các tình nguyện viên khác"
-            },
-            _ => new List<string>()
-        };
-    }
-
-    private async Task<Dictionary<string, object>> GetUserUsageAnalytics(int userId)
-    {
-        // Implementation for user usage analytics
-        return new Dictionary<string, object>
-        {
-            ["login_frequency"] = "daily",
-            ["feature_usage"] = new Dictionary<string, int>()
-        };
-    }
-
-    #endregion
-
     #region Not Implemented (Skeleton Methods)
 
     public async Task<List<SchedulingRecommendationDTO>> GetOptimalSchedulingRecommendationsAsync(int eventId)
     {
-        // Implementation needed
-        return new List<SchedulingRecommendationDTO>();
+        try
+        {
+            var recommendations = new List<SchedulingRecommendationDTO>();
+
+            // Get event details
+            var eventItem = await _context.Events
+                .Include(e => e.EventRegistrations)
+                .FirstOrDefaultAsync(e => e.EventId == eventId);
+
+            if (eventItem == null)
+                return recommendations;
+
+            // Get all active volunteers with their availability and skills
+            var volunteers = await _context.VolunteerProfiles
+                .Include(v => v.User)
+                .Include(v => v.VolunteerSkills)
+                .Include(v => v.VolunteerSchedules)
+                .Where(v => v.IsVerified == true && v.User.IsActive == true)
+                .ToListAsync();
+
+            foreach (var volunteer in volunteers)
+            {
+                var matchScore = _schedulingHelper.CalculateVolunteerEventMatchScore(volunteer, eventItem);
+                
+                if (matchScore > 0.5) // Only recommend if match score > 50%
+                {
+                    var recommendation = new SchedulingRecommendationDTO
+                    {
+                        RecommendationId = Guid.NewGuid().ToString(),
+                        EventId = eventId,
+                        RecommendedDateTime = eventItem.StartDate,
+                        RecommendationReason = _schedulingHelper.GenerateSchedulingReason(volunteer, eventItem, matchScore),
+                        ConfidenceScore = matchScore,
+                        ConflictingEvents = await _schedulingHelper.GetConflictingEvents(volunteer.VolunteerId, eventItem.StartDate, eventItem.EndDate),
+                        OptimizationMetrics = new Dictionary<string, object>
+                        {
+                            ["match_score"] = matchScore,
+                            ["volunteer_id"] = volunteer.VolunteerId,
+                            ["volunteer_name"] = $"{volunteer.User.UserProfiles.FirstOrDefault()?.FirstName} {volunteer.User.UserProfiles.FirstOrDefault()?.LastName}",
+                            ["availability_status"] = _schedulingHelper.CheckAvailabilityStatus(volunteer, eventItem),
+                            ["skill_match_percentage"] = _schedulingHelper.CalculateSkillMatchPercentage(volunteer, eventItem),
+                            ["previous_participation"] = await _schedulingHelper.GetPreviousParticipationCount(volunteer.VolunteerId, eventItem.Province)
+                        },
+                        Considerations = _schedulingHelper.GenerateSchedulingConsiderations(volunteer, eventItem)
+                    };
+
+                    recommendations.Add(recommendation);
+                }
+            }
+
+            return recommendations
+                .OrderByDescending(r => r.ConfidenceScore)
+                .Take(20) // Top 20 recommendations
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting optimal scheduling recommendations for event {EventId}", eventId);
+            return new List<SchedulingRecommendationDTO>();
+        }
     }
 
     public async Task<List<VolunteerMatchingDTO>> GetVolunteerMatchingRecommendationsAsync(int eventId)
@@ -971,8 +812,46 @@ public class AIRecommendationService : IAIRecommendationService
 
     public async Task<List<SkillGapAnalysisDTO>> GetSkillGapAnalysisAsync(string? organizationId = null)
     {
-        // Implementation needed
-        return new List<SkillGapAnalysisDTO>();
+        try
+        {
+            var analyses = new List<SkillGapAnalysisDTO>();
+
+            // Get events for the organization (or all events if no org specified)
+            var events = await _context.Events
+                .Include(e => e.EventRegistrations)
+                .ThenInclude(er => er.Volunteer)
+                .Where(e => string.IsNullOrEmpty(organizationId) || e.OrganizationId.ToString() == organizationId)
+                .Where(e => e.StartDate >= DateTime.UtcNow.AddDays(-90)) // Last 3 months
+                .ToListAsync();
+
+            if (!events.Any())
+                return analyses;
+
+            // Group events by type for better analysis
+            var eventsByType = events.GroupBy(e => e.EventType ?? "General");
+
+            foreach (var eventGroup in eventsByType)
+            {
+                var analysis = _skillGapHelper.AnalyzeSkillGapForEventType(eventGroup.Key, eventGroup.ToList(), organizationId);
+                if (analysis != null)
+                    analyses.Add(analysis);
+            }
+
+            // Overall organization analysis
+            if (analyses.Any())
+            {
+                var overallAnalysis = await _skillGapHelper.GenerateOverallSkillGapAnalysis(events, organizationId);
+                if (overallAnalysis != null)
+                    analyses.Insert(0, overallAnalysis); // Add at the beginning
+            }
+
+            return analyses;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error performing skill gap analysis for organization {OrganizationId}", organizationId);
+            return new List<SkillGapAnalysisDTO>();
+        }
     }
 
     public async Task<TrendAnalysisDTO> AnalyzeTrendsAsync(string analysisType, DateTime startDate, DateTime endDate)
@@ -1018,9 +897,47 @@ public class AIRecommendationService : IAIRecommendationService
     }
 
     #endregion
+
+    #region Pure AI Natural Language Processing
+
+    public async Task<string> ProcessPureAIQueryAsync(string naturalLanguageQuery)
+    {
+        try
+        {
+            _logger.LogInformation("Processing Pure AI query: '{Query}'", naturalLanguageQuery);
+            
+            // Create query analysis for Pure AI system
+            var queryAnalysis = new QueryAnalysisDTO
+            {
+                OriginalQuery = naturalLanguageQuery,
+                QueryCategory = "Pure-AI", // Will be determined by AI
+                RequiredTables = new List<string>(), // AI will determine
+                Parameters = new Dictionary<string, object>()
+            };
+            
+            // Use Pure AI Database Service to process query
+            var result = await _aiDatabaseService.GetContextualDataAsync(queryAnalysis);
+            
+            if (result.Success && result.Data != null)
+            {
+                return result.Data.ToString() ?? "AI không thể xử lý câu hỏi này.";
+            }
+            else
+            {
+                return result.ErrorMessage ?? "Có lỗi xảy ra khi xử lý câu hỏi.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ProcessPureAIQueryAsync for query: '{Query}'", naturalLanguageQuery);
+            return $"Có lỗi xảy ra khi xử lý câu hỏi: {ex.Message}";
+        }
+    }
+
+    #endregion
 }
 
-// Helper classes for internal calculations
+// Helper classes for internal calculations (keeping these for compatibility)
 internal class EngagementPrediction
 {
     public int PredictedEvents { get; set; }

@@ -422,7 +422,6 @@ obj/
 =======
 .github/
 memory-bank/
-ivan_database.sql
+ivan_database_schema.sql
+ivan_database_data.sql
 ivan_requirements.md
-ivan_screen.md
->>>>>>> feature/fe-register
