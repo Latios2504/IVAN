@@ -21,8 +21,12 @@ using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
 using System.Text.Json.Serialization;
+<<<<<<< HEAD
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
+=======
+using ivan_api.Services.PublicContentServ;
+>>>>>>> he176119
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,6 +125,7 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IPublicContentService, PublicContentService>();
 
 // ChatBot Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -129,6 +134,8 @@ builder.Services.AddScoped<IChatBotService, ChatBotService>();
 // AI Database Services
 builder.Services.AddScoped<IAIDatabaseService, AIDatabaseService>();
 builder.Services.AddScoped<IAIQueryEngine, AIQueryEngine>();
+builder.Services.AddHttpClient<IntelligentSQLGenerator>(); // **AI-powered SQL Generator with HTTP**
+builder.Services.AddScoped<IntelligentSQLGenerator>(); // **AI-powered SQL Generator**
 builder.Services.AddHttpClient<IAIInstructionService, AIInstructionService>();
 builder.Services.AddScoped<IAIInstructionService, AIInstructionService>();
 

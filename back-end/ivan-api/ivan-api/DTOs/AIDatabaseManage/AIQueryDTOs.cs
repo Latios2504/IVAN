@@ -86,3 +86,18 @@ public class AIQueryHistoryDTO
     public DateTime QueryDate { get; set; } = DateTime.UtcNow;
     public Dictionary<string, object> QueryMetadata { get; set; } = new();
 }
+
+// Request DTOs for AI Query API
+public class AdvancedQueryRequestDTO
+{
+    public string Query { get; set; } = string.Empty;
+    public int? InstructionId { get; set; } // Optional AI instruction to use
+    public string? Category { get; set; } // Optional query category
+    public Dictionary<string, object>? Context { get; set; } // Additional context
+}
+
+public class QueryAnalysisRequestDTO
+{
+    public string Query { get; set; } = string.Empty;
+    public bool IncludeOptimization { get; set; } = true;
+}

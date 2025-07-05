@@ -101,13 +101,17 @@ public class AIQueryEngine : IAIQueryEngine
             .Where(c => c.IsActive == true)
             .ToListAsync();
 
-        // Check for specific counting queries first (higher priority)
+        // Prioritize volunteer-specific queries first (more specific than general event keywords)
+        if (ContainsVolunteerKeywords(queryLower))
+        {
+            if (ContainsCountingKeywords(queryLower))
+                return "Volunteer Count";
+            return "Volunteer Analytics";
+        }
+
+        // Check for specific counting queries for events (only if not volunteer-related)
         if (ContainsCountingKeywords(queryLower) && ContainsEventKeywords(queryLower))
             return "Event Count";
-
-        // Use keyword matching to categorize
-        if (ContainsVolunteerKeywords(queryLower))
-            return "Volunteer Analytics";
         
         if (ContainsEventKeywords(queryLower))
             return "Event Performance";
@@ -128,6 +132,7 @@ public class AIQueryEngine : IAIQueryEngine
         switch (queryCategory.ToLower())
         {
             case "volunteer analytics":
+            case "volunteer count":
                 tables.AddRange(new[] { "VolunteerProfiles", "Users", "VolunteerSkills", "Skills" });
                 if (specificQuery.Contains("event") || specificQuery.Contains("sự kiện"))
                     tables.AddRange(new[] { "EventRegistrations", "Events" });
@@ -196,8 +201,38 @@ public class AIQueryEngine : IAIQueryEngine
         var parameters = new Dictionary<string, object>();
         var queryLower = query.ToLower();
 
-        // **DEBUG LOGGING**
+        // **ENHANCED PARAMETER EXTRACTION FOR TOP N QUERIES**
         _logger.LogInformation("ExtractQueryParametersAsync called with query: '{Query}'", query);
+
+        // Extract "top N" patterns
+        var topNMatches = Regex.Matches(queryLower, @"top\s*(\d+)|liệt kê\s*(\d+)|(\d+)\s*(tình nguyện viên|sự kiện|người|event)");
+        if (topNMatches.Count > 0)
+        {
+            foreach (Match match in topNMatches)
+            {
+                for (int i = 1; i <= 4; i++)
+                {
+                    if (match.Groups[i].Success && int.TryParse(match.Groups[i].Value, out int topN) && topN > 0 && topN <= 100)
+                    {
+                        parameters["topN"] = topN;
+                        parameters["listRequest"] = true;
+                        _logger.LogInformation("Extracted topN: {TopN} from query", topN);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Detect list requests without specific numbers
+        if (Regex.IsMatch(queryLower, @"liệt kê|danh sách|top|highest|cao nhất|nhiều nhất"))
+        {
+            parameters["listRequest"] = true;
+            if (!parameters.ContainsKey("topN"))
+            {
+                parameters["topN"] = 5; // Default to top 5
+                _logger.LogInformation("List request detected, defaulting to top 5");
+            }
+        }
 
         // Extract volunteer ID patterns
         var volunteerIdMatches = Regex.Matches(queryLower, @"volunteer.*?id\s*(\d+)|id\s*(\d+).*volunteer|tình nguyện.*?id\s*(\d+)|id\s*(\d+).*tình nguyện");
@@ -354,8 +389,14 @@ public class AIQueryEngine : IAIQueryEngine
     {
         var keywords = new[] 
         { 
-            "volunteer", "tình nguyện", "tình nguyện viên", "skill", "kỹ năng", 
-            "registration", "đăng ký", "profile", "hồ sơ" 
+            // Basic volunteer keywords
+            "volunteer", "tình nguyện", "tình nguyện viên", "tnv", "skill", "kỹ năng", 
+            "registration", "đăng ký", "profile", "hồ sơ",
+            // **CRITICAL ADDITION: Volunteer hours and ranking keywords**
+            "giờ tình nguyện", "volunteer hours", "số giờ", "thời gian", "hours",
+            "cao nhất", "highest", "nhiều nhất", "most", "top", "best",
+            "so sánh", "compare", "hiệu suất", "performance", "ranking", "xếp hạng",
+            "rating", "đánh giá", "điểm", "score"
         };
         return keywords.Any(query.Contains);
     }
@@ -364,8 +405,9 @@ public class AIQueryEngine : IAIQueryEngine
     {
         var keywords = new[] 
         { 
-            "event", "sự kiện", "activity", "hoạt động", "performance", "hiệu suất",
-            "feedback", "đánh giá", "rating", "xếp hạng" 
+            "event", "sự kiện", "activity", "performance", "hiệu suất",
+            "feedback", "đánh giá", "rating", "xếp hạng",
+            "workshop", "hội thảo", "campaign", "chiến dịch", "program", "chương trình"
         };
         return keywords.Any(query.Contains);
     }

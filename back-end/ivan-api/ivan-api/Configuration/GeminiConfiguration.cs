@@ -11,13 +11,10 @@ public class GeminiConfiguration
     // Helper property to get the full URL
     public string GetFullUrl(string? customModel = null)
     {
-        if (!string.IsNullOrEmpty(BaseUrl))
-        {
-            return BaseUrl; // Use full URL if provided (backward compatibility)
-        }
-        
         // Use custom model for testing or default model
         var modelToUse = customModel ?? Model;
+        
+        // Always construct URL with the specified model
         return $"https://generativelanguage.googleapis.com/v1beta/models/{modelToUse}:generateContent";
     }
 }
