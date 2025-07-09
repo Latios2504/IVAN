@@ -15,6 +15,32 @@ import type {
  * Implements Phase 5: Custom Instructions UI/UX integration with backend
  */
 class AIInstructionsService {
+  /**
+   * Helper function to handle Entity Framework's $values format
+   */
+  private normalizeArrayResponse<T>(data: any): T[] {
+    if (!data) {
+      return [];
+    }
+
+    // Handle Entity Framework's $values format
+    if (
+      typeof data === "object" &&
+      data.$values &&
+      Array.isArray(data.$values)
+    ) {
+      return data.$values as T[];
+    }
+
+    // Return as-is if already an array
+    if (Array.isArray(data)) {
+      return data as T[];
+    }
+
+    // If not an array, return empty array
+    console.warn("API returned non-array data:", data);
+    return [];
+  }
   private readonly baseEndpoint = "/AIInstructions";
 
   private get api() {
@@ -30,15 +56,27 @@ class AIInstructionsService {
         `${this.baseEndpoint}/all`
       );
 
-      if (!response.success || !response.data) {
+      console.log("🔍 AI Instructions API Response:", response);
+
+      if (!response.success) {
         throw new ApiError("Failed to fetch AI instructions", 400);
       }
 
-      return response.data;
+      // Use helper to normalize the response
+      const instructionsData =
+        this.normalizeArrayResponse<AiCustomInstructionDTO>(response.data);
+
+      console.log(
+        "✅ AI Instructions loaded:",
+        instructionsData.length,
+        "items"
+      );
+      return instructionsData;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
       }
+      console.error("Failed to fetch AI instructions:", error);
       throw new ApiError("Failed to fetch AI instructions", 500);
     }
   }
@@ -210,7 +248,7 @@ class AIInstructionsService {
         throw new ApiError("Failed to fetch template instructions", 400);
       }
 
-      return response.data;
+      return this.normalizeArrayResponse<AiCustomInstructionDTO>(response.data);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -311,7 +349,7 @@ class AIInstructionsService {
         throw new ApiError("Failed to fetch instruction analytics", 400);
       }
 
-      return response.data;
+      return this.normalizeArrayResponse<AiQueryAnalyticsDTO>(response.data);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -357,7 +395,7 @@ class AIInstructionsService {
         throw new ApiError("Failed to fetch analytics", 400);
       }
 
-      return response.data;
+      return this.normalizeArrayResponse<AiQueryAnalyticsDTO>(response.data);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -379,7 +417,7 @@ class AIInstructionsService {
         throw new ApiError("Failed to fetch user AI instructions", 400);
       }
 
-      return response.data;
+      return this.normalizeArrayResponse<AiCustomInstructionDTO>(response.data);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -413,17 +451,7 @@ class AIInstructionsService {
       errors.push("Tên hướng dẫn không được vượt quá 200 ký tự");
     }
 
-    if (data.systemPrompt && data.systemPrompt.length > 10000) {
-      errors.push("System prompt không được vượt quá 10,000 ký tự");
-    }
-
-    if (data.behaviorInstructions && data.behaviorInstructions.length > 5000) {
-      errors.push("Hướng dẫn hành vi không được vượt quá 5,000 ký tự");
-    }
-
-    if (data.dataAccessRules && data.dataAccessRules.length > 2000) {
-      errors.push("Quy tắc truy cập dữ liệu không được vượt quá 2,000 ký tự");
-    }
+    // No character limits for systemPrompt, behaviorInstructions, and dataAccessRules
 
     // Warning validation
     if (data.systemPrompt && data.systemPrompt.length < 50) {
@@ -520,6 +548,12 @@ Mục tiêu: Tạo ra những sự kiện có ý nghĩa, an toàn và hiệu qu�
       const response = await this.api.get<string[]>(
         `${this.baseEndpoint}/admin/gemini-models`
       );
+
+      // Normalize the response data to handle $values format
+      if (response.success && response.data) {
+        response.data = this.normalizeArrayResponse<string>(response.data);
+      }
+
       return response;
     } catch (error) {
       if (error instanceof ApiError) {

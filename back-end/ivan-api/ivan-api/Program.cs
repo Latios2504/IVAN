@@ -35,6 +35,9 @@ using ivan_api.Services.Reports;
 using ivan_api.Services.Certificates;
 using ivan_api.Services.OnSiteTasks;
 using ivan_api.Services.OrganizationProfiles;
+using ivan_api.Services.PartnerCollaborationServ;
+using ivan_api.Repository.PartnerCollaborationRepo;
+using ivan_api.Services.PublicContentServ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,6 +136,7 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IPublicContentService, PublicContentService>();
 
 // ChatBot Service
 builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
@@ -141,6 +145,8 @@ builder.Services.AddScoped<IChatBotService, ChatBotService>();
 // AI Database Services
 builder.Services.AddScoped<IAIDatabaseService, AIDatabaseService>();
 builder.Services.AddScoped<IAIQueryEngine, AIQueryEngine>();
+builder.Services.AddHttpClient<IntelligentSQLGenerator>(); // **AI-powered SQL Generator with HTTP**
+builder.Services.AddScoped<IntelligentSQLGenerator>(); // **AI-powered SQL Generator**
 builder.Services.AddHttpClient<IAIInstructionService, AIInstructionService>();
 builder.Services.AddScoped<IAIInstructionService, AIInstructionService>();
 
@@ -188,6 +194,9 @@ builder.Services.AddAutoMapper(typeof(CertificateTemplateMapping));
 builder.Services.AddAutoMapper(typeof(ReportMapping));
 
 GlobalFontSettings.UseWindowsFontsUnderWindows = true;
+// Partner Collaboration DI
+builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
+builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
@@ -195,8 +204,9 @@ builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 builder.Services.AddControllers().AddJsonOptions(opt =>
 {
-    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-}); ;
+    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

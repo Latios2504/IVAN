@@ -111,9 +111,9 @@ public partial class VolunteerManagementSystemContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            IConfigurationRoot configuration = builder.Build();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            string ConnectionStr = config.GetConnectionString("MyCnn");
+            optionsBuilder.UseSqlServer(ConnectionStr);
         }
     }
 

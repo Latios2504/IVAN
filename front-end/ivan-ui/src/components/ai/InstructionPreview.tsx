@@ -16,46 +16,33 @@ import {
   MessageSquare,
   Shield,
   Database,
-  Check,
   AlertCircle,
 } from "lucide-react";
 import type {
-  InstructionTemplate,
   InstructionFormData,
   AiCustomInstructionDTO,
 } from "@/types/ai-instructions";
 
 interface InstructionPreviewProps {
-  data?: InstructionTemplate | InstructionFormData | AiCustomInstructionDTO;
+  data?: InstructionFormData | AiCustomInstructionDTO;
   onClose: () => void;
-  onUse?: () => void;
-  showUseButton?: boolean;
 }
 
 export default function InstructionPreview({
   data,
   onClose,
-  onUse,
-  showUseButton = false,
 }: InstructionPreviewProps) {
   if (!data) return null;
 
   // Determine data type and extract fields
-  const isTemplate = "category" in data && "tags" in data;
   const isFormData = "isActive" in data && !("instructionId" in data);
   const isInstruction = "instructionId" in data;
 
-  const instructionName = isTemplate
-    ? data.name
-    : "instructionName" in data
-    ? data.instructionName
-    : "";
+  const instructionName = "instructionName" in data ? data.instructionName : "";
   const systemPrompt = "systemPrompt" in data ? data.systemPrompt : "";
   const behaviorInstructions =
     "behaviorInstructions" in data ? data.behaviorInstructions : "";
   const dataAccessRules = "dataAccessRules" in data ? data.dataAccessRules : "";
-  const description = isTemplate ? data.description : "";
-  const tags = isTemplate ? data.tags : [];
   const isActive = isFormData
     ? data.isActive
     : isInstruction
@@ -63,23 +50,6 @@ export default function InstructionPreview({
     : true;
   // Generate sample response based on the instruction
   const generateSampleResponse = () => {
-    if (isTemplate) {
-      return `Dựa trên template này, tôi sẽ hỗ trợ bạn theo vai trò được định nghĩa:
-
-**Phân tích:**
-- Đánh giá tình huống hiện tại
-- Xác định các yếu tố quan trọng
-- Phân tích dữ liệu có sẵn
-
-**Khuyến nghị:**
-1. **Strategic Planning**: Approach có tính hệ thống
-2. **Data-driven Decisions**: Dựa trên evidence và metrics
-3. **Action Items**: Các bước cụ thể để thực hiện
-4. **Follow-up**: Monitoring và evaluation process
-
-Bạn có muốn tôi đi sâu vào chi tiết cụ thể nào không?`;
-    }
-
     return `Dựa trên vai trò của tôi như được định nghĩa, tôi sẽ phân tích câu hỏi của bạn và cung cấp những insights dựa trên dữ liệu và kinh nghiệm.
 
 **Approach của tôi:**
@@ -102,20 +72,14 @@ Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                Xem trước Hướng dẫn AI
+                Chi tiết Hướng dẫn AI
               </h3>
               <p className="text-sm text-gray-600">
-                {instructionName || "Hướng dẫn AI tùy chỉnh"}
+                {instructionName || "Hướng dẫn AI"}
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            {showUseButton && onUse && (
-              <Button onClick={onUse}>
-                <Check className="h-4 w-4 mr-2" />
-                Sử dụng mẫu này
-              </Button>
-            )}
             <Button variant="outline" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -149,34 +113,6 @@ Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
                     {instructionName || "Chưa đặt tên"}
                   </p>
                 </div>
-
-                {description && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Mô tả
-                    </Label>
-                    <p className="mt-1 text-sm text-gray-600">{description}</p>
-                  </div>
-                )}
-
-                {tags.length > 0 && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Tags
-                    </Label>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {tags.map((tag, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -192,7 +128,7 @@ Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-lg p-4 max-h-[300px] overflow-y-auto">
                   <pre className="text-sm text-gray-800 whitespace-pre-wrap font-sans">
                     {systemPrompt || "Chưa có system prompt"}
                   </pre>
@@ -213,7 +149,7 @@ Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="bg-blue-50 rounded-lg p-4 max-h-[200px] overflow-y-auto">
                     <pre className="text-sm text-blue-800 whitespace-pre-wrap font-sans">
                       {behaviorInstructions}
                     </pre>
@@ -235,7 +171,7 @@ Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-green-50 rounded-lg p-4">
+                  <div className="bg-green-50 rounded-lg p-4 max-h-[150px] overflow-y-auto">
                     <pre className="text-sm text-green-800 whitespace-pre-wrap font-sans">
                       {dataAccessRules}
                     </pre>

@@ -170,7 +170,7 @@ public class ChatBotService : IChatBotService
             });
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = $"{_geminiConfig.BaseUrl}?key={_geminiConfig.ApiKey}";
+            var url = $"{_geminiConfig.GetFullUrl()}?key={_geminiConfig.ApiKey}";
             var response = await _httpClient.PostAsync(url, content);
 
             if (!response.IsSuccessStatusCode)

@@ -191,3 +191,27 @@ public class RecommendationFeedbackDTO
     public List<string> SelectedTags { get; set; } = new(); // "Relevant", "Actionable", "Timely", etc.
     public DateTime FeedbackDate { get; set; } = DateTime.UtcNow;
 }
+
+// Additional DTOs for AI Recommendation Service
+public class UserUsageAnalyticsDTO
+{
+    public int UserId { get; set; }
+    public int TotalSessions { get; set; }
+    public TimeSpan TotalTimeSpent { get; set; }
+    public DateTime LastLoginDate { get; set; }
+    public int EngagementScore { get; set; }
+    public Dictionary<string, object> ActivityMetrics { get; set; } = new();
+    public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class RecommendationItemDTO
+{
+    public string Id { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public int Priority { get; set; } = 1;
+    public string RecommendationReason { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Dictionary<string, object> Metadata { get; set; } = new();
+}
