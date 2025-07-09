@@ -21,6 +21,20 @@ using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
 using System.Text.Json.Serialization;
+using ivan_api.Repository.Certificates;
+using ivan_api.Repository.CertificateTemplates;
+using ivan_api.Repository.OnSiteTasks;
+using ivan_api.Repository.OrganizationProfiles;
+using ivan_api.Repository.PartnerProfiles;
+using ivan_api.Repository.Reports;
+using ivan_api.Mapping;
+using PdfSharp.Fonts;
+using ivan_api.Services.CertificateTemplates;
+using ivan_api.Services.PartnerProfiles;
+using ivan_api.Services.Reports;
+using ivan_api.Services.Certificates;
+using ivan_api.Services.OnSiteTasks;
+using ivan_api.Services.OrganizationProfiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -147,6 +161,33 @@ builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 // Coordinator Task DI
 builder.Services.AddScoped<ICoordinatorTaskRepository, CoordinatorTaskRepository>();
 builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
+
+builder.Services.AddScoped<IOrganizationProfileRepository, OrganizationProfileRepository>();
+builder.Services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();
+
+builder.Services.AddScoped<IPartnerProfileRepository, PartnerProfileRepository>();
+builder.Services.AddScoped<IPartnerProfileService, PartnerProfileService>();
+
+builder.Services.AddScoped<IOnSiteTaskRepository, OnSiteTaskRepository>();
+builder.Services.AddScoped<IOnSiteTaskService, OnSiteTaskService>();
+
+builder.Services.AddScoped<ICertificateRepository, CertificateRepository>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
+
+builder.Services.AddScoped<ICertificateTemplateRepository, CertificateTemplateRepository>();
+builder.Services.AddScoped<ICertificateTemplateService, CertificateTemplateService>();
+
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.AddAutoMapper(typeof(OrganizationProfileMapping));
+builder.Services.AddAutoMapper(typeof(PartnerProfileMapping));
+builder.Services.AddAutoMapper(typeof(OnSiteTaskMapping));
+builder.Services.AddAutoMapper(typeof(CertificateMapping));
+builder.Services.AddAutoMapper(typeof(CertificateTemplateMapping));
+builder.Services.AddAutoMapper(typeof(ReportMapping));
+
+GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
