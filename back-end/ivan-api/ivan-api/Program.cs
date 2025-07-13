@@ -38,6 +38,8 @@ using ivan_api.Services.OrganizationProfiles;
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
 using ivan_api.Services.PublicContentServ;
+using ivan_api.Services.UserAccountServ;
+using ivan_api.Repository.UserAccountRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -197,6 +199,9 @@ GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 // Partner Collaboration DI
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
 builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
+
+builder.Services.AddScoped<IUserAccountService, UserAccountService>();
+builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
