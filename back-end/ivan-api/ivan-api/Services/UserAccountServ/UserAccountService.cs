@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.UserAccount;
+using ivan_api.Models;
 using ivan_api.Repository.UserAccountRepo;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +11,13 @@ namespace ivan_api.Services.UserAccountServ
     public class UserAccountService : IUserAccountService
     {
         private readonly IUserAccountRepository _userAccountRepository;
+        private readonly VolunteerManagementSystemContext _context;
         private readonly IMapper _mapper;
-        public UserAccountService(IUserAccountRepository userAccountRepository, IMapper mapper)
+        public UserAccountService(IUserAccountRepository userAccountRepository, IMapper mapper, VolunteerManagementSystemContext context)
         {
             _userAccountRepository = userAccountRepository;
             _mapper = mapper;
+            _context = context;
         }
 
         public async Task<PagedResultDto<UserAccountListDto>> getListUserAsync(UserAccountFilterDto filter)
@@ -157,6 +161,57 @@ namespace ivan_api.Services.UserAccountServ
                     filter.SearchTerm = filter.SearchTerm.Substring(0, 100);
                 }
             }
+        }
+
+        public async Task<UserAccountDetailDto> getUserInforByIdOrEmail(int? idUser, string? emailUser)
+        {
+            var user = new User();
+            if (idUser != null)
+            {
+                idUser = idUser.Value;
+                user = await _userAccountRepository.GetUserById(idUser);
+            }
+            else if (!string.IsNullOrEmpty(emailUser))
+            {
+                emailUser = emailUser.Trim();
+                user = await _userAccountRepository.GetUserByEmail(emailUser);
+            }
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            var userDto = _mapper.Map<UserAccountDetailDto>(user);
+            var statics = new UserStatisticsDto();
+
+            statics.TotalEventsJoined = await _context.EventRegistrations
+                .CountAsync(er => er.VolunteerId == user.UserId && er.StatusId == 2);
+
+            // Tổng số sự kiện đã hoàn thành (StatusId = 3: Completed)
+            statics.TotalEventsCompleted = await _context.EventRegistrations
+                 .CountAsync(er => er.VolunteerId == user.UserId && er.StatusId == 3);
+
+            // Tổng số hợp tác (nếu user là Partner)
+            statics.TotalCollaborations = await _context.PartnerCollaborations
+                .CountAsync(pc => pc.PartnerId == user.UserId);
+
+            // Tổng giờ tình nguyện và rating từ VolunteerProfiles
+            var volunteerProfile = await _context.VolunteerProfiles
+                .FirstOrDefaultAsync(vp => vp.UserId == user.UserId);
+            statics.TotalHoursVolunteered = volunteerProfile?.TotalHoursVolunteered;
+            statics.Rating = volunteerProfile?.Rating;
+
+            // Tổng số lượt đánh giá (ví dụ từ EventFeedbacks)
+            statics.TotalRatings = await _context.Feedbacks
+                .CountAsync(ef => ef.UserId == user.UserId && ef.Rating.HasValue);
+
+            // Hoạt động cuối cùng (LastLoginAt hoặc hoạt động gần nhất)
+            statics.LastActivityAt = user.LastLoginAt;
+
+            userDto.Statistics = statics;
+
+            return userDto;
         }
     }
 }

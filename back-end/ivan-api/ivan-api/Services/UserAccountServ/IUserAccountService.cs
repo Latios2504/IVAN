@@ -6,5 +6,6 @@ namespace ivan_api.Services.UserAccountServ
     public interface IUserAccountService
     {
         Task<PagedResultDto<UserAccountListDto>> getListUserAsync(UserAccountFilterDto filter);
+        Task<UserAccountDetailDto> getUserInforByIdOrEmail(int? idUser, string? emailUser);
     }
 }

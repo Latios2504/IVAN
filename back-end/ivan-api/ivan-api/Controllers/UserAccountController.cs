@@ -15,10 +15,21 @@ namespace ivan_api.Controllers
             _userAccountService = userAccountService;
         }
 
-        [HttpPut("getListUser")]
+        [HttpPost("getListUser")]
         public async Task<IActionResult> GetListUser([FromBody] UserAccountFilterDto filter)
         {
             var result = await _userAccountService.getListUserAsync(filter);
+            return Ok(result);
+        }
+
+        [HttpPost("getUserInforDetail")]
+        public async Task<IActionResult> GetUserDetail(int? userId, string? email)
+        {
+            var result = await _userAccountService.getUserInforByIdOrEmail(userId, email);
+            if (result == null)
+            {
+                return NotFound(new { Message = "User not found" });
+            }
             return Ok(result);
         }
     }

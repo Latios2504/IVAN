@@ -21,7 +21,7 @@ namespace ivan_api.Repository.UserAccountRepo
             return await _context.Users.Include(x => x.UserProfiles).Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == email);
         }
 
-        public async Task<User?> GetUserById(int userId)
+        public async Task<User?> GetUserById(int? userId)
         {
             return await _context.Users
                 .Include(x => x.UserProfiles)

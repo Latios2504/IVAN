@@ -3,9 +3,9 @@
     public class UserAccountListDto
     {
         public int UserId { get; set; }
-        public string Email { get; set; }
-        public string FullName { get; set; }
-        public string RoleName { get; set; }
+        public string? Email { get; set; }
+        public string? FullName { get; set; }
+        public string? RoleName { get; set; }
         public bool IsActive { get; set; }
         public bool IsEmailVerified { get; set; }
         public DateTime? LastLoginAt { get; set; }
