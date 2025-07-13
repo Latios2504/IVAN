@@ -114,41 +114,41 @@ namespace ivan_api.Services.UserAccountServ
             if (filter.PageNumber < 1)
                 filter.PageNumber = 1;
 
-            // Đảm bảo SortDirection hợp lệ
-            if (!string.IsNullOrEmpty(filter.SortDirection) &&
-                !new[] { "asc", "desc" }.Contains(filter.SortDirection.ToLower()))
-            {
-                filter.SortDirection = "desc";
-            }
+            //// Đảm bảo SortDirection hợp lệ
+            //if (!string.IsNullOrEmpty(filter.SortDirection) &&
+            //    !new[] { "asc", "desc" }.Contains(filter.SortDirection.ToLower()))
+            //{
+            //    filter.SortDirection = "desc";
+            //}
 
-            // Validate SortBy field
-            if (!string.IsNullOrEmpty(filter.SortBy))
-            {
-                var validSortFields = new[] { "Email", "FullName", "CreatedAt", "LastLoginAt", "RoleName" };
-                if (!validSortFields.Contains(filter.SortBy, StringComparer.OrdinalIgnoreCase))
-                {
-                    filter.SortBy = "CreatedAt";
-                }
-            }
+            //// Validate SortBy field
+            //if (!string.IsNullOrEmpty(filter.SortBy))
+            //{
+            //    var validSortFields = new[] { "Email", "FullName", "CreatedAt", "LastLoginAt", "RoleName" };
+            //    if (!validSortFields.Contains(filter.SortBy, StringComparer.OrdinalIgnoreCase))
+            //    {
+            //        filter.SortBy = "CreatedAt";
+            //    }
+            //}
 
             // Validate date ranges
-            if (filter.CreatedDateFrom.HasValue && filter.CreatedDateTo.HasValue)
-            {
-                if (filter.CreatedDateFrom > filter.CreatedDateTo)
-                {
-                    // Swap dates if From > To
-                    (filter.CreatedDateFrom, filter.CreatedDateTo) = (filter.CreatedDateTo, filter.CreatedDateFrom);
-                }
-            }
+            //if (filter.CreatedDateFrom.HasValue && filter.CreatedDateTo.HasValue)
+            //{
+            //    if (filter.CreatedDateFrom > filter.CreatedDateTo)
+            //    {
+            //        // Swap dates if From > To
+            //        (filter.CreatedDateFrom, filter.CreatedDateTo) = (filter.CreatedDateTo, filter.CreatedDateFrom);
+            //    }
+            //}
 
-            if (filter.LastLoginFrom.HasValue && filter.LastLoginTo.HasValue)
-            {
-                if (filter.LastLoginFrom > filter.LastLoginTo)
-                {
-                    // Swap dates if From > To
-                    (filter.LastLoginFrom, filter.LastLoginTo) = (filter.LastLoginTo, filter.LastLoginFrom);
-                }
-            }
+            //if (filter.LastLoginFrom.HasValue && filter.LastLoginTo.HasValue)
+            //{
+            //    if (filter.LastLoginFrom > filter.LastLoginTo)
+            //    {
+            //        // Swap dates if From > To
+            //        (filter.LastLoginFrom, filter.LastLoginTo) = (filter.LastLoginTo, filter.LastLoginFrom);
+            //    }
+            //}
 
             // Trim SearchTerm
             if (!string.IsNullOrEmpty(filter.SearchTerm))
