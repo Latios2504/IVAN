@@ -1,4 +1,5 @@
 ﻿using ivan_api.DTOs;
+using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.EventManage;
 
 namespace ivan_api.Services.EventServ

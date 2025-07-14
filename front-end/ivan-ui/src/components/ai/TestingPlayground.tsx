@@ -31,8 +31,9 @@ import {
   History,
   Settings,
 } from "lucide-react";
-import type { AiCustomInstructionDTO } from "@/types/ai-instructions";
+import type { AiCustomInstructionDTO, AiProviderStatus } from "@/types/ai";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
+import { aiTestingService } from "@/services/api/aiTestingService";
 
 interface TestingPlaygroundProps {
   instruction: AiCustomInstructionDTO;
@@ -115,6 +116,8 @@ export default function TestingPlayground({
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [currentConfig, setCurrentConfig] = useState<any>(null);
+  // Add provider status integration
+  const [providerStatus, setProviderStatus] = useState<AiProviderStatus[]>([]);
 
   // Load available models and current config
   useEffect(() => {
@@ -125,21 +128,23 @@ export default function TestingPlayground({
           aiInstructionsService.getGeminiConfig(),
         ]);
 
-        if (modelsResponse.success && modelsResponse.data) {
-          setAvailableModels(modelsResponse.data);
+        // Handle direct array response for models
+        if (Array.isArray(modelsResponse)) {
+          setAvailableModels(modelsResponse);
           // Set default to first available model
-          if (modelsResponse.data.length > 0) {
-            setSelectedModel(modelsResponse.data[0]);
+          if (modelsResponse.length > 0) {
+            setSelectedModel(modelsResponse[0]);
           }
         }
 
-        if (configResponse.success && configResponse.data) {
-          setCurrentConfig(configResponse.data);
+        // Handle direct object response for config
+        if (configResponse) {
+          setCurrentConfig(configResponse);
           // Set default to current model if available
-          const config = configResponse.data as any;
+          const config = configResponse as any;
           if (
             config.currentModel &&
-            modelsResponse.data?.includes(config.currentModel)
+            modelsResponse?.includes(config.currentModel)
           ) {
             setSelectedModel(config.currentModel);
           }
@@ -152,6 +157,11 @@ export default function TestingPlayground({
     loadModelsAndConfig();
   }, []);
 
+  // Load provider status
+  useEffect(() => {
+    aiTestingService.getProviderStatus().then(setProviderStatus);
+  }, []);
+
   const handleTest = async () => {
     if (!currentQuery.trim() || !selectedModel) return;
 
@@ -159,40 +169,31 @@ export default function TestingPlayground({
     const startTime = Date.now();
 
     try {
-      const response = await aiInstructionsService.testInstructionWithModel(
+      // Update test method to use corrected types and new service signature
+      const result = await aiInstructionsService.testInstructionWithModel(
         instruction.instructionId,
-        currentQuery,
-        selectedModel
+        {
+          sampleQuery: currentQuery,
+          modelName: selectedModel
+        }
       );
 
-      const executionTime = Date.now() - startTime;
+      // Handle full response object structure
+      const newResult: TestResult = {
+        id: Date.now().toString(),
+        query: currentQuery,
+        response: result.response,
+        timestamp: new Date(result.testedAt),
+        executionTime: result.executionTimeMs,
+        success: result.success,
+        model: result.modelUsed,
+        error: result.error
+      };
 
-      if (response.success && response.data) {
-        const newResult: TestResult = {
-          id: Date.now().toString(),
-          query: currentQuery,
-          response: response.data,
-          timestamp: new Date(),
-          executionTime,
-          success: true,
-          model: selectedModel,
-        };
-
-        setTestResults((prev) => [newResult, ...prev]);
+      setTestResults((prev) => [newResult, ...prev]);
+      
+      if (result.success) {
         setCurrentQuery("");
-      } else {
-        const newResult: TestResult = {
-          id: Date.now().toString(),
-          query: currentQuery,
-          response: "",
-          timestamp: new Date(),
-          executionTime: Date.now() - startTime,
-          success: false,
-          error: response.message || "Test failed",
-          model: selectedModel,
-        };
-
-        setTestResults((prev) => [newResult, ...prev]);
       }
     } catch (error) {
       const newResult: TestResult = {
@@ -202,8 +203,7 @@ export default function TestingPlayground({
         timestamp: new Date(),
         executionTime: Date.now() - startTime,
         success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error ? error.message : "Unknown error occurred",
         model: selectedModel,
       };
 

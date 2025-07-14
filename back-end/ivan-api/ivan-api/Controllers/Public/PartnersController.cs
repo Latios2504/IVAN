@@ -1,4 +1,5 @@
 using ivan_api.DTOs;
+using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Public;
 using ivan_api.Services.PublicContentServ;
 using Microsoft.AspNetCore.Authorization;

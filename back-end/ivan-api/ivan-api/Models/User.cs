@@ -27,27 +27,21 @@ public partial class User
 
     public DateTime? LastLoginAt { get; set; }
 
+    public string? AiPreferredLanguage { get; set; }
+
+    public string? AiQueryComplexityLevel { get; set; }
+
+    public bool? AiPersonalizationEnabled { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<AiConversationContext> AiConversationContexts { get; set; } = new List<AiConversationContext>();
+    public virtual ICollection<AiCacheEntry> AiCacheEntries { get; set; } = new List<AiCacheEntry>();
 
     public virtual ICollection<AiCustomInstruction> AiCustomInstructions { get; set; } = new List<AiCustomInstruction>();
 
-    public virtual ICollection<AiPerformanceMetric> AiPerformanceMetrics { get; set; } = new List<AiPerformanceMetric>();
-
-    public virtual ICollection<AiQueryAnalytic> AiQueryAnalytics { get; set; } = new List<AiQueryAnalytic>();
-
-    public virtual ICollection<AiRateLimit> AiRateLimits { get; set; } = new List<AiRateLimit>();
-
-    public virtual ICollection<AiSecurityAuditLog> AiSecurityAuditLogs { get; set; } = new List<AiSecurityAuditLog>();
-
-    public virtual ICollection<AiSystemConfiguration> AiSystemConfigurations { get; set; } = new List<AiSystemConfiguration>();
-
-    public virtual ICollection<AiUserPermission> AiUserPermissionGrantedByUsers { get; set; } = new List<AiUserPermission>();
-
-    public virtual ICollection<AiUserPermission> AiUserPermissionUsers { get; set; } = new List<AiUserPermission>();
+    public virtual ICollection<AiQueryIntent> AiQueryIntents { get; set; } = new List<AiQueryIntent>();
 
     public virtual ICollection<CertificateTemplate> CertificateTemplates { get; set; } = new List<CertificateTemplate>();
 

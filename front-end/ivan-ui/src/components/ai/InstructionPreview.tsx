@@ -21,7 +21,7 @@ import {
 import type {
   InstructionFormData,
   AiCustomInstructionDTO,
-} from "@/types/ai-instructions";
+} from "@/types/ai";
 
 interface InstructionPreviewProps {
   data?: InstructionFormData | AiCustomInstructionDTO;

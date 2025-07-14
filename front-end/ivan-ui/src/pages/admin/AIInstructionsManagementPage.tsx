@@ -55,6 +55,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth";
 import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
 import InstructionPreview from "@/components/ai/InstructionPreview";
 import TestingPlayground from "@/components/ai/TestingPlayground";
@@ -64,13 +65,15 @@ import type {
   AiCustomInstructionUpdateDTO,
   InstructionFormData,
   InstructionFilters,
-} from "@/types/ai-instructions";
+  InstructionPerformanceDTO,
+} from "@/types/ai";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
 
 type ViewMode = "overview" | "builder" | "preview" | "testing";
 
 export default function AIInstructionsManagementPage() {
   const { user } = useAuth();
+  const isAdmin = user?.role === UserRole.ADMIN; // Use the enum constant
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const [instructions, setInstructions] = useState<AiCustomInstructionDTO[]>(
     []
@@ -147,7 +150,8 @@ export default function AIInstructionsManagementPage() {
   const loadInstructions = async () => {
     try {
       setLoading(true);
-      const data = await aiInstructionsService.getAllInstructions();
+      // Use role-based data loading
+      const data = await aiInstructionsService.getInstructions(isAdmin);
 
       // Ensure data is an array before setting state
       const instructionsArray = Array.isArray(data) ? data : [];
@@ -159,8 +163,8 @@ export default function AIInstructionsManagementPage() {
       setStats({
         total: instructionsArray.length,
         active: activeCount,
-        avgQuality: 4.2, // Mock data
-        totalQueries: 1247, // Mock data
+        avgQuality: 4.2, // Mock data - TODO: Add real performance metrics
+        totalQueries: 1247, // Mock data - TODO: Add real performance metrics
       });
     } catch (error) {
       console.error("Failed to load instructions:", error);
@@ -174,6 +178,26 @@ export default function AIInstructionsManagementPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Add performance metrics loading function as specified in the documentation
+  const loadPerformance = async (instructionId: number) => {
+    try {
+      const performance = await aiInstructionsService.getInstructionPerformance(instructionId);
+      
+      // Update stats with real performance data
+      setStats(prevStats => ({
+        ...prevStats,
+        avgQuality: performance.averageResponseQuality,
+        totalQueries: performance.totalQueries,
+      }));
+      
+      console.log("Performance metrics loaded:", performance);
+      return performance;
+    } catch (error) {
+      console.error("Failed to load performance metrics:", error);
+      throw error;
     }
   };
 

@@ -6,9 +6,12 @@ import type {
   AiCustomInstructionCreateDTO,
   AiCustomInstructionUpdateDTO,
   TestInstructionRequestDTO,
+  TestInstructionResponseDTO,
+  TestInstructionWithModelRequestDTO,
+  ToggleInstructionStatusDTO,
   AiQueryAnalyticsDTO,
-  InstructionPerformance,
-} from "../../types/ai-instructions";
+  InstructionPerformanceDTO,
+} from "../../types/ai";
 
 /**
  * Service for managing AI Custom Instructions
@@ -161,6 +164,66 @@ class AIInstructionsService {
   }
 
   /**
+   * Update instruction with role-based endpoint selection
+   */
+  async updateInstructionRoleBased(
+    instructionId: number,
+    data: AiCustomInstructionUpdateDTO,
+    isAdmin: boolean
+  ): Promise<AiCustomInstructionDTO> {
+    try {
+      const endpoint = isAdmin
+        ? `${this.baseEndpoint}/admin/${instructionId}` // Admin can update any
+        : `${this.baseEndpoint}/${instructionId}`; // User updates own only
+
+      const response = await this.api.put<AiCustomInstructionDTO>(endpoint, data);
+
+      if (!response.success || !response.data) {
+        throw new ApiError(
+          response.message || "Failed to update AI instruction",
+          400
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to update AI instruction", 500);
+    }
+  }
+
+  /**
+   * Update user's own instruction (non-admin endpoint)
+   */
+  async updateUserInstruction(
+    instructionId: number,
+    data: AiCustomInstructionUpdateDTO
+  ): Promise<AiCustomInstructionDTO> {
+    try {
+      const response = await this.api.put<AiCustomInstructionDTO>(
+        `${this.baseEndpoint}/${instructionId}`, // No /admin prefix
+        data
+      );
+
+      if (!response.success || !response.data) {
+        throw new ApiError(
+          response.message || "Failed to update user instruction",
+          400
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError("Failed to update user instruction", 500);
+    }
+  }
+
+  /**
    * Delete an AI instruction (Admin can delete any instruction)
    */
   async deleteInstruction(instructionId: number): Promise<void> {
@@ -280,14 +343,14 @@ class AIInstructionsService {
   }
 
   /**
-   * Test an AI instruction with a sample query
+   * Test an AI instruction with a sample query (Admin only)
    */
   async testInstruction(
     instructionId: number,
     request: TestInstructionRequestDTO
-  ): Promise<string> {
+  ): Promise<TestInstructionResponseDTO> {
     try {
-      const response = await this.api.post<string>(
+      const response = await this.api.post<TestInstructionResponseDTO>(
         `${this.baseEndpoint}/admin/${instructionId}/test`,
         request
       );
@@ -309,28 +372,34 @@ class AIInstructionsService {
   }
 
   /**
-   * Test an AI instruction with a specific model (Admin only)
+   * Test instruction with specific model
    */
   async testInstructionWithModel(
     instructionId: number,
-    sampleQuery: string,
-    model: string
-  ): Promise<ApiResponse<string>> {
+    request: TestInstructionWithModelRequestDTO
+  ): Promise<TestInstructionResponseDTO> {
     try {
-      const response = await this.api.post<string>(
-        `${this.baseEndpoint}/admin/${instructionId}/test-with-model`,
-        {
-          sampleQuery,
-          model,
-        }
+      const response = await this.api.post<TestInstructionResponseDTO>(
+        `${this.baseEndpoint}/${instructionId}/test-with-model`,
+        request
       );
 
-      return response;
+      // Check if the API call itself was successful
+      if (!response.success || response.data === undefined) {
+        throw new ApiError(
+          response.message || "Failed to test instruction with model",
+          400
+        );
+      }
+
+      // Return the actual test result (which may have success: false if AI test failed)
+      // The frontend will handle the success/failure based on response.data.success
+      return response.data;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
       }
-      throw new ApiError("Failed to test AI instruction with model", 500);
+      throw new ApiError("Failed to test instruction with model", 500);
     }
   }
 
@@ -363,9 +432,9 @@ class AIInstructionsService {
    */
   async getInstructionPerformance(
     instructionId: number
-  ): Promise<InstructionPerformance> {
+  ): Promise<InstructionPerformanceDTO> {
     try {
-      const response = await this.api.get<InstructionPerformance>(
+      const response = await this.api.get<InstructionPerformanceDTO>(
         `${this.baseEndpoint}/${instructionId}/performance`
       );
 
@@ -423,6 +492,40 @@ class AIInstructionsService {
         throw error;
       }
       throw new ApiError("Failed to fetch user AI instructions", 500);
+    }
+  }
+
+  /**
+   * Get instructions based on user role
+   */
+  async getInstructions(isAdmin: boolean): Promise<AiCustomInstructionDTO[]> {
+    try {
+      const endpoint = isAdmin
+        ? `${this.baseEndpoint}/all` // Admin gets all instructions
+        : this.baseEndpoint; // User gets own instructions
+
+      const response = await this.api.get<AiCustomInstructionDTO[]>(endpoint);
+
+      if (!response.success) {
+        throw new ApiError("Failed to fetch AI instructions", 400);
+      }
+
+      // Use helper to normalize the response
+      const instructionsData =
+        this.normalizeArrayResponse<AiCustomInstructionDTO>(response.data);
+
+      console.log(
+        `✅ AI Instructions loaded (${isAdmin ? "admin" : "user"}):`,
+        instructionsData.length,
+        "items"
+      );
+      return instructionsData;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      console.error("Failed to fetch AI instructions:", error);
+      throw new ApiError("Failed to fetch AI instructions", 500);
     }
   }
 
@@ -526,12 +629,17 @@ Mục tiêu: Tạo ra những sự kiện có ý nghĩa, an toàn và hiệu qu�
   /**
    * Get current Gemini configuration (Admin only)
    */
-  async getGeminiConfig(): Promise<ApiResponse<object>> {
+  async getGeminiConfig(): Promise<object> {
     try {
       const response = await this.api.get<object>(
         `${this.baseEndpoint}/admin/gemini-config`
       );
-      return response;
+
+      if (!response.success || !response.data) {
+        throw new ApiError("Failed to fetch Gemini configuration", 400);
+      }
+
+      return response.data;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -543,18 +651,18 @@ Mục tiêu: Tạo ra những sự kiện có ý nghĩa, an toàn và hiệu qu�
   /**
    * Get available Gemini models (Admin only)
    */
-  async getAvailableModels(): Promise<ApiResponse<string[]>> {
+  async getAvailableModels(): Promise<string[]> {
     try {
       const response = await this.api.get<string[]>(
         `${this.baseEndpoint}/admin/gemini-models`
       );
 
-      // Normalize the response data to handle $values format
-      if (response.success && response.data) {
-        response.data = this.normalizeArrayResponse<string>(response.data);
+      if (!response.success || !response.data) {
+        throw new ApiError("Failed to fetch available models", 400);
       }
 
-      return response;
+      // Normalize the response data to handle $values format
+      return this.normalizeArrayResponse<string>(response.data);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;

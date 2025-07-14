@@ -1,677 +1,636 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ivan_api.DTOs.AI;
+using ivan_api.DTOs.Authentication;
+using ivan_api.Services.AI.Interfaces;
 using System.Security.Claims;
-using ivan_api.DTOs;
-using ivan_api.DTOs.AIDatabaseManage;
-using ivan_api.Services.AIInstructionServ;
 
 namespace ivan_api.Controllers;
 
+/// <summary>
+/// Controller for AI Instructions Management
+/// Integrates with multi-model AI testing playground
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class AIInstructionsController : ControllerBase
 {
-    private readonly IAIInstructionService _instructionService;
+    private readonly IAiInstructionsService _aiInstructionsService;
     private readonly ILogger<AIInstructionsController> _logger;
 
-    public AIInstructionsController(IAIInstructionService instructionService, ILogger<AIInstructionsController> logger)
+    public AIInstructionsController(
+        IAiInstructionsService aiInstructionsService,
+        ILogger<AIInstructionsController> logger)
     {
-        _instructionService = instructionService;
+        _aiInstructionsService = aiInstructionsService;
         _logger = logger;
     }
 
+    #region CRUD Operations
+
     /// <summary>
-    /// Create a new AI instruction (Admin only)
+    /// Get all AI instructions (Admin only)
     /// </summary>
-    [HttpPost]
+    [HttpGet("all")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> CreateInstruction([FromBody] AiCustomInstructionCreateDTO request)
+    public async Task<ActionResult<ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>>> GetAllInstructions()
+    {
+        try
+        {
+            var instructions = await _aiInstructionsService.GetAllInstructionsAsync();
+            _logger.LogInformation("Retrieved {Count} AI instructions for admin", instructions.Count());
+            
+            return Ok(new ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>
+            {
+                Success = true,
+                Message = "AI instructions retrieved successfully",
+                Data = instructions
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all AI instructions");
+            return StatusCode(500, new ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching AI instructions",
+                Errors = new List<string> { ex.Message }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get current user's AI instructions
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>>> GetUserInstructions()
     {
         try
         {
             var userId = GetCurrentUserId();
-            if (!userId.HasValue)
+            var instructions = await _aiInstructionsService.GetUserInstructionsAsync(userId);
+            _logger.LogInformation("Retrieved {Count} AI instructions for user {UserId}", instructions.Count(), userId);
+            
+            return Ok(new ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>
             {
-                return Unauthorized(new ApiResponseDTO<AiCustomInstructionDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
-            }
-
-            var result = await _instructionService.CreateInstructionAsync(userId.Value, request);
-
-            if (result.Success)
+                Success = true,
+                Message = "User AI instructions retrieved successfully",
+                Data = instructions
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("❌ Unauthorized access: {Message}", ex.Message);
+            return Unauthorized(new ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>
             {
-                _logger.LogInformation("AI instruction created successfully by user {UserId}", userId.Value);
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+                Success = false,
+                Message = "Unauthorized access",
+                Errors = new List<string> { ex.Message }
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in CreateInstruction endpoint");
-            return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
+            _logger.LogError(ex, "Error getting user AI instructions");
+            return StatusCode(500, new ApiResponseDTO<IEnumerable<AiCustomInstructionDTO>>
             {
                 Success = false,
-                Message = "An internal error occurred"
+                Message = "An error occurred while fetching your AI instructions",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
 
     /// <summary>
-    /// Update an existing AI instruction (Admin only)
-    /// </summary>
-    [HttpPut("{instructionId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> UpdateInstruction(int instructionId, [FromBody] AiCustomInstructionUpdateDTO request)
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-            {
-                return Unauthorized(new ApiResponseDTO<AiCustomInstructionDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
-            }
-
-            var result = await _instructionService.UpdateInstructionAsync(instructionId, userId.Value, request);
-
-            if (result.Success)
-            {
-                _logger.LogInformation("AI instruction {InstructionId} updated successfully by user {UserId}", instructionId, userId.Value);
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in UpdateInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
-        }
-    }
-
-    /// <summary>
-    /// Delete an AI instruction (Admin only)
-    /// </summary>
-    [HttpDelete("{instructionId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<bool>>> DeleteInstruction(int instructionId)
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-            {
-                return Unauthorized(new ApiResponseDTO<bool>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
-            }
-
-            var result = await _instructionService.DeleteInstructionAsync(instructionId, userId.Value);
-
-            if (result.Success)
-            {
-                _logger.LogInformation("AI instruction {InstructionId} deleted successfully by user {UserId}", instructionId, userId.Value);
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in DeleteInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<bool>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
-        }
-    }
-
-    /// <summary>
-    /// Delete any AI instruction (Admin only - bypasses ownership check)
-    /// </summary>
-    [HttpDelete("admin/{instructionId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<bool>>> DeleteAnyInstruction(int instructionId)
-    {
-        try
-        {
-            var result = await _instructionService.DeleteAnyInstructionAsync(instructionId);
-
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in DeleteAnyInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<bool>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
-        }
-    }
-
-    /// <summary>
-    /// Update any AI instruction (Admin only - bypasses ownership check)
-    /// </summary>
-    [HttpPut("admin/{instructionId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> UpdateAnyInstruction(int instructionId, [FromBody] AiCustomInstructionUpdateDTO request)
-    {
-        try
-        {
-            var result = await _instructionService.UpdateAnyInstructionAsync(instructionId, request);
-
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in UpdateAnyInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
-        }
-    }
-
-    /// <summary>
-    /// Get a specific AI instruction
+    /// Get specific AI instruction by ID
     /// </summary>
     [HttpGet("{instructionId}")]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> GetInstruction(int instructionId)
     {
         try
         {
+            var instruction = await _aiInstructionsService.GetInstructionByIdAsync(instructionId);
+            
+            if (instruction == null)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
+            // Check access permissions
             var userId = GetCurrentUserId();
-            if (!userId.HasValue)
+            var isAdmin = User.IsInRole("Admin");
+            
+            if (!isAdmin && instruction.CreatedByUserId != userId)
             {
-                return Unauthorized(new ApiResponseDTO<AiCustomInstructionDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
+                return Forbid("You don't have permission to view this AI instruction");
             }
 
-            var result = await _instructionService.GetInstructionAsync(instructionId, userId.Value);
-
-            if (result.Success)
+            return Ok(new ApiResponseDTO<AiCustomInstructionDTO>
             {
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
+                Success = true,
+                Message = "AI instruction retrieved successfully",
+                Data = instruction
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error getting AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while fetching the AI instruction");
         }
     }
 
     /// <summary>
-    /// Get all AI instructions in the system (Admin only)
+    /// Create new AI instruction
     /// </summary>
-    [HttpGet("all")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<List<AiCustomInstructionDTO>>>> GetAllInstructions()
+    [HttpPost]
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> CreateInstruction(
+        [FromBody] AiCustomInstructionCreateDTO createDto)
     {
         try
         {
-            var result = await _instructionService.GetAllInstructionsAsync();
-
-            if (result.Success)
+            if (!ModelState.IsValid)
             {
-                return Ok(result);
+                return BadRequest(ModelState);
             }
 
-            return BadRequest(result);
+            var userId = GetCurrentUserId();
+            var instruction = await _aiInstructionsService.CreateInstructionAsync(createDto, userId);
+            
+            return CreatedAtAction(
+                nameof(GetInstruction), 
+                new { instructionId = instruction.InstructionId }, 
+                new ApiResponseDTO<AiCustomInstructionDTO>
+                {
+                    Success = true,
+                    Message = "AI instruction created successfully",
+                    Data = instruction
+                });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetAllInstructions endpoint");
-            return StatusCode(500, new ApiResponseDTO<List<AiCustomInstructionDTO>>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error creating AI instruction");
+            return StatusCode(500, "An error occurred while creating the AI instruction");
         }
     }
 
     /// <summary>
-    /// Get all AI instructions for the current user (Admin only)
+    /// Update AI instruction (Admin can update any, users can update their own)
     /// </summary>
-    [HttpGet]
+    [HttpPut("admin/{instructionId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<List<AiCustomInstructionDTO>>>> GetUserInstructions()
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> AdminUpdateInstruction(
+        int instructionId,
+        [FromBody] AiCustomInstructionUpdateDTO updateDto)
     {
         try
         {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
+            if (!ModelState.IsValid)
             {
-                return Unauthorized(new ApiResponseDTO<List<AiCustomInstructionDTO>>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
+                return BadRequest(ModelState);
             }
 
-            var result = await _instructionService.GetUserInstructionsAsync(userId.Value);
-
-            if (result.Success)
+            var instruction = await _aiInstructionsService.UpdateInstructionAsync(instructionId, updateDto);
+            
+            return Ok(new ApiResponseDTO<AiCustomInstructionDTO>
             {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+                Success = true,
+                Message = "AI instruction updated successfully",
+                Data = instruction
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetUserInstructions endpoint");
-            return StatusCode(500, new ApiResponseDTO<List<AiCustomInstructionDTO>>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error updating AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while updating the AI instruction");
         }
     }
 
     /// <summary>
-    /// Get template AI instructions (available to all users)
+    /// Update user's own AI instruction
+    /// </summary>
+    [HttpPut("{instructionId}")]
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> UpdateInstruction(
+        int instructionId,
+        [FromBody] AiCustomInstructionUpdateDTO updateDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Check ownership
+            var existingInstruction = await _aiInstructionsService.GetInstructionByIdAsync(instructionId);
+            if (existingInstruction == null)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
+            var userId = GetCurrentUserId();
+            if (existingInstruction.CreatedByUserId != userId)
+            {
+                return Forbid("You can only update your own AI instructions");
+            }
+
+            var instruction = await _aiInstructionsService.UpdateInstructionAsync(instructionId, updateDto);
+            
+            return Ok(new ApiResponseDTO<AiCustomInstructionDTO>
+            {
+                Success = true,
+                Message = "AI instruction updated successfully",
+                Data = instruction
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while updating the AI instruction");
+        }
+    }
+
+    /// <summary>
+    /// Delete AI instruction (Admin only)
+    /// </summary>
+    [HttpDelete("admin/{instructionId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> AdminDeleteInstruction(int instructionId)
+    {
+        try
+        {
+            var success = await _aiInstructionsService.DeleteInstructionAsync(instructionId);
+            
+            if (!success)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while deleting the AI instruction");
+        }
+    }
+
+    #endregion
+
+    #region Status Management
+
+    /// <summary>
+    /// Toggle instruction active status
+    /// </summary>
+    [HttpPatch("{instructionId}/status")]
+    public async Task<ActionResult<AiCustomInstructionDTO>> ToggleInstructionStatus(
+        int instructionId,
+        [FromBody] ToggleInstructionStatusDTO statusDto)
+    {
+        try
+        {
+            // Check ownership or admin role
+            var existingInstruction = await _aiInstructionsService.GetInstructionByIdAsync(instructionId);
+            if (existingInstruction == null)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
+            var userId = GetCurrentUserId();
+            var isAdmin = User.IsInRole("Admin");
+            
+            if (!isAdmin && existingInstruction.CreatedByUserId != userId)
+            {
+                return Forbid("You can only modify your own AI instructions");
+            }
+
+            var instruction = await _aiInstructionsService.ToggleInstructionStatusAsync(instructionId, statusDto.IsActive);
+            return Ok(instruction);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling AI instruction status {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while updating the instruction status");
+        }
+    }
+
+    #endregion
+
+    #region Template Management
+
+    /// <summary>
+    /// Get template AI instructions
     /// </summary>
     [HttpGet("templates")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<List<AiCustomInstructionDTO>>>> GetTemplateInstructions()
+    public async Task<ActionResult<IEnumerable<AiCustomInstructionDTO>>> GetTemplateInstructions()
     {
         try
         {
-            var result = await _instructionService.GetTemplateInstructionsAsync();
-
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            var templates = await _aiInstructionsService.GetTemplateInstructionsAsync();
+            return Ok(templates);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetTemplateInstructions endpoint");
-            return StatusCode(500, new ApiResponseDTO<List<AiCustomInstructionDTO>>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error getting template AI instructions");
+            return StatusCode(500, "An error occurred while fetching template instructions");
         }
     }
 
     /// <summary>
-    /// Get the default AI instruction
+    /// Get default AI instruction
     /// </summary>
     [HttpGet("default")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> GetDefaultInstruction()
+    public async Task<ActionResult<AiCustomInstructionDTO>> GetDefaultInstruction()
     {
         try
         {
-            var result = await _instructionService.GetDefaultInstructionAsync();
-
-            if (result.Success)
+            var defaultInstruction = await _aiInstructionsService.GetDefaultInstructionAsync();
+            
+            if (defaultInstruction == null)
             {
-                return Ok(result);
+                return NotFound("No default AI instruction found");
             }
 
-            return NotFound(result);
+            return Ok(defaultInstruction);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetDefaultInstruction endpoint");
-            return StatusCode(500, new ApiResponseDTO<AiCustomInstructionDTO>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error getting default AI instruction");
+            return StatusCode(500, "An error occurred while fetching the default instruction");
         }
     }
 
-    /// <summary>
-    /// Test an AI instruction with a sample query (Admin only)
-    /// </summary>
-    [HttpPost("{instructionId}/test")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<string>>> TestInstruction(int instructionId, [FromBody] TestInstructionRequestDTO request)
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-            {
-                return Unauthorized(new ApiResponseDTO<string>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
-            }
+    #endregion
 
-            if (string.IsNullOrWhiteSpace(request.SampleQuery))
-            {
-                return BadRequest(new ApiResponseDTO<string>
-                {
-                    Success = false,
-                    Message = "Sample query is required"
-                });
-            }
-
-            var result = await _instructionService.TestInstructionAsync(instructionId, request.SampleQuery, userId.Value);
-
-            if (result.Success)
-            {
-                _logger.LogInformation("AI instruction {InstructionId} tested successfully by user {UserId}", instructionId, userId.Value);
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in TestInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<string>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
-        }
-    }
+    #region Testing Integration
 
     /// <summary>
-    /// Test any AI instruction with a sample query (Admin only - bypasses ownership check)
+    /// Test AI instruction with sample query (uses default model)
     /// </summary>
     [HttpPost("admin/{instructionId}/test")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<string>>> TestAnyInstruction(int instructionId, [FromBody] TestInstructionRequestDTO request)
+    public async Task<ActionResult<ApiResponseDTO<TestInstructionResponseDTO>>> TestInstruction(
+        int instructionId,
+        [FromBody] TestInstructionRequestDTO testRequest)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.SampleQuery))
+            if (string.IsNullOrWhiteSpace(testRequest.SampleQuery))
             {
-                return BadRequest(new ApiResponseDTO<string>
-                {
-                    Success = false,
-                    Message = "Sample query is required"
-                });
+                return BadRequest("Sample query cannot be empty");
             }
 
-            var result = await _instructionService.TestAnyInstructionAsync(instructionId, request.SampleQuery);
-
-            if (result.Success)
+            var result = await _aiInstructionsService.TestInstructionAsync(instructionId, testRequest);
+            
+            return Ok(new ApiResponseDTO<TestInstructionResponseDTO>
             {
-                _logger.LogInformation("AI instruction {InstructionId} tested successfully by admin", instructionId);
-                return Ok(result);
-            }
-
-            if (result.Message?.Contains("not found") == true)
-                return NotFound(result);
-
-            return BadRequest(result);
+                Success = true,
+                Message = "AI instruction tested successfully",
+                Data = result
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in TestAnyInstruction endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<string>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error testing AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while testing the AI instruction");
         }
     }
 
     /// <summary>
-    /// Validate an AI instruction without saving it (Admin only)
+    /// Test AI instruction with specific model
     /// </summary>
-    [HttpPost("validate")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<bool>>> ValidateInstruction([FromBody] AiCustomInstructionCreateDTO request)
+    [HttpPost("{instructionId}/test-with-model")]
+    public async Task<ActionResult<ApiResponseDTO<TestInstructionResponseDTO>>> TestInstructionWithModel(
+        int instructionId,
+        [FromBody] TestInstructionWithModelRequestDTO testRequest)
     {
         try
         {
-            var result = await _instructionService.ValidateInstructionAsync(request);
+            if (string.IsNullOrWhiteSpace(testRequest.SampleQuery))
+            {
+                return BadRequest("Sample query cannot be empty");
+            }
 
-            return Ok(result);
+            if (string.IsNullOrWhiteSpace(testRequest.ModelName))
+            {
+                return BadRequest("Model name cannot be empty");
+            }
+
+            // Check access permissions
+            var instruction = await _aiInstructionsService.GetInstructionByIdAsync(instructionId);
+            if (instruction == null)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
+            var userId = GetCurrentUserId();
+            var isAdmin = User.IsInRole("Admin");
+            
+            if (!isAdmin && instruction.CreatedByUserId != userId)
+            {
+                return Forbid("You can only test your own AI instructions");
+            }
+
+            var result = await _aiInstructionsService.TestInstructionWithModelAsync(instructionId, testRequest);
+            
+            return Ok(new ApiResponseDTO<TestInstructionResponseDTO>
+            {
+                Success = true,
+                Message = "AI instruction tested successfully",
+                Data = result
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in ValidateInstruction endpoint");
-            return StatusCode(500, new ApiResponseDTO<bool>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error testing AI instruction {InstructionId} with model {ModelName}", 
+                instructionId, testRequest.ModelName);
+            return StatusCode(500, "An error occurred while testing the AI instruction");
         }
     }
 
+    #endregion
+
+    #region Analytics
+
     /// <summary>
-    /// Get analytics for a specific AI instruction (Admin only)
+    /// Get instruction analytics
     /// </summary>
     [HttpGet("{instructionId}/analytics")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<List<AiQueryAnalyticsDTO>>>> GetInstructionAnalytics(int instructionId)
+    public async Task<ActionResult<IEnumerable<AiQueryAnalyticsDTO>>> GetInstructionAnalytics(int instructionId)
     {
         try
         {
+            // Check access permissions
+            var instruction = await _aiInstructionsService.GetInstructionByIdAsync(instructionId);
+            if (instruction == null)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
             var userId = GetCurrentUserId();
-            if (!userId.HasValue)
+            var isAdmin = User.IsInRole("Admin");
+            
+            if (!isAdmin && instruction.CreatedByUserId != userId)
             {
-                return Unauthorized(new ApiResponseDTO<List<AiQueryAnalyticsDTO>>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
+                return Forbid("You can only view analytics for your own AI instructions");
             }
 
-            var result = await _instructionService.GetInstructionAnalyticsAsync(instructionId, userId.Value);
-
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            var analytics = await _aiInstructionsService.GetInstructionAnalyticsAsync(instructionId);
+            return Ok(analytics);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetInstructionAnalytics endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<List<AiQueryAnalyticsDTO>>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error getting analytics for AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while fetching instruction analytics");
         }
     }
 
     /// <summary>
-    /// Get performance metrics for a specific AI instruction (Admin only)
+    /// Get instruction performance metrics
     /// </summary>
     [HttpGet("{instructionId}/performance")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<Dictionary<string, object>>>> GetInstructionPerformance(int instructionId)
+    public async Task<ActionResult<InstructionPerformanceDTO>> GetInstructionPerformance(int instructionId)
     {
         try
         {
+            // Check access permissions
+            var instruction = await _aiInstructionsService.GetInstructionByIdAsync(instructionId);
+            if (instruction == null)
+            {
+                return NotFound($"AI instruction with ID {instructionId} not found");
+            }
+
             var userId = GetCurrentUserId();
-            if (!userId.HasValue)
+            var isAdmin = User.IsInRole("Admin");
+            
+            if (!isAdmin && instruction.CreatedByUserId != userId)
             {
-                return Unauthorized(new ApiResponseDTO<Dictionary<string, object>>
-                {
-                    Success = false,
-                    Message = "User not authenticated"
-                });
+                return Forbid("You can only view performance for your own AI instructions");
             }
 
-            var result = await _instructionService.GetInstructionPerformanceAsync(instructionId, userId.Value);
-
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            var performance = await _aiInstructionsService.GetInstructionPerformanceAsync(instructionId);
+            return Ok(performance);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in GetInstructionPerformance endpoint for instruction {InstructionId}", instructionId);
-            return StatusCode(500, new ApiResponseDTO<Dictionary<string, object>>
-            {
-                Success = false,
-                Message = "An internal error occurred"
-            });
+            _logger.LogError(ex, "Error getting performance for AI instruction {InstructionId}", instructionId);
+            return StatusCode(500, "An error occurred while fetching instruction performance");
         }
-    }
-
-    // Helper methods
-    private int? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-        {
-            return userId;
-        }
-        return null;
     }
 
     /// <summary>
-    /// Get current Gemini model configuration (Admin only)
+    /// Get all analytics (Admin only)
     /// </summary>
-    [HttpGet("admin/gemini-config")]
+    [HttpGet("analytics")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<object>>> GetGeminiConfig()
+    public async Task<ActionResult<IEnumerable<AiQueryAnalyticsDTO>>> GetAllAnalytics()
     {
         try
         {
-            var config = await _instructionService.GetGeminiConfigAsync();
-            return Ok(config);
+            var analytics = await _aiInstructionsService.GetAllAnalyticsAsync();
+            return Ok(analytics);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting Gemini configuration");
-            return StatusCode(500, new ApiResponseDTO<object>
-            {
-                Success = false,
-                Message = "Lỗi khi lấy cấu hình Gemini"
-            });
+            _logger.LogError(ex, "Error getting all AI analytics");
+            return StatusCode(500, "An error occurred while fetching analytics");
         }
     }
 
+    #endregion
+
+    #region AI Provider Integration
+
     /// <summary>
-    /// Get available Gemini models (Admin only)
+    /// Get available AI models (Admin only) - Compatible with TestingPlayground
     /// </summary>
     [HttpGet("admin/gemini-models")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<List<string>>>> GetAvailableModels()
+    public async Task<ActionResult<ApiResponseDTO<IEnumerable<string>>>> GetAvailableModels()
     {
         try
         {
-            var models = await _instructionService.GetAvailableGeminiModelsAsync();
-            return Ok(models);
+            var models = await _aiInstructionsService.GetAvailableModelsAsync();
+            
+            return Ok(new ApiResponseDTO<IEnumerable<string>>
+            {
+                Success = true,
+                Message = "Available AI models retrieved successfully",
+                Data = models
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting available Gemini models");
-            return StatusCode(500, new ApiResponseDTO<List<string>>
-            {
-                Success = false,
-                Message = "Lỗi khi lấy danh sách mô hình Gemini"
-            });
+            _logger.LogError(ex, "Error getting available AI models");
+            return StatusCode(500, "An error occurred while fetching available models");
         }
     }
 
     /// <summary>
-    /// Test any AI instruction with specific model (Admin only)
+    /// Get AI configuration (Admin only) - Compatible with TestingPlayground
     /// </summary>
-    [HttpPost("admin/{instructionId}/test-with-model")]
+    [HttpGet("admin/gemini-config")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<string>>> TestAnyInstructionWithModel(int instructionId, [FromBody] TestInstructionWithModelRequestDTO request)
+    public async Task<ActionResult<ApiResponseDTO<object>>> GetAiConfiguration()
     {
         try
         {
-            var result = await _instructionService.TestAnyInstructionWithModelAsync(instructionId, request.SampleQuery, request.Model);
-
-            if (result.Success)
+            var config = await _aiInstructionsService.GetAiConfigurationAsync();
+            
+            return Ok(new ApiResponseDTO<object>
             {
-                _logger.LogInformation("AI instruction {InstructionId} tested successfully with model {Model} (admin)", instructionId, request.Model);
-                return Ok(result);
-            }
-
-            _logger.LogWarning("Failed to test AI instruction {InstructionId} with model {Model} (admin): {Message}", instructionId, request.Model, result.Message);
-            return BadRequest(result);
+                Success = true,
+                Message = "AI configuration retrieved successfully",
+                Data = config
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error testing AI instruction {InstructionId} with model {Model} (admin)", instructionId, request.Model);
-            return StatusCode(500, new ApiResponseDTO<string>
-            {
-                Success = false,
-                Message = "Lỗi khi thử nghiệm instruction với model được chỉ định"
-            });
+            _logger.LogError(ex, "Error getting AI configuration");
+            return StatusCode(500, "An error occurred while fetching AI configuration");
         }
     }
-}
 
-// Request DTOs
-public class TestInstructionRequestDTO
-{
-    public string SampleQuery { get; set; } = string.Empty;
-}
+    #endregion
 
-public class TestInstructionWithModelRequestDTO
-{
-    public string SampleQuery { get; set; } = string.Empty;
-    public string Model { get; set; } = string.Empty;
+    #region Helper Methods
+
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdClaim, out var userId))
+        {
+            return userId;
+        }
+        throw new UnauthorizedAccessException("Invalid user ID");
+    }
+
+    #endregion
 }

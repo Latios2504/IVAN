@@ -5,6 +5,7 @@ using ivan_api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ivan_api.DTOs.Authentication;
 
 namespace ivan_api.Controllers
 {

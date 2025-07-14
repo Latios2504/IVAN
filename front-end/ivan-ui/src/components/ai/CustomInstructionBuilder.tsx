@@ -28,7 +28,7 @@ import type {
   AiCustomInstructionUpdateDTO,
   AiCustomInstructionDTO,
   InstructionFormData,
-} from "@/types/ai-instructions";
+} from "@/types/ai";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
 
 interface CustomInstructionBuilderProps {

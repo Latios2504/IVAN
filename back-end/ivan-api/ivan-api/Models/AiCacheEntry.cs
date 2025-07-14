@@ -15,13 +15,7 @@ public partial class AiCacheEntry
 
     public DateTime CreatedAt { get; set; }
 
-    public DateTime LastAccessedAt { get; set; }
+    public int? UserId { get; set; }
 
-    public int AccessCount { get; set; }
-
-    public string DataType { get; set; } = null!;
-
-    public long SizeBytes { get; set; }
-
-    public string? UserId { get; set; }
+    public virtual User? User { get; set; }
 }

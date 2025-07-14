@@ -25,11 +25,7 @@ public partial class AiCustomInstruction
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<AiConversationContext> AiConversationContexts { get; set; } = new List<AiConversationContext>();
-
-    public virtual ICollection<AiPerformanceMetric> AiPerformanceMetrics { get; set; } = new List<AiPerformanceMetric>();
-
-    public virtual ICollection<AiQueryAnalytic> AiQueryAnalytics { get; set; } = new List<AiQueryAnalytic>();
+    public virtual ICollection<AiQueryIntent> AiQueryIntents { get; set; } = new List<AiQueryIntent>();
 
     public virtual User CreatedByUser { get; set; } = null!;
 }
