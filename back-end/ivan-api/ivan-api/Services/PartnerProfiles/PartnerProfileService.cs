@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ivan_api.Models;
 using ivan_api.DTOs.PartnerProfiles;
 using ivan_api.Repository.PartnerProfiles;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.PartnerProfiles
 {
@@ -51,6 +52,11 @@ namespace ivan_api.Services.PartnerProfiles
             }
 
             return _mapper.Map<PartnerProfileViewModel>(par);
+        }
+
+        public async Task<PagedResultDto<PartnerProfileViewModel>> GetList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetPartnerProfilesAsync(pageNumber, pageSize);
         }
     }
 }

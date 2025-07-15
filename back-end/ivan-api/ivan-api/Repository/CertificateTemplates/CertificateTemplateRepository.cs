@@ -1,16 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ivan_api.Models;
 using ivan_api.DTOs.CertificateTemplates;
+using ivan_api.DTOs.Common;
+using AutoMapper.QueryableExtensions;
+using ivan_api.DTOs.Certificates;
+using AutoMapper;
 
 namespace ivan_api.Repository.CertificateTemplates
 {
     public class CertificateTemplateRepository : ICertificateTemplateRepository
     {
         private readonly VolunteerManagementSystemContext _context;
+        private readonly IMapper _mapper;
 
-        public CertificateTemplateRepository(VolunteerManagementSystemContext context)
+        public CertificateTemplateRepository(VolunteerManagementSystemContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<bool> AddCertificateTemplate(CertificateTemplate certificateTemplate)
@@ -38,6 +44,30 @@ namespace ivan_api.Repository.CertificateTemplates
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResultDto<CertificateTemplateViewModel>> GetCertificateTemplatesAsync(int PageNumber, int PageSize)
+        {
+            var query = _context.CertificateTemplates
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Organization)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<CertificateTemplateViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<CertificateTemplateViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
         }
         public async Task<CertificateTemplate> GetCertificateTemplateById(int id)
         {

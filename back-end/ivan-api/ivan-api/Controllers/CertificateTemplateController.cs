@@ -16,10 +16,17 @@ namespace ivan_api.Controllers
             _service = service;
         }
 
-        [HttpPost("list")]
-        public async Task<IActionResult> List([FromBody] CertificateTemplateFilterModel filter)
+        //[HttpPost("list")]
+        //public async Task<IActionResult> List([FromBody] CertificateTemplateFilterModel filter)
+        //{
+        //    var result = await _service.ListCertificateTemplate(filter);
+        //    return Ok(result);
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.ListCertificateTemplate(filter);
+            var result = await _service.GetList(pageNumber, pageSize);
             return Ok(result);
         }
 

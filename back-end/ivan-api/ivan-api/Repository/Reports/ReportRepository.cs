@@ -5,16 +5,21 @@ using System.Runtime.ConstrainedExecution;
 using ivan_api.Models;
 using ivan_api.DTOs.Reports;
 using ivan_api.Extensions;
+using AutoMapper.QueryableExtensions;
+using ivan_api.DTOs.Common;
+using AutoMapper;
 
 namespace ivan_api.Repository.Reports
 {
     public class ReportRepository : IReportRepository
     {
         private readonly VolunteerManagementSystemContext _context;
+        private readonly IMapper _mapper;
 
-        public ReportRepository(VolunteerManagementSystemContext context)
+        public ReportRepository(VolunteerManagementSystemContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<bool> AddEventReport(Report report)
@@ -68,6 +73,79 @@ namespace ivan_api.Repository.Reports
                 .Take(filter.PageSize)
                 .ToListAsync();
         }
+
+        public async Task<PagedResultDto<ReportViewModel>> GetEventReportsAsync(int PageNumber, int PageSize)
+        {
+            var query = _context.Reports
+                .Where(x => x.ReportType.Equals("Event"))
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<ReportViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<ReportViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
+        }
+
+        public async Task<PagedResultDto<ReportViewModel>> GetOrganizationReportsAsync(int PageNumber, int PageSize)
+        {
+            var query = _context.Reports
+                .Where(x => x.ReportType.Equals("Organization"))
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<ReportViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<ReportViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
+        }
+
+        public async Task<PagedResultDto<ReportViewModel>> GetSystemReportsAsync(int PageNumber, int PageSize)
+        {
+            var query = _context.Reports
+                .Where(x => x.ReportType.Equals("System"))
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<ReportViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<ReportViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
+        }
+
         public async Task<Report> GetEventReportById(int id)
         {
             return await _context.Reports

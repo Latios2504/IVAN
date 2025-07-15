@@ -16,24 +16,45 @@ namespace ivan_api.Controllers
             _service = service;
         }
 
-        [HttpPost("listEventReport")]
-        public async Task<IActionResult> ListEventReport([FromBody] ReportFilterModel filter)
+        //[HttpPost("listEventReport")]
+        //public async Task<IActionResult> ListEventReport([FromBody] ReportFilterModel filter)
+        //{
+        //    var result = await _service.ListEventReport(filter);
+        //    return Ok(result);
+        //}
+
+        //[HttpPost("listOrganizationReport")]
+        //public async Task<IActionResult> ListOrganizationReport([FromBody] ReportFilterModel filter)
+        //{
+        //    var result = await _service.ListOrganizationReport(filter);
+        //    return Ok(result);
+        //}
+
+        //[HttpPost("listSystemReport")]
+        //public async Task<IActionResult> ListSystemReport([FromBody] ReportFilterModel filter)
+        //{
+        //    var result = await _service.ListSystemReport(filter);
+        //    return Ok(result);
+        //}
+
+        [HttpGet("listEventReport")]
+        public async Task<IActionResult> GetEventReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.ListEventReport(filter);
+            var result = await _service.GetEventReportList(pageNumber, pageSize);
             return Ok(result);
         }
 
-        [HttpPost("listOrganizationReport")]
-        public async Task<IActionResult> ListOrganizationReport([FromBody] ReportFilterModel filter)
+        [HttpGet("listOrganizationReport")]
+        public async Task<IActionResult> GetOrganizationReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.ListOrganizationReport(filter);
+            var result = await _service.GetOrganizationReportList(pageNumber, pageSize);
             return Ok(result);
         }
 
-        [HttpPost("listSystemReport")]
-        public async Task<IActionResult> ListSystemReport([FromBody] ReportFilterModel filter)
+        [HttpGet("listSystemReport")]
+        public async Task<IActionResult> GetSystemReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.ListSystemReport(filter);
+            var result = await _service.GetSystemReportList(pageNumber, pageSize);
             return Ok(result);
         }
 

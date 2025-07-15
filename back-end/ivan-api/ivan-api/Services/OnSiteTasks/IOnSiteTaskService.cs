@@ -1,4 +1,5 @@
 ﻿using ivan_api.DTOs.OnSiteTasks;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.OnSiteTasks
 {
@@ -8,5 +9,6 @@ namespace ivan_api.Services.OnSiteTasks
         Task<bool> UpdateOnSiteTask(OnSiteTaskViewModel onSiteTaskViewModel);
         Task<IEnumerable<OnSiteTaskViewModel>> ListOnSiteTask(OnSiteTaskFilterModel filter);
         Task<OnSiteTaskViewModel> GetOnSiteTaskById(int id);
+        Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize);
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ivan_api.Models;
 using ivan_api.DTOs.OrganizationProfiles;
 using ivan_api.Repository.OrganizationProfiles;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.OrganizationProfiles
 {
@@ -51,6 +52,11 @@ namespace ivan_api.Services.OrganizationProfiles
             }
 
             return _mapper.Map<OrganizationProfileViewModel>(org);
+        }
+
+        public async Task<PagedResultDto<OrganizationProfileViewModel>> GetList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetOrganizationProfilesAsync(pageNumber, pageSize);
         }
     }
 }

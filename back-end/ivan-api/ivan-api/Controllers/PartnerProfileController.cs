@@ -16,10 +16,17 @@ namespace ivan_api.Controllers
             _service = service;
         }
 
-        [HttpPost("list")]
-        public async Task<IActionResult> List([FromBody] PartnerProfileFilterModel filter)
+        //[HttpPost("list")]
+        //public async Task<IActionResult> List([FromBody] PartnerProfileFilterModel filter)
+        //{
+        //    var result = await _service.ListPartnerProfile(filter);
+        //    return Ok(result);
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.ListPartnerProfile(filter);
+            var result = await _service.GetList(pageNumber, pageSize);
             return Ok(result);
         }
 

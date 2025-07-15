@@ -1,5 +1,6 @@
 ﻿using ivan_api.Models;
 using ivan_api.DTOs.OrganizationProfiles;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Repository.OrganizationProfiles
 {
@@ -14,5 +15,6 @@ namespace ivan_api.Repository.OrganizationProfiles
         Task<bool> UpdateOrganizationProfile(Organization organizationProfile);
         Task<IEnumerable<Organization>> ListOrganizationProfile(OrganizationProfileFilterModel filter);
         Task<Organization> GetOrganizationProfileById(int id);
+        Task<PagedResultDto<OrganizationProfileViewModel>> GetOrganizationProfilesAsync(int PageNumber, int PageSize);
     }
 }

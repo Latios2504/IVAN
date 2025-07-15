@@ -1,5 +1,6 @@
 ﻿using PdfSharp.Pdf;
 using ivan_api.DTOs.Reports;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.Reports
 {
@@ -16,6 +17,8 @@ namespace ivan_api.Services.Reports
         Task<PdfDocument> DownloadEventReportById(int id);
         Task<PdfDocument> DownloadOrganizationReportById(int id);
         Task<PdfDocument> DownloadSystemReportById(int id);
-
+        Task<PagedResultDto<ReportViewModel>> GetEventReportList(int pageNumber, int pageSize);
+        Task<PagedResultDto<ReportViewModel>> GetOrganizationReportList(int pageNumber, int pageSize);
+        Task<PagedResultDto<ReportViewModel>> GetSystemReportList(int pageNumber, int pageSize);
     }
 }

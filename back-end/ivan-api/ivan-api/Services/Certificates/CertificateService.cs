@@ -3,6 +3,7 @@ using PdfSharp.Pdf;
 using ivan_api.Models;
 using ivan_api.DTOs.Certificates;
 using ivan_api.Repository.Certificates;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.Certificates
 {
@@ -47,6 +48,11 @@ namespace ivan_api.Services.Certificates
         public async Task<PdfDocument> DownloadCertificateById(int id)
         {
             return await _repository.DownloadCertificateById(id);
+        }
+
+        public async Task<PagedResultDto<CertificateViewModel>> GetList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetCertificatesAsync(pageNumber, pageSize);
         }
     }
 }

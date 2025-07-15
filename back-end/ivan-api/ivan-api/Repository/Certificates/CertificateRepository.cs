@@ -4,16 +4,22 @@ using PdfSharp.Pdf;
 using ivan_api.Models;
 using ivan_api.DTOs.Certificates;
 using ivan_api.Extensions;
+using AutoMapper.QueryableExtensions;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs.PartnerCollaboration;
+using AutoMapper;
 
 namespace ivan_api.Repository.Certificates
 {
     public class CertificateRepository : ICertificateRepository
     {
         private readonly VolunteerManagementSystemContext _context;
+        private readonly IMapper _mapper;
 
-        public CertificateRepository(VolunteerManagementSystemContext context)
+        public CertificateRepository(VolunteerManagementSystemContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<bool> AddCertificate(Certificate certificate)
@@ -45,6 +51,32 @@ namespace ivan_api.Repository.Certificates
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResultDto<CertificateViewModel>> GetCertificatesAsync(int PageNumber, int PageSize)
+        {
+            var query = _context.Certificates
+                .Include(x => x.Event)
+                .Include(x => x.IssuedByNavigation)
+                .Include(x => x.Template)
+                .Include(x => x.Volunteer)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<CertificateViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<CertificateViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
         }
 
         public async Task<Certificate> GetCertificateById(int id)

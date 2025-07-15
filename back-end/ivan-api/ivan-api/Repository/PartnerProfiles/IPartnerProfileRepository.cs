@@ -1,5 +1,6 @@
 ﻿using ivan_api.Models;
 using ivan_api.DTOs.PartnerProfiles;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Repository.PartnerProfiles
 {
@@ -14,5 +15,6 @@ namespace ivan_api.Repository.PartnerProfiles
         Task<bool> UpdatePartnerProfile(Partner partnerProfile);
         Task<IEnumerable<Partner>> ListPartnerProfile(PartnerProfileFilterModel filter);
         Task<Partner> GetPartnerProfileById(int id);
+        Task<PagedResultDto<PartnerProfileViewModel>> GetPartnerProfilesAsync(int PageNumber, int PageSize);
     }
 }

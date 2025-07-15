@@ -3,6 +3,7 @@ using PdfSharp.Pdf;
 using ivan_api.Models;
 using ivan_api.DTOs.Reports;
 using ivan_api.Repository.Reports;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.Reports
 {
@@ -87,6 +88,21 @@ namespace ivan_api.Services.Reports
         public async Task<PdfDocument> DownloadSystemReportById(int id)
         {
             return await _repository.DownloadSystemReportById(id);
+        }
+
+        public async Task<PagedResultDto<ReportViewModel>> GetEventReportList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetEventReportsAsync(pageNumber, pageSize);
+        }
+
+        public async Task<PagedResultDto<ReportViewModel>> GetOrganizationReportList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetOrganizationReportsAsync(pageNumber, pageSize);
+        }
+
+        public async Task<PagedResultDto<ReportViewModel>> GetSystemReportList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetSystemReportsAsync(pageNumber, pageSize);
         }
     }
 }

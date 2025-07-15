@@ -2,6 +2,7 @@
 using ivan_api.Models;
 using ivan_api.DTOs.CertificateTemplates;
 using ivan_api.Repository.CertificateTemplates;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.CertificateTemplates
 {
@@ -42,6 +43,11 @@ namespace ivan_api.Services.CertificateTemplates
             }
 
             return _mapper.Map<CertificateTemplateViewModel>(tem);
+        }
+
+        public async Task<PagedResultDto<CertificateTemplateViewModel>> GetList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetCertificateTemplatesAsync(pageNumber, pageSize);
         }
     }
 }

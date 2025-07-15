@@ -2,6 +2,7 @@
 using ivan_api.Models;
 using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.Repository.OnSiteTasks;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.OnSiteTasks
 {
@@ -53,6 +54,11 @@ namespace ivan_api.Services.OnSiteTasks
             }
 
             return _mapper.Map<OnSiteTaskViewModel>(task);
+        }
+
+        public async Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize)
+        {
+            return await _repository.GetOnSiteTasksAsync(pageNumber, pageSize);
         }
     }
 }
