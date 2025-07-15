@@ -137,7 +137,14 @@ public static class AiServiceExtensions
         // Register main testing service as scoped (database context dependency)
         services.AddScoped<AiTestingPlaygroundService>();
 
-        // Register AI Instructions service
+        // Register new modular AI services
+        services.AddScoped<IAiInstructionsCrudService, AiInstructionsCrudService>();
+        services.AddScoped<IAiInstructionsTestingService, AiInstructionsTestingService>();
+        services.AddScoped<IAiInstructionsAnalyticsService, AiInstructionsAnalyticsService>();
+        services.AddSingleton<IAiResponseCacheService, AiResponseCacheService>();
+        services.AddSingleton<IAiProviderFactory, AiProviderFactory>();
+
+        // Register original AI Instructions service (now orchestrates the new services)
         services.AddScoped<IAiInstructionsService, AiInstructionsService>();
 
         return services;

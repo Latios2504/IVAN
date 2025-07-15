@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ivan_api.Configuration;
 using ivan_api.DTOs.AI;
 using ivan_api.Services.AI.Interfaces;
@@ -183,34 +184,6 @@ public class OpenRouterAiProvider : IAiProvider
         return result;
     }
 
-    public async Task<AiProviderHealthCheck> CheckHealthAsync(CancellationToken cancellationToken = default)
-    {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        try
-        {
-            var testResult = await SendPromptAsync("Hello", cancellationToken);
-            stopwatch.Stop();
-            
-            return new AiProviderHealthCheck
-            {
-                IsHealthy = testResult.Success,
-                ErrorMessage = testResult.Success ? null : testResult.ErrorMessage,
-                ResponseTimeMs = stopwatch.Elapsed.Milliseconds,
-                CheckedAt = DateTime.UtcNow
-            };
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            return new AiProviderHealthCheck
-            {
-                IsHealthy = false,
-                ErrorMessage = ex.Message,
-                ResponseTimeMs = stopwatch.Elapsed.Milliseconds,
-                CheckedAt = DateTime.UtcNow
-            };
-        }
-    }
 
     public Services.AI.Interfaces.AiProviderCapabilities GetCapabilities()
     {
@@ -240,24 +213,31 @@ public class OpenRouterAiProvider : IAiProvider
     // OpenRouter API response models
     private class OpenRouterResponse
     {
+        [JsonPropertyName("choices")]
         public List<OpenRouterChoice>? Choices { get; set; }
+        [JsonPropertyName("usage")]
         public OpenRouterUsage? Usage { get; set; }
     }
 
     private class OpenRouterChoice
     {
+        [JsonPropertyName("message")]
         public OpenRouterMessage? Message { get; set; }
     }
 
     private class OpenRouterMessage
     {
+        [JsonPropertyName("content")]
         public string? Content { get; set; }
     }
 
     private class OpenRouterUsage
     {
+        [JsonPropertyName("total_tokens")]
         public int TotalTokens { get; set; }
+        [JsonPropertyName("prompt_tokens")]
         public int PromptTokens { get; set; }
+        [JsonPropertyName("completion_tokens")]
         public int CompletionTokens { get; set; }
     }
 }

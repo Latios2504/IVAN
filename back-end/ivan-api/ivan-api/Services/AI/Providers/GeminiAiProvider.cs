@@ -249,54 +249,7 @@ public class GeminiAiProvider : IAiProvider
         return result;
     }
 
-    public async Task<AiProviderHealthCheck> CheckHealthAsync(CancellationToken cancellationToken = default)
-    {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        try
-        {
-            var testResult = await SendPromptAsync("Hello", cancellationToken);
-            stopwatch.Stop();
-            
-            return new AiProviderHealthCheck
-            {
-                IsHealthy = testResult.Success,
-                ErrorMessage = testResult.Success ? null : testResult.ErrorMessage,
-                ResponseTimeMs = stopwatch.Elapsed.Milliseconds,
-                CheckedAt = DateTime.UtcNow
-            };
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            return new AiProviderHealthCheck
-            {
-                IsHealthy = false,
-                ErrorMessage = ex.Message,
-                ResponseTimeMs = stopwatch.Elapsed.Milliseconds,
-                CheckedAt = DateTime.UtcNow
-            };
-        }
-    }
 
-    // Interface implementation methods required by IAiProvider
-    public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
-    {
-        var result = await SendPromptAsync(prompt, cancellationToken);
-        return result.Success ? result.Response : throw new InvalidOperationException(result.ErrorMessage);
-    }
-
-    public async Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var testResult = await SendPromptAsync("Hello", cancellationToken);
-            return testResult.Success;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     public async Task<List<string>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {

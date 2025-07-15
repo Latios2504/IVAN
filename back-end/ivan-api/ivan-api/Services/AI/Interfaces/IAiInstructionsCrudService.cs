@@ -1,12 +1,11 @@
 using ivan_api.DTOs.AI;
-using ivan_api.Models;
 
 namespace ivan_api.Services.AI.Interfaces;
 
 /// <summary>
-/// Service interface for managing AI Custom Instructions
+/// Interface for AI Custom Instructions CRUD operations
 /// </summary>
-public interface IAiInstructionsService
+public interface IAiInstructionsCrudService
 {
     // CRUD Operations
     Task<IEnumerable<AiCustomInstructionDTO>> GetAllInstructionsAsync();
@@ -22,14 +21,4 @@ public interface IAiInstructionsService
     // Template Management
     Task<IEnumerable<AiCustomInstructionDTO>> GetTemplateInstructionsAsync();
     Task<AiCustomInstructionDTO?> GetDefaultInstructionAsync();
-    
-    // Testing & Analytics
-    Task<TestInstructionResponseDTO> TestInstructionWithModelAsync(int instructionId, TestInstructionWithModelRequestDTO testRequest);
-    Task<IEnumerable<AiQueryAnalyticsDTO>> GetInstructionAnalyticsAsync(int instructionId);
-    Task<InstructionPerformanceDTO> GetInstructionPerformanceAsync(int instructionId);
-    Task<IEnumerable<AiQueryAnalyticsDTO>> GetAllAnalyticsAsync();
-    
-    // AI Provider Integration
-    Task<IEnumerable<string>> GetAvailableModelsAsync();
-    Task<object> GetAiConfigurationAsync();
 }

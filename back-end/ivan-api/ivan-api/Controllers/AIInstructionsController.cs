@@ -379,45 +379,6 @@ public class AIInstructionsController : ControllerBase
 
     #region Testing Integration
 
-    /// <summary>
-    /// Test AI instruction with sample query (uses default model)
-    /// </summary>
-    [HttpPost("admin/{instructionId}/test")]
-    [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDTO<TestInstructionResponseDTO>>> TestInstruction(
-        int instructionId,
-        [FromBody] TestInstructionRequestDTO testRequest)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(testRequest.SampleQuery))
-            {
-                return BadRequest("Sample query cannot be empty");
-            }
-
-            var result = await _aiInstructionsService.TestInstructionAsync(instructionId, testRequest);
-            
-            return Ok(new ApiResponseDTO<TestInstructionResponseDTO>
-            {
-                Success = true,
-                Message = "AI instruction tested successfully",
-                Data = result
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing AI instruction {InstructionId}", instructionId);
-            return StatusCode(500, "An error occurred while testing the AI instruction");
-        }
-    }
 
     /// <summary>
     /// Test AI instruction with specific model

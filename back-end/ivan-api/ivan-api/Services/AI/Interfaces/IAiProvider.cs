@@ -25,7 +25,6 @@ public interface IAiProvider
     /// <summary>
     /// Test connectivity and basic functionality
     /// </summary>
-    Task<AiProviderHealthCheck> CheckHealthAsync(CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Get available models for this provider
