@@ -32,5 +32,15 @@ namespace ivan_api.Controllers
             }
             return Ok(result);
         }
+
+        [HttpPost("updateUserAccount")]
+        public async Task<IActionResult> UpdateUserAccount(int userId, int adminUser, UserAccountUpdateDTO_Admin dto)
+        {
+            var result = await _userAccountService.updateUserAccount_Admin(userId, adminUser,dto);
+            if (result == null) {
+                return BadRequest("Update thông tin không thành công");
+            }
+            return Ok(result);
+        }
     }
 }
