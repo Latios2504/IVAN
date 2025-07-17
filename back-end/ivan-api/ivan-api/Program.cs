@@ -21,6 +21,8 @@ using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
 using System.Text.Json.Serialization;
+using ivan_api.Services.ModerationEventServ;
+using ivan_api.Services.NotificationServ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,6 +95,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// SignalR Configuration
+builder.Services.AddSignalR();
+
 // Authorization
 builder.Services.AddAuthorization();
 
@@ -151,6 +156,11 @@ builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 //builder.Services.AddScoped<IEventService, EventService>();
+
+//Moderation Event Service
+builder.Services.AddScoped<IModerationEventService, ModerationEventService>();
+//Notification Service
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddControllers().AddJsonOptions(opt =>
 {
