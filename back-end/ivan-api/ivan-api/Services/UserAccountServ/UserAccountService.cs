@@ -13,6 +13,7 @@ namespace ivan_api.Services.UserAccountServ
         private readonly IUserAccountRepository _userAccountRepository;
         private readonly VolunteerManagementSystemContext _context;
         private readonly IMapper _mapper;
+        const int roleAdmin = 1;
         public UserAccountService(IUserAccountRepository userAccountRepository, IMapper mapper, VolunteerManagementSystemContext context)
         {
             _userAccountRepository = userAccountRepository;
@@ -212,6 +213,19 @@ namespace ivan_api.Services.UserAccountServ
             userDto.Statistics = statics;
 
             return userDto;
+        }
+
+        public async Task<UserAccountDetailDto> updateUserAccount_Admin(int idUser, int idAdmin, UserAccountUpdateDTO_Admin dto)
+        {
+            if (idUser == idAdmin)
+            {
+                var user = await _userAccountRepository.GetUserById(idUser);
+                if (user != null && user.RoleId == roleAdmin && dto.RoleId != roleAdmin) {
+                    throw new Exception("Không thể tự hạ Role mình!");
+                }
+            }
+            await _userAccountRepository.UpdateuserAccount_Admin(idUser, dto);
+            return await getUserInforByIdOrEmail(idUser, "");
         }
     }
 }

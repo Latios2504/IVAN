@@ -1,4 +1,5 @@
-﻿using ivan_api.Models;
+﻿using ivan_api.DTOs.UserAccount;
+using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Repository.UserAccountRepo
@@ -28,5 +29,19 @@ namespace ivan_api.Repository.UserAccountRepo
                 .Include(x => x.Role)
                 .FirstOrDefaultAsync(x => x.UserId == userId);
         }
+
+            public async Task<User?> UpdateuserAccount_Admin(int id, UserAccountUpdateDTO_Admin dto)
+            {
+                var user = await _context.Users.FindAsync(id);
+                if (user == null) {
+                    return null;
+                }
+                user.RoleId = dto.RoleId;
+                user.IsActive = dto.IsActive;
+                user.IsEmailVerified = dto.IsEmailVerified;
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return user;
+            }
     }
 }
