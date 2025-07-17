@@ -25,6 +25,9 @@ namespace ivan_api.Mapping
 
             CreateMap<Organization, OrganizationProfileInputModel>();
             CreateMap<OrganizationProfileInputModel, Organization>();
+
+            CreateMap<Organization, OrganizationProfileUpdateModel>();
+            CreateMap<OrganizationProfileUpdateModel, Organization>();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace ivan_api.Services.OnSiteTasks
     public interface IOnSiteTaskService
     {
         Task<bool> AddOnSiteTask(OnSiteTaskInputModel onSiteTaskInputModel);
-        Task<bool> UpdateOnSiteTask(OnSiteTaskViewModel onSiteTaskViewModel);
+        Task<bool> UpdateOnSiteTask(OnSiteTaskUpdateModel OnSiteTaskUpdateModel, int id);
         Task<IEnumerable<OnSiteTaskViewModel>> ListOnSiteTask(OnSiteTaskFilterModel filter);
         Task<OnSiteTaskViewModel> GetOnSiteTaskById(int id);
         Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize);

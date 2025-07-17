@@ -16,6 +16,9 @@ namespace ivan_api.Mapping
 
             CreateMap<OnSiteTask, OnSiteTaskInputModel>();
             CreateMap<OnSiteTaskInputModel, OnSiteTask>();
+
+            CreateMap<OnSiteTask, OnSiteTaskUpdateModel>();
+            CreateMap<OnSiteTaskUpdateModel, OnSiteTask>();
         }
     }
 }

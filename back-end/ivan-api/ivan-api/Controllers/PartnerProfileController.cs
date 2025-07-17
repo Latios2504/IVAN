@@ -55,12 +55,12 @@ namespace ivan_api.Controllers
             return Ok(result);
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] PartnerProfileViewModel input)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> Update([FromBody] PartnerProfileUpdateModel input, int id)
         {
             if (input == null)
             {
-                input = new PartnerProfileViewModel();
+                input = new PartnerProfileUpdateModel();
                 TryValidateModel(input);
             }
 
@@ -69,7 +69,7 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.UpdatePartnerProfile(input);
+            var result = await _service.UpdatePartnerProfile(input, id);
             return Ok(result);
         }
     }

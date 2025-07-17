@@ -26,15 +26,15 @@ namespace ivan_api.Services.OnSiteTasks
             return await _repository.AddOnSiteTask(task);
         }
 
-        public async Task<bool> UpdateOnSiteTask(OnSiteTaskViewModel onSiteTaskViewModel)
+        public async Task<bool> UpdateOnSiteTask(OnSiteTaskUpdateModel OnSiteTaskUpdateModel, int id)
         {
-            var existingTask = await _repository.GetOnSiteTaskById(onSiteTaskViewModel.TaskId);
+            var existingTask = await _repository.GetOnSiteTaskById(id);
             if (existingTask == null)
             {
                 throw new Exception("On Site Task not found");
             }
 
-            _mapper.Map(onSiteTaskViewModel, existingTask);
+            _mapper.Map(OnSiteTaskUpdateModel, existingTask);
             existingTask.UpdatedAt = DateTime.Now;
             return await _repository.UpdateOnSiteTask(existingTask);
         }

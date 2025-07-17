@@ -55,12 +55,12 @@ namespace ivan_api.Controllers
             return Ok(result);
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] OnSiteTaskViewModel input)
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> Update([FromBody] OnSiteTaskUpdateModel input, int id)
         {
             if (input == null)
             {
-                input = new OnSiteTaskViewModel();
+                input = new OnSiteTaskUpdateModel();
                 TryValidateModel(input);
             }
 
@@ -69,7 +69,7 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.UpdateOnSiteTask(input);
+            var result = await _service.UpdateOnSiteTask(input, id);
             return Ok(result);
         }
     }

@@ -6,7 +6,7 @@ namespace ivan_api.Services.PartnerProfiles
     public interface IPartnerProfileService
     {
         Task<bool> AddPartnerProfile(PartnerProfileInputModel partnerProfileInputModel);
-        Task<bool> UpdatePartnerProfile(PartnerProfileViewModel partnerProfileViewModel);
+        Task<bool> UpdatePartnerProfile(PartnerProfileUpdateModel partnerProfileUpdateModel, int parId);
         Task<IEnumerable<PartnerProfileViewModel>> ListPartnerProfile(PartnerProfileFilterModel filter);
         Task<PartnerProfileViewModel> GetPartnerProfileById(int id);
         Task<PagedResultDto<PartnerProfileViewModel>> GetList(int pageNumber, int pageSize);

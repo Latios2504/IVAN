@@ -26,9 +26,9 @@ namespace ivan_api.Services.OrganizationProfiles
 
             return await _repository.AddOrganizationProfile(org);
         }
-        public async Task<bool> UpdateOrganizationProfile(OrganizationProfileViewModel organizationProfile)
+        public async Task<bool> UpdateOrganizationProfile(OrganizationProfileUpdateModel organizationProfile, int orgId)
         {
-            var existingOrg = await _repository.GetOrganizationProfileById(organizationProfile.OrganizationId);
+            var existingOrg = await _repository.GetOrganizationProfileById(orgId);
             if (existingOrg == null)
             {
                 throw new Exception("Organization not found");

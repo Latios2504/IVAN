@@ -26,15 +26,15 @@ namespace ivan_api.Services.PartnerProfiles
 
             return await _repository.AddPartnerProfile(par);
         }
-        public async Task<bool> UpdatePartnerProfile(PartnerProfileViewModel partnerProfileViewModel)
+        public async Task<bool> UpdatePartnerProfile(PartnerProfileUpdateModel partnerProfileUpdateModel, int parId)
         {
-            var existingPar = await _repository.GetPartnerProfileById(partnerProfileViewModel.PartnerId);
+            var existingPar = await _repository.GetPartnerProfileById(parId);
             if (existingPar == null)
             {
                 throw new Exception("Partner not found");
             }
 
-            _mapper.Map(partnerProfileViewModel, existingPar);
+            _mapper.Map(partnerProfileUpdateModel, existingPar);
             existingPar.UpdatedAt = DateTime.Now;
             return await _repository.UpdatePartnerProfile(existingPar);
         }

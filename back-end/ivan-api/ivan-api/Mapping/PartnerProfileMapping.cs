@@ -16,6 +16,9 @@ namespace ivan_api.Mapping
 
             CreateMap<Partner, PartnerProfileInputModel>();
             CreateMap<PartnerProfileInputModel, Partner>();
+
+            CreateMap<Partner, PartnerProfileUpdateModel>();
+            CreateMap<PartnerProfileUpdateModel, Partner>();
         }
     }
 }
