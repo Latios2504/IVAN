@@ -40,6 +40,8 @@ using ivan_api.Repository.PartnerCollaborationRepo;
 using ivan_api.Services.PublicContentServ;
 using ivan_api.Services.UserAccountServ;
 using ivan_api.Repository.UserAccountRepo;
+using ivan_api.Services.FeedbackServ;
+using ivan_api.Repository.FeedbackRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -202,6 +204,9 @@ builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaboration
 
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
