@@ -30,10 +30,8 @@ using ivan_api.Services.OrganizationProfiles;
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
 using ivan_api.Services.PublicContentServ;
-<<<<<<< HEAD
 using ivan_api.Services.UserAccountServ;
 using ivan_api.Repository.UserAccountRepo;
-=======
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
@@ -45,7 +43,6 @@ using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
->>>>>>> he176119
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -183,10 +180,8 @@ GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
 builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
 
-<<<<<<< HEAD
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
-=======
 
 
 // Schema Services DI
@@ -195,7 +190,6 @@ builder.Services.AddScoped<ISchemaService, SchemaService>();
 // SQL Generator Services DI
 builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
 // TODO: Phase 2 - Add simplified services registration
->>>>>>> he176119
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
