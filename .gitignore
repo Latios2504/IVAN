@@ -422,6 +422,3 @@ obj/
 =======
 .github/
 memory-bank/
-ivan_database_schema.sql
-ivan_database_data.sql
-ivan_requirements.md

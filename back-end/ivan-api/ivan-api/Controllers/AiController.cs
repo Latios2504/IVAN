@@ -37,17 +37,20 @@ public class AiController : ControllerBase
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISqlExecutionService _sqlExecutionService;
     private readonly IAiCustomInstructionService _aiCustomInstructionService;
+    private readonly ISchemaService _schemaService;
     private readonly ILogger<AiController> _logger;
 
     public AiController(
         IAiProviderFactory aiProviderFactory,
         ISqlExecutionService sqlExecutionService,
         IAiCustomInstructionService aiCustomInstructionService,
+        ISchemaService schemaService,
         ILogger<AiController> logger)
     {
         _aiProviderFactory = aiProviderFactory;
         _sqlExecutionService = sqlExecutionService;
         _aiCustomInstructionService = aiCustomInstructionService;
+        _schemaService = schemaService;
         _logger = logger;
     }
 
@@ -107,60 +110,199 @@ public class AiController : ControllerBase
     }
 
     /// <summary>
-    /// Send a query to AI with simplified workflow
+    /// Send a query to AI with custom instruction support
     /// </summary>
     [HttpPost("query")]
-    public async Task<ActionResult<object>> SendQuery([FromBody] AiQueryRequest request)
+public async Task<ActionResult<object>> SendQuery([FromBody] AiQueryRequest request)
+{
+    try
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { success = false, message = "Invalid request data", errors = ModelState });
-            }
-
-            // Get available providers
-            var providers = await _aiProviderFactory.GetEnabledProvidersAsync();
-            if (!providers.Any())
-            {
-                return StatusCode(500, new { success = false, message = "No AI providers available" });
-            }
-
-            // Select provider based on preferred model
-            var provider = providers.First();
-            if (!string.IsNullOrEmpty(request.PreferredModel))
-            {
-                provider = providers.FirstOrDefault(p => 
-                    p.GetCapabilities().SupportedModels.Contains(request.PreferredModel)) ?? providers.First();
-            }
-
-            // TODO: Phase 2 - Implement Custom Instructions-driven workflow
-            // For now, send a simple AI query without complex orchestration
-            var simplePrompt = $"Bạn là trợ lý AI của hệ thống quản lý tình nguyện viên IVAN. Hãy trả lời câu hỏi sau bằng tiếng Việt: {request.Query}";
-            
-            var result = await provider.SendPromptAsync(simplePrompt, request.PreferredModel);
-
-            var response = new
-            {
-                success = result.Success,
-                response = result.Response,
-                modelUsed = result.Model,
-                errorMessage = result.ErrorMessage,
-                executionTimeMs = result.ResponseTimeMs,
-                generatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                customInstructionUsed = false, // TODO: Phase 2 - Implement custom instruction detection
-                isSqlQuery = false, // TODO: Phase 2 - Implement keyword-based SQL detection
-                queryIntent = "General",
-                confidence = 1.0
-            };
-
-            return Ok(new { success = true, data = response });
+            return BadRequest(new { success = false, message = "Invalid request data", errors = ModelState });
         }
-        catch (Exception ex)
+
+        var providers = await _aiProviderFactory.GetEnabledProvidersAsync();
+        if (!providers.Any())
         {
-            _logger.LogError(ex, "Error sending AI query");
-            return StatusCode(500, new { success = false, message = "Error processing AI query" });
+            return StatusCode(500, new { success = false, message = "No AI providers available" });
         }
+
+        var provider = providers.First();
+        if (!string.IsNullOrEmpty(request.PreferredModel))
+        {
+            provider = providers.FirstOrDefault(p => 
+                p.GetCapabilities().SupportedModels.Contains(request.PreferredModel)) ?? providers.First();
+        }
+
+        AiCustomInstruction? customInstruction = null;
+        if (request.CustomInstructionId.HasValue)
+        {
+            var instructionDto = await _aiCustomInstructionService.GetCustomInstructionByIdAsync(request.CustomInstructionId.Value);
+            if (instructionDto != null)
+            {
+                customInstruction = new AiCustomInstruction
+                {
+                    InstructionId = instructionDto.InstructionId,
+                    InstructionName = instructionDto.InstructionName,
+                    SystemPrompt = instructionDto.SystemPrompt,
+                    BehaviorInstructions = instructionDto.BehaviorInstructions,
+                    IsActive = instructionDto.IsActive
+                };
+            }
+        }
+
+        // Step 1: Generate SQL query
+        string sqlGenerationPrompt;
+        object? sqlData = null;
+        string? generatedSql = null;
+
+        if (customInstruction != null)
+        {
+            var schemaDescription = await _schemaService.GetDatabaseSchemaDescriptionAsync();
+            sqlGenerationPrompt = $@"{customInstruction.SystemPrompt}
+
+DATABASE SCHEMA INFORMATION:
+{schemaDescription}
+
+{customInstruction.BehaviorInstructions}
+
+User Query: {request.Query}
+
+BƯỚC 1: Tạo câu SQL chính xác để truy vấn dữ liệu. Chỉ trả về SQL trong code block, không cần giải thích gì thêm.";
+        }
+        else
+        {
+            sqlGenerationPrompt = $"Tạo câu SQL để trả lời câu hỏi: {request.Query}";
+        }
+
+        var sqlResult = await provider.SendPromptAsync(sqlGenerationPrompt, request.PreferredModel);
+        
+        if (sqlResult.Success && !string.IsNullOrEmpty(sqlResult.Response))
+        {
+            generatedSql = ExtractSqlFromResponse(sqlResult.Response);
+            if (!string.IsNullOrEmpty(generatedSql))
+            {
+                try
+                {
+                    _logger.LogInformation($"Generated SQL query: {generatedSql}");
+                    var dbResult = await _sqlExecutionService.ExecuteSelectQueryAsync(generatedSql);
+                    _logger.LogInformation($"SQL execution result - Success: {dbResult.Success}, Rows: {dbResult.TotalRows}");
+                    
+                    if (dbResult.Success)
+                    {
+                        sqlData = new
+                        {
+                            sqlGenerated = generatedSql,
+                            data = dbResult.Data,
+                            totalRows = dbResult.TotalRows,
+                            rowsReturned = dbResult.RowsAffected,
+                            executionTime = dbResult.ExecutionTime
+                        };
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"SQL execution failed: {dbResult.ErrorMessage}");
+                    }
+                }
+                catch (Exception sqlEx)
+                {
+                    _logger.LogWarning(sqlEx, "SQL execution failed");
+                }
+            }
+        }
+
+        // Step 2: Generate natural language response
+        string finalResponsePrompt;
+        if (customInstruction != null && sqlData != null)
+        {
+            var dataJson = System.Text.Json.JsonSerializer.Serialize(sqlData);
+            finalResponsePrompt = $@"{customInstruction.SystemPrompt}
+
+{customInstruction.BehaviorInstructions}
+
+User Query: {request.Query}
+
+BƯỚC 2: Dựa trên kết quả truy vấn sau đây, hãy trả lời câu hỏi của người dùng bằng tiếng Việt tự nhiên. KHÔNG hiển thị SQL hay dữ liệu thô:
+
+Kết quả truy vấn: {dataJson}
+
+Hãy trả lời một cách thân thiện và dễ hiểu.";
+        }
+        else if (customInstruction != null)
+        {
+            finalResponsePrompt = $@"{customInstruction.SystemPrompt}
+
+{customInstruction.BehaviorInstructions}
+
+User Query: {request.Query}
+
+Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời: 'Không thể truy xuất dữ liệu lúc này, xin vui lòng thử lại sau.'";
+        }
+        else
+        {
+            finalResponsePrompt = $"Bạn là trợ lý AI của hệ thống quản lý tình nguyện viên IVAN. Hãy trả lời câu hỏi sau bằng tiếng Việt: {request.Query}";
+        }
+
+        var finalResult = await provider.SendPromptAsync(finalResponsePrompt, request.PreferredModel);
+
+        var response = new
+        {
+            success = finalResult.Success,
+            response = finalResult.Response,
+            modelUsed = finalResult.Model,
+            errorMessage = finalResult.ErrorMessage,
+            executionTimeMs = finalResult.ResponseTimeMs,
+            generatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            customInstructionUsed = customInstruction?.InstructionName ?? "Default",
+            sqlData = sqlData,
+            sqlGenerated = generatedSql
+        };
+
+        return Ok(new { success = true, data = response });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error sending AI query");
+        return StatusCode(500, new { success = false, message = "Error processing AI query" });
+    }
+}
+
+    /// <summary>
+    /// Extract SQL query from AI response
+    /// </summary>
+    private string ExtractSqlFromResponse(string response)
+    {
+        if (string.IsNullOrEmpty(response)) return string.Empty;
+
+        _logger.LogInformation($"Attempting to extract SQL from response: {response.Substring(0, Math.Min(200, response.Length))}...");
+
+        // Look for SQL code blocks first
+        var sqlBlockPattern = @"```sql\s*(.*?)\s*```";
+        var match = System.Text.RegularExpressions.Regex.Match(response, sqlBlockPattern, 
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        
+        if (match.Success)
+        {
+            var extractedSql = match.Groups[1].Value.Trim();
+            _logger.LogInformation($"Found SQL in code block: {extractedSql}");
+            return extractedSql;
+        }
+
+        // Look for SELECT statements anywhere in the response
+        var selectPattern = @"(SELECT\s+.*?(?:;|$|\r?\n\s*$))";
+        var selectMatch = System.Text.RegularExpressions.Regex.Match(response, selectPattern, 
+            System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Multiline);
+        
+        if (selectMatch.Success)
+        {
+            var extractedSql = selectMatch.Groups[1].Value.Trim().TrimEnd(';');
+            _logger.LogInformation($"Found SELECT statement: {extractedSql}");
+            return extractedSql;
+        }
+
+        _logger.LogInformation("No SQL query patterns found in response");
+        return string.Empty;
     }
 
     // TODO: Phase 2 - Implement simplified SQL execution logic based on Custom Instructions
