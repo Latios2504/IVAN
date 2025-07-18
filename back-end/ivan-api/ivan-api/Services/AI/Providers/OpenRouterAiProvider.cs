@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using ivan_api.Configuration;
 using ivan_api.DTOs.AI;
 using ivan_api.Services.AI.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ivan_api.Services.AI.Providers;
 
@@ -20,10 +22,10 @@ public class OpenRouterAiProvider : IAiProvider
     public AiProviderType ProviderType => AiProviderType.OpenRouter;
     public bool IsEnabled => _config.IsEnabled;
 
-    public OpenRouterAiProvider(HttpClient httpClient, AiModelConfiguration config, ILogger<OpenRouterAiProvider> logger)
+    public OpenRouterAiProvider(HttpClient httpClient, IOptionsMonitor<AiModelConfiguration> config, ILogger<OpenRouterAiProvider> logger)
     {
         _httpClient = httpClient;
-        _config = config;
+        _config = config.Get("OpenRouter");
         _logger = logger;
         
         // Set up HTTP client headers for OpenRouter
@@ -34,73 +36,7 @@ public class OpenRouterAiProvider : IAiProvider
 
     public async Task<AiTestResult> SendPromptAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        var result = new AiTestResult
-        {
-            ProviderName = ProviderName,
-            Model = _config.DefaultModel,
-            Prompt = prompt
-        };
-
-        try
-        {
-            var requestBody = new
-            {
-                model = _config.DefaultModel,
-                messages = new[]
-                {
-                    new
-                    {
-                        role = "user",
-                        content = prompt
-                    }
-                },
-                max_tokens = _config.MaxTokens,
-                temperature = _config.Temperature
-            };
-
-            var json = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(_config.BaseUrl, content, cancellationToken);
-
-            stopwatch.Stop();
-            result.ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds;
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                var openRouterResponse = JsonSerializer.Deserialize<OpenRouterResponse>(responseContent);
-
-                if (openRouterResponse?.Choices?.Any() == true)
-                {
-                    result.Success = true;
-                    result.Response = openRouterResponse.Choices[0]?.Message?.Content ?? "No response";
-                    result.TokensUsed = openRouterResponse.Usage?.TotalTokens ?? 0;
-                }
-                else
-                {
-                    result.Success = false;
-                    result.ErrorMessage = "No valid response from OpenRouter";
-                }
-            }
-            else
-            {
-                result.Success = false;
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                result.ErrorMessage = $"HTTP {response.StatusCode}: {errorContent}";
-            }
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            result.ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds;
-            result.Success = false;
-            result.ErrorMessage = ex.Message;
-            _logger.LogError(ex, "Error calling OpenRouter API");
-        }
-
-        return result;
+        return await SendPromptAsync(prompt, null, cancellationToken);
     }
 
     public async Task<AiTestResult> SendPromptAsync(string prompt, string? modelName = null, CancellationToken cancellationToken = default)
@@ -152,6 +88,7 @@ public class OpenRouterAiProvider : IAiProvider
                     {
                         result.Response = openRouterResponse.Choices[0].Message.Content;
                         result.Success = true;
+                        result.TokensUsed = openRouterResponse.Usage?.TotalTokens ?? 0;
                     }
                     else
                     {
@@ -184,10 +121,9 @@ public class OpenRouterAiProvider : IAiProvider
         return result;
     }
 
-
-    public Services.AI.Interfaces.AiProviderCapabilities GetCapabilities()
+    public AiProviderCapabilities GetCapabilities()
     {
-        return new Services.AI.Interfaces.AiProviderCapabilities
+        return new AiProviderCapabilities
         {
             MaxTokens = _config.MaxTokens,
             RequestsPerMinute = _config.RequestsPerMinute,

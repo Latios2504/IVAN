@@ -18,10 +18,7 @@ import {
   Database,
   AlertCircle,
 } from "lucide-react";
-import type {
-  InstructionFormData,
-  AiCustomInstructionDTO,
-} from "@/types/ai";
+import type { InstructionFormData, AiCustomInstructionDTO } from "@/types/ai";
 
 interface InstructionPreviewProps {
   data?: InstructionFormData | AiCustomInstructionDTO;
@@ -42,7 +39,7 @@ export default function InstructionPreview({
   const systemPrompt = "systemPrompt" in data ? data.systemPrompt : "";
   const behaviorInstructions =
     "behaviorInstructions" in data ? data.behaviorInstructions : "";
-  const dataAccessRules = "dataAccessRules" in data ? data.dataAccessRules : "";
+  // Note: dataAccessRules field removed as it no longer exists in backend
   const isActive = isFormData
     ? data.isActive
     : isInstruction
@@ -158,27 +155,7 @@ Bạn có câu hỏi cụ thể nào tôi có thể hỗ trợ không?`;
               </Card>
             )}
 
-            {/* Data Access Rules */}
-            {dataAccessRules && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Database className="h-5 w-5" />
-                    <span>Quy tắc truy cập dữ liệu</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Dữ liệu AI có thể truy cập và sử dụng
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-green-50 rounded-lg p-4 max-h-[150px] overflow-y-auto">
-                    <pre className="text-sm text-green-800 whitespace-pre-wrap font-sans">
-                      {dataAccessRules}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Note: Data Access Rules section removed as field no longer exists in backend */}
 
             {/* Sample Response */}
             <Card>

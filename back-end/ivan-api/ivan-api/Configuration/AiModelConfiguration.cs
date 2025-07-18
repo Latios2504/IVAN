@@ -21,22 +21,6 @@ public class AiModelConfiguration
 }
 
 /// <summary>
-/// Configuration for the multi-model AI testing playground
-/// </summary>
-public class AiTestingConfiguration
-{
-    public Dictionary<string, AiModelConfiguration> Providers { get; set; } = new();
-    public int TestTimeoutSeconds { get; set; } = 30;
-    public bool EnableSimultaneousTesting { get; set; } = true;
-    public int MaxConcurrentTests { get; set; } = 3;
-    public string DefaultTestPrompt { get; set; } = "Hello, how are you?";
-    
-    // Database connection for read-only access
-    public bool EnableDatabaseIntegration { get; set; } = true;
-    public int DatabaseQueryTimeoutSeconds { get; set; } = 10;
-}
-
-/// <summary>
 /// AI Provider types supported
 /// </summary>
 public enum AiProviderType

@@ -16,4 +16,6 @@ export interface ChatMessageResponse {
   response: string;
   conversationId: string;
   timestamp: string;
+  modelUsed?: string;
+  customInstructionUsed?: string;
 }

@@ -1,6 +1,20 @@
 // AI Testing Types - Aligned with Backend DTOs
 // Moved from service files to centralized location
 
+import type { SqlData } from "./queries";
+
+export interface TestResult {
+  id: string;
+  query: string;
+  response: string;
+  timestamp: Date;
+  executionTime: number;
+  success: boolean;
+  model: string;
+  error?: string;
+  sqlData?: SqlData;
+}
+
 export interface AiTestResult {
   success: boolean;
   providerName: string;
@@ -10,7 +24,7 @@ export interface AiTestResult {
   errorMessage?: string;
   responseTimeMs: number;
   tokensUsed: number;
-  testedAt: string;                    // ISO date string from backend DateTime
+  testedAt: string; // ISO date string from backend DateTime
   metadata: Record<string, any>;
 }
 
@@ -26,8 +40,8 @@ export interface MultiModelTestResponse {
   testId: string;
   results: AiTestResult[];
   totalTestTimeMs: number;
-  startedAt: string;                   // ISO date string from backend DateTime
-  completedAt: string;                 // ISO date string from backend DateTime
+  startedAt: string; // ISO date string from backend DateTime
+  completedAt: string; // ISO date string from backend DateTime
   status: string;
 }
 
@@ -43,7 +57,7 @@ export interface AiPlaygroundSession {
   sessionId: string;
   userId: number;
   testHistory: MultiModelTestResponse[];
-  createdAt: string;                   // ISO date string
-  lastActivity: string;                // ISO date string
+  createdAt: string; // ISO date string
+  lastActivity: string; // ISO date string
   isActive: boolean;
 }

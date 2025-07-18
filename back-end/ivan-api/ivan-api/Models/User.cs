@@ -27,21 +27,9 @@ public partial class User
 
     public DateTime? LastLoginAt { get; set; }
 
-    public string? AiPreferredLanguage { get; set; }
-
-    public string? AiQueryComplexityLevel { get; set; }
-
-    public bool? AiPersonalizationEnabled { get; set; }
-
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-
-    public virtual ICollection<AiCacheEntry> AiCacheEntries { get; set; } = new List<AiCacheEntry>();
-
-    public virtual ICollection<AiCustomInstruction> AiCustomInstructions { get; set; } = new List<AiCustomInstruction>();
-
-    public virtual ICollection<AiQueryIntent> AiQueryIntents { get; set; } = new List<AiQueryIntent>();
 
     public virtual ICollection<CertificateTemplate> CertificateTemplates { get; set; } = new List<CertificateTemplate>();
 

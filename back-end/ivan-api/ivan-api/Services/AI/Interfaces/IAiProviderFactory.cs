@@ -8,42 +8,32 @@ namespace ivan_api.Services.AI.Interfaces;
 public interface IAiProviderFactory
 {
     /// <summary>
-    /// Get a provider by name
+    /// Get all enabled AI providers
     /// </summary>
-    Task<IAiProvider> GetProviderAsync(string providerName);
+    Task<List<IAiProvider>> GetEnabledProvidersAsync();
 
     /// <summary>
-    /// Get the appropriate provider for a specific model
+    /// Get a specific provider by name
     /// </summary>
-    Task<IAiProvider> GetProviderForModelAsync(string modelName);
+    Task<IAiProvider?> GetProviderAsync(string providerName);
 
     /// <summary>
-    /// Get all registered providers
+    /// Get provider that supports a specific model
     /// </summary>
-    Task<IEnumerable<IAiProvider>> GetAllProvidersAsync();
+    Task<IAiProvider?> GetProviderForModelAsync(string modelName);
 
     /// <summary>
-    /// Get all enabled providers
-    /// </summary>
-    Task<IEnumerable<IAiProvider>> GetEnabledProvidersAsync();
-
-    /// <summary>
-    /// Check if a provider is available
-    /// </summary>
-    Task<bool> IsProviderAvailableAsync(string providerName);
-
-    /// <summary>
-    /// Check if a model is supported by any provider
-    /// </summary>
-    Task<bool> IsModelSupportedAsync(string modelName);
-
-    /// <summary>
-    /// Get all available models grouped by provider
+    /// Get all available models from all enabled providers
     /// </summary>
     Task<Dictionary<string, List<string>>> GetProviderModelsAsync();
 
     /// <summary>
-    /// Refresh provider configuration
+    /// Get all providers (enabled and disabled)
     /// </summary>
-    Task RefreshProvidersAsync();
+    Task<List<IAiProvider>> GetAllProvidersAsync();
+
+    /// <summary>
+    /// Test a specific provider
+    /// </summary>
+    Task<bool> TestProviderAsync(string providerName);
 }

@@ -54,7 +54,6 @@ export default function CustomInstructionBuilder({
     instructionName: "",
     systemPrompt: "",
     behaviorInstructions: "",
-    dataAccessRules: "",
     isActive: true,
   });
 
@@ -73,7 +72,6 @@ export default function CustomInstructionBuilder({
         instructionName: editingInstruction.instructionName,
         systemPrompt: editingInstruction.systemPrompt,
         behaviorInstructions: editingInstruction.behaviorInstructions || "",
-        dataAccessRules: editingInstruction.dataAccessRules || "",
         isActive: editingInstruction.isActive,
       });
     } else if (initialData) {
@@ -81,7 +79,6 @@ export default function CustomInstructionBuilder({
         instructionName: initialData.instructionName,
         systemPrompt: initialData.systemPrompt,
         behaviorInstructions: initialData.behaviorInstructions || "",
-        dataAccessRules: initialData.dataAccessRules || "",
         isActive: true,
       });
     }
@@ -93,7 +90,6 @@ export default function CustomInstructionBuilder({
       instructionName: formData.instructionName,
       systemPrompt: formData.systemPrompt,
       behaviorInstructions: formData.behaviorInstructions,
-      dataAccessRules: formData.dataAccessRules,
     });
     setValidation(validationResult);
   }, [formData]);
@@ -107,7 +103,6 @@ export default function CustomInstructionBuilder({
         formData.systemPrompt !== (original?.systemPrompt || "") ||
         formData.behaviorInstructions !==
           (original?.behaviorInstructions || "") ||
-        formData.dataAccessRules !== (original?.dataAccessRules || "") ||
         (editingInstruction &&
           formData.isActive !== editingInstruction.isActive);
       setHasChanges(Boolean(changed));
@@ -115,8 +110,7 @@ export default function CustomInstructionBuilder({
       const hasData =
         formData.instructionName.trim() !== "" ||
         formData.systemPrompt.trim() !== "" ||
-        formData.behaviorInstructions.trim() !== "" ||
-        formData.dataAccessRules.trim() !== "";
+        formData.behaviorInstructions.trim() !== "";
       setHasChanges(hasData);
     }
   }, [formData, editingInstruction, initialData]);
@@ -138,7 +132,6 @@ export default function CustomInstructionBuilder({
           instructionName: formData.instructionName,
           systemPrompt: formData.systemPrompt,
           behaviorInstructions: formData.behaviorInstructions,
-          dataAccessRules: formData.dataAccessRules,
           isActive: formData.isActive,
         };
         await onSave(updateData);
@@ -148,7 +141,6 @@ export default function CustomInstructionBuilder({
           instructionName: formData.instructionName,
           systemPrompt: formData.systemPrompt,
           behaviorInstructions: formData.behaviorInstructions,
-          dataAccessRules: formData.dataAccessRules,
         };
         await onSave(createData);
       }
@@ -163,7 +155,6 @@ export default function CustomInstructionBuilder({
         instructionName: editingInstruction.instructionName,
         systemPrompt: editingInstruction.systemPrompt,
         behaviorInstructions: editingInstruction.behaviorInstructions || "",
-        dataAccessRules: editingInstruction.dataAccessRules || "",
         isActive: editingInstruction.isActive,
       });
     } else {
@@ -171,7 +162,6 @@ export default function CustomInstructionBuilder({
         instructionName: "",
         systemPrompt: "",
         behaviorInstructions: "",
-        dataAccessRules: "",
         isActive: true,
       });
     }
@@ -298,33 +288,6 @@ export default function CustomInstructionBuilder({
             />
             <p className="text-xs text-gray-500">
               {formData.behaviorInstructions.length} ký tự
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Quy tắc truy cập dữ liệu</CardTitle>
-          <CardDescription>
-            Định nghĩa dữ liệu nào AI có thể truy cập và sử dụng để trả lời câu
-            hỏi.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="dataAccessRules">Quy tắc truy cập dữ liệu</Label>
-            <Textarea
-              id="dataAccessRules"
-              placeholder="Truy cập: volunteer profiles, events, performance metrics..."
-              value={formData.dataAccessRules}
-              onChange={(e) =>
-                handleInputChange("dataAccessRules", e.target.value)
-              }
-              className="min-h-[80px] max-h-[150px] overflow-y-auto resize-y"
-            />
-            <p className="text-xs text-gray-500">
-              {formData.dataAccessRules.length} ký tự
             </p>
           </div>
         </CardContent>

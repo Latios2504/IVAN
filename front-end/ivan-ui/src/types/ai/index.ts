@@ -2,13 +2,13 @@
 // Import all AI types from this single file
 
 // Instructions
-export * from './instructions';
+export * from "./instructions";
 
-// Testing  
-export * from './testing';
+// Queries
+export * from "./queries";
 
-// Analytics
-export * from './analytics';
+// Testing
+export * from "./testing";
 
 // Providers
-export * from './providers';
+export * from "./providers";

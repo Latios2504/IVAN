@@ -65,7 +65,6 @@ import type {
   AiCustomInstructionUpdateDTO,
   InstructionFormData,
   InstructionFilters,
-  InstructionPerformanceDTO,
 } from "@/types/ai";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
 
@@ -137,12 +136,7 @@ export default function AIInstructionsManagementPage() {
       );
     }
 
-    // Default filter
-    if (filters.isDefault !== undefined) {
-      filtered = filtered.filter(
-        (instruction) => instruction.isDefault === filters.isDefault
-      );
-    }
+    // Note: isDefault filter removed as field no longer exists in backend
 
     setFilteredInstructions(filtered);
   }, [instructions, searchQuery, filters]);
@@ -178,26 +172,6 @@ export default function AIInstructionsManagementPage() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Add performance metrics loading function as specified in the documentation
-  const loadPerformance = async (instructionId: number) => {
-    try {
-      const performance = await aiInstructionsService.getInstructionPerformance(instructionId);
-      
-      // Update stats with real performance data
-      setStats(prevStats => ({
-        ...prevStats,
-        avgQuality: performance.averageResponseQuality,
-        totalQueries: performance.totalQueries,
-      }));
-      
-      console.log("Performance metrics loaded:", performance);
-      return performance;
-    } catch (error) {
-      console.error("Failed to load performance metrics:", error);
-      throw error;
     }
   };
 
@@ -273,11 +247,6 @@ export default function AIInstructionsManagementPage() {
     }
   };
 
-  const handleSelectTemplate = (template: AiCustomInstructionCreateDTO) => {
-    setBuilderData(template);
-    setViewMode("builder");
-  };
-
   const handlePreviewFormData = (formData: InstructionFormData) => {
     setPreviewData(formData);
   };
@@ -311,16 +280,7 @@ export default function AIInstructionsManagementPage() {
   };
 
   const getStatusBadge = (instruction: AiCustomInstructionDTO) => {
-    if (instruction.isDefault) {
-      return (
-        <Badge
-          variant="outline"
-          className="bg-purple-50 text-purple-700 border-purple-200"
-        >
-          Template
-        </Badge>
-      );
-    }
+    // Note: Template badge removed as isDefault field no longer exists
     if (instruction.isActive) {
       return (
         <Badge
@@ -451,7 +411,6 @@ export default function AIInstructionsManagementPage() {
                   instructionName: "",
                   systemPrompt: "",
                   behaviorInstructions: "",
-                  dataAccessRules: "",
                 });
                 setViewMode("builder");
               }}
@@ -550,7 +509,7 @@ export default function AIInstructionsManagementPage() {
                                   instruction.instructionId
                                 )
                               }
-                              disabled={instruction.isDefault}
+                              disabled={false}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Xóa

@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using ivan_api.Configuration;
 using ivan_api.DTOs.AI;
 using ivan_api.Services.AI.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ivan_api.Services.AI.Providers;
 
@@ -20,114 +22,16 @@ public class GeminiAiProvider : IAiProvider
     public AiProviderType ProviderType => AiProviderType.Gemini;
     public bool IsEnabled => _config.IsEnabled;
 
-    public GeminiAiProvider(HttpClient httpClient, AiModelConfiguration config, ILogger<GeminiAiProvider> logger)
+    public GeminiAiProvider(HttpClient httpClient, IOptionsMonitor<AiModelConfiguration> config, ILogger<GeminiAiProvider> logger)
     {
         _httpClient = httpClient;
-        _config = config;
+        _config = config.Get("Gemini");
         _logger = logger;
     }
 
     public async Task<AiTestResult> SendPromptAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        var result = new AiTestResult
-        {
-            ProviderName = ProviderName,
-            Model = _config.DefaultModel,
-            Prompt = prompt
-        };
-
-        try
-        {
-            var requestBody = new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        parts = new[]
-                        {
-                            new { text = prompt }
-                        }
-                    }
-                },
-                generationConfig = new
-                {
-                    temperature = _config.Temperature,
-                    maxOutputTokens = _config.MaxTokens
-                }
-            };
-
-            var json = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var url = $"{_config.BaseUrl}/{_config.DefaultModel}:generateContent?key={_config.ApiKey}";
-            var response = await _httpClient.PostAsync(url, content, cancellationToken);
-
-            stopwatch.Stop();
-            result.ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds;
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                
-                // Log for debugging specific model issues
-                if (!string.IsNullOrEmpty(responseContent))
-                {
-                    _logger.LogInformation($"Gemini API call successful for model {_config.DefaultModel}. Response length: {responseContent.Length}");
-                }
-                
-                try
-                {
-                    var geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(responseContent);
-
-                    if (geminiResponse?.Candidates?.Any() == true)
-                    {
-                        result.Success = true;
-                        
-                        // Concatenate all text parts from the first candidate
-                        var candidate = geminiResponse.Candidates[0];
-                        var allText = candidate?.Content?.Parts?
-                            .Where(p => !string.IsNullOrEmpty(p.Text))
-                            .Select(p => p.Text)
-                            .ToList();
-                            
-                        result.Response = allText?.Any() == true 
-                            ? string.Join("", allText) 
-                            : "No response";
-                            
-                        result.TokensUsed = geminiResponse.UsageMetadata?.TotalTokenCount ?? 0;
-                    }
-                    else
-                    {
-                        result.Success = false;
-                        result.ErrorMessage = "No valid response from Gemini - no candidates found";
-                        _logger.LogWarning($"Gemini model {_config.DefaultModel} returned no candidates in response");
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    result.Success = false;
-                    result.ErrorMessage = $"Failed to parse Gemini response: {ex.Message}";
-                    _logger.LogError(ex, $"Failed to parse Gemini JSON response for model {_config.DefaultModel}. Response: {responseContent}");
-                }
-            }
-            else
-            {
-                result.Success = false;
-                result.ErrorMessage = $"HTTP {response.StatusCode}: {await response.Content.ReadAsStringAsync(cancellationToken)}";
-            }
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            result.ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds;
-            result.Success = false;
-            result.ErrorMessage = ex.Message;
-            _logger.LogError(ex, "Error calling Gemini API");
-        }
-
-        return result;
+        return await SendPromptAsync(prompt, null, cancellationToken);
     }
 
     public async Task<AiTestResult> SendPromptAsync(string prompt, string? modelName = null, CancellationToken cancellationToken = default)
@@ -249,8 +153,6 @@ public class GeminiAiProvider : IAiProvider
         return result;
     }
 
-
-
     public async Task<List<string>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         // Return available models from configuration
@@ -261,9 +163,9 @@ public class GeminiAiProvider : IAiProvider
         return await Task.FromResult(models);
     }
 
-    public Services.AI.Interfaces.AiProviderCapabilities GetCapabilities()
+    public AiProviderCapabilities GetCapabilities()
     {
-        return new Services.AI.Interfaces.AiProviderCapabilities
+        return new AiProviderCapabilities
         {
             MaxTokens = _config.MaxTokens,
             RequestsPerMinute = _config.RequestsPerMinute,

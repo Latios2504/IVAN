@@ -20,7 +20,14 @@ using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
 using ivan_api.Services.AuthenticationSer;
+using ivan_api.Services.AI;
 using ivan_api.Extensions;
+
+using ivan_api.Services.DatabaseSchema.Interfaces;
+using ivan_api.Services.DatabaseSchema.Services;
+using ivan_api.Services.AI.SQLGenerator.Interfaces;
+using ivan_api.Services.AI.SQLGenerator.Services;
+using ivan_api.Services.AI.SQLGenerator.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +51,8 @@ builder.Services.AddSingleton(jwtConfig);
 // Email Configuration
 builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
 
-// AI Services Configuration (choose one approach)
-// Option 1: Simplified AI services (recommended - uses provider capabilities)
-builder.Services.AddSimplifiedAiServices(builder.Configuration);
-
-// Option 2: Legacy database-driven AI services (for complex configurations)
-// builder.Services.AddLegacyAiServices(builder.Configuration);
+//AI Configuration
+builder.Services.AddAiServices(builder.Configuration);
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -136,18 +139,22 @@ builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
 builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
 
+
+
+// Schema Services DI
+builder.Services.AddScoped<ISchemaService, SchemaService>();
+
+// SQL Generator Services DI
+builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
+builder.Services.AddScoped<SqlDetectionService>();
+builder.Services.AddScoped<SqlPromptGenerator>();
+
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 //builder.Services.AddScoped<IEventService, EventService>();
 
-builder.Services.AddControllers().AddJsonOptions(opt =>
-{
-    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -166,9 +173,6 @@ app.UseCors();
 // Authentication & Authorization middleware (order matters!)
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Initialize AI providers after service container is built
-app.Services.InitializeAiProviders();
 
 app.MapControllers();
 

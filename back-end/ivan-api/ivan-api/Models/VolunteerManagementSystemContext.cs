@@ -15,15 +15,7 @@ public partial class VolunteerManagementSystemContext : DbContext
     {
     }
 
-    public virtual DbSet<AiCacheEntry> AiCacheEntries { get; set; }
-
-    public virtual DbSet<AiConfiguration> AiConfigurations { get; set; }
-
     public virtual DbSet<AiCustomInstruction> AiCustomInstructions { get; set; }
-
-    public virtual DbSet<AiEntityMapping> AiEntityMappings { get; set; }
-
-    public virtual DbSet<AiQueryIntent> AiQueryIntents { get; set; }
 
     public virtual DbSet<Certificate> Certificates { get; set; }
 
@@ -77,6 +69,14 @@ public partial class VolunteerManagementSystemContext : DbContext
 
     public virtual DbSet<SupportRequestComment> SupportRequestComments { get; set; }
 
+    public virtual DbSet<TableColumn> TableColumns { get; set; }
+
+    public virtual DbSet<TableKeyword> TableKeywords { get; set; }
+
+    public virtual DbSet<TableRelationship> TableRelationships { get; set; }
+
+    public virtual DbSet<TableSchema> TableSchemas { get; set; }
+
     public virtual DbSet<TaskAssignment> TaskAssignments { get; set; }
 
     public virtual DbSet<TaskCategory> TaskCategories { get; set; }
@@ -105,128 +105,27 @@ public partial class VolunteerManagementSystemContext : DbContext
             optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
     }
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("Vietnamese_CI_AS");
 
-        modelBuilder.Entity<AiCacheEntry>(entity =>
-        {
-            entity.HasKey(e => e.CacheId).HasName("PK__AiCacheE__4EDCCD33B00BE402");
-
-            entity.HasIndex(e => e.CacheKey, "IX_AiCacheEntries_CacheKey");
-
-            entity.HasIndex(e => e.ExpiresAt, "IX_AiCacheEntries_ExpiresAt");
-
-            entity.HasIndex(e => e.UserId, "IX_AiCacheEntries_UserId");
-
-            entity.HasIndex(e => e.CacheKey, "UQ__AiCacheE__98E2A34695CE515A").IsUnique();
-
-            entity.Property(e => e.CacheKey).HasMaxLength(255);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
-
-            entity.HasOne(d => d.User).WithMany(p => p.AiCacheEntries)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK__AiCacheEn__UserI__59904A2C");
-        });
-
-        modelBuilder.Entity<AiConfiguration>(entity =>
-        {
-            entity.HasKey(e => e.ConfigKey).HasName("PK__AiConfig__4A306785F8067631");
-
-            entity.HasIndex(e => e.ConfigKey, "IX_AiConfigurations_ConfigKey");
-
-            entity.Property(e => e.ConfigKey).HasMaxLength(100);
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
-        });
-
         modelBuilder.Entity<AiCustomInstruction>(entity =>
         {
-            entity.HasKey(e => e.InstructionId).HasName("PK__AiCustom__CE0694714A158A19");
-
-            entity.HasIndex(e => e.CreatedByUserId, "IX_AiCustomInstructions_CreatedByUserId");
-
-            entity.HasIndex(e => e.IsActive, "IX_AiCustomInstructions_IsActive");
+            entity.HasKey(e => e.InstructionId).HasName("PK__AiCustom__CE0694713AC9BF80");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.InstructionName).HasMaxLength(200);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsDefault).HasDefaultValue(false);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.AiCustomInstructions)
-                .HasForeignKey(d => d.CreatedByUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AiCustomI__Creat__54CB950F");
-        });
-
-        modelBuilder.Entity<AiEntityMapping>(entity =>
-        {
-            entity.HasKey(e => e.MappingId).HasName("PK__AiEntity__8B57819D4AC387D7");
-
-            entity.HasIndex(e => e.ConfidenceScore, "IX_AiEntityMappings_ConfidenceScore").IsDescending();
-
-            entity.HasIndex(e => e.EntityId, "IX_AiEntityMappings_EntityId");
-
-            entity.HasIndex(e => e.EntityType, "IX_AiEntityMappings_EntityType");
-
-            entity.HasIndex(e => e.InputText, "IX_AiEntityMappings_InputText");
-
-            entity.Property(e => e.ConfidenceScore).HasColumnType("decimal(3, 2)");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.EntityTable).HasMaxLength(100);
-            entity.Property(e => e.EntityType).HasMaxLength(50);
-            entity.Property(e => e.InputText).HasMaxLength(500);
-            entity.Property(e => e.MatchingAlgorithm).HasMaxLength(50);
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getdate())");
-        });
-
-        modelBuilder.Entity<AiQueryIntent>(entity =>
-        {
-            entity.HasKey(e => e.IntentId).HasName("PK__AiQueryI__C3B0534790698561");
-
-            entity.ToTable("AiQueryIntent");
-
-            entity.HasIndex(e => e.DetectedIntent, "IX_AiQueryIntent_DetectedIntent");
-
-            entity.HasIndex(e => e.IsCorrect, "IX_AiQueryIntent_IsCorrect");
-
-            entity.HasIndex(e => new { e.UserId, e.CreatedAt }, "IX_AiQueryIntent_UserId_CreatedAt").IsDescending(false, true);
-
-            entity.Property(e => e.ConversationId).HasMaxLength(100);
-            entity.Property(e => e.CorrectedIntent).HasMaxLength(100);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.DataTablesAccessed).HasMaxLength(500);
-            entity.Property(e => e.DetectedIntent).HasMaxLength(100);
-
-            entity.HasOne(d => d.Instruction).WithMany(p => p.AiQueryIntents)
-                .HasForeignKey(d => d.InstructionId)
-                .HasConstraintName("FK__AiQueryIn__Instr__6225902D");
-
-            entity.HasOne(d => d.User).WithMany(p => p.AiQueryIntents)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__AiQueryIn__UserI__61316BF4");
         });
 
         modelBuilder.Entity<Certificate>(entity =>
         {
-            entity.HasKey(e => e.CertificateId).HasName("PK__Certific__BBF8A7C1077AD15D");
+            entity.HasKey(e => e.CertificateId).HasName("PK__Certific__BBF8A7C1C98D3442");
 
-            entity.HasIndex(e => e.CertificateName, "IX_Certificates_CertificateName");
+            entity.HasIndex(e => e.VerificationCode, "UQ__Certific__DA24CB1454F119A4").IsUnique();
 
-            entity.HasIndex(e => e.CertificateNumber, "IX_Certificates_CertificateNumber");
-
-            entity.HasIndex(e => e.IssueDate, "IX_Certificates_IssueDate");
-
-            entity.HasIndex(e => e.PerformanceLevel, "IX_Certificates_PerformanceLevel");
-
-            entity.HasIndex(e => e.Status, "IX_Certificates_Status");
-
-            entity.HasIndex(e => e.VerificationCode, "UQ__Certific__DA24CB14381AB1D0").IsUnique();
-
-            entity.HasIndex(e => e.CertificateNumber, "UQ__Certific__E384CE0F5FC9781D").IsUnique();
+            entity.HasIndex(e => e.CertificateNumber, "UQ__Certific__E384CE0F3CD863FC").IsUnique();
 
             entity.Property(e => e.CertificateFileUrl).HasMaxLength(500);
             entity.Property(e => e.CertificateName).HasMaxLength(300);
@@ -249,29 +148,25 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Event).WithMany(p => p.Certificates)
                 .HasForeignKey(d => d.EventId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Certifica__Event__18B6AB08");
+                .HasConstraintName("FK__Certifica__Event__15DA3E5D");
 
             entity.HasOne(d => d.IssuedByNavigation).WithMany(p => p.Certificates)
                 .HasForeignKey(d => d.IssuedBy)
-                .HasConstraintName("FK__Certifica__Issue__1A9EF37A");
+                .HasConstraintName("FK__Certifica__Issue__17C286CF");
 
             entity.HasOne(d => d.Template).WithMany(p => p.Certificates)
                 .HasForeignKey(d => d.TemplateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Certifica__Templ__19AACF41");
+                .HasConstraintName("FK__Certifica__Templ__16CE6296");
 
             entity.HasOne(d => d.Volunteer).WithMany(p => p.Certificates)
                 .HasForeignKey(d => d.VolunteerId)
-                .HasConstraintName("FK__Certifica__Volun__17C286CF");
+                .HasConstraintName("FK__Certifica__Volun__14E61A24");
         });
 
         modelBuilder.Entity<CertificateTemplate>(entity =>
         {
-            entity.HasKey(e => e.TemplateId).HasName("PK__Certific__F87ADD274BBD2710");
-
-            entity.HasIndex(e => e.TemplateName, "IX_CertificateTemplates_TemplateName");
-
-            entity.HasIndex(e => e.TemplateType, "IX_CertificateTemplates_TemplateType");
+            entity.HasKey(e => e.TemplateId).HasName("PK__Certific__F87ADD2743EA1380");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -284,27 +179,27 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CertificateTemplates)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Certifica__Creat__0F2D40CE");
+                .HasConstraintName("FK__Certifica__Creat__0C50D423");
 
             entity.HasOne(d => d.Organization).WithMany(p => p.CertificateTemplates)
                 .HasForeignKey(d => d.OrganizationId)
-                .HasConstraintName("FK__Certifica__Organ__0E391C95");
+                .HasConstraintName("FK__Certifica__Organ__0B5CAFEA");
         });
 
         modelBuilder.Entity<ChatbotInteraction>(entity =>
         {
-            entity.HasKey(e => e.InteractionId).HasName("PK__ChatbotI__922C04961555F4A3");
+            entity.HasKey(e => e.InteractionId).HasName("PK__ChatbotI__922C0496BC6B0F94");
 
             entity.Property(e => e.InteractionDate).HasDefaultValueSql("(getdate())");
 
             entity.HasOne(d => d.User).WithMany(p => p.ChatbotInteractions)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__ChatbotIn__UserI__4589517F");
+                .HasConstraintName("FK__ChatbotIn__UserI__42ACE4D4");
         });
 
         modelBuilder.Entity<CollaborationType>(entity =>
         {
-            entity.HasKey(e => e.TypeId).HasName("PK__Collabor__516F03B5312F9A40");
+            entity.HasKey(e => e.TypeId).HasName("PK__Collabor__516F03B5B59D0879");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -314,7 +209,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<CoordinatorSchedule>(entity =>
         {
-            entity.HasKey(e => e.ScheduleId).HasName("PK__Coordina__9C8A5B4924CB7246");
+            entity.HasKey(e => e.ScheduleId).HasName("PK__Coordina__9C8A5B49AA7CCB53");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -330,22 +225,20 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Coordinator).WithMany(p => p.CoordinatorScheduleCoordinators)
                 .HasForeignKey(d => d.CoordinatorId)
-                .HasConstraintName("FK__Coordinat__Coord__540C7B00");
+                .HasConstraintName("FK__Coordinat__Coord__51300E55");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CoordinatorScheduleCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Coordinat__Creat__55F4C372");
+                .HasConstraintName("FK__Coordinat__Creat__531856C7");
 
             entity.HasOne(d => d.Event).WithMany(p => p.CoordinatorSchedules)
                 .HasForeignKey(d => d.EventId)
-                .HasConstraintName("FK__Coordinat__Event__55009F39");
+                .HasConstraintName("FK__Coordinat__Event__5224328E");
         });
 
         modelBuilder.Entity<CoordinatorTask>(entity =>
         {
-            entity.HasKey(e => e.TaskId).HasName("PK__Coordina__7C6949B1CA8DBBA3");
-
-            entity.HasIndex(e => e.TaskName, "IX_CoordinatorTasks_TaskName");
+            entity.HasKey(e => e.TaskId).HasName("PK__Coordina__7C6949B1BEC352AB");
 
             entity.Property(e => e.ActualHours).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.Category).HasMaxLength(100);
@@ -361,32 +254,20 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Coordinator).WithMany(p => p.CoordinatorTaskCoordinators)
                 .HasForeignKey(d => d.CoordinatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Coordinat__Coord__7755B73D");
+                .HasConstraintName("FK__Coordinat__Coord__74794A92");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CoordinatorTaskCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Coordinat__Creat__7849DB76");
+                .HasConstraintName("FK__Coordinat__Creat__756D6ECB");
 
             entity.HasOne(d => d.Event).WithMany(p => p.CoordinatorTasks)
                 .HasForeignKey(d => d.EventId)
-                .HasConstraintName("FK__Coordinat__Event__76619304");
+                .HasConstraintName("FK__Coordinat__Event__73852659");
         });
 
         modelBuilder.Entity<Event>(entity =>
         {
-            entity.HasKey(e => e.EventId).HasName("PK__Events__7944C8109838AB25");
-
-            entity.HasIndex(e => e.CategoryId, "IX_Events_CategoryId");
-
-            entity.HasIndex(e => e.EndDate, "IX_Events_EndDate");
-
-            entity.HasIndex(e => e.EventName, "IX_Events_EventName");
-
-            entity.HasIndex(e => e.OrganizationId, "IX_Events_OrganizationId");
-
-            entity.HasIndex(e => e.StartDate, "IX_Events_StartDate");
-
-            entity.HasIndex(e => e.StatusId, "IX_Events_StatusId");
+            entity.HasKey(e => e.EventId).HasName("PK__Events__7944C810D0A9219E");
 
             entity.Property(e => e.AgeRequirement).HasMaxLength(100);
             entity.Property(e => e.BannerImageUrl).HasMaxLength(500);
@@ -430,31 +311,29 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.Events)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Events__Category__32AB8735");
+                .HasConstraintName("FK__Events__Category__2FCF1A8A");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.EventCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Events__CreatedB__3493CFA7");
+                .HasConstraintName("FK__Events__CreatedB__31B762FC");
 
             entity.HasOne(d => d.Organization).WithMany(p => p.Events)
                 .HasForeignKey(d => d.OrganizationId)
-                .HasConstraintName("FK__Events__Organiza__31B762FC");
+                .HasConstraintName("FK__Events__Organiza__2EDAF651");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Events)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Events__StatusId__339FAB6E");
+                .HasConstraintName("FK__Events__StatusId__30C33EC3");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.EventUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .HasConstraintName("FK__Events__UpdatedB__3587F3E0");
+                .HasConstraintName("FK__Events__UpdatedB__32AB8735");
         });
 
         modelBuilder.Entity<EventCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__EventCat__19093A0B991A95A9");
-
-            entity.HasIndex(e => e.CategoryName, "IX_EventCategories_CategoryName");
+            entity.HasKey(e => e.CategoryId).HasName("PK__EventCat__19093A0B79A1D6F9");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.Color).HasMaxLength(7);
@@ -466,21 +345,9 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<EventRegistration>(entity =>
         {
-            entity.HasKey(e => e.RegistrationId).HasName("PK__EventReg__6EF58810685F48B1");
+            entity.HasKey(e => e.RegistrationId).HasName("PK__EventReg__6EF588101860ADB0");
 
-            entity.HasIndex(e => e.ApplicationDate, "IX_EventRegistrations_ApplicationDate");
-
-            entity.HasIndex(e => e.AttendanceStatus, "IX_EventRegistrations_AttendanceStatus");
-
-            entity.HasIndex(e => e.EventId, "IX_EventRegistrations_EventId");
-
-            entity.HasIndex(e => e.Performance, "IX_EventRegistrations_Performance");
-
-            entity.HasIndex(e => e.StatusId, "IX_EventRegistrations_StatusId");
-
-            entity.HasIndex(e => e.VolunteerId, "IX_EventRegistrations_VolunteerId");
-
-            entity.HasIndex(e => new { e.EventId, e.VolunteerId }, "UQ__EventReg__AE523EE3C2FE960D").IsUnique();
+            entity.HasIndex(e => new { e.EventId, e.VolunteerId }, "UQ__EventReg__AE523EE3239C511E").IsUnique();
 
             entity.Property(e => e.ActualHours).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.AdditionalInfo).HasMaxLength(1000);
@@ -498,30 +365,30 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.EventRegistrationApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
-                .HasConstraintName("FK__EventRegi__Appro__43D61337");
+                .HasConstraintName("FK__EventRegi__Appro__40F9A68C");
 
             entity.HasOne(d => d.Event).WithMany(p => p.EventRegistrations)
                 .HasForeignKey(d => d.EventId)
-                .HasConstraintName("FK__EventRegi__Event__40F9A68C");
+                .HasConstraintName("FK__EventRegi__Event__3E1D39E1");
 
             entity.HasOne(d => d.RejectedByNavigation).WithMany(p => p.EventRegistrationRejectedByNavigations)
                 .HasForeignKey(d => d.RejectedBy)
-                .HasConstraintName("FK__EventRegi__Rejec__44CA3770");
+                .HasConstraintName("FK__EventRegi__Rejec__41EDCAC5");
 
             entity.HasOne(d => d.Status).WithMany(p => p.EventRegistrations)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EventRegi__Statu__42E1EEFE");
+                .HasConstraintName("FK__EventRegi__Statu__40058253");
 
             entity.HasOne(d => d.Volunteer).WithMany(p => p.EventRegistrations)
                 .HasForeignKey(d => d.VolunteerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EventRegi__Volun__41EDCAC5");
+                .HasConstraintName("FK__EventRegi__Volun__3F115E1A");
         });
 
         modelBuilder.Entity<EventStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__EventSta__C8EE20635E882B3F");
+            entity.HasKey(e => e.StatusId).HasName("PK__EventSta__C8EE2063BA9EC0DD");
 
             entity.ToTable("EventStatus");
 
@@ -534,15 +401,9 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDD6A38E1F1B");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDD6825F8A2E");
 
             entity.ToTable("Feedback");
-
-            entity.HasIndex(e => e.Rating, "IX_Feedback_Rating");
-
-            entity.HasIndex(e => e.Status, "IX_Feedback_Status");
-
-            entity.HasIndex(e => e.Subject, "IX_Feedback_Subject");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsAnonymous).HasDefaultValue(false);
@@ -557,27 +418,25 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Feedback__Catego__0697FACD");
+                .HasConstraintName("FK__Feedback__Catego__03BB8E22");
 
             entity.HasOne(d => d.Event).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.EventId)
-                .HasConstraintName("FK__Feedback__EventI__04AFB25B");
+                .HasConstraintName("FK__Feedback__EventI__01D345B0");
 
             entity.HasOne(d => d.RespondedByNavigation).WithMany(p => p.FeedbackRespondedByNavigations)
                 .HasForeignKey(d => d.RespondedBy)
-                .HasConstraintName("FK__Feedback__Respon__078C1F06");
+                .HasConstraintName("FK__Feedback__Respon__04AFB25B");
 
             entity.HasOne(d => d.User).WithMany(p => p.FeedbackUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Feedback__UserId__05A3D694");
+                .HasConstraintName("FK__Feedback__UserId__02C769E9");
         });
 
         modelBuilder.Entity<FeedbackCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__Feedback__19093A0BAF45BD89");
-
-            entity.HasIndex(e => e.CategoryName, "IX_FeedbackCategories_CategoryName");
+            entity.HasKey(e => e.CategoryId).HasName("PK__Feedback__19093A0BE30CB4E4");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -587,13 +446,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E12DEAE2E27");
-
-            entity.HasIndex(e => e.IsRead, "IX_Notifications_IsRead");
-
-            entity.HasIndex(e => e.SendDate, "IX_Notifications_SendDate");
-
-            entity.HasIndex(e => e.Title, "IX_Notifications_Title");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E12EA08C795");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsRead).HasDefaultValue(false);
@@ -602,18 +455,12 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__Notificat__UserI__41B8C09B");
+                .HasConstraintName("FK__Notificat__UserI__3EDC53F0");
         });
 
         modelBuilder.Entity<OnSiteTask>(entity =>
         {
-            entity.HasKey(e => e.TaskId).HasName("PK__OnSiteTa__7C6949B1DA937621");
-
-            entity.HasIndex(e => e.Difficulty, "IX_OnSiteTasks_Difficulty");
-
-            entity.HasIndex(e => e.Priority, "IX_OnSiteTasks_Priority");
-
-            entity.HasIndex(e => e.TaskName, "IX_OnSiteTasks_TaskName");
+            entity.HasKey(e => e.TaskId).HasName("PK__OnSiteTa__7C6949B128DE14FD");
 
             entity.Property(e => e.ActualHours).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.AssignedVolunteers).HasDefaultValue(0);
@@ -635,43 +482,33 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Category).WithMany(p => p.OnSiteTasks)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__OnSiteTas__Categ__65370702");
+                .HasConstraintName("FK__OnSiteTas__Categ__625A9A57");
 
             entity.HasOne(d => d.CompletedByNavigation).WithMany(p => p.OnSiteTaskCompletedByNavigations)
                 .HasForeignKey(d => d.CompletedBy)
-                .HasConstraintName("FK__OnSiteTas__Compl__671F4F74");
+                .HasConstraintName("FK__OnSiteTas__Compl__6442E2C9");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.OnSiteTaskCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__OnSiteTas__Creat__690797E6");
+                .HasConstraintName("FK__OnSiteTas__Creat__662B2B3B");
 
             entity.HasOne(d => d.Event).WithMany(p => p.OnSiteTasks)
                 .HasForeignKey(d => d.EventId)
-                .HasConstraintName("FK__OnSiteTas__Event__6442E2C9");
+                .HasConstraintName("FK__OnSiteTas__Event__6166761E");
 
             entity.HasOne(d => d.Status).WithMany(p => p.OnSiteTasks)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__OnSiteTas__Statu__662B2B3B");
+                .HasConstraintName("FK__OnSiteTas__Statu__634EBE90");
 
             entity.HasOne(d => d.VerifiedByNavigation).WithMany(p => p.OnSiteTaskVerifiedByNavigations)
                 .HasForeignKey(d => d.VerifiedBy)
-                .HasConstraintName("FK__OnSiteTas__Verif__681373AD");
+                .HasConstraintName("FK__OnSiteTas__Verif__65370702");
         });
 
         modelBuilder.Entity<Organization>(entity =>
         {
-            entity.HasKey(e => e.OrganizationId).HasName("PK__Organiza__CADB0B1235061FD3");
-
-            entity.HasIndex(e => e.IsVerified, "IX_Organizations_IsVerified");
-
-            entity.HasIndex(e => e.OrganizationName, "IX_Organizations_OrganizationName");
-
-            entity.HasIndex(e => e.ShortName, "IX_Organizations_ShortName");
-
-            entity.HasIndex(e => e.TypeId, "IX_Organizations_TypeId");
-
-            entity.HasIndex(e => e.UserId, "IX_Organizations_UserId");
+            entity.HasKey(e => e.OrganizationId).HasName("PK__Organiza__CADB0B12658322ED");
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.BannerUrl).HasMaxLength(500);
@@ -708,21 +545,21 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Type).WithMany(p => p.Organizations)
                 .HasForeignKey(d => d.TypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Organizat__TypeI__00200768");
+                .HasConstraintName("FK__Organizat__TypeI__7D439ABD");
 
             entity.HasOne(d => d.User).WithMany(p => p.OrganizationUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Organizat__UserI__7F2BE32F");
+                .HasConstraintName("FK__Organizat__UserI__7C4F7684");
 
             entity.HasOne(d => d.VerifiedByNavigation).WithMany(p => p.OrganizationVerifiedByNavigations)
                 .HasForeignKey(d => d.VerifiedBy)
-                .HasConstraintName("FK__Organizat__Verif__01142BA1");
+                .HasConstraintName("FK__Organizat__Verif__7E37BEF6");
         });
 
         modelBuilder.Entity<OrganizationType>(entity =>
         {
-            entity.HasKey(e => e.TypeId).HasName("PK__Organiza__516F03B545FE5FCB");
+            entity.HasKey(e => e.TypeId).HasName("PK__Organiza__516F03B59A11F76A");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -732,13 +569,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Partner>(entity =>
         {
-            entity.HasKey(e => e.PartnerId).HasName("PK__Partners__39FD6312A04A493D");
-
-            entity.HasIndex(e => e.CompanyName, "IX_Partners_CompanyName");
-
-            entity.HasIndex(e => e.IsActive, "IX_Partners_IsActive");
-
-            entity.HasIndex(e => e.IsVerified, "IX_Partners_IsVerified");
+            entity.HasKey(e => e.PartnerId).HasName("PK__Partners__39FD63120076BC46");
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.BusinessLicense).HasMaxLength(100);
@@ -768,25 +599,21 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Industry).WithMany(p => p.Partners)
                 .HasForeignKey(d => d.IndustryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Partners__Indust__0F624AF8");
+                .HasConstraintName("FK__Partners__Indust__0C85DE4D");
 
             entity.HasOne(d => d.User).WithMany(p => p.PartnerUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Partners__UserId__0E6E26BF");
+                .HasConstraintName("FK__Partners__UserId__0B91BA14");
 
             entity.HasOne(d => d.VerifiedByNavigation).WithMany(p => p.PartnerVerifiedByNavigations)
                 .HasForeignKey(d => d.VerifiedBy)
-                .HasConstraintName("FK__Partners__Verifi__10566F31");
+                .HasConstraintName("FK__Partners__Verifi__0D7A0286");
         });
 
         modelBuilder.Entity<PartnerCollaboration>(entity =>
         {
-            entity.HasKey(e => e.CollaborationId).HasName("PK__PartnerC__4F81366427E6AF04");
-
-            entity.HasIndex(e => e.CollaborationName, "IX_PartnerCollaborations_CollaborationName");
-
-            entity.HasIndex(e => e.Status, "IX_PartnerCollaborations_Status");
+            entity.HasKey(e => e.CollaborationId).HasName("PK__PartnerC__4F813664DABDF05B");
 
             entity.Property(e => e.Budget).HasColumnType("decimal(15, 2)");
             entity.Property(e => e.CollaborationName).HasMaxLength(300);
@@ -805,23 +632,21 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Organization).WithMany(p => p.PartnerCollaborations)
                 .HasForeignKey(d => d.OrganizationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PartnerCo__Organ__3A179ED3");
+                .HasConstraintName("FK__PartnerCo__Organ__373B3228");
 
             entity.HasOne(d => d.Partner).WithMany(p => p.PartnerCollaborations)
                 .HasForeignKey(d => d.PartnerId)
-                .HasConstraintName("FK__PartnerCo__Partn__3B0BC30C");
+                .HasConstraintName("FK__PartnerCo__Partn__382F5661");
 
             entity.HasOne(d => d.Type).WithMany(p => p.PartnerCollaborations)
                 .HasForeignKey(d => d.TypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PartnerCo__TypeI__3BFFE745");
+                .HasConstraintName("FK__PartnerCo__TypeI__39237A9A");
         });
 
         modelBuilder.Entity<PartnerIndustry>(entity =>
         {
-            entity.HasKey(e => e.IndustryId).HasName("PK__PartnerI__808DEDCC49DD2363");
-
-            entity.HasIndex(e => e.IndustryName, "IX_PartnerIndustries_IndustryName");
+            entity.HasKey(e => e.IndustryId).HasName("PK__PartnerI__808DEDCCF384B50E");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -831,7 +656,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<RegistrationStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__Registra__C8EE2063EF3E6BED");
+            entity.HasKey(e => e.StatusId).HasName("PK__Registra__C8EE2063988BD5C2");
 
             entity.ToTable("RegistrationStatus");
 
@@ -844,7 +669,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Report>(entity =>
         {
-            entity.HasKey(e => e.ReportId).HasName("PK__Reports__D5BD48053D9853F2");
+            entity.HasKey(e => e.ReportId).HasName("PK__Reports__D5BD4805310CEC34");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.GeneratedDate).HasDefaultValueSql("(getdate())");
@@ -852,12 +677,12 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Reports)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Reports__Created__4A4E069C");
+                .HasConstraintName("FK__Reports__Created__477199F1");
         });
 
         modelBuilder.Entity<RolePermission>(entity =>
         {
-            entity.HasKey(e => e.PermissionId).HasName("PK__RolePerm__EFA6FB2F83F52088");
+            entity.HasKey(e => e.PermissionId).HasName("PK__RolePerm__EFA6FB2F9FF737B7");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -865,16 +690,12 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Role).WithMany(p => p.RolePermissions)
                 .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("FK__RolePermi__RoleI__4E1E9780");
+                .HasConstraintName("FK__RolePermi__RoleI__4B422AD5");
         });
 
         modelBuilder.Entity<Skill>(entity =>
         {
-            entity.HasKey(e => e.SkillId).HasName("PK__Skills__DFA09187CFD94583");
-
-            entity.HasIndex(e => e.Category, "IX_Skills_Category");
-
-            entity.HasIndex(e => e.SkillName, "IX_Skills_SkillName");
+            entity.HasKey(e => e.SkillId).HasName("PK__Skills__DFA091872A64A7C9");
 
             entity.Property(e => e.Category).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -885,9 +706,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<SupportCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__SupportC__19093A0B7ABA8F30");
-
-            entity.HasIndex(e => e.CategoryName, "IX_SupportCategories_CategoryName");
+            entity.HasKey(e => e.CategoryId).HasName("PK__SupportC__19093A0B40F4FC38");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -901,13 +720,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<SupportRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__SupportR__33A8517AF7101368");
-
-            entity.HasIndex(e => e.Priority, "IX_SupportRequests_Priority");
-
-            entity.HasIndex(e => e.Status, "IX_SupportRequests_Status");
-
-            entity.HasIndex(e => e.Subject, "IX_SupportRequests_Subject");
+            entity.HasKey(e => e.RequestId).HasName("PK__SupportR__33A8517A1A80A031");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Priority)
@@ -922,47 +735,96 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.AssignedToNavigation).WithMany(p => p.SupportRequestAssignedToNavigations)
                 .HasForeignKey(d => d.AssignedTo)
-                .HasConstraintName("FK__SupportRe__Assig__28ED12D1");
+                .HasConstraintName("FK__SupportRe__Assig__2610A626");
 
             entity.HasOne(d => d.Category).WithMany(p => p.SupportRequests)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SupportRe__Categ__27F8EE98");
+                .HasConstraintName("FK__SupportRe__Categ__251C81ED");
 
             entity.HasOne(d => d.ResolvedByNavigation).WithMany(p => p.SupportRequestResolvedByNavigations)
                 .HasForeignKey(d => d.ResolvedBy)
-                .HasConstraintName("FK__SupportRe__Resol__29E1370A");
+                .HasConstraintName("FK__SupportRe__Resol__2704CA5F");
 
             entity.HasOne(d => d.User).WithMany(p => p.SupportRequestUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SupportRe__UserI__2704CA5F");
+                .HasConstraintName("FK__SupportRe__UserI__24285DB4");
         });
 
         modelBuilder.Entity<SupportRequestComment>(entity =>
         {
-            entity.HasKey(e => e.CommentId).HasName("PK__SupportR__C3B4DFCA333B48C9");
+            entity.HasKey(e => e.CommentId).HasName("PK__SupportR__C3B4DFCAF3EE97DD");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsInternal).HasDefaultValue(false);
 
             entity.HasOne(d => d.Request).WithMany(p => p.SupportRequestComments)
                 .HasForeignKey(d => d.RequestId)
-                .HasConstraintName("FK__SupportRe__Reque__2EA5EC27");
+                .HasConstraintName("FK__SupportRe__Reque__2BC97F7C");
 
             entity.HasOne(d => d.User).WithMany(p => p.SupportRequestComments)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__SupportRe__UserI__2F9A1060");
+                .HasConstraintName("FK__SupportRe__UserI__2CBDA3B5");
+        });
+
+        modelBuilder.Entity<TableColumn>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TableCol__3214EC07D0DED2E2");
+
+            entity.Property(e => e.ColumnName).HasMaxLength(255);
+            entity.Property(e => e.DataType).HasMaxLength(100);
+
+            entity.HasOne(d => d.TableSchema).WithMany(p => p.TableColumns)
+                .HasForeignKey(d => d.TableSchemaId)
+                .HasConstraintName("FK__TableColu__Table__57A801BA");
+        });
+
+        modelBuilder.Entity<TableKeyword>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TableKey__3214EC07C4C668BC");
+
+            entity.Property(e => e.Keyword).HasMaxLength(255);
+
+            entity.HasOne(d => d.TableSchema).WithMany(p => p.TableKeywords)
+                .HasForeignKey(d => d.TableSchemaId)
+                .HasConstraintName("FK__TableKeyw__Table__54CB950F");
+        });
+
+        modelBuilder.Entity<TableRelationship>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TableRel__3214EC07712A1E13");
+
+            entity.Property(e => e.FromColumn).HasMaxLength(255);
+            entity.Property(e => e.RelationshipType)
+                .HasMaxLength(50)
+                .HasDefaultValue("FK");
+            entity.Property(e => e.ToColumn).HasMaxLength(255);
+
+            entity.HasOne(d => d.FromTable).WithMany(p => p.TableRelationshipFromTables)
+                .HasForeignKey(d => d.FromTableId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__TableRela__FromT__5B78929E");
+
+            entity.HasOne(d => d.ToTable).WithMany(p => p.TableRelationshipToTables)
+                .HasForeignKey(d => d.ToTableId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__TableRela__ToTab__5C6CB6D7");
+        });
+
+        modelBuilder.Entity<TableSchema>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__TableSch__3214EC079DAD7F90");
+
+            entity.Property(e => e.TableName).HasMaxLength(255);
         });
 
         modelBuilder.Entity<TaskAssignment>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__TaskAssi__32499E7776063054");
+            entity.HasKey(e => e.AssignmentId).HasName("PK__TaskAssi__32499E77D55138C0");
 
-            entity.HasIndex(e => e.Status, "IX_TaskAssignments_Status");
-
-            entity.HasIndex(e => new { e.TaskId, e.VolunteerId }, "UQ__TaskAssi__AB7FBF429691B0C4").IsUnique();
+            entity.HasIndex(e => new { e.TaskId, e.VolunteerId }, "UQ__TaskAssi__AB7FBF42E394A181").IsUnique();
 
             entity.Property(e => e.AssignedDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -974,23 +836,21 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.TaskAssignments)
                 .HasForeignKey(d => d.AssignedBy)
-                .HasConstraintName("FK__TaskAssig__Assig__719CDDE7");
+                .HasConstraintName("FK__TaskAssig__Assig__6EC0713C");
 
             entity.HasOne(d => d.Task).WithMany(p => p.TaskAssignments)
                 .HasForeignKey(d => d.TaskId)
-                .HasConstraintName("FK__TaskAssig__TaskI__6FB49575");
+                .HasConstraintName("FK__TaskAssig__TaskI__6CD828CA");
 
             entity.HasOne(d => d.Volunteer).WithMany(p => p.TaskAssignments)
                 .HasForeignKey(d => d.VolunteerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TaskAssig__Volun__70A8B9AE");
+                .HasConstraintName("FK__TaskAssig__Volun__6DCC4D03");
         });
 
         modelBuilder.Entity<TaskCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__TaskCate__19093A0BE7C9400E");
-
-            entity.HasIndex(e => e.CategoryName, "IX_TaskCategories_CategoryName");
+            entity.HasKey(e => e.CategoryId).HasName("PK__TaskCate__19093A0B0B47C10A");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.Color).HasMaxLength(7);
@@ -1001,11 +861,9 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TaskStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__TaskStat__C8EE2063F899D676");
+            entity.HasKey(e => e.StatusId).HasName("PK__TaskStat__C8EE206304DDEDFC");
 
             entity.ToTable("TaskStatus");
-
-            entity.HasIndex(e => e.StatusName, "IX_TaskStatus_StatusName");
 
             entity.Property(e => e.Color).HasMaxLength(7);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -1016,21 +874,10 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C5DA20E67");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CAD33A10D");
 
-            entity.HasIndex(e => e.Email, "IX_Users_Email");
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534921331CA").IsUnique();
 
-            entity.HasIndex(e => e.RoleId, "IX_Users_RoleId");
-
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534E889CCAD").IsUnique();
-
-            entity.Property(e => e.AiPersonalizationEnabled).HasDefaultValue(true);
-            entity.Property(e => e.AiPreferredLanguage)
-                .HasMaxLength(10)
-                .HasDefaultValue("vi-VN");
-            entity.Property(e => e.AiQueryComplexityLevel)
-                .HasMaxLength(20)
-                .HasDefaultValue("Medium");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.EmailVerificationToken).HasMaxLength(255);
@@ -1044,18 +891,12 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Users__RoleId__571DF1D5");
+                .HasConstraintName("FK__Users__RoleId__5441852A");
         });
 
         modelBuilder.Entity<UserProfile>(entity =>
         {
-            entity.HasKey(e => e.ProfileId).HasName("PK__UserProf__290C88E434A02F0C");
-
-            entity.HasIndex(e => e.FirstName, "IX_UserProfiles_FirstName");
-
-            entity.HasIndex(e => e.LastName, "IX_UserProfiles_LastName");
-
-            entity.HasIndex(e => e.UserId, "IX_UserProfiles_UserId");
+            entity.HasKey(e => e.ProfileId).HasName("PK__UserProf__290C88E4DDD149DF");
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.Avatar).HasMaxLength(500);
@@ -1077,14 +918,14 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.UserProfiles)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__UserProfi__UserI__5BE2A6F2");
+                .HasConstraintName("FK__UserProfi__UserI__59063A47");
         });
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__UserRole__8AFACE1AE3C20D25");
+            entity.HasKey(e => e.RoleId).HasName("PK__UserRole__8AFACE1A630CC61E");
 
-            entity.HasIndex(e => e.RoleName, "UQ__UserRole__8A2B616068553E09").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__UserRole__8A2B6160A99EF0D1").IsUnique();
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -1095,15 +936,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<VolunteerCoordinator>(entity =>
         {
-            entity.HasKey(e => e.CoordinatorId).HasName("PK__Voluntee__91C373DF4F65DBF6");
-
-            entity.HasIndex(e => e.Department, "IX_VolunteerCoordinators_Department");
-
-            entity.HasIndex(e => e.IsActive, "IX_VolunteerCoordinators_IsActive");
-
-            entity.HasIndex(e => e.OrganizationId, "IX_VolunteerCoordinators_OrganizationId");
-
-            entity.HasIndex(e => e.Position, "IX_VolunteerCoordinators_Position");
+            entity.HasKey(e => e.CoordinatorId).HasName("PK__Voluntee__91C373DF66B76EAC");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Department).HasMaxLength(100);
@@ -1118,37 +951,29 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.VolunteerCoordinatorCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Volunteer__Creat__18EBB532");
+                .HasConstraintName("FK__Volunteer__Creat__160F4887");
 
             entity.HasOne(d => d.Manager).WithMany(p => p.VolunteerCoordinatorManagers)
                 .HasForeignKey(d => d.ManagerId)
-                .HasConstraintName("FK__Volunteer__Manag__17F790F9");
+                .HasConstraintName("FK__Volunteer__Manag__151B244E");
 
             entity.HasOne(d => d.Organization).WithMany(p => p.VolunteerCoordinatorOrganizations)
                 .HasForeignKey(d => d.OrganizationId)
-                .HasConstraintName("FK__Volunteer__Organ__17036CC0");
+                .HasConstraintName("FK__Volunteer__Organ__14270015");
 
             entity.HasOne(d => d.RequestedByNavigation).WithMany(p => p.VolunteerCoordinatorRequestedByNavigations)
                 .HasForeignKey(d => d.RequestedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Volunteer__Reque__19DFD96B");
+                .HasConstraintName("FK__Volunteer__Reque__17036CC0");
 
             entity.HasOne(d => d.User).WithMany(p => p.VolunteerCoordinatorUsers)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__Volunteer__UserI__160F4887");
+                .HasConstraintName("FK__Volunteer__UserI__1332DBDC");
         });
 
         modelBuilder.Entity<VolunteerProfile>(entity =>
         {
-            entity.HasKey(e => e.VolunteerId).HasName("PK__Voluntee__716F6F2C37BC32D8");
-
-            entity.HasIndex(e => e.IsVerified, "IX_VolunteerProfiles_IsVerified");
-
-            entity.HasIndex(e => e.Major, "IX_VolunteerProfiles_Major");
-
-            entity.HasIndex(e => e.University, "IX_VolunteerProfiles_University");
-
-            entity.HasIndex(e => e.UserId, "IX_VolunteerProfiles_UserId");
+            entity.HasKey(e => e.VolunteerId).HasName("PK__Voluntee__716F6F2C2B406086");
 
             entity.Property(e => e.Availability).HasMaxLength(500);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -1168,16 +993,16 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.VolunteerProfileUsers)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__Volunteer__UserI__693CA210");
+                .HasConstraintName("FK__Volunteer__UserI__66603565");
 
             entity.HasOne(d => d.VerifiedByNavigation).WithMany(p => p.VolunteerProfileVerifiedByNavigations)
                 .HasForeignKey(d => d.VerifiedBy)
-                .HasConstraintName("FK__Volunteer__Verif__6A30C649");
+                .HasConstraintName("FK__Volunteer__Verif__6754599E");
         });
 
         modelBuilder.Entity<VolunteerSchedule>(entity =>
         {
-            entity.HasKey(e => e.ScheduleId).HasName("PK__Voluntee__9C8A5B4934C319B0");
+            entity.HasKey(e => e.ScheduleId).HasName("PK__Voluntee__9C8A5B490A420A94");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -1193,24 +1018,20 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.VolunteerSchedules)
                 .HasForeignKey(d => d.CreatedBy)
-                .HasConstraintName("FK__Volunteer__Creat__4D5F7D71");
+                .HasConstraintName("FK__Volunteer__Creat__4A8310C6");
 
             entity.HasOne(d => d.Event).WithMany(p => p.VolunteerSchedules)
                 .HasForeignKey(d => d.EventId)
-                .HasConstraintName("FK__Volunteer__Event__4C6B5938");
+                .HasConstraintName("FK__Volunteer__Event__498EEC8D");
 
             entity.HasOne(d => d.Volunteer).WithMany(p => p.VolunteerSchedules)
                 .HasForeignKey(d => d.VolunteerId)
-                .HasConstraintName("FK__Volunteer__Volun__4B7734FF");
+                .HasConstraintName("FK__Volunteer__Volun__489AC854");
         });
 
         modelBuilder.Entity<VolunteerSkill>(entity =>
         {
-            entity.HasKey(e => new { e.VolunteerId, e.SkillId }).HasName("PK__Voluntee__1C95663462675FEF");
-
-            entity.HasIndex(e => e.SkillId, "IX_VolunteerSkills_SkillId");
-
-            entity.HasIndex(e => e.VolunteerId, "IX_VolunteerSkills_VolunteerId");
+            entity.HasKey(e => new { e.VolunteerId, e.SkillId }).HasName("PK__Voluntee__1C956634B61AA4B4");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -1221,11 +1042,11 @@ public partial class VolunteerManagementSystemContext : DbContext
 
             entity.HasOne(d => d.Skill).WithMany(p => p.VolunteerSkills)
                 .HasForeignKey(d => d.SkillId)
-                .HasConstraintName("FK__Volunteer__Skill__70DDC3D8");
+                .HasConstraintName("FK__Volunteer__Skill__6E01572D");
 
             entity.HasOne(d => d.Volunteer).WithMany(p => p.VolunteerSkills)
                 .HasForeignKey(d => d.VolunteerId)
-                .HasConstraintName("FK__Volunteer__Volun__6FE99F9F");
+                .HasConstraintName("FK__Volunteer__Volun__6D0D32F4");
         });
 
         OnModelCreatingPartial(modelBuilder);
