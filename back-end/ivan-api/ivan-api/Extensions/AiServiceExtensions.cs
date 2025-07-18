@@ -4,8 +4,6 @@ using ivan_api.Services.AI.Interfaces;
 using ivan_api.Services.AI.Providers;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
-using ivan_api.Services.AI.SQLGenerator.Utils;
-using ivan_api.Services.AI.SQLGenerator.Prompts;
 
 namespace ivan_api.Extensions;
 
@@ -35,10 +33,6 @@ public static class AiServiceExtensions
         
         // Register AI services
         services.AddScoped<IAiProviderFactory, AiProviderFactory>();
-        services.AddScoped<IAiPromptOrchestrator, AiPromptOrchestrator>();
-        services.AddScoped<QueryAnalyzer>();
-        services.AddScoped<SqlDetectionService>();
-        services.AddScoped<SqlGenerationPrompt>();
         services.AddScoped<ISqlExecutionService, SqlExecutionService>();
         services.AddScoped<IAiCustomInstructionService, AiCustomInstructionService>();
         

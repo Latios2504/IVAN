@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -27,7 +27,6 @@ using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
-using ivan_api.Services.AI.SQLGenerator.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -146,8 +145,7 @@ builder.Services.AddScoped<ISchemaService, SchemaService>();
 
 // SQL Generator Services DI
 builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
-builder.Services.AddScoped<SqlDetectionService>();
-builder.Services.AddScoped<SqlPromptGenerator>();
+// TODO: Phase 2 - Add simplified services registration
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
