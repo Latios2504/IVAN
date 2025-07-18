@@ -1,6 +1,8 @@
 ﻿using ivan_api.Constants;
 using ivan_api.DTOs;
+using ivan_api.DTOs.Authentication;
 using ivan_api.Models;
+using ivan_api.Services.EmailSer;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services

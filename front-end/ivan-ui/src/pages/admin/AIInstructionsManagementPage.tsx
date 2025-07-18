@@ -55,6 +55,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth";
 import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
 import InstructionPreview from "@/components/ai/InstructionPreview";
 import TestingPlayground from "@/components/ai/TestingPlayground";
@@ -64,13 +65,14 @@ import type {
   AiCustomInstructionUpdateDTO,
   InstructionFormData,
   InstructionFilters,
-} from "@/types/ai-instructions";
+} from "@/types/ai";
 import { aiInstructionsService } from "@/services/api/aiInstructionsService";
 
 type ViewMode = "overview" | "builder" | "preview" | "testing";
 
 export default function AIInstructionsManagementPage() {
   const { user } = useAuth();
+  const isAdmin = user?.role === UserRole.ADMIN; // Use the enum constant
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const [instructions, setInstructions] = useState<AiCustomInstructionDTO[]>(
     []
@@ -134,12 +136,7 @@ export default function AIInstructionsManagementPage() {
       );
     }
 
-    // Default filter
-    if (filters.isDefault !== undefined) {
-      filtered = filtered.filter(
-        (instruction) => instruction.isDefault === filters.isDefault
-      );
-    }
+    // Note: isDefault filter removed as field no longer exists in backend
 
     setFilteredInstructions(filtered);
   }, [instructions, searchQuery, filters]);
@@ -147,7 +144,8 @@ export default function AIInstructionsManagementPage() {
   const loadInstructions = async () => {
     try {
       setLoading(true);
-      const data = await aiInstructionsService.getAllInstructions();
+      // Use role-based data loading
+      const data = await aiInstructionsService.getInstructions(isAdmin);
 
       // Ensure data is an array before setting state
       const instructionsArray = Array.isArray(data) ? data : [];
@@ -159,8 +157,8 @@ export default function AIInstructionsManagementPage() {
       setStats({
         total: instructionsArray.length,
         active: activeCount,
-        avgQuality: 4.2, // Mock data
-        totalQueries: 1247, // Mock data
+        avgQuality: 4.2, // Mock data - TODO: Add real performance metrics
+        totalQueries: 1247, // Mock data - TODO: Add real performance metrics
       });
     } catch (error) {
       console.error("Failed to load instructions:", error);
@@ -249,11 +247,6 @@ export default function AIInstructionsManagementPage() {
     }
   };
 
-  const handleSelectTemplate = (template: AiCustomInstructionCreateDTO) => {
-    setBuilderData(template);
-    setViewMode("builder");
-  };
-
   const handlePreviewFormData = (formData: InstructionFormData) => {
     setPreviewData(formData);
   };
@@ -287,16 +280,7 @@ export default function AIInstructionsManagementPage() {
   };
 
   const getStatusBadge = (instruction: AiCustomInstructionDTO) => {
-    if (instruction.isDefault) {
-      return (
-        <Badge
-          variant="outline"
-          className="bg-purple-50 text-purple-700 border-purple-200"
-        >
-          Template
-        </Badge>
-      );
-    }
+    // Note: Template badge removed as isDefault field no longer exists
     if (instruction.isActive) {
       return (
         <Badge
@@ -427,7 +411,6 @@ export default function AIInstructionsManagementPage() {
                   instructionName: "",
                   systemPrompt: "",
                   behaviorInstructions: "",
-                  dataAccessRules: "",
                 });
                 setViewMode("builder");
               }}
@@ -526,7 +509,7 @@ export default function AIInstructionsManagementPage() {
                                   instruction.instructionId
                                 )
                               }
-                              disabled={instruction.isDefault}
+                              disabled={false}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Xóa
