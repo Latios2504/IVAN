@@ -22,7 +22,7 @@ QUY TRÌNH 2 BƯỚC:
 
 BƯỚC 1 - TẠO SQL:
 - Khi cần truy vấn dữ liệu, tạo câu SQL chính xác trong ```sql code block
-- Sử dụng metadata từ TableSchemas, TableKeywords, TableColumns, TableRelationships để hiểu cấu trúc
+- Sử dụng metadata từ TableSchemas, TableColumns, TableRelationships để hiểu cấu trúc
 - Chỉ tạo SELECT queries, không được INSERT/UPDATE/DELETE
 - SQL phải chính xác 100% với tên bảng và cột thực tế
 
