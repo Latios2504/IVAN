@@ -76,6 +76,22 @@ class ApiClient {
       ? await response.json()
       : ({ success: true, data: response } as ApiResponse<T>);
 
+    // Handle direct DTO responses (when backend returns DTO directly instead of wrapped ApiResponse)
+    if (result && typeof result === 'object' && !result.hasOwnProperty('success') && !result.hasOwnProperty('data')) {
+      // This is a direct DTO response, wrap it in ApiResponse format
+      const wrappedResult = {
+        success: true,
+        data: result as T,
+        message: "Success"
+      } as ApiResponse<T>;
+      
+      if (config.ENABLE_LOGGING) {
+        console.log(`✅ API Success (wrapped DTO):`, wrappedResult);
+      }
+      
+      return wrappedResult;
+    }
+
     if (config.ENABLE_LOGGING && result.data) {
       console.log(`✅ API Success:`, result);
     }

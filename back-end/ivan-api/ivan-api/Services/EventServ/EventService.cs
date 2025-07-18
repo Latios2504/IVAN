@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ivan_api.DTOs;
+using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.EventManage;
 using ivan_api.Models;
 using ivan_api.Repository.EventRepo;

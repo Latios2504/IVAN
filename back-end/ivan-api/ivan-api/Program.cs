@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -6,14 +6,6 @@ using System.Text.Json;
 using ivan_api.Configuration;
 using ivan_api.Models;
 using ivan_api.Services;
-using ivan_api.Services.AIDatabaseServ;
-using ivan_api.Services.AIInstructionServ;
-using ivan_api.Services.AIQueryServ;
-using ivan_api.Services.AIConversationServ;
-using ivan_api.Services.AIMultiModelServ;
-using ivan_api.Services.AIRecommendationServ;
-using ivan_api.Services.AISecurityServ;
-using ivan_api.Services.AIPerformanceServ;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Services.VolunteerProfileServ;
 using ivan_api.Repository.EventRepo;
@@ -38,8 +30,22 @@ using ivan_api.Services.OrganizationProfiles;
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
 using ivan_api.Services.PublicContentServ;
+<<<<<<< HEAD
 using ivan_api.Services.UserAccountServ;
 using ivan_api.Repository.UserAccountRepo;
+=======
+using ivan_api.Services.PasswordHashingSer;
+using ivan_api.Services.JwtTokenSer;
+using ivan_api.Services.EmailSer;
+using ivan_api.Services.AuthenticationSer;
+using ivan_api.Services.AI;
+using ivan_api.Extensions;
+
+using ivan_api.Services.DatabaseSchema.Interfaces;
+using ivan_api.Services.DatabaseSchema.Services;
+using ivan_api.Services.AI.SQLGenerator.Interfaces;
+using ivan_api.Services.AI.SQLGenerator.Services;
+>>>>>>> he176119
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,10 +69,8 @@ builder.Services.AddSingleton(jwtConfig);
 // Email Configuration
 builder.Services.Configure<EmailConfiguration>(builder.Configuration.GetSection("Email"));
 
-// Gemini Configuration
-var geminiConfig = new GeminiConfiguration();
-builder.Configuration.GetSection("Gemini").Bind(geminiConfig);
-builder.Services.AddSingleton(geminiConfig);
+//AI Configuration
+builder.Services.AddAiServices(builder.Configuration);
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -140,27 +144,6 @@ builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>(
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IPublicContentService, PublicContentService>();
 
-// ChatBot Service
-builder.Services.AddHttpClient<IChatBotService, ChatBotService>();
-builder.Services.AddScoped<IChatBotService, ChatBotService>();
-
-// AI Database Services
-builder.Services.AddScoped<IAIDatabaseService, AIDatabaseService>();
-builder.Services.AddScoped<IAIQueryEngine, AIQueryEngine>();
-builder.Services.AddHttpClient<IntelligentSQLGenerator>(); // **AI-powered SQL Generator with HTTP**
-builder.Services.AddScoped<IntelligentSQLGenerator>(); // **AI-powered SQL Generator**
-builder.Services.AddHttpClient<IAIInstructionService, AIInstructionService>();
-builder.Services.AddScoped<IAIInstructionService, AIInstructionService>();
-
-// Phase 4: Advanced AI Services
-builder.Services.AddScoped<IAIConversationService, AIConversationService>();
-builder.Services.AddScoped<IMultiModelAIService, MultiModelAIService>();
-builder.Services.AddScoped<IAIRecommendationService, AIRecommendationService>();
-
-// Phase 6: Security & Performance Services
-builder.Services.AddScoped<IAISecurityService, AISecurityService>();
-builder.Services.AddScoped<IAIPerformanceService, AIPerformanceService>();
-
 // Volunteer Profile DI
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
@@ -200,21 +183,26 @@ GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
 builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
 
+<<<<<<< HEAD
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+=======
+
+
+// Schema Services DI
+builder.Services.AddScoped<ISchemaService, SchemaService>();
+
+// SQL Generator Services DI
+builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
+// TODO: Phase 2 - Add simplified services registration
+>>>>>>> he176119
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 //builder.Services.AddScoped<IEventService, EventService>();
 
-builder.Services.AddControllers().AddJsonOptions(opt =>
-{
-    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 

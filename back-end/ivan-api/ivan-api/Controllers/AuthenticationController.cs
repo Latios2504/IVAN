@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using ivan_api.DTOs;
-using ivan_api.Services;
+using ivan_api.Services.AuthenticationSer;
+using ivan_api.DTOs.Authentication;
 
 namespace ivan_api.Controllers;
 
