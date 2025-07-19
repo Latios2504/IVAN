@@ -121,8 +121,24 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
-  async post<T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+  async post<T>(
+    endpoint: string, 
+    data?: unknown,
+    options?: {
+      params?: Record<string, string | number | boolean | undefined | null>
+    }
+  ): Promise<ApiResponse<T>> {
+    const url = new URL(`${this.baseURL}${endpoint}`);
+
+    if (options?.params) {
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(url.toString(), {
       method: "POST",
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,

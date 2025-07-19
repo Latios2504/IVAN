@@ -209,19 +209,19 @@ class AuthService {
   }
   private mapRoleToId(role: string): number {
     const roleMap: Record<string, number> = {
-      volunteer: 2, // Tình nguyện viên
-      organization: 3, // Tổ chức
+      admin: 1, // Admin
+      organization: 2, // Tổ chức
+      volunteer: 3, // Tình nguyện viên
       partner: 4, // Đối tác
       coordinator: 5, // Điều phối viên
-      admin: 1, // Admin
     };
-    return roleMap[role] || 2; // Default to volunteer
+    return roleMap[role] || 3; // Default to volunteer
   }
   private mapIdToRole(roleId: number): UserRole {
     const idMap: Record<number, UserRole> = {
       1: "admin", // Admin
-      2: "volunteer", // Tình nguyện viên
-      3: "organization", // Tổ chức
+      2: "organization", // Tổ chức
+      3: "volunteer", // Tình nguyện viên
       4: "partner", // Đối tác
       5: "coordinator", // Điều phối viên
     };

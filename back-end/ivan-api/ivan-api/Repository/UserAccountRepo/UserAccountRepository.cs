@@ -1,4 +1,4 @@
-﻿using ivan_api.DTOs.UserAccount;
+using ivan_api.DTOs.UserAccount;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,9 +36,22 @@ namespace ivan_api.Repository.UserAccountRepo
                 if (user == null) {
                     return null;
                 }
-                user.RoleId = dto.RoleId;
-                user.IsActive = dto.IsActive;
-                user.IsEmailVerified = dto.IsEmailVerified;
+                
+                // Only update roleId if it's a valid role (1-5)
+                if (dto.RoleId > 0 && dto.RoleId <= 5) {
+                    user.RoleId = dto.RoleId;
+                }
+                
+                // Only update IsActive if it's provided
+                if (dto.IsActive.HasValue) {
+                    user.IsActive = dto.IsActive;
+                }
+                
+                // Only update IsEmailVerified if it's provided
+                if (dto.IsEmailVerified.HasValue) {
+                    user.IsEmailVerified = dto.IsEmailVerified;
+                }
+                
                 user.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return user;

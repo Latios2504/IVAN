@@ -40,7 +40,7 @@ export interface ApiUser {
 // Frontend User type with computed properties
 export interface User extends Omit<ApiUser, "userId" | "roleName"> {
   id: number; // Mapped from userId for frontend consistency
-  fullName: string; // Computed from profile data
+  fullName?: string; // Computed from profile data - can be null
   role: UserRole; // Typed enum instead of string
   profile?:
     | VolunteerProfile
