@@ -1,10 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
-import VolunteerDashboard from "./VolunteerDashboard";
-import OrganizationDashboard from "./OrganizationDashboard";
-import CoordinatorDashboard from "./CoordinatorDashboard";
-import AdminDashboard from "./AdminDashboard";
-import PartnerDashboard from "./PartnerDashboard";
+import VolunteerDashboard from "../volunteer/VolunteerDashboard";
+import OrganizationDashboard from "../organization/OrganizationDashboard";
+import CoordinatorDashboard from "../coordinator/CoordinatorDashboard";
+import AdminDashboard from "../admin/AdminDashboard";
+import PartnerDashboard from "../partner/PartnerDashboard";
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();

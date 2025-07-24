@@ -11,8 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { authService } from "@/services/api/authService";
-import { ApiError } from "@/services/utils/errorHandler";
+import { authService } from "@/services/authService";
+import { ApiError } from "@/services/errorHandler";
 
 export default function ChangePasswordPage() {
   const [formData, setFormData] = useState({

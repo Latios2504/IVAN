@@ -12,7 +12,7 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import { chatBotService } from "@/services/api/chatBotService";
+import { chatBotService } from "@/services/chatBotService";
 import type { ChatMessage } from "@/types/chatbot";
 
 interface ChatBotProps {

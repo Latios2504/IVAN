@@ -5,8 +5,26 @@ import { PartnerCard } from "@/components/common/PartnerCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, HandHeart, Users, Loader2, AlertCircle } from "lucide-react";
 import { usePublicPartners } from "@/hooks/usePublicPartners";
-import { mapPublicPartnerToCard } from "@/utils/dataMappers";
-import type { PublicPartnerFilters } from "@/types/publicContent";
+import type { 
+  PublicPartner, 
+  PublicPartnerFilters 
+} from "@/types/publicContent";
+
+// Data mapper with proper TypeScript typing
+const mapPublicPartnerToCard = (partner: PublicPartner) => ({
+  id: partner.partnerId?.toString() || "0",
+  name: partner.companyName || "Tên đối tác không xác định",
+  description: partner.description || "Không có mô tả",
+  industry: partner.industryName || "Khác",
+  location: [partner.district, partner.province].filter(Boolean).join(", ") || "Chưa xác định",
+  website: partner.website || "",
+  logo: partner.logoUrl || "",
+  isVerified: partner.isActive || false,
+  rating: 0, // This would need to come from backend if available
+  ratingCount: 0, // This would need to come from backend if available
+  totalCollaborations: 0, // This would need to come from backend if available
+  partnershipType: "Đối tác chính thức", // This would need to come from backend
+});
 
 export default function PublicPartnersPage() {
   // Filter state

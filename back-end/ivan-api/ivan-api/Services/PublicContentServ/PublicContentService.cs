@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ivan_api.DTOs;
 using ivan_api.DTOs.Public;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 
 namespace ivan_api.Services.PublicContentServ
@@ -20,7 +21,7 @@ namespace ivan_api.Services.PublicContentServ
 
         #region Organizations
 
-        public async Task<PagedResultDTO<PublicOrganizationDTO>> GetPublicOrganizationsAsync(PublicOrganizationFiltersDTO filters)
+        public async Task<PagedResultDto<PublicOrganizationDTO>> GetPublicOrganizationsAsync(PublicOrganizationFiltersDTO filters)
         {
             var query = _context.Organizations
                 .Include(o => o.Type)
@@ -92,13 +93,12 @@ namespace ivan_api.Services.PublicContentServ
 
             var totalPages = (int)Math.Ceiling((double)totalItems / filters.Size);
 
-            return new PagedResultDTO<PublicOrganizationDTO>
+            return new PagedResultDto<PublicOrganizationDTO>
             {
                 Items = organizations,
-                Page = filters.Page,
-                Size = filters.Size,
-                TotalItems = totalItems,
-                TotalPages = totalPages
+                PageNumber = filters.Page,
+                PageSize = filters.Size,
+                TotalCount = totalItems
             };
         }
 
@@ -141,7 +141,7 @@ namespace ivan_api.Services.PublicContentServ
 
         #region Events
 
-        public async Task<PagedResultDTO<PublicEventDTO>> GetPublicEventsAsync(PublicEventFiltersDTO filters)
+        public async Task<PagedResultDto<PublicEventDTO>> GetPublicEventsAsync(PublicEventFiltersDTO filters)
         {
             var query = _context.Events
                 .Include(e => e.Organization)
@@ -251,13 +251,12 @@ namespace ivan_api.Services.PublicContentServ
 
             var totalPages = (int)Math.Ceiling((double)totalItems / filters.Size);
 
-            return new PagedResultDTO<PublicEventDTO>
+            return new PagedResultDto<PublicEventDTO>
             {
                 Items = events,
-                Page = filters.Page,
-                Size = filters.Size,
-                TotalItems = totalItems,
-                TotalPages = totalPages
+                PageNumber = filters.Page,
+                PageSize = filters.Size,
+                TotalCount = totalItems
             };
         }
 
@@ -317,7 +316,7 @@ namespace ivan_api.Services.PublicContentServ
 
         #region Partners
 
-        public async Task<PagedResultDTO<PublicPartnerDTO>> GetPublicPartnersAsync(PublicPartnerFiltersDTO filters)
+        public async Task<PagedResultDto<PublicPartnerDTO>> GetPublicPartnersAsync(PublicPartnerFiltersDTO filters)
         {
             var query = _context.Partners
                 .Include(p => p.Industry)
@@ -380,13 +379,12 @@ namespace ivan_api.Services.PublicContentServ
 
             var totalPages = (int)Math.Ceiling((double)totalItems / filters.Size);
 
-            return new PagedResultDTO<PublicPartnerDTO>
+            return new PagedResultDto<PublicPartnerDTO>
             {
                 Items = partners,
-                Page = filters.Page,
-                Size = filters.Size,
-                TotalItems = totalItems,
-                TotalPages = totalPages
+                PageNumber = filters.Page,
+                PageSize = filters.Size,
+                TotalCount = totalItems
             };
         }
 
@@ -415,6 +413,129 @@ namespace ivan_api.Services.PublicContentServ
                 .FirstOrDefaultAsync();
 
             return partner;
+        }
+
+        #endregion
+
+        #region Volunteers
+
+        public async Task<PagedResultDto<PublicVolunteerDTO>> GetPublicVolunteersAsync(PublicVolunteerFiltersDTO filters)
+        {
+            var query = _context.VolunteerProfiles
+                .Include(v => v.User)
+                    .ThenInclude(u => u.UserProfiles)
+                .Include(v => v.VolunteerSkills)
+                    .ThenInclude(vs => vs.Skill)
+                .Where(v => v.User.IsActive == true); // Only active users
+
+            // Apply filters
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var searchTerm = filters.Search.ToLower();
+                query = query.Where(v => 
+                    v.User.UserProfiles.Any(up => up.FullName.ToLower().Contains(searchTerm)) ||
+                    (v.Motivation != null && v.Motivation.ToLower().Contains(searchTerm)) ||
+                    (v.University != null && v.University.ToLower().Contains(searchTerm)) ||
+                    (v.Major != null && v.Major.ToLower().Contains(searchTerm)));
+            }
+
+            if (filters.SkillId.HasValue)
+            {
+                query = query.Where(v => v.VolunteerSkills.Any(vs => vs.SkillId == filters.SkillId.Value));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.University))
+            {
+                query = query.Where(v => v.University == filters.University);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.Province))
+            {
+                query = query.Where(v => v.User.UserProfiles.Any(up => up.Province == filters.Province));
+            }
+
+            if (filters.IsVerified.HasValue)
+            {
+                query = query.Where(v => v.IsVerified == filters.IsVerified.Value);
+            }
+
+            // Order by verification status (verified first), then by rating and volunteer hours
+            query = query.OrderByDescending(v => v.IsVerified)
+                         .ThenByDescending(v => v.Rating)
+                         .ThenByDescending(v => v.VolunteerHours);
+
+            // Get total count
+            var totalItems = await query.CountAsync();
+
+            // Apply pagination
+            var volunteers = await query
+                .Skip((filters.Page - 1) * filters.Size)
+                .Take(filters.Size)
+                .Select(v => new PublicVolunteerDTO
+                {
+                    VolunteerId = v.VolunteerId,
+                    FullName = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.FullName : "",
+                    ProfilePicture = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Avatar : "",
+                    University = v.University,
+                    Major = v.Major,
+                    Bio = v.Motivation,
+                    Province = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Province : null,
+                    IsVerified = v.IsVerified ?? false,
+                    Rating = v.Rating ?? 0,
+                    ReviewCount = v.RatingCount ?? 0,
+                    VolunteerHours = v.VolunteerHours ?? 0,
+                    Skills = v.VolunteerSkills.Select(vs => new PublicVolunteerSkillDTO
+                    {
+                        Id = vs.SkillId,
+                        Name = vs.Skill.SkillName,
+                        ProficiencyLevel = vs.ProficiencyLevel
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalItems / filters.Size);
+
+            return new PagedResultDto<PublicVolunteerDTO>
+            {
+                Items = volunteers,
+                PageNumber = filters.Page,
+                PageSize = filters.Size,
+                TotalCount = totalItems
+            };
+        }
+
+        public async Task<PublicVolunteerDTO?> GetPublicVolunteerAsync(int id)
+        {
+            var volunteer = await _context.VolunteerProfiles
+                .Include(v => v.User)
+                    .ThenInclude(u => u.UserProfiles)
+                .Include(v => v.VolunteerSkills)
+                    .ThenInclude(vs => vs.Skill)
+                .Where(v => v.VolunteerId == id && v.User.IsActive == true)
+                .Select(v => new PublicVolunteerDTO
+                {
+                    VolunteerId = v.VolunteerId,
+                    FullName = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.FullName : "",
+                    ProfilePicture = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Avatar : "",
+                    University = v.University,
+                    Major = v.Major,
+                    Bio = v.Motivation,
+                    Experience = v.Experience,
+                    Province = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Province : null,
+                    IsVerified = v.IsVerified ?? false,
+                    Rating = v.Rating ?? 0,
+                    ReviewCount = v.RatingCount ?? 0,
+                    VolunteerHours = v.VolunteerHours ?? 0,
+                    Skills = v.VolunteerSkills.Select(vs => new PublicVolunteerSkillDTO
+                    {
+                        Id = vs.SkillId,
+                        Name = vs.Skill.SkillName,
+                        ProficiencyLevel = vs.ProficiencyLevel
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return volunteer;
         }
 
         #endregion

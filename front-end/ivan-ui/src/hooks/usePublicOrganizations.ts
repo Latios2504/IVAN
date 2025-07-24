@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/api/publicContentService";
+import { publicContentService } from "../services/publicContentService";
 import type {
   PublicOrganization,
   PublicOrganizationFilters,
@@ -48,17 +48,19 @@ export const usePublicOrganizations = (
         size: pagination.size,
       };
 
-      const result: PagedResult<PublicOrganization> =
-        await publicContentService.getPublicOrganizations(currentFilters);
-
-      setOrganizations(result.items.$values);
+      const result = await publicContentService.getPublicOrganizations(currentFilters);
+      
+      // Handle both $values format and direct array format
+      const items = result.items?.$values || result.items || [];
+      
+      setOrganizations(items);
       setPagination({
-        page: result.page,
-        size: result.size,
-        totalPages: result.totalPages,
-        totalItems: result.totalItems,
-        hasNextPage: result.page < result.totalPages,
-        hasPreviousPage: result.page > 1,
+        page: result.page || 1,
+        size: result.size || 20,
+        totalPages: result.totalPages || 0,
+        totalItems: result.totalItems || 0,
+        hasNextPage: (result.page || 1) < (result.totalPages || 0),
+        hasPreviousPage: (result.page || 1) > 1,
       });
     } catch (err: any) {
       console.error("Failed to fetch organizations:", err);

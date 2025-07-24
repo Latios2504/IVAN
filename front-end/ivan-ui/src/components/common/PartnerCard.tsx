@@ -34,6 +34,9 @@ interface PartnerCardProps {
 
 export function PartnerCard({ partner, className }: PartnerCardProps) {
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') {
+      return "??";
+    }
     return name
       .split(" ")
       .slice(0, 2)

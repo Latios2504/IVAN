@@ -1,5 +1,6 @@
 using ivan_api.DTOs;
 using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.Common;
 using ivan_api.DTOs.Public;
 using ivan_api.Services.PublicContentServ;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,7 @@ namespace ivan_api.Controllers.Public
         /// <returns>Paginated list of public partner data</returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<PublicPartnerDTO>>>> GetPublicPartners(
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>>> GetPublicPartners(
             [FromQuery] string? search,
             [FromQuery] int? industryId,
             [FromQuery] string? province,
@@ -60,7 +61,7 @@ namespace ivan_api.Controllers.Public
 
                 var result = await _publicContentService.GetPublicPartnersAsync(filters);
                 
-                return Ok(new ApiResponseDTO<PagedResultDTO<PublicPartnerDTO>>
+                return Ok(new ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>
                 {
                     Success = true,
                     Data = result,
@@ -70,7 +71,7 @@ namespace ivan_api.Controllers.Public
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving public partners");
-                return StatusCode(500, new ApiResponseDTO<PagedResultDTO<PublicPartnerDTO>>
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>
                 {
                     Success = false,
                     Message = "Internal server error",

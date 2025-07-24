@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/api/publicContentService";
+import { publicContentService } from "../services/publicContentService";
 import type {
   PublicEvent,
   PublicEventFilters,
@@ -48,17 +48,19 @@ export const usePublicEvents = (
         size: pagination.size,
       };
 
-      const result: PagedResult<PublicEvent> =
-        await publicContentService.getPublicEvents(currentFilters);
-
-      setEvents(result.items.$values);
+      const result = await publicContentService.getPublicEvents(currentFilters);
+      
+      // Handle both $values format and direct array format
+      const items = result.items?.$values || result.items || [];
+      
+      setEvents(items);
       setPagination({
-        page: result.page,
-        size: result.size,
-        totalPages: result.totalPages,
-        totalItems: result.totalItems,
-        hasNextPage: result.page < result.totalPages,
-        hasPreviousPage: result.page > 1,
+        page: result.page || 1,
+        size: result.size || 20,
+        totalPages: result.totalPages || 0,
+        totalItems: result.totalItems || 0,
+        hasNextPage: (result.page || 1) < (result.totalPages || 0),
+        hasPreviousPage: (result.page || 1) > 1,
       });
     } catch (err: any) {
       console.error("Failed to fetch events:", err);

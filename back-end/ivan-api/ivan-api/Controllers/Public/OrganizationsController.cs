@@ -1,5 +1,6 @@
 using ivan_api.DTOs;
 using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.Common;
 using ivan_api.DTOs.Public;
 using ivan_api.Services.PublicContentServ;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,7 @@ namespace ivan_api.Controllers.Public
         /// <returns>Paginated list of public organization data</returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<PublicOrganizationDTO>>>> GetPublicOrganizations(
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>>> GetPublicOrganizations(
             [FromQuery] string? search,
             [FromQuery] int? typeId,
             [FromQuery] string? province,
@@ -60,7 +61,7 @@ namespace ivan_api.Controllers.Public
 
                 var result = await _publicContentService.GetPublicOrganizationsAsync(filters);
                 
-                return Ok(new ApiResponseDTO<PagedResultDTO<PublicOrganizationDTO>>
+                return Ok(new ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>
                 {
                     Success = true,
                     Data = result,
@@ -70,7 +71,7 @@ namespace ivan_api.Controllers.Public
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving public organizations");
-                return StatusCode(500, new ApiResponseDTO<PagedResultDTO<PublicOrganizationDTO>>
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>
                 {
                     Success = false,
                     Message = "Internal server error",

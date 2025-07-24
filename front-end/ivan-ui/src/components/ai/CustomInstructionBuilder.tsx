@@ -29,7 +29,7 @@ import type {
   AiCustomInstructionDTO,
   InstructionFormData,
 } from "@/types/ai";
-import { aiInstructionsService } from "@/services/api/aiInstructionsService";
+import { aiInstructionsService } from "@/services/aiInstructionsService";
 
 interface CustomInstructionBuilderProps {
   initialData?: AiCustomInstructionCreateDTO;

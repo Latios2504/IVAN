@@ -39,6 +39,9 @@ export function OrganizationCard({
   className,
 }: OrganizationCardProps) {
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') {
+      return "??";
+    }
     return name
       .split(" ")
       .slice(0, 2)

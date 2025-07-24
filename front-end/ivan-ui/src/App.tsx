@@ -2,7 +2,7 @@ import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
-import { Navbar } from "./components/layout";
+import Navbar from "./components/layout/Navbar";
 import ChatBotFloatingButton from "./components/chatbot/ChatBotFloatingButton";
 
 function App() {

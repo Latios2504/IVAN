@@ -13,8 +13,27 @@ import {
 } from "lucide-react";
 import { usePublicOrganizations } from "@/hooks/usePublicOrganizations";
 import { useDebounce } from "@/hooks/useDebounce";
-import { mapPublicOrganizationToCard } from "@/utils/dataMappers";
-import type { PublicOrganizationFilters } from "@/types/publicContent";
+import type { 
+  PublicOrganization, 
+  PublicOrganizationFilters 
+} from "@/types/publicContent";
+
+// Data mapper with proper TypeScript typing
+const mapPublicOrganizationToCard = (org: PublicOrganization) => ({
+  id: org.organizationId?.toString() || "0",
+  name: org.organizationName || "Tên không xác định",
+  description: org.description || "Không có mô tả",
+  type: org.typeName || "Khác",
+  location: [org.district, org.province].filter(Boolean).join(", ") || "Chưa xác định",
+  website: org.website || "",
+  avatar: org.logoUrl || "",
+  isVerified: org.isVerified || false,
+  rating: org.rating || 0,
+  ratingCount: org.ratingCount || 0,
+  totalEvents: org.totalEvents || 0,
+  totalVolunteers: org.totalVolunteers || 0,
+  focusAreas: [], // This would need to come from a separate API call or be included in the response
+});
 
 export default function PublicOrganizationsPage() {
   // Local search state (not debounced for immediate UI feedback)

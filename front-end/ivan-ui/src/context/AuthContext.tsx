@@ -6,7 +6,7 @@ import type {
   LoginRequest,
   RegisterRequest,
 } from "@/types/auth";
-import { authService } from "@/services/api/authService";
+import { authService } from "@/services/authService";
 
 interface AuthState {
   user: User | null;

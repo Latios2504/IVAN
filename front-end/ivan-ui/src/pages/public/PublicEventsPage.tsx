@@ -12,8 +12,44 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { usePublicEvents } from "@/hooks/usePublicEvents";
-import { mapPublicEventToCard } from "@/utils/dataMappers";
-import type { PublicEventFilters } from "@/types/publicContent";
+import type { 
+  PublicEvent, 
+  PublicEventFilters 
+} from "@/types/publicContent";
+
+// Data mapper with proper TypeScript typing
+const mapPublicEventToCard = (event: PublicEvent) => {
+  // Map backend status to EventCard expected status
+  const mapStatus = (statusName: string): "open" | "full" | "closed" => {
+    const status = statusName?.toLowerCase() || "";
+    if (status.includes("mở") || status.includes("open") || status === "active") {
+      return "open";
+    } else if (status.includes("đủ") || status.includes("full")) {
+      return "full";
+    } else if (status.includes("đóng") || status.includes("closed") || status === "inactive") {
+      return "closed";
+    }
+    return "open"; // Default to open
+  };
+
+  return {
+    id: event.eventId?.toString() || "0",
+    title: event.eventName || "Tên sự kiện không xác định",
+    description: event.description || "Không có mô tả",
+    organization: event.organizationName || "Tổ chức không xác định",
+    date: event.startDate ? new Date(event.startDate).toLocaleDateString('vi-VN') : "",
+    time: event.startDate ? new Date(event.startDate).toLocaleTimeString('vi-VN') : "",
+    location: [event.wardCommune, event.district, event.province].filter(Boolean).join(", ") || "Chưa xác định",
+    volunteersNeeded: event.maxVolunteers || 0,
+    volunteersRegistered: event.currentVolunteers || 0,
+    status: mapStatus(event.statusName || ""),
+    category: event.categoryName || "Khác",
+    image: event.bannerImageUrl || undefined,
+    isUrgent: event.isUrgent || false,
+    isFeatured: false, // This would need to come from backend
+    viewCount: 0, // This would need to come from backend
+  };
+};
 
 export default function PublicEventsPage() {
   // Filter state
