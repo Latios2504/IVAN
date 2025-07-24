@@ -27,9 +27,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { LoadingWithRetry } from "@/components/ui/skeletons";
 import { useFetchData } from "@/hooks/useAsyncData";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import {
   Building2,
   Search,
@@ -58,7 +58,7 @@ import { Link } from "react-router-dom";
 
 const AdminOrganizationListPage = () => {
   const { user } = useAuth();
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
 
   // Use the new data fetching pattern
   const {
@@ -417,7 +417,7 @@ const AdminOrganizationListPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+        <LoadingWithRetry text="Đang tải danh sách tổ chức..." />
       </div>
     );
   }

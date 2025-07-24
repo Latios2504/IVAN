@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { usePublicPartnerDetail } from "@/hooks/usePublicPartnerDetail";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { LoadingWithRetry } from "@/components/ui/skeletons";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { 
   Breadcrumb,
@@ -30,7 +30,7 @@ export default function PublicPartnerDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Đang tải thông tin đối tác..." />
+        <LoadingWithRetry text="Đang tải thông tin đối tác..." />
       </div>
     );
   }

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { CoordinatorCreationDialog } from "@/components/admin/CoordinatorCreationDialog";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { LoadingGrid } from "@/components/ui/skeletons";
 import {
   Users,
   Search,
@@ -36,7 +36,7 @@ import {
   Eye,
   Edit,
 } from "lucide-react";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import { DataTable } from "@/components/common/DataTable";
 import type { TableColumn, TableAction } from "@/components/common/DataTable";
 import { userManagementService } from "@/services/userManagementService";
@@ -194,7 +194,7 @@ const USER_STATUSES = userStatusUtils.getStatusOptions();
  */
 export default function UserManagementPage() {
   const { user: currentUser } = useAuth();
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
 
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
@@ -315,7 +315,7 @@ export default function UserManagementPage() {
         "UserManagementPage.loadUsers"
       );
       logger.error("Error loading users", appError, "UserManagementPage");
-      showNotification("Không thể tải danh sách người dùng", "error");
+      toast.error("Không thể tải danh sách người dùng");
     } finally {
       setIsLoading(false);
     }
@@ -334,7 +334,7 @@ export default function UserManagementPage() {
         { userId, newStatus },
         "UserManagementPage"
       );
-      showNotification("Không thể xác định người dùng hiện tại", "error");
+      toast.error("Không thể xác định người dùng hiện tại");
       return;
     }
 
@@ -381,7 +381,7 @@ export default function UserManagementPage() {
         )
       );
 
-      showNotification(
+      toast.success(
         newStatus ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản"
       );
 
@@ -400,7 +400,7 @@ export default function UserManagementPage() {
         appError,
         "UserManagementPage"
       );
-      showNotification("Không thể thay đổi trạng thái tài khoản", "error");
+      toast.error("Không thể thay đổi trạng thái tài khoản");
     }
   };
 
@@ -510,7 +510,7 @@ export default function UserManagementPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingSpinner size="lg" text="Đang tải danh sách người dùng..." />
+        <LoadingGrid count={8} />
       </div>
     );
   }
@@ -704,7 +704,7 @@ export default function UserManagementPage() {
         onClose={() => setIsCreateCoordinatorOpen(false)}
         onSuccess={(newCoordinator: any) => {
           // In a real app, this would properly handle the new coordinator data
-          showNotification("Tạo tài khoản Coordinator thành công");
+          toast.success("Tạo tài khoản Coordinator thành công");
           setIsCreateCoordinatorOpen(false);
           loadUsers(); // Reload the user list
         }}

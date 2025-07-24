@@ -240,13 +240,13 @@ export interface PublicVolunteerFilters {
 
 // Response interfaces
 export interface PagedResult<T> {
-  items: {
-    $values: T[];
-  };
-  page: number;
-  size: number;
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
   totalPages: number;
-  totalItems: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 }
 
 export interface ApiResponse<T> {

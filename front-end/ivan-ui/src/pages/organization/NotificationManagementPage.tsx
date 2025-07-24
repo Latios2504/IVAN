@@ -37,7 +37,7 @@ import {
 } from "@/components/common/DataTable";
 import { AsyncWrapper } from "@/components/common/AsyncWrapper";
 import { useModal } from "@/hooks/useModal";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import {
   Bell,
@@ -241,7 +241,7 @@ export default function NotificationManagementPage() {
   const templateModal = useModal();
   const settingsModal = useModal();
   const viewModal = useModal();
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
 
   // Notification settings
   const [notificationSettings, setNotificationSettings] = useState({
@@ -300,7 +300,7 @@ export default function NotificationManagementPage() {
           : n
       )
     );
-    showNotification("Thông báo đã được gửi thành công", "success");
+    toast.success("Thông báo đã được gửi thành công");
   };
 
   // DataTable columns configuration

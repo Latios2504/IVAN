@@ -28,7 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { LoadingWithRetry } from "@/components/ui/skeletons";
 import {
   Building2,
   Shield,
@@ -52,7 +52,7 @@ import {
   Camera,
   Link,
 } from "lucide-react";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 
 /**
  * Organization Profile Management Page
@@ -68,7 +68,7 @@ import { useToast } from "@/context/ToastContext";
 
 const OrganizationProfileManagementPage = () => {
   const { user } = useAuth();
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -250,7 +250,7 @@ const OrganizationProfileManagementPage = () => {
         });
       } catch (error) {
         console.error("Error loading organization profile:", error);
-        showNotification("Có lỗi xảy ra khi tải thông tin tổ chức", "error");
+        toast.error("Có lỗi xảy ra khi tải thông tin tổ chức");
       } finally {
         setLoading(false);
       }
@@ -278,10 +278,10 @@ const OrganizationProfileManagementPage = () => {
       }
 
       setIsEditing(false);
-      showNotification("Thông tin tổ chức đã được cập nhật thành công");
+      toast.success("Thông tin tổ chức đã được cập nhật thành công");
     } catch (error) {
       console.error("Error saving organization profile:", error);
-      showNotification("Có lỗi xảy ra khi lưu thông tin", "error");
+      toast.error("Có lỗi xảy ra khi lưu thông tin");
     } finally {
       setSaving(false);
     }
@@ -390,7 +390,7 @@ const OrganizationProfileManagementPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+        <LoadingWithRetry text="Đang tải thông tin tổ chức..." />
       </div>
     );
   }
@@ -448,7 +448,10 @@ const OrganizationProfileManagementPage = () => {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {saving ? (
-                    <LoadingSpinner size="sm" text="" />
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      Đang lưu...
+                    </div>
                   ) : (
                     <>
                       <Save className="w-4 h-4 mr-2" />

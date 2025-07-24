@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { LoadingWithRetry } from "@/components/ui/skeletons";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActionButton } from "@/components/dashboard/ActionButton";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+        <LoadingWithRetry text="Đang tải bảng điều khiển..." />
       </div>
     );
   }

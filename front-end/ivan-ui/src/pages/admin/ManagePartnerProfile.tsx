@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { LoadingWithRetry } from "@/components/ui/skeletons";
 import {
   Building2,
   Search,
@@ -176,7 +176,7 @@ export default function AdminPartnerListPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+        <LoadingWithRetry text="Đang tải danh sách đối tác..." />
       </div>
     );
   }

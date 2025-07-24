@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { LoadingWithRetry } from "@/components/ui/skeletons";
 
 interface AsyncWrapperProps {
   loading: boolean;
@@ -23,7 +23,7 @@ export const AsyncWrapper = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <LoadingSpinner size="lg" text={loadingText} />
+        <LoadingWithRetry text={loadingText} />
       </div>
     );
   }

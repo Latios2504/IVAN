@@ -24,8 +24,9 @@ export const usePublicVolunteerDetail = (
       const result = await publicContentService.getPublicVolunteer(id);
       setVolunteer(result);
     } catch (err: any) {
-      console.error("Failed to fetch volunteer:", err?.message || err);
-      setError(err?.message || "Failed to load volunteer");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Failed to fetch volunteer:", errorMessage);
+      setError(errorMessage || "Failed to load volunteer");
       setVolunteer(null);
     } finally {
       setLoading(false);

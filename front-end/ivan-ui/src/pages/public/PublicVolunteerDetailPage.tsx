@@ -1,6 +1,6 @@
 import { useParams, Navigate } from "react-router-dom";
 import { PublicPageLayout } from "@/components/common/PublicPageLayout";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { VolunteerDetailSkeleton } from "@/components/ui/skeletons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,11 +43,7 @@ export const PublicVolunteerDetailPage = () => {
         title="Loading Volunteer"
         description="Please wait while we load the volunteer information..."
       >
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" />
-          </div>
-        </div>
+        <VolunteerDetailSkeleton />
       </PublicPageLayout>
     );
   }
@@ -287,3 +283,5 @@ export const PublicVolunteerDetailPage = () => {
     </PublicPageLayout>
   );
 };
+
+export default PublicVolunteerDetailPage;

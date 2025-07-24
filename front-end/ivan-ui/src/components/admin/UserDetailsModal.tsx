@@ -39,7 +39,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import { userManagementService } from "@/services/userManagementService";
 import type { UserAccountDetailDto } from "@/services/userManagementService";
 import { UserRole } from "@/types/auth";
@@ -59,7 +59,6 @@ export function UserDetailsModal({
   onUserUpdate,
 }: UserDetailsModalProps) {
   const { user: currentUser } = useAuth();
-  const { showNotification } = useToast();
   const [user, setUser] = useState<UserAccountDetailDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -85,7 +84,7 @@ export function UserDetailsModal({
       setEditedUser({ ...userDetail });
     } catch (error) {
       console.error("Failed to load user details:", error);
-      showNotification("Không thể tải thông tin người dùng", "error");
+      toast.error("Không thể tải thông tin người dùng");
     } finally {
       setIsLoading(false);
     }
@@ -109,13 +108,13 @@ export function UserDetailsModal({
   const handleSave = async () => {
     if (!currentUser?.id) {
       console.error("Current user ID not available");
-      showNotification("Không thể xác định người dùng hiện tại", "error");
+      toast.error("Không thể xác định người dùng hiện tại");
       return;
     }
 
     if (!editedUser || !user) {
       console.error("No user data to save");
-      showNotification("Không có dữ liệu để lưu", "error");
+      toast.error("Không có dữ liệu để lưu");
       return;
     }
 
@@ -139,22 +138,20 @@ export function UserDetailsModal({
       editedUser.isEmailVerified !== user.isEmailVerified;
 
     if (profileFieldsChanged && !accountFieldsChanged) {
-      showNotification(
-        "Hiện tại chỉ có thể cập nhật thông tin tài khoản (vai trò, trạng thái, xác thực email). Cập nhật thông tin cá nhân sẽ được hỗ trợ trong phiên bản tương lai.",
-        "warning"
+      toast.warning(
+        "Hiện tại chỉ có thể cập nhật thông tin tài khoản (vai trò, trạng thái, xác thực email). Cập nhật thông tin cá nhân sẽ được hỗ trợ trong phiên bản tương lai."
       );
       return;
     }
 
     if (profileFieldsChanged && accountFieldsChanged) {
-      showNotification(
-        "Hiện tại chỉ có thể cập nhật thông tin tài khoản (vai trò, trạng thái, xác thực email). Thông tin cá nhân sẽ không được lưu.",
-        "warning"
+      toast.warning(
+        "Hiện tại chỉ có thể cập nhật thông tin tài khoản (vai trò, trạng thái, xác thực email). Thông tin cá nhân sẽ không được lưu."
       );
     }
 
     if (!accountFieldsChanged) {
-      showNotification("Không có thay đổi nào để lưu", "info");
+      toast.info("Không có thay đổi nào để lưu");
       setIsEditing(false);
       return;
     }
@@ -188,7 +185,7 @@ export function UserDetailsModal({
       onUserUpdate?.();
 
       // Show success message
-      showNotification("Cập nhật thông tin tài khoản thành công", "success");
+      toast.success("Cập nhật thông tin tài khoản thành công");
     } catch (error) {
       console.error("Failed to update user:", error);
       // Reset to original values on error
@@ -196,9 +193,8 @@ export function UserDetailsModal({
         setEditedUser({ ...user });
       }
       // Show error message
-      showNotification(
-        "Không thể cập nhật thông tin người dùng. Vui lòng thử lại.",
-        "error"
+      toast.error(
+        "Không thể cập nhật thông tin người dùng. Vui lòng thử lại."
       );
     } finally {
       setIsLoading(false);
@@ -213,13 +209,13 @@ export function UserDetailsModal({
   const handleStatusChange = async (newStatus: "active" | "inactive") => {
     if (!currentUser?.id) {
       console.error("Current user ID not available");
-      showNotification("Không thể xác định người dùng hiện tại", "error");
+      toast.error("Không thể xác định người dùng hiện tại");
       return;
     }
 
     if (!editedUser) {
       console.error("No user data available");
-      showNotification("Không có dữ liệu người dùng", "error");
+      toast.error("Không có dữ liệu người dùng");
       return;
     }
 
@@ -250,11 +246,10 @@ export function UserDetailsModal({
       setEditedUser(result);
       onUserUpdate?.();
 
-      showNotification(
+      toast.success(
         `Trạng thái người dùng đã được thay đổi thành ${
           newStatus === "active" ? "hoạt động" : "không hoạt động"
-        }`,
-        "success"
+        }`
       );
     } catch (error) {
       console.error("Failed to update user status:", error);
@@ -262,9 +257,8 @@ export function UserDetailsModal({
       if (user) {
         setEditedUser({ ...user });
       }
-      showNotification(
-        "Không thể cập nhật trạng thái người dùng. Vui lòng thử lại.",
-        "error"
+      toast.error(
+        "Không thể cập nhật trạng thái người dùng. Vui lòng thử lại."
       );
     }
   };
@@ -272,13 +266,13 @@ export function UserDetailsModal({
   const handleRoleChange = async (newRoleId: number) => {
     if (!currentUser?.id) {
       console.error("Current user ID not available");
-      showNotification("Không thể xác định người dùng hiện tại", "error");
+      toast.error("Không thể xác định người dùng hiện tại");
       return;
     }
 
     if (!editedUser) {
       console.error("No user data available");
-      showNotification("Không có dữ liệu người dùng", "error");
+      toast.error("Không có dữ liệu người dùng");
       return;
     }
 
@@ -308,19 +302,15 @@ export function UserDetailsModal({
       setEditedUser(result);
       onUserUpdate?.();
 
-      showNotification(
-        "Vai trò người dùng đã được cập nhật thành công",
-        "success"
-      );
+      toast.success("Vai trò người dùng đã được cập nhật thành công");
     } catch (error) {
       console.error("Failed to update user role:", error);
       // Reset on error
       if (user) {
         setEditedUser({ ...user });
       }
-      showNotification(
-        "Không thể cập nhật vai trò người dùng. Vui lòng thử lại.",
-        "error"
+      toast.error(
+        "Không thể cập nhật vai trò người dùng. Vui lòng thử lại."
       );
     }
   };
@@ -375,7 +365,7 @@ export function UserDetailsModal({
             {/* User Header */}
             <div className="flex items-start gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={editedUser.avatarUrl || ""} />
+                <AvatarImage src={editedUser.avatar || ""} />
                 <AvatarFallback>
                   {editedUser.firstName?.charAt(0) ||
                     editedUser.fullName?.charAt(0) ||
@@ -392,7 +382,9 @@ export function UserDetailsModal({
                   <Badge className={getStatusColor(editedUser.isActive)}>
                     {editedUser.isActive ? "Active" : "Inactive"}
                   </Badge>
-                  <Badge variant="outline">{editedUser.role}</Badge>
+                  <Badge variant="outline">
+                    {RoleDisplayNames[editedUser.roleId as unknown as UserRole] || "Unknown"}
+                  </Badge>
                   {editedUser.isEmailVerified && (
                     <Badge
                       variant="outline"
@@ -504,9 +496,7 @@ export function UserDetailsModal({
                       onChange={(e) =>
                         setEditedUser({
                           ...editedUser,
-                          dateOfBirth: e.target.value
-                            ? new Date(e.target.value).toISOString()
-                            : null,
+                          dateOfBirth: e.target.value || undefined,
                         })
                       }
                       disabled={!isEditing}
@@ -644,7 +634,7 @@ export function UserDetailsModal({
                           Events Joined
                         </span>
                         <div className="text-2xl font-bold text-blue-700">
-                          {editedUser.totalEventsJoined || 0}
+                          {0}
                         </div>
                       </div>
                       <Award className="h-8 w-8 text-blue-500" />
@@ -655,7 +645,7 @@ export function UserDetailsModal({
                           Events Completed
                         </span>
                         <div className="text-2xl font-bold text-green-700">
-                          {editedUser.totalEventsCompleted || 0}
+                          {0}
                         </div>
                       </div>
                       <UserCheck className="h-8 w-8 text-green-500" />
@@ -666,7 +656,7 @@ export function UserDetailsModal({
                           Collaborations
                         </span>
                         <div className="text-2xl font-bold text-purple-700">
-                          {editedUser.totalCollaborations || 0}
+                          {0}
                         </div>
                       </div>
                       <Users className="h-8 w-8 text-purple-500" />

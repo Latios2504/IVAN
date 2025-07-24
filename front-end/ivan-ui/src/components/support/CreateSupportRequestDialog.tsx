@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { SupportCategory, CreateSupportRequestData } from "@/types/support";
 import { Clock, AlertCircle, Paperclip, X } from "lucide-react";
 
@@ -254,7 +254,7 @@ export const CreateSupportRequestDialog = ({
               className="bg-blue-600 hover:bg-blue-700"
             >              {loading ? (
                 <>
-                  <LoadingSpinner size="sm" text="" />
+                  <Skeleton className="w-4 h-4" />
                   <span className="ml-2">Đang tạo...</span>
                 </>
               ) : (

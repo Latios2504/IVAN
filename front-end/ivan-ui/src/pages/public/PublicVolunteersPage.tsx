@@ -2,15 +2,10 @@ import { useState } from "react";
 import { PublicPageLayout } from "@/components/common/PublicPageLayout";
 import { FilterSection } from "@/components/common/FilterSection";
 import { VolunteerCard } from "@/components/cards/VolunteerCard";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { LoadingGrid } from "@/components/ui/skeletons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Search, Users, Filter } from "lucide-react";
+import { Users } from "lucide-react";
 import { usePublicVolunteers } from "@/hooks/usePublicVolunteers";
 import type { PublicVolunteerFilters, VolunteerCardData } from "@/types/publicContent";
 
@@ -64,93 +59,71 @@ export const PublicVolunteersPage = () => {
 
   const convertToCardData = (volunteers: any[]): VolunteerCardData[] => {
     if (!volunteers || !Array.isArray(volunteers)) {
+      console.warn('Invalid volunteers data - not an array');
       return [];
     }
     
-    return volunteers.map(volunteer => {
-      // Safely extract skills
-      let skills: string[] = [];
+    return volunteers.map((volunteer, index) => {
       try {
+        // Safely extract skills
+        let skills: string[] = [];
+        
+        // Try skillsList first (the new format)
         if (volunteer.skillsList && Array.isArray(volunteer.skillsList)) {
           skills = volunteer.skillsList
             .filter((skill: any) => skill && typeof skill === 'object' && skill.skillName)
             .map((skill: any) => String(skill.skillName));
-        } else if (volunteer.skills && typeof volunteer.skills === 'string') {
-          // Handle case where skills might be a comma-separated string
+        } 
+        // Fallback to skills array if it exists
+        else if (volunteer.skills && Array.isArray(volunteer.skills)) {
+          skills = volunteer.skills
+            .filter((skill: any) => skill && typeof skill === 'object' && skill.skillName)
+            .map((skill: any) => String(skill.skillName));
+        }
+        // Handle comma-separated string format
+        else if (volunteer.skills && typeof volunteer.skills === 'string') {
           skills = volunteer.skills.split(',').map((s: string) => s.trim()).filter(Boolean);
         }
-      } catch (error) {
-        console.warn('Error processing skills for volunteer:', volunteer.volunteerId, error);
-        skills = [];
-      }
 
-      return {
-        id: volunteer.volunteerId || 0,
-        name: volunteer.fullName || 'Unknown',
-        fullName: volunteer.fullName || 'Unknown',
-        description: volunteer.motivation || volunteer.experience || "Dedicated volunteer ready to make a difference",
-        university: volunteer.university || undefined,
-        major: volunteer.major || undefined,
-        yearOfStudy: volunteer.yearOfStudy || undefined,
-        location: volunteer.province || "Not specified",
-        avatar: volunteer.avatar || undefined,
-        isVerified: Boolean(volunteer.isVerified),
-        rating: Number(volunteer.rating) || 0,
-        ratingCount: Number(volunteer.ratingCount) || 0,
-        totalHoursVolunteered: Number(volunteer.totalHoursVolunteered) || 0,
-        skills,
-        availability: volunteer.availability || undefined,
-        lastActiveDate: volunteer.lastActiveDate || undefined,
-      };
+        const result: VolunteerCardData = {
+          id: Number(volunteer.volunteerId) || 0,
+          name: String(volunteer.fullName || 'Unknown'),
+          fullName: String(volunteer.fullName || 'Unknown'),
+          description: String(volunteer.motivation || volunteer.experience || "Dedicated volunteer ready to make a difference"),
+          university: volunteer.university ? String(volunteer.university) : undefined,
+          major: volunteer.major ? String(volunteer.major) : undefined,
+          yearOfStudy: volunteer.yearOfStudy ? Number(volunteer.yearOfStudy) : undefined,
+          location: String(volunteer.province || "Not specified"),
+          avatar: volunteer.avatar ? String(volunteer.avatar) : undefined,
+          isVerified: Boolean(volunteer.isVerified),
+          rating: Number(volunteer.rating) || 0,
+          ratingCount: Number(volunteer.ratingCount) || 0,
+          totalHoursVolunteered: Number(volunteer.totalHoursVolunteered) || 0,
+          skills,
+          availability: volunteer.availability ? String(volunteer.availability) : undefined,
+          lastActiveDate: volunteer.lastActiveDate ? String(volunteer.lastActiveDate) : undefined,
+        };
+
+        return result;
+      } catch (error) {
+        console.error(`Error processing volunteer at index ${index}:`, error instanceof Error ? error.message : String(error));
+        console.error('Volunteer data:', JSON.stringify(volunteer, null, 2));
+        // Return a safe fallback object
+        return {
+          id: index,
+          name: 'Unknown Volunteer',
+          fullName: 'Unknown Volunteer',
+          description: 'Volunteer information unavailable',
+          location: 'Not specified',
+          isVerified: false,
+          rating: 0,
+          ratingCount: 0,
+          totalHoursVolunteered: 0,
+          skills: [],
+        };
+      }
     });
   };
-
-  const filterContent = (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="search">Search volunteers</Label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            id="search"
-            placeholder="Search by name, skills, or university..."
-            value={filters.search || ""}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="province">Province</Label>
-        <Select
-          value={filters.province || "all"}
-          onValueChange={handleProvinceChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="All provinces" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All provinces</SelectItem>
-            {PROVINCES.map((province) => (
-              <SelectItem key={province} value={province}>
-                {province}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="verified"
-          checked={filters.isVerified || false}
-          onCheckedChange={handleVerifiedChange}
-        />
-        <Label htmlFor="verified">Verified volunteers only</Label>
-      </div>
-    </div>
-  );
 
   return (
     <PublicPageLayout
@@ -160,17 +133,28 @@ export const PublicVolunteersPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Filters */}
         <FilterSection
-          title="Filter Volunteers"
-          icon={<Filter className="h-4 w-4" />}
-          content={filterContent}
+          searchValue={filters.search || ""}
+          onSearchChange={handleSearch}
+          searchPlaceholder="Search by name, skills, or university..."
+          filters={[
+            {
+              id: "province",
+              label: "Province",
+              value: filters.province || "all",
+              options: [
+                { value: "all", label: "All provinces" },
+                ...PROVINCES.map(province => ({ value: province, label: province }))
+              ],
+              onChange: handleProvinceChange,
+            }
+          ]}
+          resultCount={pagination.totalItems}
         />
 
         {/* Content */}
         <div className="mt-8">
           {loading ? (
-            <div className="flex justify-center py-12">
-              <LoadingSpinner size="lg" />
-            </div>
+            <LoadingGrid count={6} />
           ) : error ? (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -193,13 +177,11 @@ export const PublicVolunteersPage = () => {
               </div>
 
               {/* Volunteers grid */}
-              <ErrorBoundary>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {convertToCardData(volunteers).map((volunteer) => (
-                    <VolunteerCard key={volunteer.id} volunteer={volunteer} />
-                  ))}
-                </div>
-              </ErrorBoundary>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {convertToCardData(volunteers).map((volunteer) => (
+                  <VolunteerCard key={volunteer.id} volunteer={volunteer} />
+                ))}
+              </div>
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
@@ -243,3 +225,5 @@ export const PublicVolunteersPage = () => {
     </PublicPageLayout>
   );
 };
+
+export default PublicVolunteersPage;

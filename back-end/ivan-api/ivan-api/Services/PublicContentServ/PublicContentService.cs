@@ -467,37 +467,64 @@ namespace ivan_api.Services.PublicContentServ
             // Get total count
             var totalItems = await query.CountAsync();
 
-            // Apply pagination
+            // Apply pagination and map to DTO
             var volunteers = await query
                 .Skip((filters.Page - 1) * filters.Size)
                 .Take(filters.Size)
-                .Select(v => new PublicVolunteerDTO
-                {
-                    VolunteerId = v.VolunteerId,
-                    FullName = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.FullName : "",
-                    ProfilePicture = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Avatar : "",
-                    University = v.University,
-                    Major = v.Major,
-                    Bio = v.Motivation,
-                    Province = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Province : null,
-                    IsVerified = v.IsVerified ?? false,
-                    Rating = v.Rating ?? 0,
-                    ReviewCount = v.RatingCount ?? 0,
-                    VolunteerHours = v.VolunteerHours ?? 0,
-                    Skills = v.VolunteerSkills.Select(vs => new PublicVolunteerSkillDTO
-                    {
-                        Id = vs.SkillId,
-                        Name = vs.Skill.SkillName,
-                        ProficiencyLevel = vs.ProficiencyLevel
-                    }).ToList()
-                })
                 .ToListAsync();
 
-            var totalPages = (int)Math.Ceiling((double)totalItems / filters.Size);
+            var volunteerDtos = volunteers.Select(v => 
+            {
+                var userProfile = v.User.UserProfiles.FirstOrDefault();
+                return new PublicVolunteerDTO
+                {
+                    VolunteerId = v.VolunteerId,
+                    UserId = v.UserId,
+                    FirstName = userProfile?.FirstName ?? "",
+                    LastName = userProfile?.LastName ?? "",
+                    FullName = userProfile?.FullName ?? "",
+                    Email = v.User.Email,
+                    PhoneNumber = userProfile?.PhoneNumber,
+                    DateOfBirth = userProfile?.DateOfBirth?.ToDateTime(TimeOnly.MinValue),
+                    Gender = userProfile?.Gender,
+                    Avatar = userProfile?.Avatar,
+                    Address = userProfile?.Address,
+                    WardCommune = userProfile?.WardCommune,
+                    District = userProfile?.District,
+                    Province = userProfile?.Province,
+                    StudentId = v.StudentId,
+                    University = v.University,
+                    Major = v.Major,
+                    YearOfStudy = v.YearOfStudy,
+                    Motivation = v.Motivation,
+                    Experience = v.Experience,
+                    Availability = v.Availability,
+                    IsVerified = v.IsVerified ?? false,
+                    VerifiedAt = v.VerifiedAt,
+                    LastActiveDate = v.LastActiveDate,
+                    Rating = v.Rating ?? 0,
+                    RatingCount = v.RatingCount ?? 0,
+                    VolunteerHours = v.VolunteerHours ?? 0,
+                    TotalHoursVolunteered = v.TotalHoursVolunteered ?? 0,
+                    Skills = v.Skills,
+                    SkillsList = v.VolunteerSkills.Select(vs => new PublicVolunteerSkillDTO
+                    {
+                        SkillId = vs.SkillId,
+                        SkillName = vs.Skill.SkillName,
+                        Category = vs.Skill.Category,
+                        ProficiencyLevel = vs.ProficiencyLevel ?? "Cơ bản",
+                        YearsOfExperience = vs.YearsOfExperience ?? 0,
+                        Description = vs.Description
+                    }).ToList(),
+                    IsActive = v.User.IsActive ?? true,
+                    CreatedAt = v.CreatedAt ?? DateTime.Now,
+                    UpdatedAt = v.UpdatedAt ?? DateTime.Now
+                };
+            }).ToList();
 
             return new PagedResultDto<PublicVolunteerDTO>
             {
-                Items = volunteers,
+                Items = volunteerDtos,
                 PageNumber = filters.Page,
                 PageSize = filters.Size,
                 TotalCount = totalItems
@@ -512,30 +539,56 @@ namespace ivan_api.Services.PublicContentServ
                 .Include(v => v.VolunteerSkills)
                     .ThenInclude(vs => vs.Skill)
                 .Where(v => v.VolunteerId == id && v.User.IsActive == true)
-                .Select(v => new PublicVolunteerDTO
-                {
-                    VolunteerId = v.VolunteerId,
-                    FullName = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.FullName : "",
-                    ProfilePicture = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Avatar : "",
-                    University = v.University,
-                    Major = v.Major,
-                    Bio = v.Motivation,
-                    Experience = v.Experience,
-                    Province = v.User.UserProfiles.FirstOrDefault() != null ? v.User.UserProfiles.FirstOrDefault()!.Province : null,
-                    IsVerified = v.IsVerified ?? false,
-                    Rating = v.Rating ?? 0,
-                    ReviewCount = v.RatingCount ?? 0,
-                    VolunteerHours = v.VolunteerHours ?? 0,
-                    Skills = v.VolunteerSkills.Select(vs => new PublicVolunteerSkillDTO
-                    {
-                        Id = vs.SkillId,
-                        Name = vs.Skill.SkillName,
-                        ProficiencyLevel = vs.ProficiencyLevel
-                    }).ToList()
-                })
                 .FirstOrDefaultAsync();
 
-            return volunteer;
+            if (volunteer == null)
+                return null;
+
+            var userProfile = volunteer.User.UserProfiles.FirstOrDefault();
+            return new PublicVolunteerDTO
+            {
+                VolunteerId = volunteer.VolunteerId,
+                UserId = volunteer.UserId,
+                FirstName = userProfile?.FirstName ?? "",
+                LastName = userProfile?.LastName ?? "",
+                FullName = userProfile?.FullName ?? "",
+                Email = volunteer.User.Email,
+                PhoneNumber = userProfile?.PhoneNumber,
+                DateOfBirth = userProfile?.DateOfBirth?.ToDateTime(TimeOnly.MinValue),
+                Gender = userProfile?.Gender,
+                Avatar = userProfile?.Avatar,
+                Address = userProfile?.Address,
+                WardCommune = userProfile?.WardCommune,
+                District = userProfile?.District,
+                Province = userProfile?.Province,
+                StudentId = volunteer.StudentId,
+                University = volunteer.University,
+                Major = volunteer.Major,
+                YearOfStudy = volunteer.YearOfStudy,
+                Motivation = volunteer.Motivation,
+                Experience = volunteer.Experience,
+                Availability = volunteer.Availability,
+                IsVerified = volunteer.IsVerified ?? false,
+                VerifiedAt = volunteer.VerifiedAt,
+                LastActiveDate = volunteer.LastActiveDate,
+                Rating = volunteer.Rating ?? 0,
+                RatingCount = volunteer.RatingCount ?? 0,
+                VolunteerHours = volunteer.VolunteerHours ?? 0,
+                TotalHoursVolunteered = volunteer.TotalHoursVolunteered ?? 0,
+                Skills = volunteer.Skills,
+                SkillsList = volunteer.VolunteerSkills.Select(vs => new PublicVolunteerSkillDTO
+                {
+                    SkillId = vs.SkillId,
+                    SkillName = vs.Skill.SkillName,
+                    Category = vs.Skill.Category,
+                    ProficiencyLevel = vs.ProficiencyLevel ?? "Cơ bản",
+                    YearsOfExperience = vs.YearsOfExperience ?? 0,
+                    Description = vs.Description
+                }).ToList(),
+                IsActive = volunteer.User.IsActive ?? true,
+                CreatedAt = volunteer.CreatedAt ?? DateTime.Now,
+                UpdatedAt = volunteer.UpdatedAt ?? DateTime.Now
+            };
         }
 
         #endregion

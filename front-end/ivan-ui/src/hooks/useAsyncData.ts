@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useApi } from "./useApi";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 
 interface UseAsyncDataOptions<T> {
   immediate?: boolean;
@@ -17,7 +17,7 @@ export function useAsyncData<T = any>(
   endpoint: string,
   options: UseAsyncDataOptions<T> = {}
 ) {
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
   const [data, setData] = useState<T | null>(null);
   const [initialLoading, setInitialLoading] = useState(
     options.immediate !== false
@@ -41,14 +41,14 @@ export function useAsyncData<T = any>(
       setData(finalData);
 
       if (showSuccessToast && successMessage) {
-        showNotification(successMessage, "success");
+        toast.success(successMessage);
       }
 
       onSuccess?.(finalData);
     },
     onError: (error: string) => {
       if (showErrorToast) {
-        showNotification(error, "error");
+        toast.error(error);
       }
       onError?.(error);
     },

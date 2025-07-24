@@ -44,37 +44,29 @@ export const usePublicVolunteers = (
         size: pagination.size,
       });
 
-      // Handle the $values wrapper from backend with better error checking
-      let volunteersData: PublicVolunteer[] = [];
+      console.log('Raw API response received');
       
-      if (result && typeof result === 'object') {
-        if (result.items && typeof result.items === 'object') {
-          // Handle $values wrapper
-          if (Array.isArray(result.items.$values)) {
-            volunteersData = result.items.$values;
-          } 
-          // Handle direct array
-          else if (Array.isArray(result.items)) {
-            volunteersData = result.items;
-          }
-        }
-        // Handle case where result.items is directly an array
-        else if (Array.isArray(result.items)) {
+      // Extract volunteers data
+      let volunteersData: PublicVolunteer[] = [];
+      if (result && result.items) {
+        if (Array.isArray(result.items)) {
           volunteersData = result.items;
         }
       }
       
-      console.log('Fetched volunteers data:', volunteersData);
+      console.log('Processed volunteers count:', volunteersData.length);
+      
       setVolunteers(volunteersData);
       
       setPagination(prev => ({
         ...prev,
         totalPages: result?.totalPages || 0,
-        totalItems: result?.totalItems || 0,
+        totalItems: result?.totalCount || 0,
       }));
     } catch (err: any) {
-      console.error("Failed to fetch volunteers:", err);
-      setError(err?.message || "Failed to load volunteers");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Failed to fetch volunteers:", errorMessage);
+      setError(errorMessage || "Failed to load volunteers");
       setVolunteers([]);
     } finally {
       setLoading(false);
