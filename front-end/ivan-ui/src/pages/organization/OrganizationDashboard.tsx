@@ -20,9 +20,14 @@ import {
   Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import type { OrganizationStats } from "@/services/dashboardService";
 
 export default function OrganizationDashboard() {
   const { user } = useAuth();
+  const { stats, loading, error } = useDashboardStats();
+
+  const orgStats = stats as OrganizationStats;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,29 +40,47 @@ export default function OrganizationDashboard() {
         </p>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          Không thể tải thông tin thống kê: {error}
+        </div>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           title="Tình nguyện viên"
-          value={156}
+          value={loading ? "..." : orgStats?.totalVolunteers || 0}
           icon={Users}
-          trend={{ value: "+12 tháng này" }}
+          trend={{
+            value: loading
+              ? "..."
+              : `+${orgStats?.newVolunteersThisMonth || 0} tháng này`,
+          }}
         />
         <StatsCard
           title="Sự kiện hoạt động"
-          value={23}
+          value={loading ? "..." : orgStats?.activeEvents || 0}
           icon={Calendar}
-          trend={{ value: "+3 tháng này" }}
+          trend={{ value: "Đang diễn ra" }}
         />
         <StatsCard
           title="Coordinators"
-          value={8}
+          value={loading ? "..." : orgStats?.totalCoordinators || 0}
           icon={UserPlus}
           description="Đang hoạt động"
         />
         <StatsCard
           title="Chứng chỉ cấp"
-          value={89}
+          value={loading ? "..." : orgStats?.certificatesIssued || 0}
           icon={Award}
           description="Tháng này"
         />
@@ -166,19 +189,31 @@ export default function OrganizationDashboard() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm">Tình nguyện viên mới</span>
-                <Badge variant="secondary">+12 tháng này</Badge>
+                <Badge variant="secondary">
+                  {loading
+                    ? "..."
+                    : `+${orgStats?.newVolunteersThisMonth || 0} tháng này`}
+                </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Đang hoạt động</span>
-                <Badge variant="secondary">134 người</Badge>
+                <Badge variant="secondary">
+                  {loading ? "..." : `${orgStats?.totalVolunteers || 0} người`}
+                </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Giờ tình nguyện tháng này</span>
-                <Badge variant="secondary">2,456 giờ</Badge>
+                <Badge variant="secondary">
+                  {loading
+                    ? "..."
+                    : `${orgStats?.hoursThisMonth?.toLocaleString() || 0} giờ`}
+                </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Đánh giá trung bình</span>
-                <StatusBadge variant="warning">4.8/5</StatusBadge>
+                <StatusBadge variant="warning">
+                  {loading ? "..." : `${orgStats?.averageRating || 0}/5`}
+                </StatusBadge>
               </div>
             </div>
             <Button variant="outline" className="w-full" asChild>

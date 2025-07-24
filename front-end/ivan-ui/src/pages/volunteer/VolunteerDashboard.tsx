@@ -18,6 +18,8 @@ import {
   Eye,
   Filter,
 } from "lucide-react";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import type { VolunteerStats } from "@/services/dashboardService";
 
 interface VolunteerActivity {
   id: string;
@@ -31,23 +33,10 @@ interface VolunteerActivity {
   description: string;
 }
 
-interface VolunteerStats {
-  totalHours: number;
-  totalActivities: number;
-  totalPoints: number;
-  currentRank: string;
-}
-
 export default function VolunteerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-
-  // Mock data
-  const stats: VolunteerStats = {
-    totalHours: 156,
-    totalActivities: 23,
-    totalPoints: 1250,
-    currentRank: "Tình nguyện viên Bạc",
-  };
+  const { stats, loading, error } = useDashboardStats();
+  const volunteerStats = stats as VolunteerStats;
 
   const activities: VolunteerActivity[] = [
     {
@@ -87,9 +76,21 @@ export default function VolunteerDashboard() {
 
   const getStatusBadge = (status: VolunteerActivity["status"]) => {
     const statusConfig = {
-      completed: { label: "Hoàn thành", variant: "default" as const, icon: CheckCircle },
-      upcoming: { label: "Sắp tới", variant: "secondary" as const, icon: Clock },
-      cancelled: { label: "Đã hủy", variant: "destructive" as const, icon: AlertCircle },
+      completed: {
+        label: "Hoàn thành",
+        variant: "default" as const,
+        icon: CheckCircle,
+      },
+      upcoming: {
+        label: "Sắp tới",
+        variant: "secondary" as const,
+        icon: Clock,
+      },
+      cancelled: {
+        label: "Đã hủy",
+        variant: "destructive" as const,
+        icon: AlertCircle,
+      },
     };
 
     const config = statusConfig[status];
@@ -114,7 +115,9 @@ export default function VolunteerDashboard() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Bảng điều khiển Tình nguyện viên</h1>
+          <h1 className="text-3xl font-bold">
+            Bảng điều khiển Tình nguyện viên
+          </h1>
           <p className="text-muted-foreground">
             Theo dõi hoạt động tình nguyện và thành tích của bạn
           </p>
@@ -126,64 +129,88 @@ export default function VolunteerDashboard() {
       </div>
 
       {/* Stats Cards */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          Không thể tải thông tin thống kê: {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng giờ tình nguyện</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng giờ tình nguyện
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalHours}</div>
-            <p className="text-xs text-muted-foreground">
-              +12 giờ tháng này
-            </p>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : volunteerStats?.hoursVolunteered || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">giờ đã đóng góp</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hoạt động tham gia</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Hoạt động tham gia
+            </CardTitle>
             <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalActivities}</div>
-            <p className="text-xs text-muted-foreground">
-              +3 hoạt động tháng này
-            </p>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : volunteerStats?.eventsJoined || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">sự kiện đã tham gia</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Điểm tích lũy</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Chứng chỉ đạt được
+            </CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPoints}</div>
+            <div className="text-2xl font-bold">
+              {loading ? "..." : volunteerStats?.certificatesEarned || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +200 điểm tháng này
+              chứng chỉ hoàn thành
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hạng hiện tại</CardTitle>
+            <CardTitle className="text-sm font-medium">Đánh giá</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-lg font-bold ${getRankColor(stats.currentRank)}`}>
-              {stats.currentRank}
+            <div className="text-lg font-bold text-yellow-600">
+              {loading ? "..." : `${volunteerStats?.currentRating || 0}/5`}
             </div>
             <p className="text-xs text-muted-foreground">
-              Còn 250 điểm để lên hạng Vàng
+              điểm đánh giá trung bình
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="activities">Hoạt động</TabsTrigger>
@@ -199,12 +226,16 @@ export default function VolunteerDashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {activities.slice(0, 3).map((activity) => (
-                  <div key={activity.id} className="flex items-center space-x-4">
+                  <div
+                    key={activity.id}
+                    className="flex items-center space-x-4"
+                  >
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{activity.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {activity.organization} • {new Date(activity.date).toLocaleDateString("vi-VN")}
+                        {activity.organization} •{" "}
+                        {new Date(activity.date).toLocaleDateString("vi-VN")}
                       </p>
                     </div>
                     {getStatusBadge(activity.status)}
@@ -269,7 +300,9 @@ export default function VolunteerDashboard() {
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
                           <span>
-                            {new Date(activity.date).toLocaleDateString("vi-VN")}
+                            {new Date(activity.date).toLocaleDateString(
+                              "vi-VN"
+                            )}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">

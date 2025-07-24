@@ -70,8 +70,30 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      await login(credentials);
-      navigate("/dashboard");
+      const userData = await login(credentials);
+
+      // Get role-specific dashboard URL
+      const getDashboardUrl = (role: string) => {
+        switch (role) {
+          case "admin":
+            return "/admin";
+          case "organization":
+            return "/organization";
+          case "volunteer":
+            return "/volunteer";
+          case "partner":
+            return "/partner";
+          case "coordinator":
+            return "/coordinator";
+          default:
+            return "/";
+        }
+      };
+
+      // Navigate to role-specific dashboard or fallback location
+      const from =
+        location.state?.from?.pathname || getDashboardUrl(userData.role);
+      navigate(from);
     } catch (error: any) {
       console.error("Login error:", error);
       setErrors({ general: error.message || "Email hoặc mật khẩu không đúng" });
@@ -117,6 +139,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoading}
                 className={errors.email ? "border-red-300" : ""}
+                autoComplete="email"
               />
               {errors.email && (
                 <p className="text-sm text-red-600">{errors.email}</p>
@@ -135,6 +158,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoading}
                 className={errors.password ? "border-red-300" : ""}
+                autoComplete="current-password"
               />
               {errors.password && (
                 <p className="text-sm text-red-600">{errors.password}</p>

@@ -14,7 +14,8 @@ const PasswordResetPage = lazy(() => import("@/pages/auth/PasswordResetPage"));
 const ChangePasswordPage = lazy(
   () => import("@/pages/auth/ChangePasswordPage")
 );
-const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
+const NotFoundPage = lazy(() => import("@/pages/public/NotFoundPage"));
+const UnauthorizedPage = lazy(() => import("@/pages/public/UnauthorizedPage"));
 const PublicOrganizationsPage = lazy(
   () => import("@/pages/public/PublicOrganizationsPage")
 );
@@ -128,15 +129,7 @@ export default function AppRoutes() {
         <Route path="/events/:id" element={<PublicEventDetailPage />} />
         <Route path="/volunteers" element={<PublicVolunteersPage />} />
         <Route path="/volunteers/:id" element={<PublicVolunteerDetailPage />} />
-        {/* Protected routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />{" "}
+        {/* Protected routes - Role-specific dashboards */}
         <Route
           path="/change-password"
           element={
@@ -145,6 +138,9 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        {/* Error pages */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        {/* Role-specific dashboard routes */}
         <Route
           path="/admin"
           element={
@@ -331,6 +327,8 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        {/* Catch-all route for 404 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );

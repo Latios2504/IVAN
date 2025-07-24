@@ -129,6 +129,7 @@ export default function RegisterPage() {
                   required
                   disabled={isLoading}
                   className={errors.firstName ? "border-destructive" : ""}
+                  autoComplete="given-name"
                 />
                 {errors.firstName && (
                   <p className="text-sm text-destructive">{errors.firstName}</p>
@@ -148,6 +149,7 @@ export default function RegisterPage() {
                   required
                   disabled={isLoading}
                   className={errors.lastName ? "border-destructive" : ""}
+                  autoComplete="family-name"
                 />
                 {errors.lastName && (
                   <p className="text-sm text-destructive">{errors.lastName}</p>
@@ -167,6 +169,7 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
                 className={errors.email ? "border-destructive" : ""}
+                autoComplete="email"
               />
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email}</p>
@@ -185,6 +188,7 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
                 className={errors.password ? "border-destructive" : ""}
+                autoComplete="new-password"
               />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
@@ -203,6 +207,7 @@ export default function RegisterPage() {
                 required
                 disabled={isLoading}
                 className={errors.confirmPassword ? "border-destructive" : ""}
+                autoComplete="new-password"
               />
               {errors.confirmPassword && (
                 <p className="text-sm text-destructive">
@@ -247,14 +252,6 @@ export default function RegisterPage() {
                       <span className="font-medium">Đối tác</span>
                       <span className="text-sm text-muted-foreground">
                         Hợp tác và tài trợ các hoạt động
-                      </span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="admin">
-                    <div className="flex flex-col">
-                      <span className="font-medium">Quản trị viên</span>
-                      <span className="text-sm text-muted-foreground">
-                        Quản lý hệ thống
                       </span>
                     </div>
                   </SelectItem>

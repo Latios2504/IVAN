@@ -8,32 +8,58 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, Calendar, Award } from "lucide-react";
+import { Heart, Users, Calendar, Award, LayoutDashboard } from "lucide-react";
+import { useSystemStats } from "@/hooks/useDashboardStats";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
-  const stats = [
+  const { stats, loading, error } = useSystemStats();
+  const { isAuthenticated, user } = useAuth();
+
+  // Get role-specific dashboard URL
+  const getDashboardUrl = () => {
+    if (!user) return "/";
+
+    switch (user.role) {
+      case "admin":
+        return "/admin";
+      case "organization":
+        return "/organization";
+      case "volunteer":
+        return "/volunteer";
+      case "partner":
+        return "/partner";
+      case "coordinator":
+        return "/coordinator";
+      default:
+        return "/";
+    }
+  };
+
+  // Stats configuration with real data
+  const statsConfig = [
     {
       icon: <Users className="h-8 w-8 text-primary" />,
       label: "Tình nguyện viên",
-      count: "1,234+",
+      count: loading ? "..." : `${stats?.totalVolunteers || 0}+`,
       description: "Đã tham gia",
     },
     {
       icon: <Calendar className="h-8 w-8 text-primary" />,
       label: "Sự kiện",
-      count: "567+",
+      count: loading ? "..." : `${stats?.totalEvents || 0}+`,
       description: "Đã tổ chức",
     },
     {
       icon: <Heart className="h-8 w-8 text-primary" />,
       label: "Giờ tình nguyện",
-      count: "10,000+",
+      count: loading ? "..." : `${stats?.totalHours?.toLocaleString() || 0}+`,
       description: "Đã đóng góp",
     },
     {
       icon: <Award className="h-8 w-8 text-primary" />,
       label: "Tổ chức",
-      count: "89+",
+      count: loading ? "..." : `${stats?.totalOrganizations || 0}+`,
       description: "Đối tác",
     },
   ];
@@ -71,36 +97,80 @@ export default function HomePage() {
           </Badge>
 
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-            Nền tảng quản lý
-            <span className="text-primary"> tình nguyện viên </span>
-            hàng đầu
+            {isAuthenticated ? (
+              <>
+                Chào mừng trở lại,
+                <span className="text-primary">
+                  {" "}
+                  {user?.fullName || user?.email}{" "}
+                </span>
+              </>
+            ) : (
+              <>
+                Nền tảng quản lý
+                <span className="text-primary"> tình nguyện viên </span>
+                hàng đầu
+              </>
+            )}
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác
-            động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của
-            bạn.
+            {isAuthenticated
+              ? "Tiếp tục hành trình tình nguyện của bạn và tạo ra những tác động tích cực cho cộng đồng."
+              : "Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của bạn."}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
-              <Button size="lg" className="w-full sm:w-auto">
-                Đăng ký ngay
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Đăng nhập
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to={getDashboardUrl()}>
+                  <Button size="lg" className="w-full sm:w-auto">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Đi tới Dashboard
+                  </Button>
+                </Link>
+                <Link to="/events">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Xem sự kiện
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/register">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Đăng ký ngay
+                  </Button>
+                </Link>
+                <Link to="/login">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    Đăng nhập
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
       <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        {error && (
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-center">
+            Không thể tải thông tin thống kê. Hiển thị dữ liệu mẫu.
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
+          {statsConfig.map((stat, index) => (
             <Card
               key={index}
               className="text-center hover:shadow-lg transition-shadow"
@@ -158,31 +228,61 @@ export default function HomePage() {
         <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0">
           <CardContent className="p-8 md:p-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Bắt đầu hành trình tình nguyện của bạn
+              {isAuthenticated
+                ? "Tiếp tục tạo tác động tích cực"
+                : "Bắt đầu hành trình tình nguyện của bạn"}
             </h2>
             <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              Tham gia cộng đồng hàng nghìn tình nguyện viên đang tạo ra những
-              thay đổi tích cực cho xã hội
+              {isAuthenticated
+                ? "Khám phá thêm cơ hội tình nguyện và kết nối với cộng đồng rộng lớn hơn"
+                : "Tham gia cộng đồng hàng nghìn tình nguyện viên đang tạo ra những thay đổi tích cực cho xã hội"}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/volunteers">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="w-full sm:w-auto bg-background text-foreground hover:bg-background/90"
-                >
-                  Khám phá tình nguyện viên
-                </Button>
-              </Link>
-              <Link to="/organizations">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
-                >
-                  Xem các tổ chức
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/events">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="w-full sm:w-auto bg-background text-foreground hover:bg-background/90"
+                    >
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Tham gia sự kiện
+                    </Button>
+                  </Link>
+                  <Link to="/volunteers">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full sm:w-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Kết nối tình nguyện viên
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/volunteers">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="w-full sm:w-auto bg-background text-foreground hover:bg-background/90"
+                    >
+                      Khám phá tình nguyện viên
+                    </Button>
+                  </Link>
+                  <Link to="/organizations">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full sm:w-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+                    >
+                      Xem các tổ chức
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

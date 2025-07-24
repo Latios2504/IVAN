@@ -5,7 +5,7 @@ import type {
   RegisterRequest,
   User,
   UserRole,
-} from "../../types/auth";
+} from "../types/auth";
 
 // Backend API response types matching DTOs
 interface LoginApiResponse {
@@ -78,6 +78,11 @@ class AuthService {
         password: data.password,
         confirmPassword: data.password, // Backend expects confirmPassword
         roleId: roleId,
+        // Include additional fields if provided
+        ...(data.firstName && { firstName: data.firstName }),
+        ...(data.lastName && { lastName: data.lastName }),
+        ...(data.phoneNumber && { phoneNumber: data.phoneNumber }),
+        ...(data.dateOfBirth && { dateOfBirth: data.dateOfBirth }),
       };
 
       const response = await this.api.post<SuccessResponse>(

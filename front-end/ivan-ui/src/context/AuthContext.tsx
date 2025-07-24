@@ -16,7 +16,7 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<User>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -116,13 +116,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initializeAuth();
   }, []);
-  const login = async (credentials: LoginRequest): Promise<void> => {
+  const login = async (credentials: LoginRequest): Promise<User> => {
     try {
       dispatch({ type: "AUTH_START" });
       const response = await authService.login(credentials); // Store token in localStorage
       localStorage.setItem("authToken", response.token);
 
       dispatch({ type: "AUTH_SUCCESS", payload: response.user });
+      return response.user;
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || "Login failed";

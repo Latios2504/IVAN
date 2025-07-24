@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import {
   Card,
   CardContent,
@@ -54,6 +55,11 @@ interface UserManagementData {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const {
+    stats: adminStats,
+    loading: statsLoading,
+    error: statsError,
+  } = useDashboardStats();
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<UserManagementData | null>(null);
@@ -168,7 +174,8 @@ export default function AdminDashboard() {
   const filteredUsers =
     data?.users.filter((user) => {
       const matchesSearch =
-        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        false ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = selectedRole === "all" || user.role === selectedRole;
       return matchesSearch && matchesRole;
@@ -229,36 +236,78 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Tổng người dùng"
-          value={data.stats.totalUsers}
-          icon={Users}
-          trend={{ value: `+${data.stats.monthlyGrowth}% so với tháng trước` }}
-        />
-        <StatsCard
-          title="Tình nguyện viên"
-          value={data.stats.totalVolunteers}
-          icon={Users}
-          description={`${Math.round(
-            (data.stats.totalVolunteers / data.stats.totalUsers) * 100
-          )}% tổng số người dùng`}
-        />
-        <StatsCard
-          title="Tổ chức"
-          value={data.stats.totalOrganizations}
-          icon={Building2}
-          description={`${Math.round(
-            (data.stats.totalOrganizations / data.stats.totalUsers) * 100
-          )}% tổng số người dùng`}
-        />
-        <StatsCard
-          title="Sự kiện đang diễn ra"
-          value={data.stats.activeEvents}
-          icon={Calendar}
-          description={`/${data.stats.totalEvents} tổng số sự kiện`}
-        />
-      </div>
+      {statsLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="col-span-full text-center py-8">
+            <p>Đang tải thống kê...</p>
+          </div>
+        </div>
+      ) : statsError ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="col-span-full text-center py-8">
+            <p className="text-red-500">Lỗi: {statsError}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title="Tổng người dùng"
+            value={
+              (adminStats as any)?.totalUsers || data?.stats.totalUsers || 0
+            }
+            icon={Users}
+            trend={{
+              value: `+${data?.stats.monthlyGrowth || 0}% so với tháng trước`,
+            }}
+          />
+          <StatsCard
+            title="Tình nguyện viên"
+            value={
+              (adminStats as any)?.totalVolunteers ||
+              data?.stats.totalVolunteers ||
+              0
+            }
+            icon={Users}
+            description={`${Math.round(
+              (((adminStats as any)?.totalVolunteers ||
+                data?.stats.totalVolunteers ||
+                0) /
+                ((adminStats as any)?.totalUsers ||
+                  data?.stats.totalUsers ||
+                  1)) *
+                100
+            )}% tổng số người dùng`}
+          />
+          <StatsCard
+            title="Tổ chức"
+            value={
+              (adminStats as any)?.totalOrganizations ||
+              data?.stats.totalOrganizations ||
+              0
+            }
+            icon={Building2}
+            description={`${Math.round(
+              (((adminStats as any)?.totalOrganizations ||
+                data?.stats.totalOrganizations ||
+                0) /
+                ((adminStats as any)?.totalUsers ||
+                  data?.stats.totalUsers ||
+                  1)) *
+                100
+            )}% tổng số người dùng`}
+          />
+          <StatsCard
+            title="Sự kiện đang diễn ra"
+            value={
+              (adminStats as any)?.activeEvents || data?.stats.activeEvents || 0
+            }
+            icon={Calendar}
+            description={`/${
+              (adminStats as any)?.totalEvents || data?.stats.totalEvents || 0
+            } tổng số sự kiện`}
+          />
+        </div>
+      )}
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList>

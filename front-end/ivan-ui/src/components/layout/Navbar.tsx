@@ -44,6 +44,26 @@ export default function Navbar() {
     navigate("/");
   };
 
+  // Get role-specific dashboard URL
+  const getDashboardUrl = () => {
+    if (!user) return "/";
+
+    switch (user.role) {
+      case "admin":
+        return "/admin";
+      case "organization":
+        return "/organization";
+      case "volunteer":
+        return "/volunteer";
+      case "partner":
+        return "/partner";
+      case "coordinator":
+        return "/coordinator";
+      default:
+        return "/";
+    }
+  };
+
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,7 +84,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center">
             <NavigationMenu>
               <NavigationMenuList>
-                {/* Direct navigation items */}
+                {/* Public navigation items - always visible */}
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild>
                     <Link
@@ -126,23 +146,34 @@ export default function Navbar() {
                   </NavigationMenuLink>
                 </NavigationMenuItem>
 
-                {/* Dashboard Menu (for authenticated users) */}
+                {/* Dashboard Menu (for authenticated users) - role-specific labels */}
                 {isAuthenticated && (
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
                       <Link
-                        to="/dashboard"
+                        to={getDashboardUrl()}
                         className={cn(
                           navigationMenuTriggerStyle(),
                           "text-gray-700 dark:text-gray-300"
                         )}
                       >
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        Dashboard
+                        {user?.role === "admin" ? (
+                          <>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Quản trị
+                          </>
+                        ) : (
+                          <>
+                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                            Dashboard
+                          </>
+                        )}
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                 )}
+
+                {/* Remove the separate admin menu item since it's now handled above */}
               </NavigationMenuList>
             </NavigationMenu>
           </div>
@@ -199,6 +230,29 @@ export default function Navbar() {
                         <span>Cài đặt</span>
                       </Link>
                     </DropdownMenuItem>
+
+                    {/* Role-specific menu items */}
+                    {user?.role === "admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="w-full flex items-center">
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Quản trị hệ thống</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+
+                    {(user?.role === "organization" ||
+                      user?.role === "coordinator") && (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to="/manage-events"
+                          className="w-full flex items-center"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          <span>Quản lý sự kiện</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={handleLogout}

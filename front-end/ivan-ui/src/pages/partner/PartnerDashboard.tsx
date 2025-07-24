@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { UserRole } from "@/types/auth";
 import {
   Building2,
   Users,
@@ -44,24 +46,11 @@ interface Partnership {
   };
 }
 
-interface PartnerStats {
-  totalPartnerships: number;
-  activePartnerships: number;
-  totalValue: number;
-  completedProjects: number;
-}
-
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
+  const { stats: partnerStats, loading, error } = useDashboardStats();
 
   // Mock data
-  const stats: PartnerStats = {
-    totalPartnerships: 15,
-    activePartnerships: 8,
-    totalValue: 2500000,
-    completedProjects: 12,
-  };
-
   const partnerships: Partnership[] = [
     {
       id: "1",
@@ -97,10 +86,26 @@ export default function PartnerDashboard() {
 
   const getStatusBadge = (status: Partnership["status"]) => {
     const statusConfig = {
-      active: { label: "Đang hoạt động", variant: "default" as const, icon: CheckCircle },
-      pending: { label: "Chờ duyệt", variant: "secondary" as const, icon: Clock },
-      completed: { label: "Hoàn thành", variant: "outline" as const, icon: CheckCircle },
-      cancelled: { label: "Đã hủy", variant: "destructive" as const, icon: XCircle },
+      active: {
+        label: "Đang hoạt động",
+        variant: "default" as const,
+        icon: CheckCircle,
+      },
+      pending: {
+        label: "Chờ duyệt",
+        variant: "secondary" as const,
+        icon: Clock,
+      },
+      completed: {
+        label: "Hoàn thành",
+        variant: "outline" as const,
+        icon: CheckCircle,
+      },
+      cancelled: {
+        label: "Đã hủy",
+        variant: "destructive" as const,
+        icon: XCircle,
+      },
     };
 
     const config = statusConfig[status];
@@ -138,63 +143,93 @@ export default function PartnerDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng đối tác</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPartnerships}</div>
-            <p className="text-xs text-muted-foreground">
-              +2 so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
+        {loading ? (
+          <div className="col-span-full text-center py-8">
+            <p>Đang tải thống kê...</p>
+          </div>
+        ) : error ? (
+          <div className="col-span-full text-center py-8">
+            <p className="text-red-500">Lỗi: {error}</p>
+          </div>
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Tổng hợp tác
+                </CardTitle>
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {(partnerStats as any)?.totalCollaborations || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +2 so với tháng trước
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activePartnerships}</div>
-            <p className="text-xs text-muted-foreground">
-              +1 so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Dự án đang hoạt động
+                </CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {(partnerStats as any)?.activeProjects || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +1 so với tháng trước
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng giá trị</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(stats.totalValue)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              +15% so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Tổng đầu tư
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatCurrency((partnerStats as any)?.totalInvestment || 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +15% so với tháng trước
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dự án hoàn thành</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completedProjects}</div>
-            <p className="text-xs text-muted-foreground">
-              +3 so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Tổ chức đối tác
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {(partnerStats as any)?.partneredOrganizations || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +3 so với tháng trước
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="partnerships">Quan hệ đối tác</TabsTrigger>
@@ -224,7 +259,9 @@ export default function PartnerDashboard() {
                     <p className="text-sm font-medium">
                       Cập nhật thông tin đối tác
                     </p>
-                    <p className="text-xs text-muted-foreground">1 ngày trước</p>
+                    <p className="text-xs text-muted-foreground">
+                      1 ngày trước
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -233,7 +270,9 @@ export default function PartnerDashboard() {
                     <p className="text-sm font-medium">
                       Hoàn thành dự án tại Lào Cai
                     </p>
-                    <p className="text-xs text-muted-foreground">3 ngày trước</p>
+                    <p className="text-xs text-muted-foreground">
+                      3 ngày trước
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -255,7 +294,9 @@ export default function PartnerDashboard() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Tổng giá trị hợp tác</span>
-                    <span className="font-medium">{formatCurrency(800000)}</span>
+                    <span className="font-medium">
+                      {formatCurrency(800000)}
+                    </span>
                   </div>
                 </div>
               </CardContent>
