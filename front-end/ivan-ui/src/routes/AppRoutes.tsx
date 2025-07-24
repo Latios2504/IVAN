@@ -20,10 +20,16 @@ const PublicOrganizationsPage = lazy(
 );
 const PublicEventsPage = lazy(() => import("@/pages/public/PublicEventsPage"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
-const OrganizationDashboard = lazy(() => import("@/pages/organization/OrganizationDashboard"));
+const OrganizationDashboard = lazy(
+  () => import("@/pages/organization/OrganizationDashboard")
+);
 const PartnerDashboard = lazy(() => import("@/pages/partner/PartnerDashboard"));
-const VolunteerDashboard = lazy(() => import("@/pages/volunteer/VolunteerDashboard"));
-const CoordinatorDashboard = lazy(() => import("@/pages/coordinator/CoordinatorDashboard"));
+const VolunteerDashboard = lazy(
+  () => import("@/pages/volunteer/VolunteerDashboard")
+);
+const CoordinatorDashboard = lazy(
+  () => import("@/pages/coordinator/CoordinatorDashboard")
+);
 const PublicPartnersPage = lazy(
   () => import("@/pages/public/PublicPartnersPage")
 );
@@ -112,7 +118,10 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/password-reset" element={<PasswordResetPage />} />
         <Route path="/organizations" element={<PublicOrganizationsPage />} />
-        <Route path="/organizations/:id" element={<PublicOrganizationDetailPage />} />
+        <Route
+          path="/organizations/:id"
+          element={<PublicOrganizationDetailPage />}
+        />
         <Route path="/partners" element={<PublicPartnersPage />} />
         <Route path="/partners/:id" element={<PublicPartnerDetailPage />} />
         <Route path="/events" element={<PublicEventsPage />} />

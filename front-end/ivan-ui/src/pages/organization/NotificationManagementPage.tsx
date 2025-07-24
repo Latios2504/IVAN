@@ -35,7 +35,6 @@ import {
   type TableColumn,
   type TableAction,
 } from "@/components/common/DataTable";
-import { AsyncWrapper } from "@/components/common/AsyncWrapper";
 import { useModal } from "@/hooks/useModal";
 import { toast } from "sonner";
 import { useAsyncData } from "@/hooks/useAsyncData";

@@ -39,7 +39,7 @@ export function OrganizationCard({
   className,
 }: OrganizationCardProps) {
   const getInitials = (name: string) => {
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== "string") {
       return "??";
     }
     return name
@@ -53,7 +53,7 @@ export function OrganizationCard({
   return (
     <Card
       className={cn(
-        "group hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden",
+        "group hover:shadow-lg transition-all duration-200 cursor-pointer",
         organization.isVerified &&
           "ring-2 ring-green-500/20 shadow-green-500/10",
         className
@@ -63,9 +63,9 @@ export function OrganizationCard({
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="relative">
-            <Avatar className="h-16 w-16 ring-2 ring-white shadow-lg">
+            <Avatar className="h-16 w-16">
               <AvatarImage src={organization.avatar} alt={organization.name} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white font-semibold text-lg">
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-lg">
                 {getInitials(organization.name)}
               </AvatarFallback>
             </Avatar>
@@ -81,7 +81,7 @@ export function OrganizationCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="text-xl font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                <h3 className="text-xl font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                   {organization.name}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
@@ -105,7 +105,7 @@ export function OrganizationCard({
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
                 >
                   <a
                     href={organization.website}
@@ -147,7 +147,7 @@ export function OrganizationCard({
               <Badge
                 key={index}
                 variant="secondary"
-                className="text-xs bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                className="text-xs bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               >
                 {area}
               </Badge>
@@ -170,12 +170,12 @@ export function OrganizationCard({
         <div className="grid grid-cols-2 gap-4 pt-2">
           {organization.totalEvents !== undefined && (
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-500" />
+              <Calendar className="h-4 w-4 text-primary" />
               <div>
-                <div className="text-sm font-semibold text-slate-900">
+                <div className="text-sm font-semibold text-foreground">
                   {organization.totalEvents}
                 </div>
-                <div className="text-xs text-slate-500">Sự kiện</div>
+                <div className="text-xs text-muted-foreground">Sự kiện</div>
               </div>
             </div>
           )}

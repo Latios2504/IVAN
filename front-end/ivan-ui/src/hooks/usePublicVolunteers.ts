@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { publicContentService } from "../services/publicContentService";
-import type { 
-  PublicVolunteer, 
+import type {
+  PublicVolunteer,
   PublicVolunteerFilters,
-  PagedResult 
+  PagedResult,
 } from "../types/publicContent";
 
 interface UsePublicVolunteersReturn {
@@ -15,6 +15,8 @@ interface UsePublicVolunteersReturn {
     size: number;
     totalPages: number;
     totalItems: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   };
   refetch: () => void;
   setPage: (page: number) => void;
@@ -28,24 +30,26 @@ export const usePublicVolunteers = (
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
-    size: 20,
+    size: 6,
     totalPages: 0,
     totalItems: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
   });
 
   const fetchVolunteers = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await publicContentService.getPublicVolunteers({
         ...filters,
         page: pagination.page,
         size: pagination.size,
       });
 
-      console.log('Raw API response received');
-      
+      console.log("Raw API response received");
+
       // Extract volunteers data
       let volunteersData: PublicVolunteer[] = [];
       if (result && result.items) {
@@ -53,15 +57,17 @@ export const usePublicVolunteers = (
           volunteersData = result.items;
         }
       }
-      
-      console.log('Processed volunteers count:', volunteersData.length);
-      
+
+      console.log("Processed volunteers count:", volunteersData.length);
+
       setVolunteers(volunteersData);
-      
-      setPagination(prev => ({
+
+      setPagination((prev) => ({
         ...prev,
         totalPages: result?.totalPages || 0,
         totalItems: result?.totalCount || 0,
+        hasNextPage: result?.hasNextPage || false,
+        hasPreviousPage: result?.hasPreviousPage || false,
       }));
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -74,7 +80,7 @@ export const usePublicVolunteers = (
   };
 
   const setPage = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   useEffect(() => {

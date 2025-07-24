@@ -34,7 +34,7 @@ interface PartnerCardProps {
 
 export function PartnerCard({ partner, className }: PartnerCardProps) {
   const getInitials = (name: string) => {
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== "string") {
       return "??";
     }
     return name
@@ -48,7 +48,7 @@ export function PartnerCard({ partner, className }: PartnerCardProps) {
   return (
     <Card
       className={cn(
-        "group hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden",
+        "group hover:shadow-lg transition-all duration-200 cursor-pointer",
         partner.isVerified && "ring-2 ring-purple-500/20 shadow-purple-500/10",
         className
       )}
@@ -57,9 +57,9 @@ export function PartnerCard({ partner, className }: PartnerCardProps) {
         <div className="flex items-start gap-4">
           {/* Logo */}
           <div className="relative">
-            <Avatar className="h-16 w-16 ring-2 ring-white shadow-lg">
+            <Avatar className="h-16 w-16">
               <AvatarImage src={partner.logo} alt={partner.name} />
-              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold text-lg">
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-lg">
                 {getInitials(partner.name)}
               </AvatarFallback>
             </Avatar>

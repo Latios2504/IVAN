@@ -13,25 +13,25 @@ import { Heart, Users, Calendar, Award } from "lucide-react";
 export default function HomePage() {
   const stats = [
     {
-      icon: <Users className="h-8 w-8 text-blue-600" />,
+      icon: <Users className="h-8 w-8 text-primary" />,
       label: "Tình nguyện viên",
       count: "1,234+",
       description: "Đã tham gia",
     },
     {
-      icon: <Calendar className="h-8 w-8 text-green-600" />,
+      icon: <Calendar className="h-8 w-8 text-primary" />,
       label: "Sự kiện",
       count: "567+",
       description: "Đã tổ chức",
     },
     {
-      icon: <Heart className="h-8 w-8 text-red-600" />,
+      icon: <Heart className="h-8 w-8 text-primary" />,
       label: "Giờ tình nguyện",
       count: "10,000+",
       description: "Đã đóng góp",
     },
     {
-      icon: <Award className="h-8 w-8 text-purple-600" />,
+      icon: <Award className="h-8 w-8 text-primary" />,
       label: "Tổ chức",
       count: "89+",
       description: "Đối tác",
@@ -42,27 +42,27 @@ export default function HomePage() {
     {
       title: "Quản lý sự kiện",
       description: "Tạo và quản lý các hoạt động tình nguyện một cách dễ dàng",
-      color: "bg-blue-50 border-blue-200",
+      color: "bg-muted/50 border-border",
     },
     {
       title: "Kết nối tình nguyện viên",
       description: "Tìm kiếm và kết nối với những người có cùng sở thích",
-      color: "bg-green-50 border-green-200",
+      color: "bg-muted/50 border-border",
     },
     {
       title: "Theo dõi hoạt động",
       description: "Ghi nhận và theo dõi các hoạt động tình nguyện của bạn",
-      color: "bg-purple-50 border-purple-200",
+      color: "bg-muted/50 border-border",
     },
     {
       title: "Cộng đồng",
       description: "Tham gia cộng đồng tình nguyện viên tích cực",
-      color: "bg-orange-50 border-orange-200",
+      color: "bg-muted/50 border-border",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center">
@@ -70,16 +70,13 @@ export default function HomePage() {
             🎉 Chào mừng đến với IVAN
           </Badge>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
             Nền tảng quản lý
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
-              {" "}
-              tình nguyện viên{" "}
-            </span>
+            <span className="text-primary"> tình nguyện viên </span>
             hàng đầu
           </h1>
 
-          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác
             động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của
             bạn.
@@ -115,8 +112,10 @@ export default function HomePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="font-semibold text-gray-900">{stat.label}</p>
-                <p className="text-sm text-gray-600">{stat.description}</p>
+                <p className="font-semibold text-foreground">{stat.label}</p>
+                <p className="text-sm text-muted-foreground">
+                  {stat.description}
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -126,10 +125,10 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Tại sao chọn IVAN?
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Chúng tôi cung cấp những công cụ tốt nhất để quản lý và tham gia
             hoạt động tình nguyện
           </p>
@@ -145,7 +144,7 @@ export default function HomePage() {
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-gray-700">
+                <CardDescription className="text-muted-foreground">
                   {feature.description}
                 </CardDescription>
               </CardContent>
@@ -156,7 +155,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <Card className="bg-gradient-to-r from-blue-600 to-green-600 text-white">
+        <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0">
           <CardContent className="p-8 md:p-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Bắt đầu hành trình tình nguyện của bạn
@@ -170,7 +169,7 @@ export default function HomePage() {
                 <Button
                   variant="secondary"
                   size="lg"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-background text-foreground hover:bg-background/90"
                 >
                   Khám phá tình nguyện viên
                 </Button>
@@ -179,7 +178,7 @@ export default function HomePage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
+                  className="w-full sm:w-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
                 >
                   Xem các tổ chức
                 </Button>

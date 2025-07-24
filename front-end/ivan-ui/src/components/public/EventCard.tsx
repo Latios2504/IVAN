@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TooltipWrapper } from "@/components/common/TooltipWrapper";
 import { cn } from "@/lib/utils";
 
 interface EventCardProps {
@@ -40,13 +41,13 @@ export function EventCard({ event, className }: EventCardProps) {
     switch (status) {
       case "open":
         return (
-          <Badge className="bg-green-500/10 text-green-700 border-green-200 hover:bg-green-500/20">
+          <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400">
             Đang mở
           </Badge>
         );
       case "full":
         return (
-          <Badge className="bg-orange-500/10 text-orange-700 border-orange-200 hover:bg-orange-500/20">
+          <Badge className="bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400">
             Đã đủ
           </Badge>
         );
@@ -54,7 +55,7 @@ export function EventCard({ event, className }: EventCardProps) {
         return (
           <Badge
             variant="outline"
-            className="bg-slate-50 text-slate-600 border-slate-200"
+            className="bg-muted text-muted-foreground border-border"
           >
             Đã đóng
           </Badge>
@@ -72,7 +73,7 @@ export function EventCard({ event, className }: EventCardProps) {
   return (
     <Card
       className={cn(
-        "group hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden",
+        "group hover:shadow-lg transition-all duration-200 cursor-pointer",
         event.isFeatured && "ring-2 ring-blue-500/20 shadow-blue-500/10",
         className
       )}
@@ -98,15 +99,19 @@ export function EventCard({ event, className }: EventCardProps) {
           {/* Status badges */}
           <div className="absolute top-3 left-3 flex gap-2">
             {event.isUrgent && (
-              <Badge className="bg-red-500 text-white border-0 shadow-lg">
-                <Zap className="w-3 h-3 mr-1" />
-                Khẩn cấp
-              </Badge>
+              <TooltipWrapper content="Sự kiện này cần tình nguyện viên gấp!">
+                <Badge className="bg-destructive text-destructive-foreground border-0 shadow-lg">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Khẩn cấp
+                </Badge>
+              </TooltipWrapper>
             )}
             {event.isFeatured && (
-              <Badge className="bg-blue-500 text-white border-0 shadow-lg">
-                Nổi bật
-              </Badge>
+              <TooltipWrapper content="Sự kiện nổi bật được đề xuất bởi hệ thống">
+                <Badge className="bg-blue-500 text-white border-0 shadow-lg">
+                  Nổi bật
+                </Badge>
+              </TooltipWrapper>
             )}
           </div>
 
@@ -117,10 +122,12 @@ export function EventCard({ event, className }: EventCardProps) {
 
           {/* View count */}
           {event.viewCount && (
-            <div className="absolute bottom-3 right-3 flex items-center gap-1 text-white/80 text-sm">
-              <Eye className="w-4 h-4" />
-              {event.viewCount}
-            </div>
+            <TooltipWrapper content={`${event.viewCount} lượt xem`}>
+              <div className="absolute bottom-3 right-3 flex items-center gap-1 text-white/80 text-sm">
+                <Eye className="w-4 h-4" />
+                {event.viewCount}
+              </div>
+            </TooltipWrapper>
           )}
         </div>
       </CardHeader>
@@ -147,13 +154,13 @@ export function EventCard({ event, className }: EventCardProps) {
             <span className="text-sm">{event.date}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-slate-600">
-            <Clock className="h-4 w-4 text-green-500" />
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-4 w-4 text-primary" />
             <span className="text-sm">{event.time}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-slate-600">
-            <MapPin className="h-4 w-4 text-red-500" />
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 text-primary" />
             <span className="text-sm line-clamp-1">{event.location}</span>
           </div>
         </div>
@@ -180,20 +187,24 @@ export function EventCard({ event, className }: EventCardProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
-          <Button
-            asChild
-            className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white border-0 rounded-lg font-medium"
-          >
-            <Link to={`/events/${event.id}`}>Xem chi tiết</Link>
-          </Button>
+          <TooltipWrapper content="Xem thông tin chi tiết và đăng ký tham gia">
+            <Button
+              asChild
+              className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white border-0 rounded-lg font-medium"
+            >
+              <Link to={`/events/${event.id}`}>Xem chi tiết</Link>
+            </Button>
+          </TooltipWrapper>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-slate-200 hover:bg-slate-50 rounded-lg"
-          >
-            <Heart className="h-4 w-4" />
-          </Button>
+          <TooltipWrapper content="Thêm vào danh sách yêu thích">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-slate-200 hover:bg-slate-50 rounded-lg"
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
+          </TooltipWrapper>
         </div>
       </CardContent>
     </Card>
