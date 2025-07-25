@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/publicContentService";
+import { publicContentService } from "../../services/publicContentService";
 import type {
-  PublicEvent,
-  PublicEventFilters,
+  PublicPartner,
+  PublicPartnerFilters,
   PagedResult,
-} from "../types/publicContent";
+} from "../../types/publicContent";
 
-interface UsePublicEventsReturn {
-  events: PublicEvent[];
+interface UsePublicPartnersReturn {
+  partners: PublicPartner[];
   loading: boolean;
   error: string | null;
   pagination: {
@@ -22,10 +22,10 @@ interface UsePublicEventsReturn {
   setPage: (page: number) => void;
 }
 
-export const usePublicEvents = (
-  filters: PublicEventFilters = {}
-): UsePublicEventsReturn => {
-  const [events, setEvents] = useState<PublicEvent[]>([]);
+export const usePublicPartners = (
+  filters: PublicPartnerFilters = {}
+): UsePublicPartnersReturn => {
+  const [partners, setPartners] = useState<PublicPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -37,7 +37,7 @@ export const usePublicEvents = (
     hasPreviousPage: false,
   });
 
-  const fetchEvents = async () => {
+  const fetchPartners = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -48,12 +48,14 @@ export const usePublicEvents = (
         size: pagination.size,
       };
 
-      const result = await publicContentService.getPublicEvents(currentFilters);
+      const result = await publicContentService.getPublicPartners(
+        currentFilters
+      );
 
       // Handle the PagedResult structure
       const items = result.items || [];
 
-      setEvents(items);
+      setPartners(items);
       setPagination({
         page: result.pageNumber || 1,
         size: result.pageSize || 6,
@@ -63,9 +65,9 @@ export const usePublicEvents = (
         hasPreviousPage: result.hasPreviousPage || false,
       });
     } catch (err: any) {
-      console.error("Failed to fetch events:", err);
-      setError(err.message || "Failed to load events");
-      setEvents([]);
+      console.error("Failed to fetch partners:", err);
+      setError(err.message || "Failed to load partners");
+      setPartners([]);
     } finally {
       setLoading(false);
     }
@@ -76,23 +78,21 @@ export const usePublicEvents = (
   };
 
   useEffect(() => {
-    fetchEvents();
+    fetchPartners();
   }, [
     filters.search,
-    filters.categoryId,
-    filters.organizationId,
+    filters.industryId,
     filters.province,
-    filters.startDate,
-    filters.endDate,
+    filters.isVerified,
     pagination.page,
   ]);
 
   return {
-    events,
+    partners,
     loading,
     error,
     pagination,
-    refetch: fetchEvents,
+    refetch: fetchPartners,
     setPage,
   };
 };

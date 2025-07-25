@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/publicContentService";
+import { publicContentService } from "../../services/publicContentService";
 import type {
-  PublicPartner,
-  PublicPartnerFilters,
+  PublicEvent,
+  PublicEventFilters,
   PagedResult,
-} from "../types/publicContent";
+} from "../../types/publicContent";
 
-interface UsePublicPartnersReturn {
-  partners: PublicPartner[];
+interface UsePublicEventsReturn {
+  events: PublicEvent[];
   loading: boolean;
   error: string | null;
   pagination: {
@@ -22,10 +22,10 @@ interface UsePublicPartnersReturn {
   setPage: (page: number) => void;
 }
 
-export const usePublicPartners = (
-  filters: PublicPartnerFilters = {}
-): UsePublicPartnersReturn => {
-  const [partners, setPartners] = useState<PublicPartner[]>([]);
+export const usePublicEvents = (
+  filters: PublicEventFilters = {}
+): UsePublicEventsReturn => {
+  const [events, setEvents] = useState<PublicEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -37,7 +37,7 @@ export const usePublicPartners = (
     hasPreviousPage: false,
   });
 
-  const fetchPartners = async () => {
+  const fetchEvents = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -48,14 +48,12 @@ export const usePublicPartners = (
         size: pagination.size,
       };
 
-      const result = await publicContentService.getPublicPartners(
-        currentFilters
-      );
+      const result = await publicContentService.getPublicEvents(currentFilters);
 
       // Handle the PagedResult structure
       const items = result.items || [];
 
-      setPartners(items);
+      setEvents(items);
       setPagination({
         page: result.pageNumber || 1,
         size: result.pageSize || 6,
@@ -65,9 +63,9 @@ export const usePublicPartners = (
         hasPreviousPage: result.hasPreviousPage || false,
       });
     } catch (err: any) {
-      console.error("Failed to fetch partners:", err);
-      setError(err.message || "Failed to load partners");
-      setPartners([]);
+      console.error("Failed to fetch events:", err);
+      setError(err.message || "Failed to load events");
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -78,21 +76,23 @@ export const usePublicPartners = (
   };
 
   useEffect(() => {
-    fetchPartners();
+    fetchEvents();
   }, [
     filters.search,
-    filters.industryId,
+    filters.categoryId,
+    filters.organizationId,
     filters.province,
-    filters.isVerified,
+    filters.startDate,
+    filters.endDate,
     pagination.page,
   ]);
 
   return {
-    partners,
+    events,
     loading,
     error,
     pagination,
-    refetch: fetchPartners,
+    refetch: fetchEvents,
     setPage,
   };
 };

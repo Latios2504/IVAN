@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/publicContentService";
-import type { PublicPartner } from "../types/publicContent";
+import { publicContentService } from "../../services/publicContentService";
+import type { PublicPartner } from "../../types/publicContent";
 
 interface UsePublicPartnerDetailReturn {
   partner: PublicPartner | null;
@@ -21,7 +21,7 @@ export const usePublicPartnerDetail = (
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);

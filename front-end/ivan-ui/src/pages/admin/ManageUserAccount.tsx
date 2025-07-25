@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type { User, UserRole } from "@/types/auth";
-import type { UserProfile } from "@/types/profile";
 import {
   Card,
   CardContent,
@@ -10,22 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
+import UserDetailsModal from "@/components/admin/UserDetailsModal";
 import { CoordinatorCreationDialog } from "@/components/admin/CoordinatorCreationDialog";
 import { LoadingGrid } from "@/components/ui/skeletons";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { EmptyState } from "@/components/common/EmptyState";
+import { FilterSection } from "@/components/public/FilterSection";
+import { LoadingState } from "@/components/common/LoadingState";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import {
   Users,
-  Search,
   Filter,
   UserPlus,
   Shield,
@@ -55,6 +50,16 @@ const roleUtils = {
     { value: "coordinator", label: "Điều phối viên" },
     { value: "admin", label: "Quản trị viên" },
   ],
+  getRoleDisplayName: (role: string) => {
+    const roleDisplayMap: Record<string, string> = {
+      volunteer: "Tình nguyện viên",
+      organization: "Tổ chức",
+      partner: "Đối tác",
+      coordinator: "Điều phối viên",
+      admin: "Quản trị viên",
+    };
+    return roleDisplayMap[role] || role;
+  },
   mapRoleToId: (role: string) => {
     const roleMap: Record<string, number> = {
       volunteer: 1,
@@ -67,55 +72,26 @@ const roleUtils = {
   },
   mapApiRoleToFrontendRole: (apiRole: string) => {
     const roleMap: Record<string, string> = {
-      "Volunteer": "volunteer",
-      "Organization": "organization", 
-      "Partner": "partner",
-      "Coordinator": "coordinator",
-      "Admin": "admin",
+      Volunteer: "volunteer",
+      Organization: "organization",
+      Partner: "partner",
+      "Volunteer Coordinator": "coordinator",
+      Admin: "admin",
     };
     return roleMap[apiRole] || apiRole.toLowerCase();
   },
 };
 
-const userStatusUtils = {
-  getStatusOptions: () => [
-    { value: "all", label: "Tất cả trạng thái" },
-    { value: "active", label: "Hoạt động" },
-    { value: "inactive", label: "Không hoạt động" },
-    { value: "unverified", label: "Chưa xác thực" },
-  ],
-};
-
-// Simple logger replacement
-const logger = {
-  debug: (message: string, data?: any, context?: string) => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[${context || "DEBUG"}] ${message}`, data);
-    }
+// Simple error handling service replacement
+const ErrorHandlingService = {
+  handleApiError: (error: any, context?: string) => {
+    return {
+      message:
+        error?.response?.data?.message || error?.message || "Đã xảy ra lỗi",
+      code: error?.response?.status || 500,
+      context,
+    };
   },
-  error: (message: string, error?: any, context?: string) => {
-    console.error(`[${context || "ERROR"}] ${message}`, error);
-  },
-};
-
-// Simple error handling wrapper
-const withErrorHandling = async <T,>(
-  operation: () => Promise<T>,
-  context: string
-): Promise<T> => {
-  try {
-    return await operation();
-  } catch (error) {
-    logger.error(`Error in ${context}`, error, context);
-    throw error;
-  }
-};
-
-// Simple data consistency check (no-op in production)
-const runDataConsistencyCheck = (...args: any[]) => {
-  if (process.env.NODE_ENV === "development") {
-    console.log("Data consistency check:", args);
-  }
 };
 
 /**
@@ -141,52 +117,14 @@ interface UserFilters {
   dateRange: string;
 }
 
-// Sample user data - will be replaced with API calls
-const mockUsers: UserListItem[] = [
-  {
-    id: 1,
-    email: "volunteer1@example.com",
-    fullName: "Nguyễn Văn An",
-    role: "volunteer",
-    isActive: true,
-    isEmailVerified: true,
-    lastLoginAt: "2024-06-20T08:30:00Z",
-    createdAt: "2024-01-15T10:00:00Z",
-    lastActivity: "2024-06-20T08:30:00Z",
-    eventsParticipated: 15,
-    profile: undefined,
-  },
-  {
-    id: 2,
-    email: "org1@example.com",
-    fullName: "Tổ chức ABC",
-    role: "organization",
-    isActive: true,
-    isEmailVerified: true,
-    lastLoginAt: "2024-06-19T14:20:00Z",
-    createdAt: "2024-02-10T09:30:00Z",
-    lastActivity: "2024-06-19T14:20:00Z",
-    eventsCreated: 8,
-    profile: undefined,
-  },
-  {
-    id: 3,
-    email: "partner1@example.com",
-    fullName: "Công ty XYZ",
-    role: "partner",
-    isActive: false,
-    isEmailVerified: true,
-    lastLoginAt: "2024-06-10T11:15:00Z",
-    createdAt: "2024-03-05T16:45:00Z",
-    lastActivity: "2024-06-10T11:15:00Z",
-    totalCollaborations: 3,
-    profile: undefined,
-  },
-];
-
 // Use centralized utilities for roles and statuses
 const USER_ROLES = roleUtils.getRolesForFilter();
-const USER_STATUSES = userStatusUtils.getStatusOptions();
+const USER_STATUSES = [
+  { value: "all", label: "Tất cả trạng thái" },
+  { value: "active", label: "Hoạt động" },
+  { value: "inactive", label: "Không hoạt động" },
+  { value: "unverified", label: "Chưa xác thực" },
+];
 
 /**
  * User Management Page Component
@@ -194,14 +132,18 @@ const USER_STATUSES = userStatusUtils.getStatusOptions();
  */
 export default function UserManagementPage() {
   const { user: currentUser } = useAuth();
-  // Remove useToast hook since we're using sonner directly
 
   const [users, setUsers] = useState<UserListItem[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
+  const [isCoordinatorDialogOpen, setIsCoordinatorDialogOpen] = useState(false);
   const [isCreateCoordinatorOpen, setIsCreateCoordinatorOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 5; // Reduced to 5 to see pagination with 14 users
 
   const [filters, setFilters] = useState<UserFilters>({
     role: "all",
@@ -225,21 +167,20 @@ export default function UserManagementPage() {
     );
   }
 
-  // Helper functions using centralized utilities
-  const getRoleId = roleUtils.mapRoleToId;
-  const mapRoleToId = roleUtils.mapRoleToId;
-  const mapApiRoleToFrontendRole = roleUtils.mapApiRoleToFrontendRole;
-
   useEffect(() => {
     loadUsers();
-  }, [filters]);
+  }, [filters, currentPage]);
 
   const loadUsers = async () => {
     setIsLoading(true);
+    setError(null);
 
     try {
       const filterDto: UserAccountFilterDto = {
-        roleId: filters.role === "all" ? undefined : getRoleId(filters.role),
+        roleId:
+          filters.role === "all"
+            ? undefined
+            : roleUtils.mapRoleToId(filters.role),
         isActive:
           filters.status === "all"
             ? undefined
@@ -250,26 +191,11 @@ export default function UserManagementPage() {
             : undefined,
         isEmailVerified: filters.status === "unverified" ? false : undefined,
         searchTerm: filters.searchTerm || undefined,
-        pageNumber: 1,
-        pageSize: 100,
+        pageNumber: currentPage,
+        pageSize: pageSize,
       };
 
-      logger.debug(
-        "Loading users with filters",
-        filterDto,
-        "UserManagementPage"
-      );
-
-      const response = await withErrorHandling(
-        () => userManagementService.getUsers(filterDto),
-        "UserManagementPage.loadUsers"
-      );
-
-      logger.debug(
-        "Users loaded successfully",
-        { count: response.items.length },
-        "UserManagementPage"
-      );
+      const response = await userManagementService.getUsers(filterDto);
 
       // Transform API response to UserListItem format
       const transformedUsers: UserListItem[] = response.items.map(
@@ -277,7 +203,9 @@ export default function UserManagementPage() {
           id: apiUser.userId,
           email: apiUser.email,
           fullName: apiUser.fullName,
-          role: roleUtils.mapApiRoleToFrontendRole(apiUser.roleName),
+          role: roleUtils.mapApiRoleToFrontendRole(
+            apiUser.roleName
+          ) as UserRole,
           isActive: apiUser.isActive,
           isEmailVerified: apiUser.isEmailVerified,
           lastLoginAt: apiUser.lastLoginAt,
@@ -298,23 +226,14 @@ export default function UserManagementPage() {
       );
 
       setUsers(transformedUsers);
-
-      // Run data consistency check in development
-      if (process.env.NODE_ENV === "development") {
-        runDataConsistencyCheck(
-          "UserManagementPage.loadUsers",
-          response.items,
-          transformedUsers,
-          filterDto,
-          transformedUsers // Will be filtered later in filteredUsers
-        );
-      }
+      setTotalPages(Math.ceil(response.totalCount / response.pageSize) || 1);
+      setTotalItems(response.totalCount || 0);
     } catch (error) {
       const appError = ErrorHandlingService.handleApiError(
         error,
         "UserManagementPage.loadUsers"
       );
-      logger.error("Error loading users", appError, "UserManagementPage");
+      setError(appError.message);
       toast.error("Không thể tải danh sách người dùng");
     } finally {
       setIsLoading(false);
@@ -322,18 +241,12 @@ export default function UserManagementPage() {
   };
 
   const handleViewUser = (user: UserListItem) => {
-    setSelectedUser(user);
     setSelectedUserId(user.id);
     setIsUserDetailsOpen(true);
   };
 
   const handleToggleUserStatus = async (userId: number, newStatus: boolean) => {
     if (!currentUser?.id) {
-      logger.warn(
-        "No current user found for status toggle",
-        { userId, newStatus },
-        "UserManagementPage"
-      );
       toast.error("Không thể xác định người dùng hiện tại");
       return;
     }
@@ -342,36 +255,16 @@ export default function UserManagementPage() {
       // Find the user to get their current role
       const userToUpdate = users.find((user) => user.id === userId);
       if (!userToUpdate) {
-        logger.warn(
-          "User not found for status toggle",
-          { userId },
-          "UserManagementPage"
-        );
         return;
       }
 
       const currentRoleId = roleUtils.mapRoleToId(userToUpdate.role);
 
-      logger.debug(
-        "Toggling user status",
-        {
-          userId,
-          newStatus,
-          currentRole: userToUpdate.role,
-          currentRoleId,
-        },
-        "UserManagementPage"
-      );
-
-      await withErrorHandling(
-        () =>
-          userManagementService.toggleUserStatus(
-            userId,
-            currentUser.id,
-            newStatus,
-            currentRoleId
-          ),
-        "UserManagementPage.handleToggleUserStatus"
+      await userManagementService.toggleUserStatus(
+        userId,
+        currentUser.id,
+        newStatus,
+        currentRoleId
       );
 
       // Update local state
@@ -384,51 +277,33 @@ export default function UserManagementPage() {
       toast.success(
         newStatus ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản"
       );
-
-      logger.info(
-        "User status updated successfully",
-        { userId, newStatus },
-        "UserManagementPage"
-      );
     } catch (error) {
       const appError = ErrorHandlingService.handleApiError(
         error,
         "UserManagementPage.handleToggleUserStatus"
       );
-      logger.error(
-        "Failed to toggle user status",
-        appError,
-        "UserManagementPage"
-      );
       toast.error("Không thể thay đổi trạng thái tài khoản");
     }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const matchesRole = filters.role === "all" || user.role === filters.role;
-    const matchesStatus =
-      filters.status === "all" ||
-      (filters.status === "active" && user.isActive) ||
-      (filters.status === "inactive" && !user.isActive) ||
-      (filters.status === "unverified" && !user.isEmailVerified);
-    const matchesSearch =
-      user.fullName?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-      false ||
-      user.email.toLowerCase().includes(filters.searchTerm.toLowerCase());
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
-    return matchesRole && matchesStatus && matchesSearch;
-  });
+  const handleRetry = () => {
+    setError(null);
+    setCurrentPage(1);
+    loadUsers();
+  };
 
   const getUserStatusBadge = (user: UserListItem) => {
-    const variant = userStatusUtils.getStatusBadgeVariant(
-      user.isActive,
-      user.isEmailVerified
-    );
-    const text = userStatusUtils.getStatusText(
-      user.isActive,
-      user.isEmailVerified
-    );
-    return <Badge variant={variant}>{text}</Badge>;
+    if (!user.isActive) {
+      return <StatusBadge variant="inactive">Không hoạt động</StatusBadge>;
+    }
+    if (!user.isEmailVerified) {
+      return <StatusBadge variant="pending">Chưa xác thực</StatusBadge>;
+    }
+    return <StatusBadge variant="active">Hoạt động</StatusBadge>;
   };
 
   const getRoleDisplayName = (role: string) => {
@@ -509,8 +384,16 @@ export default function UserManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingGrid count={8} />
+      <div className="container mx-auto px-4 py-8">
+        <LoadingState loading={isLoading} count={8} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <ErrorDisplay error={error} onRetry={handleRetry} variant="page" />
       </div>
     );
   }
@@ -592,111 +475,64 @@ export default function UserManagementPage() {
       </div>
 
       {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Bộ lọc
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Tìm kiếm tên hoặc email..."
-                value={filters.searchTerm}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    searchTerm: e.target.value,
-                  }))
-                }
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={filters.role}
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, role: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_ROLES.map((role) => (
-                  <SelectItem key={role.value} value={role.value}>
-                    {role.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.status}
-              onValueChange={(value) =>
-                setFilters((prev) => ({ ...prev, status: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                {USER_STATUSES.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setFilters({
-                  role: "all",
-                  status: "all",
-                  searchTerm: "",
-                  dateRange: "all",
-                })
-              }
-            >
-              Xóa bộ lọc
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <FilterSection
+        searchValue={filters.searchTerm}
+        onSearchChange={(value) => {
+          setFilters((prev) => ({ ...prev, searchTerm: value }));
+          setCurrentPage(1); // Reset to first page when searching
+        }}
+        searchPlaceholder="Tìm kiếm tên hoặc email..."
+        filters={[
+          {
+            id: "role",
+            label: "Vai trò",
+            value: filters.role,
+            options: USER_ROLES,
+            onChange: (value) => {
+              setFilters((prev) => ({ ...prev, role: value }));
+              setCurrentPage(1); // Reset to first page when filtering
+            },
+            icon: <Shield className="h-4 w-4" />,
+          },
+          {
+            id: "status",
+            label: "Trạng thái",
+            value: filters.status,
+            options: USER_STATUSES,
+            onChange: (value) => {
+              setFilters((prev) => ({ ...prev, status: value }));
+              setCurrentPage(1); // Reset to first page when filtering
+            },
+            icon: <AlertCircle className="h-4 w-4" />,
+          },
+        ]}
+        resultCount={totalItems}
+        className="mb-6"
+      />
 
       {/* User List */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách người dùng ({filteredUsers.length})</CardTitle>
+          <CardTitle>Danh sách người dùng ({totalItems})</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable
-            data={filteredUsers}
+            data={users}
             columns={tableColumns}
             actions={tableActions}
             loading={isLoading}
             emptyMessage="Không tìm thấy người dùng nào"
+            pagination={{
+              currentPage,
+              totalPages,
+              pageSize,
+              totalItems,
+              onPageChange: handlePageChange,
+            }}
+            showPagination={true}
           />
         </CardContent>
       </Card>
-
-      {/* User Details Modal */}
-      {selectedUserId && (
-        <UserDetailsModal
-          userId={selectedUserId}
-          isOpen={isUserDetailsOpen}
-          onClose={() => {
-            setIsUserDetailsOpen(false);
-            setSelectedUserId(null);
-            setSelectedUser(null);
-          }}
-          onUserUpdate={() => {
-            loadUsers(); // Reload the user list
-          }}
-        />
-      )}
 
       {/* Coordinator Creation Dialog */}
       <CoordinatorCreationDialog
@@ -708,6 +544,13 @@ export default function UserManagementPage() {
           setIsCreateCoordinatorOpen(false);
           loadUsers(); // Reload the user list
         }}
+      />
+
+      <UserDetailsModal
+        userId={selectedUserId}
+        isOpen={isUserDetailsOpen}
+        onClose={() => setIsUserDetailsOpen(false)}
+        onUserUpdate={loadUsers}
       />
     </div>
   );

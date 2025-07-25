@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/publicContentService";
-import type { PublicEvent } from "../types/publicContent";
+import { publicContentService } from "../../services/publicContentService";
+import type { PublicEvent } from "../../types/publicContent";
 
 interface UsePublicEventDetailReturn {
   event: PublicEvent | null;
@@ -21,7 +21,7 @@ export const usePublicEventDetail = (
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);

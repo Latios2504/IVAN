@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/publicContentService";
-import type { PublicVolunteer } from "../types/publicContent";
+import { publicContentService } from "../../services/publicContentService";
+import type { PublicVolunteer } from "../../types/publicContent";
 
 interface UsePublicVolunteerDetailReturn {
   volunteer: PublicVolunteer | null;
@@ -20,7 +20,7 @@ export const usePublicVolunteerDetail = (
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await publicContentService.getPublicVolunteer(id);
       setVolunteer(result);
     } catch (err: any) {

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { publicContentService } from "../services/publicContentService";
+import { publicContentService } from "../../services/publicContentService";
 import type {
   PublicOrganization,
   PublicOrganizationFilters,
   PagedResult,
-} from "../types/publicContent";
+} from "../../types/publicContent";
 
 interface UsePublicOrganizationsReturn {
   organizations: PublicOrganization[];

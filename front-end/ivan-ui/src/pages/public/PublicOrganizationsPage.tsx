@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Building, Users, MapPin, Award, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { OrganizationCard } from "@/components/public/OrganizationCard";
-import { usePublicOrganizations } from "@/hooks/usePublicOrganizations";
+import { usePublicOrganizations } from "@/hooks/public/usePublicOrganizations";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicOrganization,

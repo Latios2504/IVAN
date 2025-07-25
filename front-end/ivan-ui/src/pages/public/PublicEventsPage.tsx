@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
-import { usePublicEvents } from "@/hooks/usePublicEvents";
+import { usePublicEvents } from "@/hooks/public/usePublicEvents";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PublicEvent, PublicEventFilters } from "@/types/publicContent";
 import type { StatCard } from "@/components/public/StatsSection";
