@@ -43,9 +43,9 @@ namespace ivan_api.Services.OrganizationProfiles
             var orgs = await _repository.ListOrganizationProfile(filter);
             return _mapper.Map<IEnumerable<OrganizationProfileViewModel>>(orgs);
         }
-        public async Task<OrganizationProfileViewModel> GetOrganizationProfileById(int id)
+        public async Task<OrganizationProfileViewModel> GetOrganizationProfileById(int userId)
         {
-            var org = await _repository.GetOrganizationProfileById(id);
+            var org = await _repository.GetOrganizationProfileById(userId);
             if (org == null)
             {
                 throw new Exception("Organization not found");

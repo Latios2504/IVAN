@@ -87,13 +87,13 @@ namespace ivan_api.Repository.PartnerProfiles
             };
         }
 
-        public async Task<Partner> GetPartnerProfileById(int id)
+        public async Task<Partner> GetPartnerProfileById(int userId)
         {
             return await _context.Partners
                 .Include(x => x.User)
                 .Include(x => x.VerifiedByNavigation)
                 .Include(x => x.Industry)
-                .SingleOrDefaultAsync(x => x.PartnerId == id);
+                .SingleOrDefaultAsync(x => x.UserId == userId);
         }
     }
 }

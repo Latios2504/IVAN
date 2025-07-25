@@ -91,7 +91,27 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
-      navigate("/dashboard");
+
+      // Get role-specific dashboard URL
+      const getDashboardUrl = (role: string) => {
+        switch (role) {
+          case "admin":
+            return "/admin";
+          case "organization":
+            return "/organization";
+          case "volunteer":
+            return "/volunteer";
+          case "partner":
+            return "/partner";
+          case "coordinator":
+            return "/coordinator";
+          default:
+            return "/";
+        }
+      };
+
+      // Navigate to role-specific dashboard
+      navigate(getDashboardUrl(formData.role));
     } catch (error) {
       console.error("Registration failed:", error);
       setErrors({ submit: "Đăng ký thất bại. Vui lòng thử lại." });

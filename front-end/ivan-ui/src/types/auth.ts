@@ -1,10 +1,11 @@
 import type {
-  UserProfile,
+  BaseProfile,
   VolunteerProfile,
   OrganizationProfile,
   CoordinatorProfile,
   PartnerProfile,
-} from "./profile";
+  AdminProfile,
+} from "./profiles";
 
 export const UserRole = {
   VOLUNTEER: "volunteer",
@@ -34,7 +35,7 @@ export interface ApiUser {
   isEmailVerified: boolean;
   lastLoginAt?: string;
   createdAt: string;
-  profile?: UserProfile;
+  profile?: BaseProfile;
 }
 
 // Frontend User type with computed properties

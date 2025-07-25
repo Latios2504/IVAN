@@ -101,6 +101,24 @@ const AIInstructionsManagementPage = lazy(
   () => import("@/pages/admin/AIInstructionsManagementPage")
 );
 
+// Profile pages
+const ProfileRedirectPage = lazy(
+  () => import("@/pages/profile/ProfileRedirectPage")
+);
+const VolunteerProfilePage = lazy(
+  () => import("@/pages/volunteer/VolunteerProfilePage")
+);
+const OrganizationProfilePage = lazy(
+  () => import("@/pages/organization/OrganizationProfilePage")
+);
+const PartnerProfilePage = lazy(
+  () => import("@/pages/partner/PartnerProfilePage")
+);
+const CoordinatorProfilePage = lazy(
+  () => import("@/pages/coordinator/CoordinatorProfilePage")
+);
+const AdminProfilePage = lazy(() => import("@/pages/admin/AdminProfilePage"));
+
 // Loading component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -324,6 +342,95 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <AIInstructionsManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Profile routes */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfileRedirectPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/volunteer/:id"
+          element={
+            <ProtectedRoute>
+              <VolunteerProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/volunteer"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <VolunteerProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/organization/:id"
+          element={
+            <ProtectedRoute>
+              <OrganizationProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/organization"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <OrganizationProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/partner/:id"
+          element={
+            <ProtectedRoute>
+              <PartnerProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/partner"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.PARTNER]}>
+              <PartnerProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/coordinator/:id"
+          element={
+            <ProtectedRoute>
+              <CoordinatorProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/coordinator"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
+              <CoordinatorProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/admin/:id"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/admin"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <AdminProfilePage />
             </ProtectedRoute>
           }
         />
