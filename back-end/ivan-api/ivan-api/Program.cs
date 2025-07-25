@@ -43,6 +43,7 @@ using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
+using ivan_api.Services.Analytics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -189,6 +190,10 @@ builder.Services.AddScoped<ISchemaService, SchemaService>();
 
 // SQL Generator Services DI
 builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
+
+// Analytics Services DI
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+
 // TODO: Phase 2 - Add simplified services registration
 
 // Đăng ký Repository & Service
