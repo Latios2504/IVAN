@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { 
   SupportRequest, 
   SupportCategory, 
@@ -246,7 +246,7 @@ export const SupportRequestDetailsModal = ({
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       {loading ? (
-                        <LoadingSpinner size="sm" text="" />
+                        <Skeleton className="w-4 h-4" />
                       ) : (
                         <>
                           <Save className="w-4 h-4 mr-1" />
@@ -495,7 +495,7 @@ export const SupportRequestDetailsModal = ({
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     {addingComment ? (
-                      <LoadingSpinner size="sm" text="" />
+                      <Skeleton className="w-4 h-4" />
                     ) : (
                       <>
                         <Send className="w-4 h-4 mr-1" />

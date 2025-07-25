@@ -25,7 +25,7 @@ import {
   type TableAction,
 } from "@/components/common/DataTable";
 import { useModal } from "@/hooks/useModal";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -161,7 +161,7 @@ export default function CoordinatorTaskManagementPage() {
   // Hooks
   const createModal = useModal();
   const viewModal = useModal();
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter((task) => {
@@ -402,7 +402,7 @@ export default function CoordinatorTaskManagementPage() {
               : t
           )
         );
-        showNotification("Đã đánh dấu nhiệm vụ hoàn thành", "success");
+        toast.success("Đã đánh dấu nhiệm vụ hoàn thành");
       },
       visible: (task) => task.status !== "completed",
     },

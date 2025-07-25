@@ -1,23 +1,30 @@
 import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
-import { ToastProvider } from "./context/ToastContext";
-import { Navbar } from "./components/layout";
+import Navbar from "./components/layout/Navbar";
 import ChatBotFloatingButton from "./components/chatbot/ChatBotFloatingButton";
+import { Toaster } from "./components/ui/sonner";
+import { ThemeProvider } from "next-themes";
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <BrowserRouter>
+        <AuthProvider>
           <div className="min-h-screen bg-background font-sans antialiased">
             <Navbar />
             <AppRoutes />
             <ChatBotFloatingButton />
+            <Toaster />
           </div>
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

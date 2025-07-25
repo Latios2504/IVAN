@@ -26,7 +26,7 @@ namespace ivan_api.Services.OrganizationProfiles
 
             return await _repository.AddOrganizationProfile(org);
         }
-        public async Task<bool> UpdateOrganizationProfile(OrganizationProfileUpdateModel organizationProfile, int orgId)
+        public async Task<OrganizationProfileViewModel> UpdateOrganizationProfile(OrganizationProfileUpdateModel organizationProfile, int orgId)
         {
             var existingOrg = await _repository.GetOrganizationProfileById(orgId);
             if (existingOrg == null)
@@ -36,16 +36,24 @@ namespace ivan_api.Services.OrganizationProfiles
 
             _mapper.Map(organizationProfile, existingOrg);
             existingOrg.UpdatedAt = DateTime.Now;
-            return await _repository.UpdateOrganizationProfile(existingOrg);
+            
+            var updateResult = await _repository.UpdateOrganizationProfile(existingOrg);
+            if (!updateResult)
+            {
+                throw new Exception("Failed to update organization profile");
+            }
+
+            // Return the updated profile data
+            return await GetOrganizationProfileById(existingOrg.UserId);
         }
         public async Task<IEnumerable<OrganizationProfileViewModel>> ListOrganizationProfile(OrganizationProfileFilterModel filter)
         {
             var orgs = await _repository.ListOrganizationProfile(filter);
             return _mapper.Map<IEnumerable<OrganizationProfileViewModel>>(orgs);
         }
-        public async Task<OrganizationProfileViewModel> GetOrganizationProfileById(int id)
+        public async Task<OrganizationProfileViewModel> GetOrganizationProfileById(int userId)
         {
-            var org = await _repository.GetOrganizationProfileById(id);
+            var org = await _repository.GetOrganizationProfileById(userId);
             if (org == null)
             {
                 throw new Exception("Organization not found");

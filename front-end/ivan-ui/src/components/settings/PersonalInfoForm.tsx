@@ -2,14 +2,31 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User } from "@/types/auth";
+import type { User } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  FormProgress,
+  commonProgressStages,
+} from "@/components/common/FormProgress";
 import { Camera, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,6 +78,10 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [submitProgress, setSubmitProgress] = useState(0);
+  const [submitStage, setSubmitStage] = useState<
+    "idle" | "validating" | "uploading" | "submitting" | "completed"
+  >("idle");
 
   // Initialize form with user data
   const form = useForm<PersonalInfoFormData>({
@@ -83,11 +104,12 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
         toast.error("Ảnh đại diện không được vượt quá 5MB");
         return;
       }
-      
+
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -99,26 +121,52 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
 
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
+    setSubmitStage("validating");
+    setSubmitProgress(20);
+
     try {
+      // Validation stage
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Profile update stage
+      setSubmitStage("submitting");
+      setSubmitProgress(60);
+
       // TODO: Call API to update user profile
       // await userService.updateProfile(user.id, data);
-      
+
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // If there's an avatar file, upload it separately
       if (avatarFile) {
+        setSubmitStage("uploading");
+        setSubmitProgress(80);
+
         // TODO: Call API to upload avatar
         // await userService.uploadAvatar(user.id, avatarFile);
+        await new Promise((resolve) => setTimeout(resolve, 800));
       }
-      
+
+      // Completion
+      setSubmitStage("completed");
+      setSubmitProgress(100);
+
       toast.success("Cập nhật thông tin thành công!");
       setIsEditing(false);
       setAvatarFile(null);
       setAvatarPreview(null);
+
+      // Reset progress after a brief delay
+      setTimeout(() => {
+        setSubmitStage("idle");
+        setSubmitProgress(0);
+      }, 1000);
     } catch (error) {
       toast.error("Không thể cập nhật thông tin. Vui lòng thử lại.");
       console.error("Error updating profile:", error);
+      setSubmitStage("idle");
+      setSubmitProgress(0);
     } finally {
       setIsLoading(false);
     }
@@ -137,13 +185,18 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
         {/* Avatar Display */}
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={user.profile?.profilePicture} alt={user.fullName} />
+            <AvatarImage
+              src={user.profile?.profilePicture}
+              alt={user.fullName}
+            />
             <AvatarFallback className="text-lg">
               {user.fullName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="text-lg font-semibold">{user.fullName || "Chưa cập nhật"}</h3>
+            <h3 className="text-lg font-semibold">
+              {user.fullName || "Chưa cập nhật"}
+            </h3>
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
@@ -151,14 +204,20 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
         {/* Profile Information Display */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label className="text-sm font-medium text-gray-500">Số điện thoại</Label>
-            <p className="mt-1">{user.profile?.phoneNumber || "Chưa cập nhật"}</p>
+            <Label className="text-sm font-medium text-gray-500">
+              Số điện thoại
+            </Label>
+            <p className="mt-1">
+              {user.profile?.phoneNumber || "Chưa cập nhật"}
+            </p>
           </div>
           <div>
-            <Label className="text-sm font-medium text-gray-500">Ngày sinh</Label>
+            <Label className="text-sm font-medium text-gray-500">
+              Ngày sinh
+            </Label>
             <p className="mt-1">
-              {user.profile?.dateOfBirth 
-                ? new Date(user.profile.dateOfBirth).toLocaleDateString('vi-VN') 
+              {user.profile?.dateOfBirth
+                ? new Date(user.profile.dateOfBirth).toLocaleDateString("vi-VN")
                 : "Chưa cập nhật"}
             </p>
           </div>
@@ -167,15 +226,21 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
             <p className="mt-1">{user.profile?.address || "Chưa cập nhật"}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium text-gray-500">Tỉnh/Thành phố</Label>
+            <Label className="text-sm font-medium text-gray-500">
+              Tỉnh/Thành phố
+            </Label>
             <p className="mt-1">{user.profile?.province || "Chưa cập nhật"}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium text-gray-500">Quận/Huyện</Label>
+            <Label className="text-sm font-medium text-gray-500">
+              Quận/Huyện
+            </Label>
             <p className="mt-1">{user.profile?.district || "Chưa cập nhật"}</p>
           </div>
           <div className="md:col-span-2">
-            <Label className="text-sm font-medium text-gray-500">Giới thiệu</Label>
+            <Label className="text-sm font-medium text-gray-500">
+              Giới thiệu
+            </Label>
             <p className="mt-1">{user.profile?.bio || "Chưa cập nhật"}</p>
           </div>
         </div>
@@ -193,9 +258,9 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
         {/* Avatar Upload */}
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage 
-              src={avatarPreview || user.profile?.profilePicture} 
-              alt={user.fullName} 
+            <AvatarImage
+              src={avatarPreview || user.profile?.profilePicture}
+              alt={user.fullName}
             />
             <AvatarFallback className="text-lg">
               {user.fullName.charAt(0).toUpperCase()}
@@ -262,7 +327,11 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
               <FormItem>
                 <FormLabel>Email *</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="example@email.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="example@email.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -321,7 +390,10 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tỉnh/Thành phố</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn tỉnh/thành phố" />
@@ -345,8 +417,8 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Quận/Huyện</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value}
                   disabled={!watchedProvince}
                 >
@@ -356,11 +428,12 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {watchedProvince && DISTRICTS[watchedProvince]?.map((district) => (
-                      <SelectItem key={district.value} value={district.value}>
-                        {district.label}
-                      </SelectItem>
-                    ))}
+                    {watchedProvince &&
+                      DISTRICTS[watchedProvince]?.map((district) => (
+                        <SelectItem key={district.value} value={district.value}>
+                          {district.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -377,7 +450,7 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
             <FormItem>
               <FormLabel>Giới thiệu bản thân</FormLabel>
               <FormControl>
-                <Textarea 
+                <Textarea
                   placeholder="Chia sẻ một chút về bản thân bạn..."
                   className="min-h-[100px]"
                   {...field}
@@ -388,13 +461,36 @@ export function PersonalInfoForm({ user }: PersonalInfoFormProps) {
           )}
         />
 
+        {/* Progress Indicator */}
+        {isLoading && (
+          <FormProgress
+            currentStage={submitStage}
+            progress={submitProgress}
+            stages={
+              avatarFile
+                ? commonProgressStages.profileWithUpload
+                : commonProgressStages.profileUpdate
+            }
+            showPercentage={true}
+          />
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Button type="submit" disabled={isLoading} className="flex items-center gap-2">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
             <Save className="h-4 w-4" />
             {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
           </Button>
-          <Button type="button" variant="outline" onClick={handleCancel} disabled={isLoading}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
             <X className="h-4 w-4 mr-2" />
             Hủy bỏ
           </Button>

@@ -1,5 +1,6 @@
 using ivan_api.DTOs;
 using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.Common;
 using ivan_api.DTOs.Public;
 using ivan_api.Services.PublicContentServ;
 using Microsoft.AspNetCore.Authorization;
@@ -42,7 +43,7 @@ namespace ivan_api.Controllers.Public
         /// <returns>Paginated list of public event data</returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<PublicEventDTO>>>> GetPublicEvents(
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PublicEventDTO>>>> GetPublicEvents(
             [FromQuery] string? search,
             [FromQuery] int? categoryId,
             [FromQuery] int? organizationId,
@@ -72,7 +73,7 @@ namespace ivan_api.Controllers.Public
 
                 var result = await _publicContentService.GetPublicEventsAsync(filters);
                 
-                return Ok(new ApiResponseDTO<PagedResultDTO<PublicEventDTO>>
+                return Ok(new ApiResponseDTO<PagedResultDto<PublicEventDTO>>
                 {
                     Success = true,
                     Data = result,
@@ -82,7 +83,7 @@ namespace ivan_api.Controllers.Public
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving public events");
-                return StatusCode(500, new ApiResponseDTO<PagedResultDTO<PublicEventDTO>>
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PublicEventDTO>>
                 {
                     Success = false,
                     Message = "Internal server error",

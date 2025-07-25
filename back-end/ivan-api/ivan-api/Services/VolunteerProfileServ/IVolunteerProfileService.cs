@@ -7,7 +7,7 @@ namespace ivan_api.Services.VolunteerProfileServ
         Task<IEnumerable<VolunteerProfileListDto>> GetAllAsync();
         Task<VolunteerProfileDetailDto?> GetByIdAsync(int id);
         Task<VolunteerProfileDetailDto> CreateAsync(VolunteerProfileCreateDto dto);
-        Task<bool> UpdateAsync(int id, VolunteerProfileUpdateDto dto);
+        Task<VolunteerProfileDetailDto?> UpdateAsync(int id, VolunteerProfileUpdateDto dto);
         Task<bool> DeleteAsync(int id);
     }
 }

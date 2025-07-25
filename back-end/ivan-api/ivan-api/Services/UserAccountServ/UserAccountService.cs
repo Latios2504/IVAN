@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DocumentFormat.OpenXml.Spreadsheet;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.UserAccount;
@@ -41,8 +41,8 @@ namespace ivan_api.Services.UserAccountServ
             if (filter.SearchTerm != null)
             {
                 filteredUsers = filteredUsers.Where(u => u.Email.Contains(filter.SearchTerm) ||
-                                                         u.UserProfiles.FirstOrDefault()!.FirstName.Contains(filter.SearchTerm) ||
-                                                         u.UserProfiles.FirstOrDefault()!.LastName.Contains(filter.SearchTerm));
+                                                         (u.UserProfiles.Any() && u.UserProfiles.FirstOrDefault()!.FirstName != null && u.UserProfiles.FirstOrDefault()!.FirstName.Contains(filter.SearchTerm)) ||
+                                                         (u.UserProfiles.Any() && u.UserProfiles.FirstOrDefault()!.LastName != null && u.UserProfiles.FirstOrDefault()!.LastName.Contains(filter.SearchTerm)));
             }
 
             var totalCount = filteredUsers.Count();
@@ -225,7 +225,7 @@ namespace ivan_api.Services.UserAccountServ
                 }
             }
             await _userAccountRepository.UpdateuserAccount_Admin(idUser, dto);
-            return await getUserInforByIdOrEmail(idUser, "");
+            return await getUserInforByIdOrEmail(idUser, null);
         }
     }
 }

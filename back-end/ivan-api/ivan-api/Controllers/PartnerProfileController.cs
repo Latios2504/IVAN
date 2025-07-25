@@ -30,10 +30,10 @@ namespace ivan_api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("get/{id}")]
-        public async Task<IActionResult> Details(int id)
+        [HttpGet("get/{userId}")]
+        public async Task<IActionResult> Details(int userId)
         {
-            var result = await _service.GetPartnerProfileById(id);
+            var result = await _service.GetPartnerProfileById(userId);
             return Ok(result);
         }
 
