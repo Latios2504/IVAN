@@ -32,6 +32,11 @@ using ivan_api.Repository.PartnerCollaborationRepo;
 using ivan_api.Services.PublicContentServ;
 using ivan_api.Services.UserAccountServ;
 using ivan_api.Repository.UserAccountRepo;
+using ivan_api.Extensions;
+using ivan_api.Services.PasswordHashingSer;
+using ivan_api.Services.JwtTokenSer;
+using ivan_api.Services.EmailSer;
+using ivan_api.Services.AuthenticationSer;
 
 var builder = WebApplication.CreateBuilder(args);
 
