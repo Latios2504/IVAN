@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
 import { ApiError } from "@/services/errorHandler";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ChangePasswordPage() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -22,7 +24,28 @@ export default function ChangePasswordPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const navigate = useNavigate();
+
+  // Helper function to get role-specific dashboard URL
+  const getDashboardUrl = () => {
+    if (!user) return "/";
+
+    switch (user.role) {
+      case "admin":
+        return "/admin";
+      case "organization":
+        return "/organization";
+      case "volunteer":
+        return "/volunteer";
+      case "partner":
+        return "/partner";
+      case "coordinator":
+        return "/coordinator";
+      default:
+        return "/";
+    }
+  };
 
   const handleInputChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -71,8 +94,9 @@ export default function ChangePasswordPage() {
         formData.newPassword
       );
 
-      // Redirect to profile with success message
-      navigate("/profile", {
+      // Redirect to user's dashboard with success message
+      const dashboardUrl = getDashboardUrl();
+      navigate(dashboardUrl, {
         state: {
           message: "Mật khẩu đã được thay đổi thành công.",
         },
@@ -106,6 +130,12 @@ export default function ChangePasswordPage() {
             {errors.general && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {errors.general}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                {successMessage}
               </div>
             )}
 
@@ -179,7 +209,7 @@ export default function ChangePasswordPage() {
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => navigate("/profile")}
+              onClick={() => navigate(getDashboardUrl())}
               disabled={isLoading}
             >
               Hủy

@@ -5,7 +5,7 @@ import type {
   CoordinatorProfile,
   PartnerProfile,
   AdminProfile,
-} from "./profiles";
+} from "./profile/profiles";
 
 export const UserRole = {
   VOLUNTEER: "volunteer",
@@ -74,8 +74,6 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
 }
 
 // Response types matching backend
@@ -86,57 +84,9 @@ export interface LoginResponse {
   expiresAt: string;
 }
 
-// Legacy interface with extended fields (for forms)
+// Simplified register data for forms
 export interface RegisterData extends RegisterRequest {
   role: PublicRegistrationRole; // Only allow public registration roles
-
-  // Contact Info
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: "Male" | "Female" | "Other" | "Prefer not to say";
-
-  // Address
-  address?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-
-  // Role-specific fields
-  // For volunteers
-  skills?: string[];
-  interests?: string[];
-  availability?: string[];
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-
-  // For organizations
-  organizationName?: string;
-  organizationType?:
-    | "NGO"
-    | "Non-profit"
-    | "Government"
-    | "Educational"
-    | "Religious"
-    | "Corporate"
-    | "Other";
-  organizationDescription?: string;
-  website?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  focusAreas?: string[];
-  // For partners
-  companyName?: string;
-  industry?: string;
-  companyDescription?: string;
-  partnerType?:
-    | "Corporate"
-    | "Foundation"
-    | "Government"
-    | "International"
-    | "Other";
-  partnershipInterests?: string[];
-  expectedPartnership?: string;
 }
 
 export interface ResetPasswordData {

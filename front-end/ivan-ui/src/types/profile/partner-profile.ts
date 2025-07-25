@@ -28,8 +28,11 @@ export interface PartnerProfileData {
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  // Additional fields from Industry table
-  industryName?: string;
+}
+
+// Extended partner profile with joined data for UI display
+export interface PartnerProfileDataExtended extends PartnerProfileData {
+  industryName?: string; // From PartnerIndustries join
 }
 
 export interface CreatePartnerProfileData {

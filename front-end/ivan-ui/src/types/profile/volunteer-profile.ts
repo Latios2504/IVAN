@@ -5,7 +5,7 @@ import type {
   VolunteerProfile,
   VolunteerSkill,
   UpdateVolunteerProfileData,
-} from "./profiles";
+} from "@/types/profile/profiles";
 
 // Volunteer profile creation data
 export interface CreateVolunteerProfileData {
@@ -184,4 +184,4 @@ export type {
   VolunteerProfile,
   VolunteerSkill,
   UpdateVolunteerProfileData,
-} from "./profiles";
+} from "@/types/profile/profiles";

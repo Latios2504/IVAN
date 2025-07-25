@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { PartnerProfile } from "@/types/profiles";
+import type { PartnerProfile } from "@/types/profile/profiles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -354,19 +354,19 @@ export default function PartnerProfileSection({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <p className="text-2xl font-bold text-blue-600">
-                {profile.totalCollaborations}
+                {profile.totalCollaborations || 0}
               </p>
               <p className="text-sm text-gray-600">Dự án hợp tác</p>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <p className="text-2xl font-bold text-yellow-600">
-                {profile.rating.toFixed(1)}/5.0
+                {(profile.rating || 0).toFixed(1)}/5.0
               </p>
               <p className="text-sm text-gray-600">Đánh giá</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <p className="text-2xl font-bold text-purple-600">
-                {profile.ratingCount}
+                {profile.ratingCount || 0}
               </p>
               <p className="text-sm text-gray-600">Lượt đánh giá</p>
             </div>

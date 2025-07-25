@@ -33,7 +33,8 @@ export default function ProtectedRoute({
 
   // Check role-based access
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    // Don't pass location state when user lacks permissions to avoid redirect loops
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;

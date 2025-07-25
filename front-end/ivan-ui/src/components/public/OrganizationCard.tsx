@@ -123,10 +123,10 @@ export function OrganizationCard({
               <div className="flex items-center gap-1 mt-2">
                 <Star className="h-4 w-4 text-yellow-500 fill-current" />
                 <span className="text-sm font-medium text-slate-700">
-                  {organization.rating.toFixed(1)}
+                  {(organization.rating || 0).toFixed(1)}
                 </span>
                 <span className="text-sm text-slate-500">
-                  ({organization.ratingCount} đánh giá)
+                  ({organization.ratingCount || 0} đánh giá)
                 </span>
               </div>
             )}

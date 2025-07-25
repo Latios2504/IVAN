@@ -5,7 +5,7 @@ import type {
   OrganizationProfileFilters,
   OrganizationType,
   OrganizationStats,
-} from "@/types/organization-profile";
+} from "@/types/profile/organization-profile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

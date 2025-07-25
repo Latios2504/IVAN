@@ -65,16 +65,16 @@ namespace ivan_api.Controllers
         /// </summary>
         [HttpPut("{userId:int}")]
         [Authorize]
-        public async Task<IActionResult> Update(int userId, [FromBody] VolunteerProfileUpdateDto dto)
+        public async Task<ActionResult<VolunteerProfileDetailDto>> Update(int userId, [FromBody] VolunteerProfileUpdateDto dto)
         {
             //if (userId != dto.)
             //    return BadRequest(new { message = "UserId in URL và body không khớp." });
 
-            var success = await _service.UpdateAsync(userId, dto);
-            if (!success)
+            var result = await _service.UpdateAsync(userId, dto);
+            if (result == null)
                 return NotFound(new { message = $"Volunteer profile with UserId={userId} not found." });
 
-            return NoContent();
+            return Ok(result);
         }
 
         /// <summary>

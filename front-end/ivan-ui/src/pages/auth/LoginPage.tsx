@@ -90,10 +90,10 @@ export default function LoginPage() {
         }
       };
 
-      // Navigate to role-specific dashboard or fallback location
-      const from =
-        location.state?.from?.pathname || getDashboardUrl(userData.role);
-      navigate(from);
+      // Navigate to role-specific dashboard, ignoring previous redirect attempts
+      // This ensures each user goes to their proper dashboard regardless of previous navigation
+      const dashboardUrl = getDashboardUrl(userData.role);
+      navigate(dashboardUrl, { replace: true });
     } catch (error: any) {
       console.error("Login error:", error);
       setErrors({ general: error.message || "Email hoặc mật khẩu không đúng" });

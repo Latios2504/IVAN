@@ -33,7 +33,7 @@ export interface VolunteerProfile extends BaseProfile {
   experience?: string;
   availability?: string;
   volunteerHours: number;
-  rating: number;
+  rating: number | null;
   ratingCount: number;
   isVerified: boolean;
   verifiedAt?: string;
@@ -57,7 +57,6 @@ export interface OrganizationProfile extends BaseProfile {
   organizationName: string;
   shortName?: string;
   typeId: number;
-  typeName?: string;
   taxCode?: string;
   businessLicense?: string;
   establishedYear?: number;
@@ -76,7 +75,7 @@ export interface OrganizationProfile extends BaseProfile {
   isVerified: boolean;
   verifiedAt?: string;
   verifiedBy?: number;
-  rating: number;
+  rating: number | null;
   ratingCount: number;
   totalEvents: number;
   totalVolunteers: number;
@@ -86,7 +85,6 @@ export interface PartnerProfile extends BaseProfile {
   partnerId: number;
   companyName: string;
   industryId: number;
-  industryName?: string;
   taxCode?: string;
   businessLicense?: string;
   website?: string;
@@ -99,7 +97,7 @@ export interface PartnerProfile extends BaseProfile {
   isVerified: boolean;
   verifiedAt?: string;
   verifiedBy?: number;
-  rating: number;
+  rating: number | null;
   ratingCount: number;
   totalCollaborations: number;
 }
@@ -107,7 +105,6 @@ export interface PartnerProfile extends BaseProfile {
 export interface CoordinatorProfile extends BaseProfile {
   coordinatorId: number;
   organizationId: number;
-  organizationName?: string;
   employeeId?: string;
   position?: string;
   department?: string;
@@ -116,7 +113,6 @@ export interface CoordinatorProfile extends BaseProfile {
   endDate?: string;
   salary?: number;
   managerId?: number;
-  managerName?: string;
   notes?: string;
   createdBy: number;
   requestedBy: number;
@@ -137,6 +133,20 @@ export type UserProfile =
   | PartnerProfile
   | CoordinatorProfile
   | AdminProfile;
+
+// Extended profile interfaces with derived/joined data for UI display
+export interface OrganizationProfileExtended extends OrganizationProfile {
+  typeName?: string; // From OrganizationTypes join
+}
+
+export interface PartnerProfileExtended extends PartnerProfile {
+  industryName?: string; // From PartnerIndustries join
+}
+
+export interface CoordinatorProfileExtended extends CoordinatorProfile {
+  organizationName?: string; // From Organizations join
+  managerName?: string; // From Users/UserProfiles join
+}
 
 // Profile update interfaces
 export interface UpdateVolunteerProfileData {

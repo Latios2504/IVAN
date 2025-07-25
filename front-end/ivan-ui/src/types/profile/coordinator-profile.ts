@@ -4,7 +4,7 @@
 import type {
   CoordinatorProfile,
   UpdateCoordinatorProfileData,
-} from "./profiles";
+} from "@/types/profile/profiles";
 
 // Coordinator profile creation data
 export interface CreateCoordinatorProfileData {
@@ -246,4 +246,4 @@ export interface CoordinatorHierarchy {
 export type {
   CoordinatorProfile,
   UpdateCoordinatorProfileData,
-} from "./profiles";
+} from "@/types/profile/profiles";

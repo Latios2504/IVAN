@@ -46,7 +46,6 @@ namespace ivan_api.Repository.VolunteerProfileRepo
         public void Update(VolunteerProfile entity)
         {
             _context.VolunteerProfiles.Update(entity);
-            _context.SaveChangesAsync();
         }
     }
 }

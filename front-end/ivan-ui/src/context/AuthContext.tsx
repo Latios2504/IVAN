@@ -119,7 +119,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginRequest): Promise<User> => {
     try {
       dispatch({ type: "AUTH_START" });
-      const response = await authService.login(credentials); // Store token in localStorage
+
+      // Clear any existing auth state before login
+      authService.logout();
+
+      const response = await authService.login(credentials);
+
+      // Store token in localStorage
       localStorage.setItem("authToken", response.token);
 
       dispatch({ type: "AUTH_SUCCESS", payload: response.user });
@@ -148,7 +154,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = (): void => {
-    localStorage.removeItem("authToken");
+    // Call authService logout to clear tokens properly
+    authService.logout();
+
+    // Clear any additional localStorage items that might exist
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userProfile");
+
+    // Dispatch logout action to update context state
     dispatch({ type: "AUTH_LOGOUT" });
   };
 

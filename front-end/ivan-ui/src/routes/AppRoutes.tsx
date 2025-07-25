@@ -82,9 +82,6 @@ const PartnerCollaborationPage = lazy(
 const NotificationManagementPage = lazy(
   () => import("@/pages/organization/NotificationManagementPage")
 );
-const OrganizationProfileManagementPage = lazy(
-  () => import("@/pages/organization/OrganizationProfileManagementPage")
-);
 const AdminOrganizationListPage = lazy(
   () => import("@/pages/admin/ManageOrganizationProfile")
 );
@@ -295,16 +292,6 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/organization/profile"
-          element={
-            <ProtectedRoute
-              allowedRoles={[UserRole.ORGANIZATION, UserRole.ADMIN]}
-            >
-              <OrganizationProfileManagementPage />
-            </ProtectedRoute>
-          }
-        />{" "}
         <Route
           path="/admin/organizations"
           element={

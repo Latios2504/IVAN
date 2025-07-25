@@ -1,10 +1,17 @@
-import { useState } from "react";
-import type { OrganizationProfile } from "@/types/profiles";
+import { useState, useEffect } from "react";
+import type { OrganizationProfile } from "@/types/profile/profiles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Building2,
   Mail,
@@ -32,6 +39,9 @@ export default function OrganizationProfileSection({
   const [formData, setFormData] = useState<Partial<OrganizationProfile>>({
     organizationName: profile?.organizationName || "",
     shortName: profile?.shortName || "",
+    typeId: profile?.typeId || 1,
+    taxCode: profile?.taxCode || "",
+    businessLicense: profile?.businessLicense || "",
     description: profile?.description || "",
     mission: profile?.mission || "",
     vision: profile?.vision || "",
@@ -43,8 +53,45 @@ export default function OrganizationProfileSection({
     contactEmail: profile?.contactEmail || "",
     contactPhone: profile?.contactPhone || "",
     address: profile?.address || "",
-    establishedYear: profile?.establishedYear || new Date().getFullYear(),
+    wardCommune: profile?.wardCommune || "",
+    district: profile?.district || "",
+    province: profile?.province || "",
+    postalCode: profile?.postalCode || "",
+    logoUrl: profile?.logoUrl || "",
+    bannerUrl: profile?.bannerUrl || "",
+    establishedYear: profile?.establishedYear || undefined,
   });
+
+  // Sync formData with profile changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        organizationName: profile.organizationName || "",
+        shortName: profile.shortName || "",
+        typeId: profile.typeId || 1,
+        taxCode: profile.taxCode || "",
+        businessLicense: profile.businessLicense || "",
+        description: profile.description || "",
+        mission: profile.mission || "",
+        vision: profile.vision || "",
+        website: profile.website || "",
+        facebookPage: profile.facebookPage || "",
+        linkedInPage: profile.linkedInPage || "",
+        contactPersonName: profile.contactPersonName || "",
+        contactPersonTitle: profile.contactPersonTitle || "",
+        contactEmail: profile.contactEmail || "",
+        contactPhone: profile.contactPhone || "",
+        address: profile.address || "",
+        wardCommune: profile.wardCommune || "",
+        district: profile.district || "",
+        province: profile.province || "",
+        postalCode: profile.postalCode || "",
+        logoUrl: profile.logoUrl || "",
+        bannerUrl: profile.bannerUrl || "",
+        establishedYear: profile.establishedYear || undefined,
+      });
+    }
+  }, [profile]);
 
   if (!profile) {
     return (
@@ -59,7 +106,32 @@ export default function OrganizationProfileSection({
   };
 
   const handleSubmit = async () => {
-    await onSave(formData);
+    try {
+      // Clean up the data before sending - be more selective about null conversion
+      const cleanedData = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => {
+          // For specific optional fields, convert empty strings to null
+          const optionalFields = [
+            "taxCode",
+            "businessLicense",
+            "description",
+            "mission",
+            "vision",
+          ];
+          if (value === "" && optionalFields.includes(key)) {
+            return [key, null];
+          }
+          // For URL fields and other text fields, keep empty strings as empty strings
+          // This preserves user input for fields like website, facebookPage, etc.
+          return [key, value];
+        })
+      );
+
+      console.log("Submitting form data:", cleanedData);
+      await onSave(cleanedData);
+    } catch (error) {
+      console.error("Error in handleSubmit:", error);
+    }
   };
 
   if (isEditing) {
@@ -116,13 +188,14 @@ export default function OrganizationProfileSection({
                 <Input
                   id="establishedYear"
                   type="number"
-                  value={formData.establishedYear}
-                  onChange={(e) =>
+                  value={formData.establishedYear || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
                     handleInputChange(
                       "establishedYear",
-                      parseInt(e.target.value)
-                    )
-                  }
+                      value ? parseInt(value) : undefined
+                    );
+                  }}
                   placeholder="Năm thành lập"
                   min="1900"
                   max={new Date().getFullYear()}
@@ -130,14 +203,106 @@ export default function OrganizationProfileSection({
               </div>
 
               <div>
-                <Label htmlFor="address">Địa chỉ</Label>
-                <Textarea
+                <Label htmlFor="typeId">Loại tổ chức</Label>
+                <Select
+                  value={formData.typeId?.toString()}
+                  onValueChange={(value) =>
+                    handleInputChange("typeId", parseInt(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn loại tổ chức" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Tổ chức phi lợi nhuận</SelectItem>
+                    <SelectItem value="2">Tổ chức từ thiện</SelectItem>
+                    <SelectItem value="3">Tổ chức giáo dục</SelectItem>
+                    <SelectItem value="4">Tổ chức môi trường</SelectItem>
+                    <SelectItem value="5">Tổ chức y tế</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="taxCode">Mã số thuế</Label>
+                <Input
+                  id="taxCode"
+                  value={formData.taxCode}
+                  onChange={(e) => handleInputChange("taxCode", e.target.value)}
+                  placeholder="Mã số thuế của tổ chức"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="businessLicense">Giấy phép kinh doanh</Label>
+                <Input
+                  id="businessLicense"
+                  value={formData.businessLicense}
+                  onChange={(e) =>
+                    handleInputChange("businessLicense", e.target.value)
+                  }
+                  placeholder="Số giấy phép kinh doanh"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="address">Địa chỉ chi tiết</Label>
+                <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Nhập địa chỉ trụ sở"
-                  rows={2}
+                  placeholder="Số nhà, tên đường"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="wardCommune">Phường/Xã</Label>
+                  <Input
+                    id="wardCommune"
+                    value={formData.wardCommune}
+                    onChange={(e) =>
+                      handleInputChange("wardCommune", e.target.value)
+                    }
+                    placeholder="Phường/Xã"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="district">Quận/Huyện</Label>
+                  <Input
+                    id="district"
+                    value={formData.district}
+                    onChange={(e) =>
+                      handleInputChange("district", e.target.value)
+                    }
+                    placeholder="Quận/Huyện"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="province">Tỉnh/Thành phố</Label>
+                  <Input
+                    id="province"
+                    value={formData.province}
+                    onChange={(e) =>
+                      handleInputChange("province", e.target.value)
+                    }
+                    placeholder="Tỉnh/Thành phố"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="postalCode">Mã bưu điện</Label>
+                  <Input
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) =>
+                      handleInputChange("postalCode", e.target.value)
+                    }
+                    placeholder="Mã bưu điện"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -263,6 +428,32 @@ export default function OrganizationProfileSection({
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Hình ảnh tổ chức</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="logoUrl">Logo URL</Label>
+              <Input
+                id="logoUrl"
+                value={formData.logoUrl}
+                onChange={(e) => handleInputChange("logoUrl", e.target.value)}
+                placeholder="URL ảnh logo của tổ chức"
+              />
+            </div>
+            <div>
+              <Label htmlFor="bannerUrl">Banner URL</Label>
+              <Input
+                id="bannerUrl"
+                value={formData.bannerUrl}
+                onChange={(e) => handleInputChange("bannerUrl", e.target.value)}
+                placeholder="URL ảnh banner của tổ chức"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -329,14 +520,6 @@ export default function OrganizationProfileSection({
                 </div>
               </div>
             )}
-
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-gray-500" />
-              <div>
-                <p className="font-medium">{profile.email}</p>
-                <p className="text-sm text-gray-500">Email chính</p>
-              </div>
-            </div>
 
             {profile.establishedYear && (
               <div className="flex items-center gap-3">
@@ -431,25 +614,25 @@ export default function OrganizationProfileSection({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <p className="text-2xl font-bold text-blue-600">
-                {profile.totalEvents}
+                {profile.totalEvents || 0}
               </p>
               <p className="text-sm text-gray-600">Sự kiện</p>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <p className="text-2xl font-bold text-green-600">
-                {profile.totalVolunteers}
+                {profile.totalVolunteers || 0}
               </p>
               <p className="text-sm text-gray-600">Tình nguyện viên</p>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <p className="text-2xl font-bold text-yellow-600">
-                {profile.rating.toFixed(1)}/5.0
+                {(profile.rating || 0).toFixed(1)}/5.0
               </p>
               <p className="text-sm text-gray-600">Đánh giá</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <p className="text-2xl font-bold text-purple-600">
-                {profile.ratingCount}
+                {profile.ratingCount || 0}
               </p>
               <p className="text-sm text-gray-600">Lượt đánh giá</p>
             </div>

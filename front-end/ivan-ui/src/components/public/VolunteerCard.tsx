@@ -88,10 +88,10 @@ export const VolunteerCard = ({ volunteer, className }: VolunteerCardProps) => {
                   <div className="flex items-center gap-1 text-amber-500 flex-shrink-0">
                     <Star className="h-4 w-4 fill-current" />
                     <span className="text-sm font-medium text-foreground">
-                      {safeVolunteer.rating.toFixed(1)}
+                      {(safeVolunteer.rating || 0).toFixed(1)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      ({safeVolunteer.ratingCount})
+                      ({safeVolunteer.ratingCount || 0})
                     </span>
                   </div>
                 )}

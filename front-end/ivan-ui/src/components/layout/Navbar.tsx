@@ -32,6 +32,7 @@ import {
   Shield,
   LogOut,
   Menu,
+  Key,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +42,8 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    // Navigate to login page and clear navigation state to prevent redirect issues
+    navigate("/login", { replace: true, state: null });
   };
 
   // Get role-specific dashboard URL
@@ -197,7 +199,7 @@ export default function Navbar() {
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage
-                          src={user?.profile?.avatarUrl}
+                          src={user?.profile?.avatar}
                           alt={user?.fullName || ""}
                         />
                         <AvatarFallback>
@@ -228,6 +230,15 @@ export default function Navbar() {
                       <Link to="/settings" className="w-full flex items-center">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Cài đặt</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/change-password"
+                        className="w-full flex items-center"
+                      >
+                        <Key className="mr-2 h-4 w-4" />
+                        <span>Đổi mật khẩu</span>
                       </Link>
                     </DropdownMenuItem>
 

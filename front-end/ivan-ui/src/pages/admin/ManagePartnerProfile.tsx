@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import type {
-  PartnerProfileData,
+  PartnerProfileDataExtended,
   PartnerIndustry,
-} from "@/types/partner-profile";
+} from "@/types/profile/partner-profile";
 import {
   Card,
   CardContent,
@@ -41,7 +41,7 @@ import {
 import { Link } from "react-router-dom";
 
 // Sample data for demonstration
-const mockPartners: PartnerProfileData[] = [
+const mockPartners: PartnerProfileDataExtended[] = [
   {
     partnerId: 1,
     userId: 101,
@@ -112,7 +112,7 @@ const mockIndustries: PartnerIndustry[] = [
 
 export default function AdminPartnerListPage() {
   const { user } = useAuth();
-  const [partners, setPartners] = useState<PartnerProfileData[]>([]);
+  const [partners, setPartners] = useState<PartnerProfileDataExtended[]>([]);
   const [industries, setIndustries] = useState<PartnerIndustry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

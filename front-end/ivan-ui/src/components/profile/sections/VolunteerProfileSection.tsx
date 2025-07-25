@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { VolunteerProfile } from "@/types/profiles";
+import { useState, useEffect } from "react";
+import type { VolunteerProfile } from "@/types/profile/profiles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,11 +38,19 @@ export default function VolunteerProfileSection({
   onSave,
 }: VolunteerProfileSectionProps) {
   const [formData, setFormData] = useState<Partial<VolunteerProfile>>({
+    firstName: profile?.firstName || "",
+    lastName: profile?.lastName || "",
     fullName: profile?.fullName || "",
     phoneNumber: profile?.phoneNumber || "",
     dateOfBirth: profile?.dateOfBirth || "",
     gender: profile?.gender,
     address: profile?.address || "",
+    wardCommune: profile?.wardCommune || "",
+    district: profile?.district || "",
+    province: profile?.province || "",
+    postalCode: profile?.postalCode || "",
+    emergencyContactName: profile?.emergencyContactName || "",
+    emergencyContactPhone: profile?.emergencyContactPhone || "",
     studentId: profile?.studentId || "",
     university: profile?.university || "",
     major: profile?.major || "",
@@ -50,9 +58,38 @@ export default function VolunteerProfileSection({
     motivation: profile?.motivation || "",
     experience: profile?.experience || "",
     availability: profile?.availability || "",
-    emergencyContactName: profile?.emergencyContactName || "",
-    emergencyContactPhone: profile?.emergencyContactPhone || "",
+    avatar: profile?.avatar || "",
   });
+
+  // Sync form data when profile changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        // Swap firstName and lastName to fix Vietnamese naming convention
+        firstName: profile?.lastName || "", // "Hieu" -> Tên field
+        lastName: profile?.firstName || "", // "Nguyen Thi" -> Họ và tên đệm field
+        fullName: profile?.fullName || "",
+        phoneNumber: profile?.phoneNumber || "",
+        dateOfBirth: formatDateForInput(profile?.dateOfBirth) || "",
+        gender: profile?.gender,
+        address: profile?.address || "",
+        wardCommune: profile?.wardCommune || "",
+        district: profile?.district || "",
+        province: profile?.province || "",
+        postalCode: profile?.postalCode || "",
+        emergencyContactName: profile?.emergencyContactName || "",
+        emergencyContactPhone: profile?.emergencyContactPhone || "",
+        studentId: profile?.studentId || "",
+        university: profile?.university || "",
+        major: profile?.major || "",
+        yearOfStudy: profile?.yearOfStudy || 1,
+        motivation: profile?.motivation || "",
+        experience: profile?.experience || "",
+        availability: profile?.availability || "",
+        avatar: profile?.avatar || "",
+      });
+    }
+  }, [profile]);
 
   if (!profile) {
     return (
@@ -67,12 +104,65 @@ export default function VolunteerProfileSection({
   };
 
   const handleSubmit = async () => {
-    await onSave(formData);
+    // Swap firstName and lastName back before sending to backend
+    const dataToSend = {
+      ...formData,
+      firstName: formData.lastName, // Họ và tên đệm -> backend firstName
+      lastName: formData.firstName, // Tên -> backend lastName
+    };
+    await onSave(dataToSend);
   };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Chưa cập nhật";
-    return new Date(dateString).toLocaleDateString("vi-VN");
+
+    // Handle SQL Server DATE type - extract just the date part to avoid timezone issues
+    let dateOnly = dateString;
+    if (dateString.includes("T")) {
+      dateOnly = dateString.split("T")[0]; // Get YYYY-MM-DD part only
+    }
+
+    // Parse the date parts directly without creating Date object
+    const dateParts = dateOnly.split("-");
+    if (dateParts.length === 3) {
+      const year = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]);
+      const day = parseInt(dateParts[2]);
+
+      // Validate the date parts
+      if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return `${day.toString().padStart(2, "0")}/${month
+          .toString()
+          .padStart(2, "0")}/${year}`;
+      }
+    }
+
+    return "Định dạng ngày không hợp lệ";
+  };
+
+  const formatDateForInput = (dateString?: string) => {
+    if (!dateString) return "";
+
+    // Handle SQL Server DATE type - extract just the date part
+    let dateOnly = dateString;
+    if (dateString.includes("T")) {
+      dateOnly = dateString.split("T")[0]; // Get YYYY-MM-DD part only
+    }
+
+    // Validate it's in YYYY-MM-DD format
+    const dateParts = dateOnly.split("-");
+    if (dateParts.length === 3) {
+      const year = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]);
+      const day = parseInt(dateParts[2]);
+
+      // Validate the date parts
+      if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return dateOnly; // Return YYYY-MM-DD format for input[type="date"]
+      }
+    }
+
+    return "";
   };
 
   const getGenderDisplay = (gender?: string) => {
@@ -115,16 +205,29 @@ export default function VolunteerProfileSection({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="fullName">Họ và tên</Label>
-                <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) =>
-                    handleInputChange("fullName", e.target.value)
-                  }
-                  placeholder="Nhập họ và tên"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="lastName">Họ và tên đệm</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) =>
+                      handleInputChange("lastName", e.target.value)
+                    }
+                    placeholder="Nhập họ và tên đệm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="firstName">Tên</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) =>
+                      handleInputChange("firstName", e.target.value)
+                    }
+                    placeholder="Nhập tên"
+                  />
+                </div>
               </div>
 
               <div>
@@ -172,14 +275,64 @@ export default function VolunteerProfileSection({
               </div>
 
               <div>
-                <Label htmlFor="address">Địa chỉ</Label>
+                <Label htmlFor="address">Địa chỉ chi tiết</Label>
                 <Textarea
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Nhập địa chỉ"
+                  placeholder="Nhập địa chỉ chi tiết (số nhà, đường)"
                   rows={2}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="wardCommune">Phường/Xã</Label>
+                  <Input
+                    id="wardCommune"
+                    value={formData.wardCommune}
+                    onChange={(e) =>
+                      handleInputChange("wardCommune", e.target.value)
+                    }
+                    placeholder="Nhập phường/xã"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="district">Quận/Huyện</Label>
+                  <Input
+                    id="district"
+                    value={formData.district}
+                    onChange={(e) =>
+                      handleInputChange("district", e.target.value)
+                    }
+                    placeholder="Nhập quận/huyện"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="province">Tỉnh/Thành phố</Label>
+                  <Input
+                    id="province"
+                    value={formData.province}
+                    onChange={(e) =>
+                      handleInputChange("province", e.target.value)
+                    }
+                    placeholder="Nhập tỉnh/thành phố"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="postalCode">Mã bưu điện</Label>
+                  <Input
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) =>
+                      handleInputChange("postalCode", e.target.value)
+                    }
+                    placeholder="Nhập mã bưu điện"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -398,16 +551,6 @@ export default function VolunteerProfileSection({
                 <p className="text-sm text-gray-500">Giới tính</p>
               </div>
             </div>
-
-            <div className="flex items-start gap-3">
-              <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-              <div>
-                <p className="font-medium">
-                  {profile.address || "Chưa cập nhật"}
-                </p>
-                <p className="text-sm text-gray-500">Địa chỉ</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
@@ -462,6 +605,66 @@ export default function VolunteerProfileSection({
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Địa chỉ
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-3">
+              <MapPin className="h-4 w-4 text-gray-500 mt-1" />
+              <div>
+                <p className="font-medium">
+                  {profile.address || "Chưa cập nhật"}
+                </p>
+                <p className="text-sm text-gray-500">Địa chỉ chi tiết</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="font-medium">
+                  {profile.wardCommune || "Chưa cập nhật"}
+                </p>
+                <p className="text-sm text-gray-500">Phường/Xã</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="font-medium">
+                  {profile.district || "Chưa cập nhật"}
+                </p>
+                <p className="text-sm text-gray-500">Quận/Huyện</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="font-medium">
+                  {profile.province || "Chưa cập nhật"}
+                </p>
+                <p className="text-sm text-gray-500">Tỉnh/Thành phố</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <div>
+                <p className="font-medium">
+                  {profile.postalCode || "Chưa cập nhật"}
+                </p>
+                <p className="text-sm text-gray-500">Mã bưu điện</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -504,7 +707,7 @@ export default function VolunteerProfileSection({
               <Clock className="h-4 w-4 text-blue-500" />
               <div>
                 <p className="font-medium text-blue-600">
-                  {profile.totalHoursVolunteered} giờ
+                  {profile.totalHoursVolunteered || 0} giờ
                 </p>
                 <p className="text-sm text-gray-500">Tổng giờ tình nguyện</p>
               </div>
@@ -514,8 +717,8 @@ export default function VolunteerProfileSection({
               <Star className="h-4 w-4 text-yellow-500" />
               <div>
                 <p className="font-medium text-yellow-600">
-                  {profile.rating.toFixed(1)}/5.0 ({profile.ratingCount} đánh
-                  giá)
+                  {(profile.rating || 0).toFixed(1)}/5.0 (
+                  {profile.ratingCount || 0} đánh giá)
                 </p>
                 <p className="text-sm text-gray-500">Xếp hạng</p>
               </div>

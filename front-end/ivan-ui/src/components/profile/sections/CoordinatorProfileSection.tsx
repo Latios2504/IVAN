@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CoordinatorProfile } from "@/types/profiles";
+import type { CoordinatorProfile } from "@/types/profile/profiles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

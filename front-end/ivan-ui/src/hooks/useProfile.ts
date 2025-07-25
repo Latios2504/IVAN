@@ -56,22 +56,33 @@ export function useProfile(
     updateState({ loading: true, error: null });
 
     try {
-      const [profileData, completionData] = await Promise.allSettled([
-        profileService.getProfileByRole(targetUserId, targetRole),
-        profileService.getProfileCompletion(targetUserId, targetRole),
-      ]);
-
-      const profileResult =
-        profileData.status === "fulfilled" ? profileData.value : null;
-      const completionResult =
-        completionData.status === "fulfilled" ? completionData.value : null;
+      // Fetch profile data first (this is the critical one)
+      const profileData = await profileService.getProfileByRole(
+        targetUserId,
+        targetRole
+      );
 
       updateState({
-        profile: profileResult,
-        profileCompletion: completionResult,
+        profile: profileData,
         loading: false,
-        error: null, // Don't treat "profile not found" as an error - just show null profile
+        error: null,
       });
+
+      // Fetch completion data separately and don't fail if it errors
+      // This prevents profile loading errors if completion API has issues
+      try {
+        const completionData = await profileService.getProfileCompletion(
+          targetUserId,
+          targetRole
+        );
+        updateState({ profileCompletion: completionData });
+      } catch (completionError) {
+        console.warn(
+          "Could not fetch completion data (non-critical):",
+          completionError
+        );
+        // Don't set error state for completion data failures
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       updateState({
@@ -100,23 +111,14 @@ export function useProfile(
         profile: updatedProfile,
         loading: false,
         isEditing: false,
+        error: null, // Explicitly clear any existing errors
       });
 
-      // Refresh completion data
-      try {
-        const completionData = await profileService.getProfileCompletion(
-          targetUserId,
-          targetRole
-        );
-        updateState({ profileCompletion: completionData });
-      } catch (completionError) {
-        console.warn(
-          "Could not fetch updated completion data:",
-          completionError
-        );
-      }
-
       toast.success("Cập nhật hồ sơ thành công!");
+
+      // Small delay to prevent immediate refetch conflicts
+      // This helps avoid race conditions with rapid API calls
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
       console.error("Error updating profile:", error);
       updateState({

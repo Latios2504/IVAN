@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Home, ArrowLeft, AlertTriangle } from "lucide-react";
@@ -6,9 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function UnauthorizedPage() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    // Navigate to login page and clear navigation state
+    navigate("/login", { replace: true, state: null });
   };
 
   return (
