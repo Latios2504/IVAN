@@ -154,6 +154,25 @@ public class AuthenticationService : IAuthenticationService
             };            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
+            // Create UserProfile (common for all roles)
+            var userProfile = new UserProfile
+            {
+                UserId = newUser.UserId,
+                FirstName = registerRequest.FirstName,
+                LastName = registerRequest.LastName,
+                PhoneNumber = registerRequest.PhoneNumber,
+                Address = registerRequest.Address,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.UserProfiles.Add(userProfile);
+
+            // Create role-specific profile based on the selected role
+            await CreateRoleSpecificProfileAsync(newUser.UserId, registerRequest);
+
+            // Save all profiles
+            await _context.SaveChangesAsync();
+
             // Send email verification (for now, just log)
             await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);
 
@@ -330,6 +349,100 @@ public class AuthenticationService : IAuthenticationService
                 Message = "An error occurred while changing password",
                 Errors = new List<string> { "Internal server error" }
             };
+        }
+    }
+
+    /// <summary>
+    /// Creates role-specific profile based on user role
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="registerRequest">Registration request containing role and optional profile data</param>
+    private async Task CreateRoleSpecificProfileAsync(int userId, RegisterRequestDTO registerRequest)
+    {
+        switch (registerRequest.RoleId)
+        {
+            case 3: // Volunteer
+                var volunteerProfile = new VolunteerProfile
+                {
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.VolunteerProfiles.Add(volunteerProfile);
+                break;
+
+            case 2: // Organization
+                // Use provided organization info or create with placeholders
+                var organizationType = registerRequest.OrganizationTypeId.HasValue 
+                    ? await _context.OrganizationTypes.FindAsync(registerRequest.OrganizationTypeId.Value)
+                    : await _context.OrganizationTypes.FirstOrDefaultAsync(ot => ot.IsActive == true);
+                
+                if (organizationType != null)
+                {
+                    var organization = new Organization
+                    {
+                        UserId = userId,
+                        OrganizationName = !string.IsNullOrEmpty(registerRequest.OrganizationName) 
+                            ? registerRequest.OrganizationName 
+                            : "Organization Name (To be updated)",
+                        TypeId = organizationType.TypeId,
+                        TaxCode = registerRequest.TaxCode,
+                        Website = registerRequest.Website,
+                        ContactPhone = registerRequest.PhoneNumber,
+                        Address = registerRequest.Address,
+                        IsVerified = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.Organizations.Add(organization);
+                }
+                break;
+
+            case 4: // Partner
+                // Use provided partner info or create with placeholders
+                var partnerIndustry = registerRequest.IndustryId.HasValue
+                    ? await _context.PartnerIndustries.FindAsync(registerRequest.IndustryId.Value)
+                    : await _context.PartnerIndustries.FirstOrDefaultAsync(pi => pi.IsActive == true);
+                
+                if (partnerIndustry != null)
+                {
+                    var partner = new Partner
+                    {
+                        UserId = userId,
+                        CompanyName = !string.IsNullOrEmpty(registerRequest.CompanyName)
+                            ? registerRequest.CompanyName
+                            : "Company Name (To be updated)",
+                        IndustryId = partnerIndustry.IndustryId,
+                        TaxCode = registerRequest.TaxCode,
+                        Website = registerRequest.Website,
+                        ContactPhone = registerRequest.PhoneNumber,
+                        Address = registerRequest.Address,
+                        IsVerified = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.Partners.Add(partner);
+                }
+                break;
+
+            case 5: // Volunteer Coordinator
+                // Note: Coordinator profiles are typically created by organizations
+                // and require OrganizationId, so this is handled differently
+                // For direct registration, we'll skip creating the coordinator profile
+                // and require it to be created through organization invitation
+                _logger.LogInformation("Coordinator role registered. Profile creation deferred to organization invitation.");
+                break;
+
+            case 1: // Admin
+                // Admin users don't need additional profiles beyond UserProfile
+                _logger.LogInformation("Admin role registered. No additional profile needed.");
+                break;
+
+            default:
+                _logger.LogWarning("Unknown role ID {RoleId} for user {UserId}", registerRequest.RoleId, userId);
+                break;
         }
     }
 

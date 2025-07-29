@@ -32,8 +32,8 @@ import {
   Settings,
 } from "lucide-react";
 import type { AiCustomInstructionDTO } from "@/types/ai";
-import { aiInstructionsService } from "@/services/api/aiInstructionsService";
-import { aiService } from "@/services/api/aiService";
+import { aiInstructionsService } from "@/services/aiInstructionsService";
+import { aiService } from "@/services/aiService";
 
 interface TestingPlaygroundProps {
   instruction: AiCustomInstructionDTO;

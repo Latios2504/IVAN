@@ -14,7 +14,7 @@ namespace ivan_api.Repository.PartnerProfiles
         Task<bool> AddPartnerProfile(Partner partnerProfile);
         Task<bool> UpdatePartnerProfile(Partner partnerProfile);
         Task<IEnumerable<Partner>> ListPartnerProfile(PartnerProfileFilterModel filter);
-        Task<Partner> GetPartnerProfileById(int id);
+        Task<Partner> GetPartnerProfileById(int userId);
         Task<PagedResultDto<PartnerProfileViewModel>> GetPartnerProfilesAsync(int PageNumber, int PageSize);
         Task<int> GetLastId();
     }

@@ -87,13 +87,13 @@ namespace ivan_api.Repository.OrganizationProfiles
             };
         }
 
-        public async Task<Organization> GetOrganizationProfileById(int id)
+        public async Task<Organization> GetOrganizationProfileById(int userId)
         {
             return await _context.Organizations
                 .Include(x => x.User)
                 .Include(x => x.VerifiedByNavigation)
                 .Include(x => x.Type)
-                .SingleOrDefaultAsync(x => x.OrganizationId == id);
+                .SingleOrDefaultAsync(x => x.UserId == userId);
         }
 
         public async Task<int> GetLastId()

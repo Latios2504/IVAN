@@ -47,7 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import { useModal, useModalWithData } from "@/hooks/useModal";
 import { DataTable } from "@/components/common/DataTable";
 import type { TableColumn, TableAction } from "@/components/common/DataTable";
@@ -121,7 +121,7 @@ const mockCoordinatorRequests: CoordinatorRequest[] = [
 ];
 
 export default function OrganizationCoordinatorRequestPage() {
-  const { showNotification } = useToast();
+  // Remove useToast hook since we're using sonner directly
   const createDialog = useModal();
   const viewModal = useModalWithData<CoordinatorRequest>();
 

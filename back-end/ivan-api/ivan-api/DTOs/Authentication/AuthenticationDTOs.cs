@@ -17,6 +17,12 @@ public class LoginRequestDTO
 // Register Request
 public class RegisterRequestDTO
 {
+    [Required(ErrorMessage = "First name is required")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Last name is required")]
+    public string LastName { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string Email { get; set; } = string.Empty;
@@ -32,6 +38,20 @@ public class RegisterRequestDTO
     [Required(ErrorMessage = "Role is required")]
     [Range(1, 5, ErrorMessage = "Invalid role selected")]
     public int RoleId { get; set; }
+
+    // Optional fields for Organization registration
+    public string? OrganizationName { get; set; }
+    public int? OrganizationTypeId { get; set; }
+    public string? TaxCode { get; set; }
+    public string? Website { get; set; }
+
+    // Optional fields for Partner registration
+    public string? CompanyName { get; set; }
+    public int? IndustryId { get; set; }
+
+    // Optional fields for all roles
+    public string? PhoneNumber { get; set; }
+    public string? Address { get; set; }
 }
 
 // Forgot Password Request

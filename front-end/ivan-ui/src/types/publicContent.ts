@@ -23,6 +23,9 @@ export interface PublicOrganization {
   ratingCount: number;
   totalEvents: number;
   totalVolunteers: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PublicEvent {
@@ -60,6 +63,9 @@ export interface PublicEvent {
   rating: number;
   ratingCount: number;
   eventType?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PublicPartner {
@@ -77,6 +83,119 @@ export interface PublicPartner {
   rating: number;
   ratingCount: number;
   totalCollaborations: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicVolunteer {
+  volunteerId: number;
+  userId: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  avatar?: string;
+  address?: string;
+  wardCommune?: string;
+  district?: string;
+  province?: string;
+  studentId?: string;
+  university?: string;
+  major?: string;
+  yearOfStudy?: number;
+  motivation?: string;
+  experience?: string;
+  availability?: string;
+  volunteerHours: number;
+  rating: number;
+  ratingCount: number;
+  isVerified: boolean;
+  verifiedAt?: string;
+  lastActiveDate?: string;
+  totalHoursVolunteered: number;
+  skills?: string;
+  skillsList?: PublicVolunteerSkill[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicVolunteerSkill {
+  skillId: number;
+  skillName: string;
+  category?: string;
+  proficiencyLevel: string;
+  yearsOfExperience: number;
+  description?: string;
+}
+
+// Card component interfaces (for UI mapping)
+export interface OrganizationCardData {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  location: string;
+  website?: string;
+  avatar?: string;
+  logoUrl?: string;
+  isVerified: boolean;
+  rating?: number;
+  ratingCount?: number;
+  totalEvents?: number;
+  totalVolunteers?: number;
+  focusAreas?: string[];
+}
+
+export interface EventCardData {
+  id: number;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  maxVolunteers?: number;
+  currentVolunteers: number;
+  organizationName: string;
+  imageUrl?: string;
+  status: string;
+  category: string;
+  volunteersRegistered?: number;
+}
+
+export interface PartnerCardData {
+  id: number;
+  name: string;
+  description: string;
+  industry: string;
+  website?: string;
+  logoUrl?: string;
+  isActive: boolean;
+  totalCollaborations: number;
+  isVerified?: boolean;
+}
+
+export interface VolunteerCardData {
+  id: number;
+  name: string;
+  fullName: string;
+  description: string;
+  university?: string;
+  major?: string;
+  yearOfStudy?: number;
+  location: string;
+  avatar?: string;
+  isVerified: boolean;
+  rating: number;
+  ratingCount: number;
+  totalHoursVolunteered: number;
+  skills: string[];
+  availability?: string;
+  lastActiveDate?: string;
 }
 
 // Filter interfaces
@@ -109,15 +228,25 @@ export interface PublicPartnerFilters {
   size?: number;
 }
 
+export interface PublicVolunteerFilters {
+  search?: string;
+  skillId?: number;
+  university?: string;
+  province?: string;
+  isVerified?: boolean;
+  page?: number;
+  size?: number;
+}
+
 // Response interfaces
 export interface PagedResult<T> {
-  items: {
-    $values: T[];
-  };
-  page: number;
-  size: number;
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
   totalPages: number;
-  totalItems: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 }
 
 export interface ApiResponse<T> {

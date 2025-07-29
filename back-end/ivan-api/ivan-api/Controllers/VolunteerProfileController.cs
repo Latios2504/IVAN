@@ -27,16 +27,17 @@ namespace ivan_api.Controllers
 
         /// <summary>
         /// GET api/volunteer-profiles/{userId}
-        /// Volunteer có thể xem hồ sơ của chính họ, Admin xem hồ sơ bất kỳ
+        /// Get volunteer profile by User ID (not VolunteerProfile ID)
+        /// Volunteer can view their own profile, Admin can view any profile
         /// </summary>
         [HttpGet("{userId:int}")]
         //[Authorize]
         public async Task<ActionResult<VolunteerProfileDetailDto>> GetById(int userId)
         {
-            // Optionally: kiểm tra nếu caller không phải Admin thì userId phải trùng với ID của chính họ
+            // Optionally: check if caller is not Admin, then userId must match their own ID
             var dto = await _service.GetByIdAsync(userId);
             if (dto == null)
-                return NotFound(new { message = $"Volunteer profile with UserId={userId} not found." });
+                return NotFound(new { message = $"Volunteer profile for UserId={userId} not found." });
 
             return Ok(dto);
         }
@@ -64,16 +65,16 @@ namespace ivan_api.Controllers
         /// </summary>
         [HttpPut("{userId:int}")]
         [Authorize]
-        public async Task<IActionResult> Update(int userId, [FromBody] VolunteerProfileUpdateDto dto)
+        public async Task<ActionResult<VolunteerProfileDetailDto>> Update(int userId, [FromBody] VolunteerProfileUpdateDto dto)
         {
             //if (userId != dto.)
             //    return BadRequest(new { message = "UserId in URL và body không khớp." });
 
-            var success = await _service.UpdateAsync(userId, dto);
-            if (!success)
+            var result = await _service.UpdateAsync(userId, dto);
+            if (result == null)
                 return NotFound(new { message = $"Volunteer profile with UserId={userId} not found." });
 
-            return NoContent();
+            return Ok(result);
         }
 
         /// <summary>

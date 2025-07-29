@@ -33,16 +33,8 @@ export default function ProtectedRoute({
 
   // Check role-based access
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Không có quyền truy cập
-        </h1>
-        <p className="text-gray-600">
-          Bạn không có quyền truy cập vào trang này.
-        </p>
-      </div>
-    );
+    // Don't pass location state when user lacks permissions to avoid redirect loops
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;

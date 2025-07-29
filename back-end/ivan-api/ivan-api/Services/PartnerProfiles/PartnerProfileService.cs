@@ -43,9 +43,9 @@ namespace ivan_api.Services.PartnerProfiles
             var pars = await _repository.ListPartnerProfile(filter);
             return _mapper.Map<IEnumerable<PartnerProfileViewModel>>(pars);
         }
-        public async Task<PartnerProfileViewModel> GetPartnerProfileById(int id)
+        public async Task<PartnerProfileViewModel> GetPartnerProfileById(int userId)
         {
-            var par = await _repository.GetPartnerProfileById(id);
+            var par = await _repository.GetPartnerProfileById(userId);
             if (par == null)
             {
                 throw new Exception("Partner not found");

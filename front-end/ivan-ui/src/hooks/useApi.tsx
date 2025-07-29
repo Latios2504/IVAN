@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import apiClient from "@/services/api/apiClient";
+import apiClient from "@/services/apiClient";
 import type { ApiResponse } from "@/types/common";
 
 interface UseApiOptions {

@@ -14,7 +14,7 @@ namespace ivan_api.Repository.OrganizationProfiles
         Task<bool> AddOrganizationProfile(Organization organizationProfile);
         Task<bool> UpdateOrganizationProfile(Organization organizationProfile);
         Task<IEnumerable<Organization>> ListOrganizationProfile(OrganizationProfileFilterModel filter);
-        Task<Organization> GetOrganizationProfileById(int id);
+        Task<Organization> GetOrganizationProfileById(int userId);
         Task<PagedResultDto<OrganizationProfileViewModel>> GetOrganizationProfilesAsync(int PageNumber, int PageSize);
         Task<int> GetLastId();
     }
