@@ -179,5 +179,19 @@ namespace ivan_api.Repository.Certificates
 
             return document;
         }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.Certificates
+                .Include(x => x.Event)
+                .Include(x => x.IssuedByNavigation)
+                .Include(x => x.Template)
+                .Include(x => x.Volunteer)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().CertificateId;
+        }
     }
 }

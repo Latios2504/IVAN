@@ -52,7 +52,19 @@ namespace ivan_api.Controllers
             }
 
             var result = await _service.AddCertificate(input);
-            return Ok(result);
+
+            if (!result)//if false
+            {
+                return BadRequest(null);
+            }
+
+            var listDto = await _service.GetList(1, 100);
+
+            var list = listDto.Items.ToList();
+
+            var postAdd = await _service.GetCertificateById(list.Last().CertificateId);
+
+            return Ok(postAdd);
         }
 
         [HttpGet("download/{id}")]
@@ -76,5 +88,15 @@ namespace ivan_api.Controllers
 
             return File(stream, "application/pdf", fileName);
         }
+
+        //public async Task<int> getLastId()
+        //{
+        //    var temp = await _service.GetList(1, 1000);
+        //    if (temp.Items == null) return -1;
+        //    var lastLst = temp.Items.ToList();
+        //    var last = lastLst.Last().CertificateId;
+
+        //    return last == null ? -1 : last;
+        //}
     }
 }

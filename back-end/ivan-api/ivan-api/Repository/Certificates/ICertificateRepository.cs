@@ -13,5 +13,6 @@ namespace ivan_api.Repository.Certificates
         Task<Certificate> GetCertificateById(int id);
         Task<PdfDocument> DownloadCertificateById(int id);
         Task<PagedResultDto<CertificateViewModel>> GetCertificatesAsync(int PageNumber, int PageSize);
+        Task<int> GetLastId();
     }
 }

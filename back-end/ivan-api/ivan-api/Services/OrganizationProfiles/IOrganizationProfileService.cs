@@ -10,5 +10,6 @@ namespace ivan_api.Services.OrganizationProfiles
         Task<IEnumerable<OrganizationProfileViewModel>> ListOrganizationProfile(OrganizationProfileFilterModel filter);
         Task<OrganizationProfileViewModel> GetOrganizationProfileById(int id);
         Task<PagedResultDto<OrganizationProfileViewModel>> GetList(int pageNumber, int pageSize);
+        Task<int> GetLastId();
     }
 }

@@ -386,5 +386,52 @@ namespace ivan_api.Repository.Reports
 
             return document;
         }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.Reports
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().ReportId;
+        }
+
+        public async Task<int> GetLastIdEvent()
+        {
+            var query = _context.Reports
+                .Where(x => x.ReportType.Equals("Event"))
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().ReportId;
+        }
+
+        public async Task<int> GetLastIdOrganization()
+        {
+            var query = _context.Reports
+                .Where(x => x.ReportType.Equals("Organization"))
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().ReportId;
+        }
+
+        public async Task<int> GetLastIdSystem()
+        {
+            var query = _context.Reports
+                .Where(x => x.ReportType.Equals("System"))
+                .Include(x => x.CreatedByNavigation)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().ReportId;
+        }
     }
 }

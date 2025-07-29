@@ -10,5 +10,6 @@ namespace ivan_api.Services.PartnerProfiles
         Task<IEnumerable<PartnerProfileViewModel>> ListPartnerProfile(PartnerProfileFilterModel filter);
         Task<PartnerProfileViewModel> GetPartnerProfileById(int id);
         Task<PagedResultDto<PartnerProfileViewModel>> GetList(int pageNumber, int pageSize);
+        Task<int> GetLastId();
     }
 }

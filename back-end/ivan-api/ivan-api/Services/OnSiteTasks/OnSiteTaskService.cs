@@ -60,5 +60,7 @@ namespace ivan_api.Services.OnSiteTasks
         {
             return await _repository.GetOnSiteTasksAsync(pageNumber, pageSize);
         }
+
+        public async Task<int> GetLastId() => await _repository.GetLastId();
     }
 }

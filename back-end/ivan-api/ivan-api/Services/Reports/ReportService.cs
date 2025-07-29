@@ -104,5 +104,13 @@ namespace ivan_api.Services.Reports
         {
             return await _repository.GetSystemReportsAsync(pageNumber, pageSize);
         }
+
+        public async Task<int> GetLastId() => await _repository.GetLastId();
+
+        public async Task<int> GetLastIdEvent() => await _repository.GetLastIdEvent();
+
+        public async Task<int> GetLastIdOrganization() => await _repository.GetLastIdOrganization();
+
+        public async Task<int> GetLastIdSystem() => await _repository.GetLastIdSystem();
     }
 }

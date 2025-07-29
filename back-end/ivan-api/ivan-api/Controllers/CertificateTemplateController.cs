@@ -52,7 +52,29 @@ namespace ivan_api.Controllers
             }
 
             var result = await _service.AddCertificateTemplate(input);
-            return Ok(result);
+
+            if (!result)//if false
+            {
+                return BadRequest(null);
+            }
+
+            var listDto = await _service.GetList(1, 100);
+
+            var list = listDto.Items.ToList();
+
+            var postAdd = await _service.GetCertificateTemplateById(list.Last().TemplateId);
+
+            return Ok(postAdd);
         }
+
+        //public async Task<int> getLastId()
+        //{
+        //    var temp = await _service.GetList(1, 1000);
+        //    if (temp.Items == null) return -1;
+        //    var lastLst = temp.Items.ToList();
+        //    var last = lastLst.Last().TemplateId;
+
+        //    return last == null ? -1 : last;
+        //}
     }
 }

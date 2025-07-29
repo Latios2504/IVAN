@@ -21,5 +21,9 @@ namespace ivan_api.Repository.Reports
         Task<PagedResultDto<ReportViewModel>> GetEventReportsAsync(int PageNumber, int PageSize);
         Task<PagedResultDto<ReportViewModel>> GetOrganizationReportsAsync(int PageNumber, int PageSize);
         Task<PagedResultDto<ReportViewModel>> GetSystemReportsAsync(int PageNumber, int PageSize);
+        Task<int> GetLastId();
+        Task<int> GetLastIdEvent();
+        Task<int> GetLastIdOrganization();
+        Task<int> GetLastIdSystem();
     }
 }

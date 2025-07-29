@@ -58,5 +58,7 @@ namespace ivan_api.Services.OrganizationProfiles
         {
             return await _repository.GetOrganizationProfilesAsync(pageNumber, pageSize);
         }
+
+        public async Task<int> GetLastId() => await _repository.GetLastId();
     }
 }

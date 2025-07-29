@@ -95,5 +95,18 @@ namespace ivan_api.Repository.OrganizationProfiles
                 .Include(x => x.Type)
                 .SingleOrDefaultAsync(x => x.OrganizationId == id);
         }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.Organizations
+                .Include(x => x.User)
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.Type)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().OrganizationId;
+        }
     }
 }

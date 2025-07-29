@@ -90,5 +90,21 @@ namespace ivan_api.Repository.OnSiteTasks
                 .Include(x => x.VerifiedByNavigation)
                 .SingleOrDefaultAsync(x => x.TaskId == id);
         }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.OnSiteTasks
+                .Include(x => x.Category)
+                .Include(x => x.CompletedByNavigation)
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Event)
+                .Include(x => x.Status)
+                .Include(x => x.VerifiedByNavigation)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().TaskId;
+        }
     }
 }

@@ -16,15 +16,15 @@
 
         public DateTime? EndTime { get; set; }
 
-        public decimal? EstimatedHours { get; set; }
+        //public decimal? EstimatedHours { get; set; }
 
-        public decimal? ActualHours { get; set; }
+        //public decimal? ActualHours { get; set; }
 
         public string? Location { get; set; }
 
-        public int? RequiredVolunteers { get; set; }
+        //public int? RequiredVolunteers { get; set; }
 
-        public int? AssignedVolunteers { get; set; }
+        //public int? AssignedVolunteers { get; set; }
 
         public string? RequiredSkills { get; set; }
 
@@ -40,18 +40,18 @@
 
         public string? CompletionCriteria { get; set; }
 
-        public DateTime? CompletedAt { get; set; }
+        //public DateTime? CompletedAt { get; set; }
 
-        public int? CompletedBy { get; set; }
+        //public int? CompletedBy { get; set; }
 
-        public int? VerifiedBy { get; set; }
+        //public int? VerifiedBy { get; set; }
 
         public string? Notes { get; set; }
 
-        public int? CreatedBy { get; set; }
+        //public int? CreatedBy { get; set; }
 
-        public DateTime? CreatedAt { get; set; }
+        //public DateTime? CreatedAt { get; set; }
 
-        public DateTime? UpdatedAt { get; set; }
+        //public DateTime? UpdatedAt { get; set; }
     }
 }

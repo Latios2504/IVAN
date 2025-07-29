@@ -52,23 +52,25 @@
 
         public bool? IsVerified { get; set; }
 
-        public DateTime? VerifiedAt { get; set; }
+        //public DateTime? VerifiedAt { get; set; }
 
-        public int? VerifiedBy { get; set; }
+        //public int? VerifiedBy { get; set; }
 
-        public decimal? Rating { get; set; }
+        //public decimal? Rating { get; set; }
 
-        public int? RatingCount { get; set; }
+        //public int? RatingCount { get; set; }
 
-        public int? TotalEvents { get; set; }
+        //public int? TotalEvents { get; set; }
 
-        public int? TotalVolunteers { get; set; }
+        //public int? TotalVolunteers { get; set; }
 
-        public bool? IsActive { get; set; }
+        //public bool? IsActive { get; set; }
 
-        public DateTime? CreatedAt { get; set; } = DateTime.Now;
+        //public DateTime? CreatedAt { get; set; } = DateTime.Now;
 
-        public DateTime? UpdatedAt { get; set; } = DateTime.Now;
+        //public DateTime? UpdatedAt { get; set; } = DateTime.Now;
+
+
 
         //public int UserId { get; set; }
 

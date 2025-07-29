@@ -14,13 +14,13 @@
 
         public string? Description { get; set; }
 
-        public decimal? HoursCompleted { get; set; }
+        //public decimal? HoursCompleted { get; set; }
 
         public string? PerformanceLevel { get; set; }
 
-        public DateTime? IssueDate { get; set; }
+        //public DateTime? IssueDate { get; set; }
 
-        public DateTime? ExpiryDate { get; set; }
+        //public DateTime? ExpiryDate { get; set; }
 
         public string? CertificateFileUrl { get; set; }
 
@@ -30,14 +30,14 @@
 
         public string? QrcodeUrl { get; set; }
 
-        public int? IssuedBy { get; set; }
+        //public int? IssuedBy { get; set; }
 
-        public string? Status { get; set; }
+        //public string? Status { get; set; }
 
-        public int? DownloadCount { get; set; }
+        //public int? DownloadCount { get; set; }
 
-        public DateTime? LastDownloadDate { get; set; }
+        //public DateTime? LastDownloadDate { get; set; }
 
-        public DateTime? CreatedAt { get; set; }
+        //public DateTime? CreatedAt { get; set; }
     }
 }

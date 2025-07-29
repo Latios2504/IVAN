@@ -54,5 +54,7 @@ namespace ivan_api.Services.Certificates
         {
             return await _repository.GetCertificatesAsync(pageNumber, pageSize);
         }
+
+        public async Task<int> GetLastId() => await _repository.GetLastId();
     }
 }

@@ -10,5 +10,6 @@ namespace ivan_api.Services.OnSiteTasks
         Task<IEnumerable<OnSiteTaskViewModel>> ListOnSiteTask(OnSiteTaskFilterModel filter);
         Task<OnSiteTaskViewModel> GetOnSiteTaskById(int id);
         Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize);
+        Task<int> GetLastId();
     }
 }

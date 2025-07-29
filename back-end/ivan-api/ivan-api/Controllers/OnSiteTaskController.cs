@@ -1,7 +1,9 @@
-﻿using ivan_api.Services.OnSiteTasks;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using ivan_api.DTOs.OnSiteTasks;
+using ivan_api.Services.OnSiteTasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ivan_api.DTOs.OnSiteTasks;
+using System.Threading.Tasks;
 
 namespace ivan_api.Controllers
 {
@@ -52,7 +54,19 @@ namespace ivan_api.Controllers
             }
 
             var result = await _service.AddOnSiteTask(input);
-            return Ok(result);
+
+            if (!result)//if false
+            {
+                return BadRequest(null);
+            }
+
+            var listDto = await _service.GetList(1, 100);
+
+            var list = listDto.Items.ToList();
+
+            var postAdd = await _service.GetOnSiteTaskById(list.Last().TaskId);
+
+            return Ok(postAdd);
         }
 
         [HttpPut("update/{id}")]
@@ -70,7 +84,25 @@ namespace ivan_api.Controllers
             }
 
             var result = await _service.UpdateOnSiteTask(input, id);
-            return Ok(result);
+
+            var postUpate = await _service.GetOnSiteTaskById(id);
+
+            if (!result)//if false
+            {
+                return BadRequest(postUpate);
+            }
+
+            return Ok(postUpate);
         }
+
+        //public async Task<int> getLastId()
+        //{
+        //    var temp = await _service.GetList(1, 1000);
+        //    if (temp.Items == null) return -1;
+        //    var lastLst = temp.Items.ToList();
+        //    var last = lastLst.Last().TaskId;
+
+        //    return last == null ? -1 : last;
+        //}
     }
 }

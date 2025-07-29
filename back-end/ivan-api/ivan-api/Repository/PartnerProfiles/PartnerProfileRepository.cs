@@ -95,5 +95,18 @@ namespace ivan_api.Repository.PartnerProfiles
                 .Include(x => x.Industry)
                 .SingleOrDefaultAsync(x => x.PartnerId == id);
         }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.Partners
+                .Include(x => x.User)
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.Industry)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().PartnerId;
+        }
     }
 }

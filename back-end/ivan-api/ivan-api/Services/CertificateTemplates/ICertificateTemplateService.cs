@@ -10,5 +10,6 @@ namespace ivan_api.Services.CertificateTemplates
         Task<IEnumerable<CertificateTemplateViewModel>> ListCertificateTemplate(CertificateTemplateFilterModel filter);
         Task<CertificateTemplateViewModel> GetCertificateTemplateById(int id);
         Task<PagedResultDto<CertificateTemplateViewModel>> GetList(int pageNumber, int pageSize);
+        Task<int> GetLastId();
     }
 }

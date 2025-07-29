@@ -58,5 +58,7 @@ namespace ivan_api.Services.PartnerProfiles
         {
             return await _repository.GetPartnerProfilesAsync(pageNumber, pageSize);
         }
+
+        public async Task<int> GetLastId() => await _repository.GetLastId();
     }
 }

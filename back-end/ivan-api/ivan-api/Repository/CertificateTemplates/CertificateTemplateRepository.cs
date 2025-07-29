@@ -76,5 +76,17 @@ namespace ivan_api.Repository.CertificateTemplates
                 .Include(x => x.Organization)
                 .SingleOrDefaultAsync(x => x.TemplateId == id);
         }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.CertificateTemplates
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Organization)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().TemplateId;
+        }
     }
 }

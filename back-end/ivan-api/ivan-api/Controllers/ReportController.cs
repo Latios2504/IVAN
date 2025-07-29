@@ -94,7 +94,19 @@ namespace ivan_api.Controllers
             }
 
             var result = await _service.AddEventReport(input);
-            return Ok(result);
+
+            if (!result)//if false
+            {
+                return BadRequest(null);
+            }
+
+            var listDto = await _service.GetEventReportList(1, 100);
+
+            var list = listDto.Items.ToList();
+
+            var postAdd = await _service.GetEventReportById(list.Last().ReportId);
+
+            return Ok(postAdd);
         }
 
         [HttpPost("addOrganizationReport")]
@@ -112,7 +124,20 @@ namespace ivan_api.Controllers
             }
 
             var result = await _service.AddOrganizationReport(input);
-            return Ok(result);
+
+
+            if (!result)//if false
+            {
+                return BadRequest(null);
+            }
+
+            var listDto = await _service.GetOrganizationReportList(1, 100);
+
+            var list = listDto.Items.ToList();
+
+            var postAdd = await _service.GetOrganizationReportById(list.Last().ReportId);
+
+            return Ok(postAdd);
         }
 
         [HttpGet("downloadEventReport/{id}")]
@@ -180,5 +205,35 @@ namespace ivan_api.Controllers
 
             return File(stream, "application/pdf", fileName);
         }
+
+        //public async Task<int> getLastIdEvent()
+        //{
+        //    var temp = await _service.GetEventReportList(1, 1000);
+        //    if (temp.Items == null) return -1;
+        //    var lastLst = temp.Items.ToList();
+        //    var last = lastLst.Last().ReportId;
+
+        //    return last == null ? -1 : last;
+        //}
+
+        //public async Task<int> getLastIdOrganization()
+        //{
+        //    var temp = await _service.GetOrganizationReportList(1, 1000);
+        //    if (temp.Items == null) return -1;
+        //    var lastLst = temp.Items.ToList();
+        //    var last = lastLst.Last().ReportId;
+
+        //    return last == null ? -1 : last;
+        //}
+
+        //public async Task<int> getLastIdSystem()
+        //{
+        //    var temp = await _service.GetSystemReportList(1, 1000);
+        //    if (temp.Items == null) return -1;
+        //    var lastLst = temp.Items.ToList();
+        //    var last = lastLst.Last().ReportId;
+
+        //    return last == null ? -1 : last;
+        //}
     }
 }
