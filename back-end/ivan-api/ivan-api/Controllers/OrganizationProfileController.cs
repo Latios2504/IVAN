@@ -55,7 +55,7 @@ namespace ivan_api.Controllers
 
             if (!result)//if false
             {
-                return BadRequest(null);
+                return BadRequest("Failed to add organization profile");
             }
 
             var listDto = await _service.GetList(1, 100);
@@ -83,14 +83,7 @@ namespace ivan_api.Controllers
 
             var result = await _service.UpdateOrganizationProfile(input, id);
 
-            var postUpate = await _service.GetOrganizationProfileById(id);
-
-            if (!result)//if false
-            {
-                return BadRequest(postUpate);
-            }
-
-            return Ok(postUpate);
+            return Ok(result);
         }
 
         //public async Task<int> getLastId()
