@@ -47,6 +47,7 @@ using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
 using ivan_api.Services.Analytics;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -145,8 +146,14 @@ builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>(
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IPublicContentService, PublicContentService>();
 
+// AutoMapper Configuration - Minimal configuration to avoid MaxFloat issue
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.DisableConstructorMapping();
+    cfg.ShouldMapMethod = (method) => false; // Disable method mapping to avoid MaxFloat
+}, typeof(Program).Assembly);
+
 // Volunteer Profile DI
-builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();
 builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 
@@ -178,14 +185,6 @@ builder.Services.AddScoped<ICertificateTemplateService, CertificateTemplateServi
 
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
-
-builder.Services.AddAutoMapper(typeof(OrganizationProfileMapping));
-builder.Services.AddAutoMapper(typeof(PartnerProfileMapping));
-builder.Services.AddAutoMapper(typeof(OnSiteTaskMapping));
-builder.Services.AddAutoMapper(typeof(CertificateMapping));
-builder.Services.AddAutoMapper(typeof(CertificateTemplateMapping));
-builder.Services.AddAutoMapper(typeof(ReportMapping));
-builder.Services.AddAutoMapper(typeof(ivan_api.Mapping.Profiles.VolunteerCoordinatorProfile));
 
 GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 // Partner Collaboration DI
