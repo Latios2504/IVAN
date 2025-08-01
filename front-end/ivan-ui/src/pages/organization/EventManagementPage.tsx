@@ -6,7 +6,15 @@ import { EventFilters } from "@/components/organization/event-management/EventFi
 import { CreateEventDialog } from "@/components/organization/event-management/CreateEventDialog";
 import { LoadingState } from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Plus, Users, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function EventManagementPage() {
   const {
@@ -78,6 +86,49 @@ export default function EventManagementPage() {
           <Plus className="w-4 h-4 mr-2" />
           Create Event
         </Button>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Quản lý đăng ký sự kiện
+            </CardTitle>
+            <CardDescription>
+              Xem và quản lý đăng ký tình nguyện viên cho các sự kiện
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/organization/event-registrations">
+              <Button variant="outline" className="w-full">
+                <FileText className="w-4 h-4 mr-2" />
+                Xem đăng ký sự kiện
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Quản lý Coordinators
+            </CardTitle>
+            <CardDescription>
+              Quản lý điều phối viên tình nguyện trong tổ chức
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/organization/volunteer-coordinators">
+              <Button variant="outline" className="w-full">
+                <Users className="w-4 h-4 mr-2" />
+                Quản lý Coordinators
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dashboard */}

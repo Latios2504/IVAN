@@ -97,6 +97,12 @@ const AdminNotificationManagementPage = lazy(
 const AIInstructionsManagementPage = lazy(
   () => import("@/pages/admin/AIInstructionsManagementPage")
 );
+const EventRegistrationPage = lazy(
+  () => import("@/pages/organization/EventRegistrationPage")
+);
+const VolunteerCoordinatorManagementPage = lazy(
+  () => import("@/pages/organization/VolunteerCoordinatorManagementPage")
+);
 
 // Profile pages
 const ProfileRedirectPage = lazy(
@@ -237,6 +243,24 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
               <OrganizationCoordinatorRequestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/volunteer-coordinators"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
+              <VolunteerCoordinatorManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/event-registrations"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <EventRegistrationPage />
             </ProtectedRoute>
           }
         />

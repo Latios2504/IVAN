@@ -105,8 +105,20 @@ export default function OrganizationDashboard() {
             <ActionButton to="/organization/events" icon={Calendar}>
               Quản lý sự kiện
             </ActionButton>
+            <ActionButton
+              to="/organization/event-registrations"
+              icon={UserPlus}
+            >
+              Quản lý đăng ký sự kiện
+            </ActionButton>
             <ActionButton to="/organization/volunteers" icon={Users}>
               Quản lý tình nguyện viên
+            </ActionButton>
+            <ActionButton
+              to="/organization/volunteer-coordinators"
+              icon={UserPlus}
+            >
+              Quản lý Coordinators
             </ActionButton>
             <ActionButton to="/volunteers" icon={UserPlus}>
               Danh sách tình nguyện viên
@@ -128,11 +140,20 @@ export default function OrganizationDashboard() {
             <CardDescription>Điều phối và quản lý coordinator</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <ActionButton
+              to="/organization/volunteer-coordinators"
+              icon={UserPlus}
+            >
+              Quản lý Coordinators
+            </ActionButton>
             <ActionButton to="/organization/coordinators" icon={UserPlus}>
               Lịch trình Coordinators
             </ActionButton>
             <ActionButton to="/organization/coordinator-tasks" icon={Settings}>
               Nhiệm vụ Coordinators
+            </ActionButton>
+            <ActionButton to="/organization/event-registrations" icon={Users}>
+              Quản lý đăng ký sự kiện
             </ActionButton>
             <ActionButton
               to="/organization/certificates"

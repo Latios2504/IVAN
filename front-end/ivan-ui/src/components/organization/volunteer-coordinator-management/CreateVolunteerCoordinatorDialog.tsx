@@ -229,11 +229,11 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="managerCoordinatorId">Manager</Label>
               <Select
-                value={formData.managerCoordinatorId?.toString()}
+                value={formData.managerCoordinatorId ? formData.managerCoordinatorId.toString() : "none"}
                 onValueChange={(value) =>
                   handleInputChange(
                     "managerCoordinatorId",
-                    value ? parseInt(value) : undefined
+                    value === "none" ? undefined : parseInt(value)
                   )
                 }
               >
@@ -241,7 +241,7 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
                   <SelectValue placeholder="Select manager (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Manager</SelectItem>
+                  <SelectItem value="none">No Manager</SelectItem>
                   {availableManagers.map((manager) => (
                     <SelectItem
                       key={manager.coordinatorId}

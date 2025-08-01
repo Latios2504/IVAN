@@ -31,6 +31,8 @@ export const ROUTES = {
     MANAGEMENT: "/organization/management",
     EVENTS: "/organization/events",
     VOLUNTEERS: "/organization/volunteers",
+    VOLUNTEER_COORDINATORS: "/organization/volunteer-coordinators",
+    EVENT_REGISTRATIONS: "/organization/event-registrations",
     CERTIFICATES: "/organization/certificates",
     REPORTS: "/organization/reports",
     RESOURCES: "/organization/resources",
