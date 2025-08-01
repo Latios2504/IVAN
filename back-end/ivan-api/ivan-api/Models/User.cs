@@ -37,9 +37,7 @@ public partial class User
 
     public virtual ICollection<ChatbotInteraction> ChatbotInteractions { get; set; } = new List<ChatbotInteraction>();
 
-    public virtual ICollection<CoordinatorSchedule> CoordinatorScheduleCoordinators { get; set; } = new List<CoordinatorSchedule>();
-
-    public virtual ICollection<CoordinatorSchedule> CoordinatorScheduleCreatedByNavigations { get; set; } = new List<CoordinatorSchedule>();
+    public virtual ICollection<CoordinatorSchedule> CoordinatorSchedules { get; set; } = new List<CoordinatorSchedule>();
 
     public virtual ICollection<CoordinatorTask> CoordinatorTaskCoordinators { get; set; } = new List<CoordinatorTask>();
 

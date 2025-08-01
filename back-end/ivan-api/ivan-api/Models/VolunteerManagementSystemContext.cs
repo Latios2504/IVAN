@@ -97,13 +97,12 @@ public partial class VolunteerManagementSystemContext : DbContext
 
     public virtual DbSet<VolunteerSkill> VolunteerSkills { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
         var builder = new ConfigurationBuilder()
                                .SetBasePath(Directory.GetCurrentDirectory())
                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            IConfigurationRoot configuration = builder.Build();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
+        IConfigurationRoot configuration = builder.Build();
+        optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -112,7 +111,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<AiCustomInstruction>(entity =>
         {
-            entity.HasKey(e => e.InstructionId).HasName("PK__AiCustom__CE069471CEE013BB");
+            entity.HasKey(e => e.InstructionId).HasName("PK__AiCustom__CE06947172ADA38D");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.InstructionName).HasMaxLength(200);
@@ -122,11 +121,11 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Certificate>(entity =>
         {
-            entity.HasKey(e => e.CertificateId).HasName("PK__Certific__BBF8A7C1B74BC4A5");
+            entity.HasKey(e => e.CertificateId).HasName("PK__Certific__BBF8A7C1D517D132");
 
-            entity.HasIndex(e => e.VerificationCode, "UQ__Certific__DA24CB14602EAC47").IsUnique();
+            entity.HasIndex(e => e.VerificationCode, "UQ__Certific__DA24CB1401EC974B").IsUnique();
 
-            entity.HasIndex(e => e.CertificateNumber, "UQ__Certific__E384CE0FC5729075").IsUnique();
+            entity.HasIndex(e => e.CertificateNumber, "UQ__Certific__E384CE0F683AA97F").IsUnique();
 
             entity.Property(e => e.CertificateFileUrl).HasMaxLength(500);
             entity.Property(e => e.CertificateName).HasMaxLength(300);
@@ -167,7 +166,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<CertificateTemplate>(entity =>
         {
-            entity.HasKey(e => e.TemplateId).HasName("PK__Certific__F87ADD27613F0F3A");
+            entity.HasKey(e => e.TemplateId).HasName("PK__Certific__F87ADD2762E37E73");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -189,7 +188,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<ChatbotInteraction>(entity =>
         {
-            entity.HasKey(e => e.InteractionId).HasName("PK__ChatbotI__922C04964B5C567F");
+            entity.HasKey(e => e.InteractionId).HasName("PK__ChatbotI__922C0496F0A6CAD1");
 
             entity.Property(e => e.InteractionDate).HasDefaultValueSql("(getdate())");
 
@@ -200,7 +199,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<CollaborationType>(entity =>
         {
-            entity.HasKey(e => e.TypeId).HasName("PK__Collabor__516F03B5B1F995C7");
+            entity.HasKey(e => e.TypeId).HasName("PK__Collabor__516F03B57813A05B");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -210,7 +209,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<CoordinatorSchedule>(entity =>
         {
-            entity.HasKey(e => e.ScheduleId).HasName("PK__Coordina__9C8A5B49EDADE823");
+            entity.HasKey(e => e.ScheduleId).HasName("PK__Coordina__9C8A5B495B235839");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -228,7 +227,7 @@ public partial class VolunteerManagementSystemContext : DbContext
                 .HasForeignKey(d => d.CoordinatorId)
                 .HasConstraintName("FK__Coordinat__Coord__51300E55");
 
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CoordinatorScheduleCreatedByNavigations)
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CoordinatorSchedules)
                 .HasForeignKey(d => d.CreatedBy)
                 .HasConstraintName("FK__Coordinat__Creat__531856C7");
 
@@ -239,7 +238,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<CoordinatorTask>(entity =>
         {
-            entity.HasKey(e => e.TaskId).HasName("PK__Coordina__7C6949B1B762E803");
+            entity.HasKey(e => e.TaskId).HasName("PK__Coordina__7C6949B1E1CF80C5");
 
             entity.Property(e => e.ActualHours).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.Category).HasMaxLength(100);
@@ -268,7 +267,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Event>(entity =>
         {
-            entity.HasKey(e => e.EventId).HasName("PK__Events__7944C8108E3EB69F");
+            entity.HasKey(e => e.EventId).HasName("PK__Events__7944C810D2AE586A");
 
             entity.Property(e => e.AgeRequirement).HasMaxLength(100);
             entity.Property(e => e.BannerImageUrl).HasMaxLength(500);
@@ -334,7 +333,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<EventCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__EventCat__19093A0BF44A8B01");
+            entity.HasKey(e => e.CategoryId).HasName("PK__EventCat__19093A0B0B6654E3");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.Color).HasMaxLength(7);
@@ -346,9 +345,9 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<EventRegistration>(entity =>
         {
-            entity.HasKey(e => e.RegistrationId).HasName("PK__EventReg__6EF58810F73256FA");
+            entity.HasKey(e => e.RegistrationId).HasName("PK__EventReg__6EF58810EA221134");
 
-            entity.HasIndex(e => new { e.EventId, e.VolunteerId }, "UQ__EventReg__AE523EE34BF2B514").IsUnique();
+            entity.HasIndex(e => new { e.EventId, e.VolunteerId }, "UQ__EventReg__AE523EE30BB1D7BF").IsUnique();
 
             entity.Property(e => e.ActualHours).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.AdditionalInfo).HasMaxLength(1000);
@@ -389,7 +388,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<EventStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__EventSta__C8EE2063C9E32880");
+            entity.HasKey(e => e.StatusId).HasName("PK__EventSta__C8EE206397872D73");
 
             entity.ToTable("EventStatus");
 
@@ -402,7 +401,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDD661FF4FCC");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDD6FD2BD8CA");
 
             entity.ToTable("Feedback");
 
@@ -437,7 +436,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<FeedbackCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__Feedback__19093A0B0DE67F0F");
+            entity.HasKey(e => e.CategoryId).HasName("PK__Feedback__19093A0BCBFA649D");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -447,7 +446,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E120DDF30AA");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E12DC10ED69");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsRead).HasDefaultValue(false);
@@ -461,7 +460,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<OnSiteTask>(entity =>
         {
-            entity.HasKey(e => e.TaskId).HasName("PK__OnSiteTa__7C6949B1987CC6A5");
+            entity.HasKey(e => e.TaskId).HasName("PK__OnSiteTa__7C6949B1963FEA3A");
 
             entity.Property(e => e.ActualHours).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.AssignedVolunteers).HasDefaultValue(0);
@@ -509,7 +508,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Organization>(entity =>
         {
-            entity.HasKey(e => e.OrganizationId).HasName("PK__Organiza__CADB0B129031E4BE");
+            entity.HasKey(e => e.OrganizationId).HasName("PK__Organiza__CADB0B122DB8AEE9");
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.BannerUrl).HasMaxLength(500);
@@ -560,7 +559,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<OrganizationType>(entity =>
         {
-            entity.HasKey(e => e.TypeId).HasName("PK__Organiza__516F03B595645196");
+            entity.HasKey(e => e.TypeId).HasName("PK__Organiza__516F03B5983930F7");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -570,7 +569,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Partner>(entity =>
         {
-            entity.HasKey(e => e.PartnerId).HasName("PK__Partners__39FD6312786A921F");
+            entity.HasKey(e => e.PartnerId).HasName("PK__Partners__39FD631244CAA606");
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.BusinessLicense).HasMaxLength(100);
@@ -614,7 +613,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<PartnerCollaboration>(entity =>
         {
-            entity.HasKey(e => e.CollaborationId).HasName("PK__PartnerC__4F813664CF9A79C8");
+            entity.HasKey(e => e.CollaborationId).HasName("PK__PartnerC__4F813664F605FB52");
 
             entity.Property(e => e.Budget).HasColumnType("decimal(15, 2)");
             entity.Property(e => e.CollaborationName).HasMaxLength(300);
@@ -647,7 +646,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<PartnerIndustry>(entity =>
         {
-            entity.HasKey(e => e.IndustryId).HasName("PK__PartnerI__808DEDCC8CB54126");
+            entity.HasKey(e => e.IndustryId).HasName("PK__PartnerI__808DEDCC08E0295F");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -657,7 +656,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<RegistrationStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__Registra__C8EE206340C5A2CE");
+            entity.HasKey(e => e.StatusId).HasName("PK__Registra__C8EE206305F9A9FA");
 
             entity.ToTable("RegistrationStatus");
 
@@ -670,7 +669,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Report>(entity =>
         {
-            entity.HasKey(e => e.ReportId).HasName("PK__Reports__D5BD48053A56247B");
+            entity.HasKey(e => e.ReportId).HasName("PK__Reports__D5BD4805E9E795BC");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.GeneratedDate).HasDefaultValueSql("(getdate())");
@@ -683,7 +682,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<RolePermission>(entity =>
         {
-            entity.HasKey(e => e.PermissionId).HasName("PK__RolePerm__EFA6FB2F1E17E13B");
+            entity.HasKey(e => e.PermissionId).HasName("PK__RolePerm__EFA6FB2F0E72CE5F");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -696,7 +695,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<Skill>(entity =>
         {
-            entity.HasKey(e => e.SkillId).HasName("PK__Skills__DFA0918726C7DFC0");
+            entity.HasKey(e => e.SkillId).HasName("PK__Skills__DFA09187CD93133A");
 
             entity.Property(e => e.Category).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -707,7 +706,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<SupportCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__SupportC__19093A0B93F9FF99");
+            entity.HasKey(e => e.CategoryId).HasName("PK__SupportC__19093A0B6C3C1F20");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -721,7 +720,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<SupportRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__SupportR__33A8517A30165D3C");
+            entity.HasKey(e => e.RequestId).HasName("PK__SupportR__33A8517A2E47F871");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Priority)
@@ -755,7 +754,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<SupportRequestComment>(entity =>
         {
-            entity.HasKey(e => e.CommentId).HasName("PK__SupportR__C3B4DFCA4A1E0908");
+            entity.HasKey(e => e.CommentId).HasName("PK__SupportR__C3B4DFCAFF37F409");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsInternal).HasDefaultValue(false);
@@ -772,7 +771,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TableColumn>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TableCol__3214EC0799C3CB8F");
+            entity.HasKey(e => e.Id).HasName("PK__TableCol__3214EC0787D47A32");
 
             entity.Property(e => e.ColumnName).HasMaxLength(255);
             entity.Property(e => e.DataType).HasMaxLength(100);
@@ -784,7 +783,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TableKeyword>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TableKey__3214EC07B8106CC1");
+            entity.HasKey(e => e.Id).HasName("PK__TableKey__3214EC07F950496E");
 
             entity.Property(e => e.Keyword).HasMaxLength(255);
 
@@ -795,7 +794,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TableRelationship>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TableRel__3214EC072DC16BEE");
+            entity.HasKey(e => e.Id).HasName("PK__TableRel__3214EC073A555C31");
 
             entity.Property(e => e.FromColumn).HasMaxLength(255);
             entity.Property(e => e.RelationshipType)
@@ -816,16 +815,16 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TableSchema>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TableSch__3214EC07A8FC0CB7");
+            entity.HasKey(e => e.Id).HasName("PK__TableSch__3214EC074F39A177");
 
             entity.Property(e => e.TableName).HasMaxLength(255);
         });
 
         modelBuilder.Entity<TaskAssignment>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__TaskAssi__32499E7752FB561F");
+            entity.HasKey(e => e.AssignmentId).HasName("PK__TaskAssi__32499E7736C948BB");
 
-            entity.HasIndex(e => new { e.TaskId, e.VolunteerId }, "UQ__TaskAssi__AB7FBF42DCD18305").IsUnique();
+            entity.HasIndex(e => new { e.TaskId, e.VolunteerId }, "UQ__TaskAssi__AB7FBF42C652D418").IsUnique();
 
             entity.Property(e => e.AssignedDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -851,7 +850,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TaskCategory>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__TaskCate__19093A0B4CA67023");
+            entity.HasKey(e => e.CategoryId).HasName("PK__TaskCate__19093A0BD9843E85");
 
             entity.Property(e => e.CategoryName).HasMaxLength(100);
             entity.Property(e => e.Color).HasMaxLength(7);
@@ -862,7 +861,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<TaskStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__TaskStat__C8EE2063F6A86118");
+            entity.HasKey(e => e.StatusId).HasName("PK__TaskStat__C8EE206341295C22");
 
             entity.ToTable("TaskStatus");
 
@@ -875,9 +874,9 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C5292849C");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C0BE918D2");
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534AA2F86A4").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D1053458588588").IsUnique();
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Email).HasMaxLength(255);
@@ -897,7 +896,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<UserProfile>(entity =>
         {
-            entity.HasKey(e => e.ProfileId).HasName("PK__UserProf__290C88E44BAF3674");
+            entity.HasKey(e => e.ProfileId).HasName("PK__UserProf__290C88E4A35224DA");
 
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.Avatar).HasMaxLength(500);
@@ -924,9 +923,9 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__UserRole__8AFACE1A9847271D");
+            entity.HasKey(e => e.RoleId).HasName("PK__UserRole__8AFACE1AFEB99785");
 
-            entity.HasIndex(e => e.RoleName, "UQ__UserRole__8A2B6160185A581A").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__UserRole__8A2B616023CE5CF8").IsUnique();
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
@@ -937,7 +936,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<VolunteerCoordinator>(entity =>
         {
-            entity.HasKey(e => e.CoordinatorId).HasName("PK__Voluntee__91C373DFB016D201");
+            entity.HasKey(e => e.CoordinatorId).HasName("PK__Voluntee__91C373DFB16D8217");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Department).HasMaxLength(100);
@@ -974,7 +973,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<VolunteerProfile>(entity =>
         {
-            entity.HasKey(e => e.VolunteerId).HasName("PK__Voluntee__716F6F2C2A710030");
+            entity.HasKey(e => e.VolunteerId).HasName("PK__Voluntee__716F6F2CF7F30969");
 
             entity.Property(e => e.Availability).HasMaxLength(500);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -1003,7 +1002,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<VolunteerSchedule>(entity =>
         {
-            entity.HasKey(e => e.ScheduleId).HasName("PK__Voluntee__9C8A5B49B7B2AB5B");
+            entity.HasKey(e => e.ScheduleId).HasName("PK__Voluntee__9C8A5B4977123E1D");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(1000);
@@ -1032,7 +1031,7 @@ public partial class VolunteerManagementSystemContext : DbContext
 
         modelBuilder.Entity<VolunteerSkill>(entity =>
         {
-            entity.HasKey(e => new { e.VolunteerId, e.SkillId }).HasName("PK__Voluntee__1C956634736F39DE");
+            entity.HasKey(e => new { e.VolunteerId, e.SkillId }).HasName("PK__Voluntee__1C9566340D669BA1");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
