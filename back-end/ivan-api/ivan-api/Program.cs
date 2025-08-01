@@ -194,6 +194,9 @@ builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
 // Analytics Services DI
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
+// Export Services DI
+builder.Services.AddScoped<ivan_api.Services.ExportService.IExportService, ivan_api.Services.ExportService.ExportService>();
+
 // TODO: Phase 2 - Add simplified services registration
 
 // Đăng ký Repository & Service

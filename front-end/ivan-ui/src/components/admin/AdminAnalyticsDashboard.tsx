@@ -22,8 +22,12 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, RefreshCw } from "lucide-react";
+import { Button } from "../ui/button";
+import { ExportButton, type ExportOptions } from "../common/ExportButton";
 import { apiClient } from "../../services/apiClient";
+import { exportService } from "../../services/exportService";
+import { toast } from "sonner";
 
 // Types for analytics data (matching backend DTOs)
 interface AdminOverviewStats {
@@ -113,6 +117,7 @@ const AdminAnalyticsDashboard: React.FC = () => {
     null
   );
   const [loading, setLoading] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -142,6 +147,44 @@ const AdminAnalyticsDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExportAnalytics = async (
+    format: "excel" | "csv" | "pdf" | "json",
+    options: ExportOptions
+  ) => {
+    try {
+      setExportLoading(true);
+      toast.info("Đang xuất dữ liệu...");
+
+      const result = await exportService.exportAnalyticsFromFrontend({
+        format,
+        dateRange: options.dateRange,
+        sections: options.sections,
+        includeCharts: options.includeCharts,
+        language: options.language || "vi-VN",
+      });
+
+      exportService.downloadFile(result.blob, result.filename);
+
+      toast.success(
+        `Xuất dữ liệu thành công! Tệp ${result.filename} đã được tải xuống.`
+      );
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Không thể xuất dữ liệu. Vui lòng thử lại sau."
+      );
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const refreshData = () => {
+    fetchAnalyticsData();
+    toast.info("Đang làm mới dữ liệu...");
   };
 
   // Chart configurations - expanded color palette for better visibility
@@ -272,6 +315,33 @@ const AdminAnalyticsDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Dashboard Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Admin Analytics Dashboard
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Thống kê toàn diện và phân tích dữ liệu hệ thống
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <ExportButton
+            onExport={handleExportAnalytics}
+            loading={exportLoading}
+            availableFormats={["excel", "csv", "json"]}
+            dataType="analytics"
+            buttonText="Xuất báo cáo"
+          />
+          <Button variant="outline" onClick={refreshData} disabled={loading}>
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            />
+            Làm mới
+          </Button>
+        </div>
+      </div>
+
       {/* Charts Tabs */}
       <Tabs defaultValue="users" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
