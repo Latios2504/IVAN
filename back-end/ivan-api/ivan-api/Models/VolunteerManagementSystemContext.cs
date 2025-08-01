@@ -224,7 +224,7 @@ public partial class VolunteerManagementSystemContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getdate())");
 
-            entity.HasOne(d => d.Coordinator).WithMany(p => p.CoordinatorScheduleCoordinators)
+            entity.HasOne(d => d.Coordinator).WithMany(p => p.CoordinatorSchedules)
                 .HasForeignKey(d => d.CoordinatorId)
                 .HasConstraintName("FK__Coordinat__Coord__51300E55");
 

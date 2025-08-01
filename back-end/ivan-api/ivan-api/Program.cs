@@ -38,6 +38,9 @@ using ivan_api.Services.EmailSer;
 using ivan_api.Services.AuthenticationSer;
 using ivan_api.Services.AI;
 using ivan_api.Extensions;
+using ivan_api.Services.VolunteerCoordinatorServ;
+using ivan_api.Repository.VolunteerCoordinatorRepo;
+using ivan_api.Services.CoordinatorScheduleServ;
 
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
@@ -151,6 +154,13 @@ builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 builder.Services.AddScoped<ICoordinatorTaskRepository, CoordinatorTaskRepository>();
 builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 
+// Volunteer Coordinator DI
+builder.Services.AddScoped<IVolunteerCoordinatorRepository, VolunteerCoordinatorRepository>();
+builder.Services.AddScoped<IVolunteerCoordinatorService, VolunteerCoordinatorService>();
+
+// Coordinator Schedule DI
+builder.Services.AddScoped<ICoordinatorScheduleService, CoordinatorScheduleService>();
+
 builder.Services.AddScoped<IOrganizationProfileRepository, OrganizationProfileRepository>();
 builder.Services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();
 
@@ -175,6 +185,7 @@ builder.Services.AddAutoMapper(typeof(OnSiteTaskMapping));
 builder.Services.AddAutoMapper(typeof(CertificateMapping));
 builder.Services.AddAutoMapper(typeof(CertificateTemplateMapping));
 builder.Services.AddAutoMapper(typeof(ReportMapping));
+builder.Services.AddAutoMapper(typeof(ivan_api.Mapping.Profiles.VolunteerCoordinatorProfile));
 
 GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 // Partner Collaboration DI

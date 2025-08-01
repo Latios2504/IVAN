@@ -48,4 +48,6 @@ public partial class VolunteerCoordinator
     public virtual Organization RequestedByNavigation { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
+
+    public virtual ICollection<CoordinatorSchedule> CoordinatorSchedules { get; set; } = new List<CoordinatorSchedule>();
 }
