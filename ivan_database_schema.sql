@@ -452,7 +452,7 @@ CREATE TABLE CoordinatorSchedules (
     CreatedBy INT,
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2 DEFAULT GETDATE(),
-    FOREIGN KEY (CoordinatorId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CoordinatorId) REFERENCES VolunteerCoordinators(CoordinatorId) ON DELETE CASCADE,
     FOREIGN KEY (EventId) REFERENCES Events(EventId),
     FOREIGN KEY (CreatedBy) REFERENCES Users(UserId)
 );
