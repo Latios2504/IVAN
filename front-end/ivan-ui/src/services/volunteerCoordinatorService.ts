@@ -13,76 +13,40 @@ import type {
 import type { ApiResponse } from "../types/common";
 
 class VolunteerCoordinatorService {
-  private readonly baseUrl = "/volunteer-coordinators";
+  private readonly baseUrl = "/VolunteerCoordinator";
 
   // Volunteer Coordinator CRUD Operations
   async getOrganizationCoordinators(
     filters: VolunteerCoordinatorFilterDto
   ): Promise<PagedResultDto<VolunteerCoordinatorDto>> {
-    const params = new URLSearchParams();
+    // For now, we'll use the getCoordinatorsByOrganization endpoint
+    // We need to get the organization ID from the user context or pass it as a parameter
+    const organizationId = 1; // TODO: Get this from user context
 
-    if (filters.search) params.append("search", filters.search);
-    if (filters.managementLevels?.length) {
-      filters.managementLevels.forEach((level) =>
-        params.append("managementLevels", level)
-      );
-    }
-    if (filters.isActive !== undefined)
-      params.append("isActive", filters.isActive.toString());
-    if (filters.specializations?.length) {
-      filters.specializations.forEach((spec) =>
-        params.append("specializations", spec)
-      );
-    }
-    if (filters.minVolunteersManaged)
-      params.append(
-        "minVolunteersManaged",
-        filters.minVolunteersManaged.toString()
-      );
-    if (filters.maxVolunteersManaged)
-      params.append(
-        "maxVolunteersManaged",
-        filters.maxVolunteersManaged.toString()
-      );
-    if (filters.dateJoinedFrom)
-      params.append("dateJoinedFrom", filters.dateJoinedFrom);
-    if (filters.dateJoinedTo)
-      params.append("dateJoinedTo", filters.dateJoinedTo);
-    if (filters.managerCoordinatorId)
-      params.append(
-        "managerCoordinatorId",
-        filters.managerCoordinatorId.toString()
-      );
-    if (filters.hasManagerOnly !== undefined)
-      params.append("hasManagerOnly", filters.hasManagerOnly.toString());
-
-    // Pagination and sorting
-    params.append("page", (filters.page || 1).toString());
-    params.append("size", (filters.size || 20).toString());
-    if (filters.sortBy) params.append("sortBy", filters.sortBy);
-    if (filters.sortDirection)
-      params.append("sortDirection", filters.sortDirection);
-
-    const response = await apiClient.get<
-      PagedResultDto<VolunteerCoordinatorDto>
-    >(`${this.baseUrl}?${params}`);
-    return response.data;
+    const response = await apiClient.post<
+      ApiResponse<PagedResultDto<VolunteerCoordinatorDto>>
+    >(
+      `${this.baseUrl}/getCoordinatorsByOrganization/${organizationId}`,
+      filters
+    );
+    return response.data.data!;
   }
 
   async getCoordinatorById(
     coordinatorId: number
   ): Promise<VolunteerCoordinatorDto> {
-    const response = await apiClient.get<VolunteerCoordinatorDto>(
+    const response = await apiClient.get<ApiResponse<VolunteerCoordinatorDto>>(
       `${this.baseUrl}/${coordinatorId}`
     );
-    return response.data;
+    return response.data.data!;
   }
 
   async createCoordinator(
     coordinatorData: CreateVolunteerCoordinatorDto
   ): Promise<number> {
+    const organizationId = 1; // TODO: Get this from user context
     const response = await apiClient.post<ApiResponse<number>>(
-      this.baseUrl,
+      `${this.baseUrl}/${organizationId}`,
       coordinatorData
     );
     return response.data.data!;
@@ -106,10 +70,11 @@ class VolunteerCoordinatorService {
 
   // Stats & Analytics
   async getCoordinatorStats(): Promise<VolunteerCoordinatorStatsDto> {
-    const response = await apiClient.get<VolunteerCoordinatorStatsDto>(
-      `${this.baseUrl}/stats`
-    );
-    return response.data;
+    const organizationId = 1; // TODO: Get this from user context
+    const response = await apiClient.get<
+      ApiResponse<VolunteerCoordinatorStatsDto>
+    >(`${this.baseUrl}/stats/${organizationId}`);
+    return response.data.data!;
   }
 
   // Hierarchy Management
@@ -120,27 +85,56 @@ class VolunteerCoordinatorService {
     return response.data;
   }
 
-  // Lookup Data
+  // Lookup Data (Mock implementations since backend doesn't have these endpoints)
   async getManagementLevels(): Promise<ManagementLevelDto[]> {
-    const response = await apiClient.get<ManagementLevelDto[]>(
-      `${this.baseUrl}/management-levels`
-    );
-    return response.data;
+    // Mock data - replace with actual backend call when available
+    return Promise.resolve([
+      {
+        levelId: 1,
+        levelName: "Senior Coordinator",
+        description: "Senior level management",
+      },
+      {
+        levelId: 2,
+        levelName: "Team Lead",
+        description: "Team leadership role",
+      },
+      {
+        levelId: 3,
+        levelName: "Coordinator",
+        description: "Standard coordinator role",
+      },
+    ]);
   }
 
   async getSpecializations(): Promise<SpecializationDto[]> {
-    const response = await apiClient.get<SpecializationDto[]>(
-      `${this.baseUrl}/specializations`
-    );
-    return response.data;
+    // Mock data - replace with actual backend call when available
+    return Promise.resolve([
+      {
+        specializationId: 1,
+        specializationName: "Event Management",
+        description: "Event planning and execution",
+      },
+      {
+        specializationId: 2,
+        specializationName: "Volunteer Training",
+        description: "Training and development",
+      },
+      {
+        specializationId: 3,
+        specializationName: "Community Outreach",
+        description: "Community engagement",
+      },
+    ]);
   }
 
   // Utility Methods
   async getAvailableManagers(): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
-      `${this.baseUrl}/available-managers`
-    );
-    return response.data;
+    const organizationId = 1; // TODO: Get this from user context
+    const response = await apiClient.get<
+      ApiResponse<VolunteerCoordinatorDto[]>
+    >(`${this.baseUrl}/managers/${organizationId}`);
+    return response.data.data!;
   }
 
   async getCoordinatorsByLevel(

@@ -304,7 +304,7 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
 
           {error && (
             <div className="text-sm text-red-500 bg-red-50 p-3 rounded border border-red-200">
-              {error}
+              {error?.message || error?.toString() || 'Đã xảy ra lỗi'}
             </div>
           )}
         </div>

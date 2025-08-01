@@ -145,7 +145,7 @@ const EventRegistrationPageContent: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Failed to load registrations
               </h3>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-gray-600 mb-4">{error?.message || error?.toString() || 'Đã xảy ra lỗi'}</p>
               <Button onClick={() => window.location.reload()}>
                 Try Again
               </Button>

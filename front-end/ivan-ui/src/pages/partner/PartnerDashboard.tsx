@@ -149,7 +149,7 @@ export default function PartnerDashboard() {
           </div>
         ) : error ? (
           <div className="col-span-full text-center py-8">
-            <p className="text-red-500">Lỗi: {error}</p>
+            <p className="text-red-500">Lỗi: {error?.message || error?.toString() || 'Đã xảy ra lỗi'}</p>
           </div>
         ) : (
           <>

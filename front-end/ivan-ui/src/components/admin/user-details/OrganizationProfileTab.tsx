@@ -99,7 +99,7 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
     return (
       <div className="text-center py-8 text-red-500">
         <XCircle className="h-12 w-12 mx-auto mb-4" />
-        <p>{error}</p>
+        <p>{error?.message || error?.toString() || 'Đã xảy ra lỗi'}</p>
       </div>
     );
   }

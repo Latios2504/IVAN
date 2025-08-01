@@ -305,7 +305,7 @@ export default function CustomInstructionBuilder({
                 </div>
                 <ul className="list-disc list-inside space-y-1 text-sm text-red-600 ml-6">
                   {validation.errors.map((error, index) => (
-                    <li key={index}>{error}</li>
+                    <li key={index}>{error?.message || error?.toString() || error}</li>
                   ))}
                 </ul>
               </div>
