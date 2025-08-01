@@ -14,7 +14,7 @@ import type {
 import type { ApiResponse } from "../types/common";
 
 class EventService {
-  private readonly baseUrl = "/api/events";
+  private readonly baseUrl = "/events";
 
   // Event CRUD Operations
   async getOrganizationEvents(

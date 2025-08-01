@@ -9,7 +9,7 @@ import type {
 } from "../types/eventRegistration";
 
 export class EventRegistrationService {
-  private static baseUrl = "/api/EventRegistrations";
+  private static baseUrl = "/EventRegistrations";
 
   static async getRegistrations(
     eventId: number,

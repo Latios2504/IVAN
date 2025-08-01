@@ -13,7 +13,7 @@ import type {
 import type { ApiResponse } from "../types/common";
 
 class VolunteerCoordinatorService {
-  private readonly baseUrl = "/api/volunteer-coordinators";
+  private readonly baseUrl = "/volunteer-coordinators";
 
   // Volunteer Coordinator CRUD Operations
   async getOrganizationCoordinators(
