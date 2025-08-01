@@ -2,6 +2,7 @@ import { apiClient } from "./apiClient";
 import { ApiError } from "./errorHandler";
 import type { ApiResponse } from "../types/common";
 import type { User, UserRole } from "../types/auth";
+import type { BaseProfile } from "../types/profile/profiles";
 
 // Backend DTOs matching the API
 export interface UserAccountListDto {
@@ -52,6 +53,95 @@ export interface UserAccountDetailDto {
   statusDisplay: string;
   verificationDisplay: string;
   statistics: UserStatisticsDto;
+  // Role-specific profile data
+  volunteerProfile?: VolunteerProfileData;
+  organizationProfile?: OrganizationProfileData;
+  partnerProfile?: PartnerProfileData;
+  coordinatorProfile?: CoordinatorProfileData;
+}
+
+export interface VolunteerProfileData {
+  volunteerId: number;
+  studentId?: string;
+  university?: string;
+  major?: string;
+  yearOfStudy?: number;
+  motivation?: string;
+  experience?: string;
+  availability?: string;
+  volunteerHours: number;
+  rating?: number;
+  ratingCount: number;
+  isVerified: boolean;
+  verifiedAt?: string;
+  totalHoursVolunteered: number;
+  skills?: string;
+  lastActiveDate?: string;
+}
+
+export interface OrganizationProfileData {
+  organizationId: number;
+  organizationName: string;
+  shortName?: string;
+  typeId: number;
+  typeName?: string;
+  taxCode?: string;
+  businessLicense?: string;
+  establishedYear?: number;
+  website?: string;
+  facebookPage?: string;
+  linkedInPage?: string;
+  description?: string;
+  mission?: string;
+  vision?: string;
+  contactPersonName?: string;
+  contactPersonTitle?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  isVerified: boolean;
+  verifiedAt?: string;
+  rating?: number;
+  ratingCount: number;
+  totalEvents: number;
+  totalVolunteers: number;
+}
+
+export interface PartnerProfileData {
+  partnerId: number;
+  companyName: string;
+  industryId: number;
+  industryName?: string;
+  taxCode?: string;
+  businessLicense?: string;
+  website?: string;
+  description?: string;
+  contactPersonName?: string;
+  contactPersonTitle?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  logoUrl?: string;
+  isVerified: boolean;
+  verifiedAt?: string;
+  rating?: number;
+  ratingCount: number;
+  totalCollaborations: number;
+}
+
+export interface CoordinatorProfileData {
+  coordinatorId: number;
+  organizationId: number;
+  organizationName?: string;
+  employeeId?: string;
+  position?: string;
+  department?: string;
+  responsibilities?: string;
+  hireDate?: string;
+  endDate?: string;
+  managerId?: number;
+  managerName?: string;
+  notes?: string;
 }
 
 export interface UserStatisticsDto {
@@ -104,7 +194,9 @@ class UserManagementService {
   /**
    * Get paginated list of users with filtering
    */
-  async getUsers(filter: UserAccountFilterDto): Promise<PagedResultDto<UserAccountListDto>> {
+  async getUsers(
+    filter: UserAccountFilterDto
+  ): Promise<PagedResultDto<UserAccountListDto>> {
     try {
       const response = await this.api.post<PagedResultDto<UserAccountListDto>>(
         "/useraccount/getListUser",
@@ -125,11 +217,14 @@ class UserManagementService {
   /**
    * Get detailed user information by ID or email
    */
-  async getUserDetail(userId?: number, email?: string): Promise<UserAccountDetailDto> {
+  async getUserDetail(
+    userId?: number,
+    email?: string
+  ): Promise<UserAccountDetailDto> {
     try {
       const params = new URLSearchParams();
-      if (userId) params.append('userId', userId.toString());
-      if (email) params.append('email', email);
+      if (userId) params.append("userId", userId.toString());
+      if (email) params.append("email", email);
 
       const response = await this.api.post<UserAccountDetailDto>(
         `/useraccount/getUserInforDetail?${params.toString()}`,
@@ -175,29 +270,43 @@ class UserManagementService {
   /**
    * Toggle user active status
    */
-  async toggleUserStatus(userId: number, adminUserId: number, isActive: boolean, currentRoleId?: number): Promise<UserAccountDetailDto> {
+  async toggleUserStatus(
+    userId: number,
+    adminUserId: number,
+    isActive: boolean,
+    currentRoleId?: number
+  ): Promise<UserAccountDetailDto> {
     return this.updateUserAccount(userId, adminUserId, {
       roleId: currentRoleId || 0, // Use current roleId if provided, otherwise 0 (will be ignored by backend)
-      isActive: isActive
+      isActive: isActive,
     });
   }
 
   /**
    * Toggle user email verification status
    */
-  async toggleEmailVerification(userId: number, adminUserId: number, isVerified: boolean, currentRoleId?: number): Promise<UserAccountDetailDto> {
+  async toggleEmailVerification(
+    userId: number,
+    adminUserId: number,
+    isVerified: boolean,
+    currentRoleId?: number
+  ): Promise<UserAccountDetailDto> {
     return this.updateUserAccount(userId, adminUserId, {
       roleId: currentRoleId || 0, // Use current roleId if provided, otherwise 0 (will be ignored by backend)
-      isEmailVerified: isVerified
+      isEmailVerified: isVerified,
     });
   }
 
   /**
    * Change user role
    */
-  async changeUserRole(userId: number, adminUserId: number, newRoleId: number): Promise<UserAccountDetailDto> {
+  async changeUserRole(
+    userId: number,
+    adminUserId: number,
+    newRoleId: number
+  ): Promise<UserAccountDetailDto> {
     return this.updateUserAccount(userId, adminUserId, {
-      roleId: newRoleId
+      roleId: newRoleId,
     });
   }
 
@@ -205,7 +314,9 @@ class UserManagementService {
    * Create coordinator account (Admin only)
    * Note: This would need a separate endpoint in the backend
    */
-  async createCoordinator(coordinatorData: CoordinatorCreationRequest): Promise<{ message: string; userId: number }> {
+  async createCoordinator(
+    coordinatorData: CoordinatorCreationRequest
+  ): Promise<{ message: string; userId: number }> {
     try {
       // This endpoint doesn't exist yet in the backend, would need to be implemented
       const response = await this.api.post<{ message: string; userId: number }>(
@@ -214,7 +325,10 @@ class UserManagementService {
       );
 
       if (!response.success || !response.data) {
-        throw new ApiError(response.message || "Failed to create coordinator", 400);
+        throw new ApiError(
+          response.message || "Failed to create coordinator",
+          400
+        );
       }
 
       return response.data;
@@ -245,7 +359,10 @@ class UserManagementService {
       }>("/useraccount/statistics");
 
       if (!response.success || !response.data) {
-        throw new ApiError(response.message || "Failed to fetch statistics", 400);
+        throw new ApiError(
+          response.message || "Failed to fetch statistics",
+          400
+        );
       }
 
       return response.data;
@@ -262,36 +379,15 @@ class UserManagementService {
     return {
       id: backendUser.userId,
       email: backendUser.email,
-      fullName: backendUser.fullName || `${backendUser.firstName || ''} ${backendUser.lastName || ''}`.trim(),
+      fullName:
+        backendUser.fullName ||
+        `${backendUser.firstName || ""} ${backendUser.lastName || ""}`.trim(),
       role: this.mapRoleIdToRole(backendUser.roleId),
       isActive: backendUser.isActive,
       isEmailVerified: backendUser.isEmailVerified,
       lastLoginAt: backendUser.lastLoginAt,
       createdAt: backendUser.createdAt,
-      profile: {
-        id: backendUser.profileId || 0,
-        userId: backendUser.userId,
-        firstName: backendUser.firstName,
-        lastName: backendUser.lastName,
-        fullName: backendUser.fullName,
-        phoneNumber: backendUser.phoneNumber,
-        dateOfBirth: backendUser.dateOfBirth,
-        gender: backendUser.gender,
-        avatar: backendUser.avatar,
-        address: backendUser.address,
-        wardCommune: backendUser.wardCommune,
-        district: backendUser.district,
-        province: backendUser.province,
-        postalCode: backendUser.postalCode,
-        emergencyContactName: backendUser.emergencyContactName,
-        emergencyContactPhone: backendUser.emergencyContactPhone,
-        bio: '', // Not available in backend DTO
-        skills: [], // Would need separate call
-        interests: [], // Would need separate call
-        availability: [], // Would need separate call
-        createdAt: backendUser.createdAt,
-        updatedAt: backendUser.updatedAt
-      }
+      updatedAt: backendUser.updatedAt,
     };
   }
 
@@ -300,12 +396,18 @@ class UserManagementService {
    */
   private mapRoleIdToRole(roleId: number): UserRole {
     switch (roleId) {
-      case 1: return "admin";
-      case 2: return "organization";
-      case 3: return "volunteer";
-      case 4: return "partner";
-      case 5: return "coordinator";
-      default: return "volunteer";
+      case 1:
+        return "volunteer";
+      case 2:
+        return "organization";
+      case 3:
+        return "partner";
+      case 4:
+        return "coordinator";
+      case 5:
+        return "admin";
+      default:
+        return "volunteer";
     }
   }
 
@@ -314,12 +416,18 @@ class UserManagementService {
    */
   private mapRoleToId(role: UserRole): number {
     switch (role) {
-      case "admin": return 1;
-      case "organization": return 2;
-      case "volunteer": return 3;
-      case "partner": return 4;
-      case "coordinator": return 5;
-      default: return 3;
+      case "volunteer":
+        return 1;
+      case "organization":
+        return 2;
+      case "partner":
+        return 3;
+      case "coordinator":
+        return 4;
+      case "admin":
+        return 5;
+      default:
+        return 1;
     }
   }
 }

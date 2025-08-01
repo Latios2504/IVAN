@@ -227,5 +227,23 @@ namespace ivan_api.Services.UserAccountServ
             await _userAccountRepository.UpdateuserAccount_Admin(idUser, dto);
             return await getUserInforByIdOrEmail(idUser, null);
         }
+
+        public async Task<AdminUserStatisticsDto> getUserStatisticsAsync()
+        {
+            var allUsers = await _context.Users.Include(u => u.Role).ToListAsync();
+            
+            var statistics = new AdminUserStatisticsDto
+            {
+                TotalUsers = allUsers.Count,
+                ActiveUsers = allUsers.Count(u => u.IsActive == true),
+                InactiveUsers = allUsers.Count(u => u.IsActive == false),
+                UnverifiedUsers = allUsers.Count(u => u.IsEmailVerified == false),
+                UsersByRole = allUsers
+                    .GroupBy(u => u.Role.RoleName)
+                    .ToDictionary(g => g.Key, g => g.Count())
+            };
+
+            return statistics;
+        }
     }
 }

@@ -38,11 +38,15 @@ using ivan_api.Services.EmailSer;
 using ivan_api.Services.AuthenticationSer;
 using ivan_api.Services.AI;
 using ivan_api.Extensions;
+using ivan_api.Services.VolunteerCoordinatorServ;
+using ivan_api.Repository.VolunteerCoordinatorRepo;
+using ivan_api.Services.CoordinatorScheduleServ;
 
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
+using ivan_api.Services.Analytics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -150,6 +154,13 @@ builder.Services.AddScoped<IVolunteerProfileService, VolunteerProfileService>();
 builder.Services.AddScoped<ICoordinatorTaskRepository, CoordinatorTaskRepository>();
 builder.Services.AddScoped<ICoordinatorTaskService, CoordinatorTaskService>();
 
+// Volunteer Coordinator DI
+builder.Services.AddScoped<IVolunteerCoordinatorRepository, VolunteerCoordinatorRepository>();
+builder.Services.AddScoped<IVolunteerCoordinatorService, VolunteerCoordinatorService>();
+
+// Coordinator Schedule DI
+builder.Services.AddScoped<ICoordinatorScheduleService, CoordinatorScheduleService>();
+
 builder.Services.AddScoped<IOrganizationProfileRepository, OrganizationProfileRepository>();
 builder.Services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();
 
@@ -174,6 +185,7 @@ builder.Services.AddAutoMapper(typeof(OnSiteTaskMapping));
 builder.Services.AddAutoMapper(typeof(CertificateMapping));
 builder.Services.AddAutoMapper(typeof(CertificateTemplateMapping));
 builder.Services.AddAutoMapper(typeof(ReportMapping));
+builder.Services.AddAutoMapper(typeof(ivan_api.Mapping.Profiles.VolunteerCoordinatorProfile));
 
 GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 // Partner Collaboration DI
@@ -189,6 +201,13 @@ builder.Services.AddScoped<ISchemaService, SchemaService>();
 
 // SQL Generator Services DI
 builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
+
+// Analytics Services DI
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+
+// Export Services DI
+builder.Services.AddScoped<ivan_api.Services.ExportService.IExportService, ivan_api.Services.ExportService.ExportService>();
+
 // TODO: Phase 2 - Add simplified services registration
 
 // Đăng ký Repository & Service

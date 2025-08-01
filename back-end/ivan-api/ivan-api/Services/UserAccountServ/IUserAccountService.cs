@@ -8,5 +8,6 @@ namespace ivan_api.Services.UserAccountServ
         Task<PagedResultDto<UserAccountListDto>> getListUserAsync(UserAccountFilterDto filter);
         Task<UserAccountDetailDto> getUserInforByIdOrEmail(int? idUser, string? emailUser);
         Task<UserAccountDetailDto> updateUserAccount_Admin(int idUser, int idAdmin, UserAccountUpdateDTO_Admin dto);
+        Task<AdminUserStatisticsDto> getUserStatisticsAsync();
     }
 }

@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Users, MapPin, Clock, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { VolunteerCard } from "@/components/public/VolunteerCard";
-import { usePublicVolunteers } from "@/hooks/usePublicVolunteers";
+import { usePublicVolunteers } from "@/hooks/public/usePublicVolunteers";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicVolunteerFilters,

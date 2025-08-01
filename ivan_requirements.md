@@ -1,5 +1,3 @@
-# IVAN
-
 ## FE-01
 
 ### Authentication

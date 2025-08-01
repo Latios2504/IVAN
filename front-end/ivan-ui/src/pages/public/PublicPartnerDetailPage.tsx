@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicPartnerDetail } from "@/hooks/usePublicPartnerDetail";
+import { usePublicPartnerDetail } from "@/hooks/public/usePublicPartnerDetail";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
