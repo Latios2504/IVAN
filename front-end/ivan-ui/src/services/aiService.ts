@@ -1,18 +1,13 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import { ApiError } from "./errorHandler";
 import type { ApiResponse } from "../types/common";
-
 import type { AiQueryRequest, AiQueryResponse } from "../types/ai";
 
 /**
  * Main AI Service for general queries
  * Uses the main AI endpoint that has automatic SQL detection built-in
  */
-class AiService {
-  private get api() {
-    return apiClient;
-  }
-
+class AiService extends BaseService {
   /**
    * Send a query to AI with automatic SQL detection
    * The backend will automatically detect if it's a data query and use SQL generation
@@ -31,17 +26,9 @@ class AiService {
         includeContext: request.includeContext ?? true,
       };
 
-      const response = await this.api.post<AiQueryResponse>(
-        "/Ai/query",
-        aiRequest
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(response.message || "Failed to send AI query", 400);
-      }
-
-      return response.data;
+      return await this.post<AiQueryResponse>("/Ai/query", aiRequest);
     } catch (error) {
+      this.logError("sendQuery", error);
       if (error instanceof ApiError) {
         throw error;
       }

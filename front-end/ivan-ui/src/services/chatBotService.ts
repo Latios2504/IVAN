@@ -1,17 +1,9 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import { ApiError } from "./errorHandler";
-import type {
-  ChatMessageRequest,
-  ChatMessageResponse,
-} from "../../types/chatbot";
+import type { ChatMessageRequest, ChatMessageResponse } from "../types/chatbot";
+import type { AiQueryRequest, AiQueryResponse } from "../types/ai";
 
-import type { AiQueryRequest, AiQueryResponse } from "../../types/ai";
-
-class ChatBotService {
-  private get api() {
-    return apiClient;
-  }
-
+class ChatBotService extends BaseService {
   async sendMessage(request: ChatMessageRequest): Promise<ChatMessageResponse> {
     try {
       // Use the AI query endpoint instead of non-existent chatbot endpoint
@@ -22,26 +14,23 @@ class ChatBotService {
         includeContext: true, // Include user role context
       };
 
-      const response = await this.api.post<AiQueryResponse>(
+      const aiResponse = await this.post<AiQueryResponse>(
         "/Ai/query",
         aiRequest
       );
 
-      if (!response.success || !response.data) {
-        throw new ApiError(response.message || "Failed to send message", 400);
-      }
-
       // Convert AI response to chatbot response format
       const chatResponse: ChatMessageResponse = {
-        response: response.data.response,
+        response: aiResponse.response,
         conversationId: request.conversationId || "", // Keep existing conversation ID
-        timestamp: response.data.generatedAt,
-        modelUsed: response.data.modelUsed,
-        customInstructionUsed: response.data.customInstructionUsed,
+        timestamp: aiResponse.generatedAt || new Date().toISOString(),
+        modelUsed: aiResponse.modelUsed,
+        customInstructionUsed: aiResponse.customInstructionUsed,
       };
 
       return chatResponse;
     } catch (error) {
+      this.logError("sendMessage", error);
       if (error instanceof ApiError) {
         throw error;
       }

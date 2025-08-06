@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Building, HandHeart, Users, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { PartnerCard } from "@/components/public/PartnerCard";
-import { usePublicPartners } from "@/hooks/public/usePublicPartners";
+import { usePublicPartners } from "@/context/PublicContentContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicPartner,

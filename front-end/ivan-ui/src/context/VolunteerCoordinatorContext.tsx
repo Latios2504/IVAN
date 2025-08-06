@@ -290,9 +290,17 @@ export const VolunteerCoordinatorProvider: React.FC<
   const loadCoordinators = async () => {
     try {
       dispatch({ type: "LOAD_START" });
+
+      // Get organization ID from authenticated user
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức. Vui lòng đăng nhập lại.");
+      }
+
       const coordinatorsData =
         await volunteerCoordinatorService.getOrganizationCoordinators(
-          state.filters
+          state.filters,
+          organizationId
         );
       dispatch({
         type: "LOAD_SUCCESS",
@@ -333,8 +341,14 @@ export const VolunteerCoordinatorProvider: React.FC<
     coordinatorData: CreateVolunteerCoordinatorDto
   ): Promise<number> => {
     try {
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức để tạo coordinator.");
+      }
+
       const coordinatorId = await volunteerCoordinatorService.createCoordinator(
-        coordinatorData
+        coordinatorData,
+        organizationId
       );
 
       // Load the created coordinator to add to state
@@ -406,7 +420,14 @@ export const VolunteerCoordinatorProvider: React.FC<
 
   const loadStats = async () => {
     try {
-      const stats = await volunteerCoordinatorService.getCoordinatorStats();
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức để tải thống kê.");
+      }
+
+      const stats = await volunteerCoordinatorService.getCoordinatorStats(
+        organizationId
+      );
       dispatch({
         type: "SET_STATS",
         payload: stats,
@@ -476,7 +497,14 @@ export const VolunteerCoordinatorProvider: React.FC<
 
   const loadAvailableManagers = async () => {
     try {
-      const managers = await volunteerCoordinatorService.getAvailableManagers();
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức để tải danh sách quản lý.");
+      }
+
+      const managers = await volunteerCoordinatorService.getAvailableManagers(
+        organizationId
+      );
       dispatch({
         type: "SET_AVAILABLE_MANAGERS",
         payload: managers,

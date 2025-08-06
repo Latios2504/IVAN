@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingWithRetry } from "@/components/ui/skeletons";
-import { useFetchData } from "@/hooks/useAsyncData";
+import { useFetchData } from "@/hooks/useApiRequest";
 import { toast } from "sonner";
 import {
   Building2,
@@ -78,6 +78,11 @@ const AdminOrganizationListPage = () => {
     }),
     showErrorToast: true,
   });
+
+  // Destructure the nested data
+  const organizations = organizationsData?.organizations || [];
+  const organizationTypes = organizationsData?.types || [];
+  const stats = organizationsData?.stats;
 
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     OrganizationProfileData[]

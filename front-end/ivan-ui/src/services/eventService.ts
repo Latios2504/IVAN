@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import type {
   EventDto,
   CreateEventDto,
@@ -13,7 +13,7 @@ import type {
 } from "../types/event";
 import type { ApiResponse } from "../types/common";
 
-class EventService {
+class EventService extends BaseService {
   private readonly baseUrl = "/events";
 
   // Event CRUD Operations
@@ -54,56 +54,56 @@ class EventService {
     params.append("sortBy", filters.sortBy);
     params.append("sortDirection", filters.sortDirection);
 
-    const response = await apiClient.get<PagedResultDto<EventDto>>(
+    const response = await this.api.get<PagedResultDto<EventDto>>(
       `${this.baseUrl}/organization?${params.toString()}`
     );
     return response.data;
   }
 
   async getOrganizationEvent(eventId: number): Promise<EventDto> {
-    const response = await apiClient.get<EventDto>(
+    const response = await this.api.get<EventDto>(
       `${this.baseUrl}/organization/${eventId}`
     );
     return response.data;
   }
 
   async getOrganizationStats(): Promise<EventStatsDto> {
-    const response = await apiClient.get<EventStatsDto>(
+    const response = await this.api.get<EventStatsDto>(
       `${this.baseUrl}/organization/stats`
     );
     return response.data;
   }
 
   async createEvent(event: CreateEventDto): Promise<number> {
-    const response = await apiClient.post<number>(this.baseUrl, event);
+    const response = await this.api.post<number>(this.baseUrl, event);
     return response.data;
   }
 
   async updateEvent(eventId: number, event: UpdateEventDto): Promise<void> {
-    await apiClient.put(`${this.baseUrl}/${eventId}`, event);
+    await this.api.put(`${this.baseUrl}/${eventId}`, event);
   }
 
   async updateEventStatus(
     eventId: number,
     statusUpdate: UpdateEventStatusDto
   ): Promise<void> {
-    await apiClient.patch(`${this.baseUrl}/${eventId}/status`, statusUpdate);
+    await this.api.patch(`${this.baseUrl}/${eventId}/status`, statusUpdate);
   }
 
   async deleteEvent(eventId: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/${eventId}`);
+    await this.api.delete(`${this.baseUrl}/${eventId}`);
   }
 
   // Lookup Data
   async getEventCategories(): Promise<EventCategoryDto[]> {
-    const response = await apiClient.get<EventCategoryDto[]>(
+    const response = await this.api.get<EventCategoryDto[]>(
       `${this.baseUrl}/categories`
     );
     return response.data;
   }
 
   async getEventStatuses(): Promise<EventStatusDto[]> {
-    const response = await apiClient.get<EventStatusDto[]>(
+    const response = await this.api.get<EventStatusDto[]>(
       `${this.baseUrl}/statuses`
     );
     return response.data;
@@ -114,14 +114,14 @@ class EventService {
     eventId: number,
     timeframe: string = "month"
   ): Promise<Record<string, any>> {
-    const response = await apiClient.get<Record<string, any>>(
+    const response = await this.api.get<Record<string, any>>(
       `${this.baseUrl}/${eventId}/analytics?timeframe=${timeframe}`
     );
     return response.data;
   }
 
   async getAvailableStatusTransitions(eventId: number): Promise<number[]> {
-    const response = await apiClient.get<number[]>(
+    const response = await this.api.get<number[]>(
       `${this.baseUrl}/${eventId}/status-transitions`
     );
     return response.data;

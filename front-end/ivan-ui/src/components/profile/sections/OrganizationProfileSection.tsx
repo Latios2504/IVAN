@@ -127,7 +127,7 @@ export default function OrganizationProfileSection({
         })
       );
 
-      console.log("Submitting form data:", cleanedData);
+      
       await onSave(cleanedData);
     } catch (error) {
       console.error("Error in handleSubmit:", error);

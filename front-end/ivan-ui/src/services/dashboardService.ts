@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import { ApiError } from "./errorHandler";
 
 // Dashboard Statistics Types
@@ -42,13 +42,13 @@ export interface AdminStats extends SystemStats {
   systemHealth: string;
 }
 
-class DashboardService {
+class DashboardService extends BaseService {
   private readonly baseUrl = "/dashboard";
 
   // Get system-wide statistics for homepage
   async getSystemStats(): Promise<SystemStats> {
     try {
-      const response = await apiClient.get<SystemStats>(
+      const response = await this.api.get<SystemStats>(
         `${this.baseUrl}/system-stats`
       );
 
@@ -69,7 +69,7 @@ class DashboardService {
   // Get organization-specific dashboard stats
   async getOrganizationStats(): Promise<OrganizationStats> {
     try {
-      const response = await apiClient.get<OrganizationStats>(
+      const response = await this.api.get<OrganizationStats>(
         `${this.baseUrl}/organization-stats`
       );
 
@@ -93,7 +93,7 @@ class DashboardService {
   // Get volunteer-specific dashboard stats
   async getVolunteerStats(): Promise<VolunteerStats> {
     try {
-      const response = await apiClient.get<VolunteerStats>(
+      const response = await this.api.get<VolunteerStats>(
         `${this.baseUrl}/volunteer-stats`
       );
 
@@ -117,7 +117,7 @@ class DashboardService {
   // Get partner-specific dashboard stats
   async getPartnerStats(): Promise<PartnerStats> {
     try {
-      const response = await apiClient.get<PartnerStats>(
+      const response = await this.api.get<PartnerStats>(
         `${this.baseUrl}/partner-stats`
       );
 
@@ -141,7 +141,7 @@ class DashboardService {
   // Get admin-specific dashboard stats
   async getAdminStats(): Promise<AdminStats> {
     try {
-      const response = await apiClient.get<AdminStats>(
+      const response = await this.api.get<AdminStats>(
         `${this.baseUrl}/admin-stats`
       );
 
@@ -209,6 +209,27 @@ class DashboardService {
       recentUsers: 25,
       systemHealth: "Good",
     };
+  }
+
+  // Admin analytics methods for AdminAnalyticsDashboard
+  async getUserAnalytics(): Promise<any> {
+    try {
+      const response = await this.api.get<any>("/admin/analytics/users");
+      return response.success ? response.data : null;
+    } catch (error) {
+      this.logError("getUserAnalytics", error);
+      return null;
+    }
+  }
+
+  async getEventAnalytics(): Promise<any> {
+    try {
+      const response = await this.api.get<any>("/admin/analytics/events");
+      return response.success ? response.data : null;
+    } catch (error) {
+      this.logError("getEventAnalytics", error);
+      return null;
+    }
   }
 }
 

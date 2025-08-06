@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import type {
   Registration,
   RegistrationFilters,
@@ -8,10 +8,10 @@ import type {
   RegistrationAnalytics,
 } from "../types/eventRegistration";
 
-export class EventRegistrationService {
-  private static baseUrl = "/EventRegistrations";
+class EventRegistrationService extends BaseService {
+  private readonly baseUrl = "/EventRegistrations";
 
-  static async getRegistrations(
+  async getRegistrations(
     eventId: number,
     filters: RegistrationFilters
   ): Promise<PagedResult<Registration>> {
@@ -30,45 +30,45 @@ export class EventRegistrationService {
       params.append("endDate", filters.dateRange.to.toISOString());
     }
 
-    const response = await apiClient.get(`${this.baseUrl}?${params}`);
+    const response = await this.api.get(`${this.baseUrl}?${params}`);
     return response.data as PagedResult<Registration>;
   }
 
-  static async getRegistration(
+  async getRegistration(
     eventId: number,
     registrationId: number
   ): Promise<Registration> {
-    const response = await apiClient.get(
+    const response = await this.api.get(
       `${this.baseUrl}/${registrationId}?eventId=${eventId}`
     );
     return response.data as Registration;
   }
 
-  static async approveRegistration(
+  async approveRegistration(
     eventId: number,
     registrationId: number,
     request: ApproveRegistrationRequest
   ): Promise<Registration> {
-    const response = await apiClient.patch(
+    const response = await this.api.patch(
       `${this.baseUrl}/${registrationId}/approve?eventId=${eventId}`,
       request
     );
     return response.data as Registration;
   }
 
-  static async rejectRegistration(
+  async rejectRegistration(
     eventId: number,
     registrationId: number,
     request: RejectRegistrationRequest
   ): Promise<Registration> {
-    const response = await apiClient.patch(
+    const response = await this.api.patch(
       `${this.baseUrl}/${registrationId}/reject?eventId=${eventId}`,
       request
     );
     return response.data as Registration;
   }
 
-  static async bulkApproveRegistrations(
+  async bulkApproveRegistrations(
     eventId: number,
     registrationIds: number[],
     notes?: string
@@ -79,7 +79,7 @@ export class EventRegistrationService {
     return Promise.all(promises);
   }
 
-  static async bulkRejectRegistrations(
+  async bulkRejectRegistrations(
     eventId: number,
     registrationIds: number[],
     reason: string
@@ -90,7 +90,7 @@ export class EventRegistrationService {
     return Promise.all(promises);
   }
 
-  static async getRegistrationAnalytics(
+  async getRegistrationAnalytics(
     eventId: number
   ): Promise<RegistrationAnalytics> {
     // Mock analytics for now - replace with actual API call when available
@@ -155,3 +155,5 @@ export class EventRegistrationService {
     });
   }
 }
+
+export const eventRegistrationService = new EventRegistrationService();

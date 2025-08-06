@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
-import { usePublicEvents } from "@/hooks/public/usePublicEvents";
+import { usePublicEvents } from "@/context/PublicContentContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PublicEvent, PublicEventFilters } from "@/types/publicContent";
 import type { StatCard } from "@/components/public/StatsSection";
@@ -76,9 +76,13 @@ export default function PublicEventsPage() {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the custom hook to fetch events
-  const { events, loading, error, pagination, refetch, setPage } =
-    usePublicEvents(filters);
+  // Use the new context hook
+  const { events, loading, error, pagination, loadEvents } = usePublicEvents();
+
+  // Load events when filters change
+  useEffect(() => {
+    loadEvents(filters);
+  }, [filters, loadEvents]);
 
   // Map backend data to component props
   const mappedEvents = useMemo(
@@ -95,6 +99,14 @@ export default function PublicEventsPage() {
   const handleFilterChange = (category: string) => {
     const categoryId = category === "all" ? undefined : parseInt(category);
     setFilters((prev) => ({ ...prev, categoryId }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  const handleRetry = () => {
+    loadEvents(filters);
   };
 
   // Filter options (TODO: fetch from backend)
@@ -157,7 +169,7 @@ export default function PublicEventsPage() {
       stats={statsCards}
       loading={loading}
       error={error || null}
-      onRetry={refetch}
+      onRetry={handleRetry}
       isEmpty={mappedEvents.length === 0}
       gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       emptyIcon={Search}
@@ -165,13 +177,13 @@ export default function PublicEventsPage() {
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
         page: pagination.page,
-        size: pagination.size,
+        size: 6, // Default size since it's not in context pagination
         totalPages: pagination.totalPages,
         totalItems: pagination.totalItems,
-        hasNextPage: pagination.hasNextPage,
-        hasPreviousPage: pagination.hasPreviousPage,
+        hasNextPage: pagination.page < pagination.totalPages,
+        hasPreviousPage: pagination.page > 1,
       }}
-      onPageChange={setPage}
+      onPageChange={handlePageChange}
       itemName="sự kiện"
     >
       {mappedEvents.map((event) => (

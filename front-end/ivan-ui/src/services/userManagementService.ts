@@ -3,184 +3,19 @@ import { ApiError } from "./errorHandler";
 import type { ApiResponse } from "../types/common";
 import type { User, UserRole } from "../types/auth";
 import type { BaseProfile } from "../types/profile/profiles";
-
-// Backend DTOs matching the API
-export interface UserAccountListDto {
-  userId: number;
-  email: string;
-  fullName?: string; // Can be null from API
-  roleName: string;
-  isActive: boolean;
-  isEmailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  phoneNumber?: string;
-  province?: string;
-  age?: number;
-  statusDisplay: string;
-  verificationDisplay: string;
-}
-
-export interface UserAccountDetailDto {
-  userId: number;
-  email: string;
-  roleId: number;
-  roleName: string;
-  roleDescription?: string;
-  isActive: boolean;
-  isEmailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  profileId?: number;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  avatar?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  fullAddress?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  age?: number;
-  statusDisplay: string;
-  verificationDisplay: string;
-  statistics: UserStatisticsDto;
-  // Role-specific profile data
-  volunteerProfile?: VolunteerProfileData;
-  organizationProfile?: OrganizationProfileData;
-  partnerProfile?: PartnerProfileData;
-  coordinatorProfile?: CoordinatorProfileData;
-}
-
-export interface VolunteerProfileData {
-  volunteerId: number;
-  studentId?: string;
-  university?: string;
-  major?: string;
-  yearOfStudy?: number;
-  motivation?: string;
-  experience?: string;
-  availability?: string;
-  volunteerHours: number;
-  rating?: number;
-  ratingCount: number;
-  isVerified: boolean;
-  verifiedAt?: string;
-  totalHoursVolunteered: number;
-  skills?: string;
-  lastActiveDate?: string;
-}
-
-export interface OrganizationProfileData {
-  organizationId: number;
-  organizationName: string;
-  shortName?: string;
-  typeId: number;
-  typeName?: string;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
-  description?: string;
-  mission?: string;
-  vision?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  isVerified: boolean;
-  verifiedAt?: string;
-  rating?: number;
-  ratingCount: number;
-  totalEvents: number;
-  totalVolunteers: number;
-}
-
-export interface PartnerProfileData {
-  partnerId: number;
-  companyName: string;
-  industryId: number;
-  industryName?: string;
-  taxCode?: string;
-  businessLicense?: string;
-  website?: string;
-  description?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  isVerified: boolean;
-  verifiedAt?: string;
-  rating?: number;
-  ratingCount: number;
-  totalCollaborations: number;
-}
-
-export interface CoordinatorProfileData {
-  coordinatorId: number;
-  organizationId: number;
-  organizationName?: string;
-  employeeId?: string;
-  position?: string;
-  department?: string;
-  responsibilities?: string;
-  hireDate?: string;
-  endDate?: string;
-  managerId?: number;
-  managerName?: string;
-  notes?: string;
-}
-
-export interface UserStatisticsDto {
-  totalEventsJoined?: number;
-  totalEventsCompleted?: number;
-  totalCollaborations?: number;
-  totalVolunteerHours?: number;
-  averageRating?: number;
-}
-
-export interface UserAccountFilterDto {
-  roleId?: number;
-  isActive?: boolean;
-  isEmailVerified?: boolean;
-  searchTerm?: string;
-  pageNumber: number;
-  pageSize: number;
-}
-
-export interface UserAccountUpdateDto {
-  roleId: number;
-  isActive?: boolean;
-  isEmailVerified?: boolean;
-}
-
-export interface PagedResultDto<T> {
-  items: T[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
-}
-
-export interface CoordinatorCreationRequest {
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  temporaryPassword?: string;
-}
+import type {
+  UserAccountListDto,
+  UserAccountDetailDto,
+  VolunteerProfileData,
+  OrganizationProfileData,
+  PartnerProfileData,
+  CoordinatorProfileData,
+  UserStatisticsDto,
+  UserAccountFilterDto,
+  UserAccountUpdateDto,
+  PagedResultDto,
+  CoordinatorCreationRequest,
+} from "../types/userManagement";
 
 /**
  * User Management Service for Admin functionality
@@ -277,7 +112,7 @@ class UserManagementService {
     currentRoleId?: number
   ): Promise<UserAccountDetailDto> {
     return this.updateUserAccount(userId, adminUserId, {
-      roleId: currentRoleId || 0, // Use current roleId if provided, otherwise 0 (will be ignored by backend)
+      userId,
       isActive: isActive,
     });
   }
@@ -292,21 +127,8 @@ class UserManagementService {
     currentRoleId?: number
   ): Promise<UserAccountDetailDto> {
     return this.updateUserAccount(userId, adminUserId, {
-      roleId: currentRoleId || 0, // Use current roleId if provided, otherwise 0 (will be ignored by backend)
+      userId,
       isEmailVerified: isVerified,
-    });
-  }
-
-  /**
-   * Change user role
-   */
-  async changeUserRole(
-    userId: number,
-    adminUserId: number,
-    newRoleId: number
-  ): Promise<UserAccountDetailDto> {
-    return this.updateUserAccount(userId, adminUserId, {
-      roleId: newRoleId,
     });
   }
 

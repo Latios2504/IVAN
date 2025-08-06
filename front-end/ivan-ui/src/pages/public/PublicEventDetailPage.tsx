@@ -1,5 +1,9 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicEventDetail } from "@/hooks/public/usePublicEventDetail";
+import {
+  usePublicEventDetail,
+  usePublicContent,
+} from "@/context/PublicContentContext";
+import { useEffect } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +28,20 @@ import {
 
 export default function PublicEventDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { event, loading, error, refetch } = usePublicEventDetail(id);
+  const { event, loading, loadEvent } = usePublicEventDetail();
+  const { eventsError } = usePublicContent();
+
+  useEffect(() => {
+    if (id) {
+      loadEvent(parseInt(id));
+    }
+  }, [id, loadEvent]);
+
+  const handleRetry = () => {
+    if (id) {
+      loadEvent(parseInt(id));
+    }
+  };
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -89,14 +106,14 @@ export default function PublicEventDetailPage() {
   return (
     <PublicDetailPageLayout
       loading={loading}
-      error={error}
+      error={eventsError}
       data={event}
       title={event?.eventName || "Event"}
       description={event?.description}
       breadcrumbs={breadcrumbs}
       loadingText="Đang tải thông tin sự kiện..."
       notFoundMessage="Không tìm thấy sự kiện"
-      onRetry={refetch}
+      onRetry={handleRetry}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}

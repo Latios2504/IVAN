@@ -64,9 +64,6 @@ export interface LoginRequest {
   password: string;
 }
 
-// Legacy interface name for backward compatibility
-export type LoginCredentials = LoginRequest;
-
 // Backend register request matching DTO
 export interface RegisterRequest {
   firstName: string;

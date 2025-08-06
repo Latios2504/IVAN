@@ -213,7 +213,7 @@ export default function OrganizationResourcesPage() {
   });
 
   const handleCreateResource = () => {
-    console.log("Tạo tài nguyên:", formData);
+    
     setIsCreateDialogOpen(false);
     // Reset form
     setFormData({

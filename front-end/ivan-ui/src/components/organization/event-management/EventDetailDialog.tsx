@@ -81,7 +81,7 @@ export const EventDetailDialog: React.FC<EventDetailDialogProps> = ({
 
   const handleExport = () => {
     // TODO: Implement export functionality
-    console.log("Export event details");
+    
   };
 
   const getStatusVariant = (status: string) => {

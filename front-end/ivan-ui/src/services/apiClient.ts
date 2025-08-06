@@ -1,8 +1,8 @@
 import type { ApiResponse } from "../types/common";
-import config from "../config/environment";
+import { environment } from "../config";
 import { ApiError } from "./errorHandler";
 
-const API_BASE_URL = config.API_BASE_URL;
+const API_BASE_URL = environment.API_BASE_URL;
 
 /**
  * Enhanced API Client with improved error handling and logging
@@ -14,10 +14,6 @@ class ApiClient {
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL;
     this.token = this.getStoredToken();
-
-    if (config.ENABLE_LOGGING) {
-      console.log(`🔗 API Client initialized with base URL: ${this.baseURL}`);
-    }
   }
 
   private getStoredToken(): string | null {
@@ -57,7 +53,7 @@ class ApiClient {
       // Handle authentication errors
       if (response.status === 401) {
         // 401 Unauthorized - token is invalid/expired, logout user
-        if (config.ENABLE_LOGGING) {
+        if (environment.ENABLE_LOGGING) {
           console.warn(
             `🔐 Authentication error (401): Token invalid/expired, clearing token and redirecting to login`
           );
@@ -80,7 +76,7 @@ class ApiClient {
           errorMessage.toLowerCase().includes("invalid token");
 
         if (isTokenError) {
-          if (config.ENABLE_LOGGING) {
+          if (environment.ENABLE_LOGGING) {
             console.warn(
               `🔐 Authentication error (403): Token-related error, clearing token and redirecting to login`
             );
@@ -94,7 +90,7 @@ class ApiClient {
             window.location.href = "/login";
           }
         } else {
-          if (config.ENABLE_LOGGING) {
+          if (environment.ENABLE_LOGGING) {
             console.warn(
               `🚫 Access denied (403): User lacks permission for this resource`
             );
@@ -110,7 +106,7 @@ class ApiClient {
         errorData
       );
 
-      if (config.ENABLE_LOGGING) {
+      if (environment.ENABLE_LOGGING) {
         console.error(`❌ API Error:`, apiError);
       }
 
@@ -139,15 +135,15 @@ class ApiClient {
         message: "Success",
       } as ApiResponse<T>;
 
-      if (config.ENABLE_LOGGING) {
-        console.log(`✅ API Success (wrapped DTO):`, wrappedResult);
+      if (environment.ENABLE_LOGGING) {
+        // Debug logging disabled for production
       }
 
       return wrappedResult;
     }
 
-    if (config.ENABLE_LOGGING && result.data) {
-      console.log(`✅ API Success:`, result);
+    if (environment.ENABLE_LOGGING && result.data) {
+      // Debug logging disabled for production
     }
 
     return result;
@@ -223,7 +219,7 @@ class ApiClient {
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     const fullUrl = `${this.baseURL}${endpoint}`;
-    console.log("🔄 API DELETE request to:", fullUrl);
+
     const response = await fetch(fullUrl, {
       method: "DELETE",
       headers: this.getHeaders(),

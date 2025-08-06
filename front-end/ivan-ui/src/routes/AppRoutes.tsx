@@ -89,7 +89,7 @@ const AdminPartnerListPage = lazy(
   () => import("@/pages/admin/ManagePartnerProfile")
 );
 const UserManagementPage = lazy(
-  () => import("@/pages/admin/ManageUserAccount")
+  () => import("@/pages/admin/UserManagementPage")
 );
 const AdminNotificationManagementPage = lazy(
   () => import("@/pages/admin/AdminNotificationManagementPage")

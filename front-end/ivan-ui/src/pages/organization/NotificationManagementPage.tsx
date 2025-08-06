@@ -37,7 +37,6 @@ import {
 } from "@/components/common/DataTable";
 import { useModal } from "@/hooks/useModal";
 import { toast } from "sonner";
-import { useAsyncData } from "@/hooks/useAsyncData";
 import {
   Bell,
   Plus,

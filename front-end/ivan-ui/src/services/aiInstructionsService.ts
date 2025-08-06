@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import { ApiError } from "./errorHandler";
 import type { ApiResponse } from "../types/common";
 import type {
@@ -6,13 +6,13 @@ import type {
   AiCustomInstructionCreateDTO,
   AiCustomInstructionUpdateDTO,
   ToggleInstructionStatusDTO,
-} from "../../types/ai";
+} from "../types/ai";
 
 /**
  * Service for managing AI Custom Instructions
  * Updated to work with the new AiCustomInstructionController backend endpoints
  */
-class AIInstructionsService {
+class AIInstructionsService extends BaseService {
   /**
    * Helper function to handle Entity Framework's $values format
    */
@@ -44,7 +44,7 @@ class AIInstructionsService {
   private readonly baseEndpoint = "/AiCustomInstruction";
 
   private get api() {
-    return apiClient;
+    return this.api;
   }
 
   /**
@@ -112,7 +112,7 @@ class AIInstructionsService {
   async adminDeleteInstruction(instructionId: number): Promise<void> {
     try {
       const deleteUrl = `${this.baseEndpoint}/${instructionId}`;
-      console.log("🔄 Admin deleting instruction with URL:", deleteUrl);
+      
       const response = await this.api.delete<boolean>(deleteUrl);
 
       if (!response.success) {

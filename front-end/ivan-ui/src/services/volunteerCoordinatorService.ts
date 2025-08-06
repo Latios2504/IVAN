@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import type {
   VolunteerCoordinatorDto,
   CreateVolunteerCoordinatorDto,
@@ -12,18 +12,35 @@ import type {
 } from "../types/volunteer-coordinator";
 import type { ApiResponse } from "../types/common";
 
-class VolunteerCoordinatorService {
+class VolunteerCoordinatorService extends BaseService {
   private readonly baseUrl = "/VolunteerCoordinator";
+
+  /**
+   * Get organization ID from current user context
+   * This should be passed from the component that has access to the auth context
+   */
+  private getOrganizationIdFromContext(): number {
+    // Since services shouldn't directly access React contexts,
+    // we'll expect the organization ID to be passed as a parameter
+    // For now, return a default value that should be overridden
+    throw new Error(
+      "Organization ID must be provided as parameter. Services should not access React context directly."
+    );
+  }
 
   // Volunteer Coordinator CRUD Operations
   async getOrganizationCoordinators(
-    filters: VolunteerCoordinatorFilterDto
+    filters: VolunteerCoordinatorFilterDto,
+    organizationId?: number
   ): Promise<PagedResultDto<VolunteerCoordinatorDto>> {
-    // For now, we'll use the getCoordinatorsByOrganization endpoint
-    // We need to get the organization ID from the user context or pass it as a parameter
-    const organizationId = 1; // TODO: Get this from user context
+    // Organization ID should be passed from the context that has access to auth
+    if (!organizationId) {
+      throw new Error(
+        "Organization ID is required. Please ensure user is authenticated with organization context."
+      );
+    }
 
-    const response = await apiClient.post<
+    const response = await this.api.post<
       ApiResponse<{
         coordinators: VolunteerCoordinatorDto[];
         totalCount: number;
@@ -35,23 +52,17 @@ class VolunteerCoordinatorService {
       `${this.baseUrl}/getCoordinatorsByOrganization/${organizationId}`,
       filters
     );
-    
-    // The API response structure is: { success: true, message: '...', data: { coordinators: [...], ... } }
-    // But based on the error, it seems the data is directly in response.data, not response.data.data
-    let backendData = response.data.data;
-    
-    // If data is not nested, try the direct response data
-    if (!backendData && response.data.coordinators) {
-      backendData = response.data;
-    }
-    
+
+    // The API response structure handling
+    const backendData = response.data.data;
+
     // Add null safety check
     if (!backendData || !backendData.coordinators) {
-      console.error('Invalid API response structure:', response.data);
-      console.error('Full response:', response);
-      throw new Error('Invalid response format: coordinators data is missing');
+      console.error("Invalid API response structure:", response.data);
+      console.error("Full response:", response);
+      throw new Error("Invalid response format: coordinators data is missing");
     }
-    
+
     return {
       items: backendData.coordinators,
       totalCount: backendData.totalCount,
@@ -66,17 +77,20 @@ class VolunteerCoordinatorService {
   async getCoordinatorById(
     coordinatorId: number
   ): Promise<VolunteerCoordinatorDto> {
-    const response = await apiClient.get<ApiResponse<VolunteerCoordinatorDto>>(
+    const response = await this.api.get<ApiResponse<VolunteerCoordinatorDto>>(
       `${this.baseUrl}/${coordinatorId}`
     );
     return response.data.data!;
   }
 
   async createCoordinator(
-    coordinatorData: CreateVolunteerCoordinatorDto
+    coordinatorData: CreateVolunteerCoordinatorDto,
+    organizationId?: number
   ): Promise<number> {
-    const organizationId = 1; // TODO: Get this from user context
-    const response = await apiClient.post<ApiResponse<number>>(
+    if (!organizationId) {
+      throw new Error("Organization ID is required for creating coordinator.");
+    }
+    const response = await this.api.post<ApiResponse<number>>(
       `${this.baseUrl}/${organizationId}`,
       coordinatorData
     );
@@ -87,22 +101,28 @@ class VolunteerCoordinatorService {
     coordinatorId: number,
     coordinatorData: UpdateVolunteerCoordinatorDto
   ): Promise<void> {
-    await apiClient.put<ApiResponse<void>>(
+    await this.api.put<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}`,
       coordinatorData
     );
   }
 
   async deleteCoordinator(coordinatorId: number): Promise<void> {
-    await apiClient.delete<ApiResponse<void>>(
+    await this.api.delete<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}`
     );
   }
 
   // Stats & Analytics
-  async getCoordinatorStats(): Promise<VolunteerCoordinatorStatsDto> {
-    const organizationId = 1; // TODO: Get this from user context
-    const response = await apiClient.get<
+  async getCoordinatorStats(
+    organizationId?: number
+  ): Promise<VolunteerCoordinatorStatsDto> {
+    if (!organizationId) {
+      throw new Error(
+        "Organization ID is required for getting coordinator stats."
+      );
+    }
+    const response = await this.api.get<
       ApiResponse<VolunteerCoordinatorStatsDto>
     >(`${this.baseUrl}/stats/${organizationId}`);
     return response.data.data!;
@@ -110,7 +130,7 @@ class VolunteerCoordinatorService {
 
   // Hierarchy Management
   async getCoordinatorHierarchy(): Promise<VolunteerCoordinatorHierarchyDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorHierarchyDto[]>(
+    const response = await this.api.get<VolunteerCoordinatorHierarchyDto[]>(
       `${this.baseUrl}/hierarchy`
     );
     return response.data;
@@ -118,87 +138,77 @@ class VolunteerCoordinatorService {
 
   // Lookup Data (Mock implementations since backend doesn't have these endpoints)
   async getManagementLevels(): Promise<ManagementLevelDto[]> {
-    // Mock data - replace with actual backend call when available
-    return Promise.resolve([
-      {
-        levelId: 1,
-        levelName: "Senior Coordinator",
-        description: "Senior level management",
-      },
-      {
-        levelId: 2,
-        levelName: "Team Lead",
-        description: "Team leadership role",
-      },
-      {
-        levelId: 3,
-        levelName: "Coordinator",
-        description: "Standard coordinator role",
-      },
-    ]);
+    try {
+      const response = await this.api.get<ManagementLevelDto[]>(
+        `${this.baseUrl}/management-levels`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching management levels:", error);
+      // Return empty array instead of mock data
+      return [];
+    }
   }
 
   async getSpecializations(): Promise<SpecializationDto[]> {
-    // Mock data - replace with actual backend call when available
-    return Promise.resolve([
-      {
-        specializationId: 1,
-        specializationName: "Event Management",
-        description: "Event planning and execution",
-      },
-      {
-        specializationId: 2,
-        specializationName: "Volunteer Training",
-        description: "Training and development",
-      },
-      {
-        specializationId: 3,
-        specializationName: "Community Outreach",
-        description: "Community engagement",
-      },
-    ]);
+    try {
+      const response = await this.api.get<SpecializationDto[]>(
+        `${this.baseUrl}/specializations`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching specializations:", error);
+      // Return empty array instead of mock data
+      return [];
+    }
   }
 
   // Utility Methods
-  async getAvailableManagers(): Promise<VolunteerCoordinatorDto[]> {
-    const organizationId = 1; // TODO: Get this from user context
-    const response = await apiClient.get<
-      ApiResponse<VolunteerCoordinatorDto[]>
-    >(`${this.baseUrl}/managers/${organizationId}`);
+  async getAvailableManagers(
+    organizationId?: number
+  ): Promise<VolunteerCoordinatorDto[]> {
+    if (!organizationId) {
+      throw new Error(
+        "Organization ID is required for getting available managers."
+      );
+    }
+    const response = await this.api.get<ApiResponse<VolunteerCoordinatorDto[]>>(
+      `${this.baseUrl}/managers/${organizationId}`
+    );
     return response.data.data!;
   }
 
   async getCoordinatorsByLevel(
     level: string
   ): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
+    const response = await this.api.get<VolunteerCoordinatorDto[]>(
       `${this.baseUrl}/by-level/${level}`
     );
     return response.data;
   }
 
   async getActiveCoordinators(): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
+    const response = await this.api.get<VolunteerCoordinatorDto[]>(
       `${this.baseUrl}/active`
     );
     return response.data;
   }
 
   async toggleCoordinatorStatus(coordinatorId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(
+    await this.api.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/toggle-status`
     );
   }
 
   async assignManager(coordinatorId: number, managerId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(
+    await this.api.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/assign-manager`,
       { managerId }
     );
   }
 
   async removeManager(coordinatorId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(
+    await this.api.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/remove-manager`
     );
   }

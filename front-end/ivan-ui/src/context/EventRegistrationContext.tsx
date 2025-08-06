@@ -9,7 +9,7 @@ import type {
   RejectRegistrationRequest,
   Event,
 } from "../types/eventRegistration";
-import { EventRegistrationService } from "../services/eventRegistrationService";
+import { eventRegistrationService } from "../services/eventRegistrationService";
 
 interface EventRegistrationState {
   // Data
@@ -304,7 +304,7 @@ export const EventRegistrationProvider: React.FC<
   const loadRegistrations = async (eventId: number) => {
     try {
       dispatch({ type: "LOAD_START" });
-      const registrations = await EventRegistrationService.getRegistrations(
+      const registrations = await eventRegistrationService.getRegistrations(
         eventId,
         state.filters
       );
@@ -321,7 +321,7 @@ export const EventRegistrationProvider: React.FC<
     registrationId: number
   ) => {
     try {
-      const registration = await EventRegistrationService.getRegistration(
+      const registration = await eventRegistrationService.getRegistration(
         eventId,
         registrationId
       );
@@ -340,7 +340,7 @@ export const EventRegistrationProvider: React.FC<
   ): Promise<void> => {
     try {
       const updatedRegistration =
-        await EventRegistrationService.approveRegistration(
+        await eventRegistrationService.approveRegistration(
           eventId,
           registrationId,
           request
@@ -366,7 +366,7 @@ export const EventRegistrationProvider: React.FC<
   ): Promise<void> => {
     try {
       const updatedRegistration =
-        await EventRegistrationService.rejectRegistration(
+        await eventRegistrationService.rejectRegistration(
           eventId,
           registrationId,
           request
@@ -391,7 +391,7 @@ export const EventRegistrationProvider: React.FC<
     notes?: string
   ): Promise<void> => {
     try {
-      await EventRegistrationService.bulkApproveRegistrations(
+      await eventRegistrationService.bulkApproveRegistrations(
         eventId,
         registrationIds,
         notes
@@ -414,7 +414,7 @@ export const EventRegistrationProvider: React.FC<
     reason: string
   ): Promise<void> => {
     try {
-      await EventRegistrationService.bulkRejectRegistrations(
+      await eventRegistrationService.bulkRejectRegistrations(
         eventId,
         registrationIds,
         reason
@@ -434,7 +434,7 @@ export const EventRegistrationProvider: React.FC<
   // Stats & Analytics
   const loadStats = async (eventId: number) => {
     try {
-      const stats = await EventRegistrationService.getRegistrationAnalytics(
+      const stats = await eventRegistrationService.getRegistrationAnalytics(
         eventId
       );
       dispatch({ type: "SET_STATS", payload: stats });

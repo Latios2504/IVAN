@@ -12,10 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import type { LoginCredentials } from "@/types/auth";
+import type { LoginRequest } from "@/types/auth";
 
 export default function LoginPage() {
-  const [credentials, setCredentials] = useState<LoginCredentials>({
+  const [credentials, setCredentials] = useState<LoginRequest>({
     email: "",
     password: "",
   });
