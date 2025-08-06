@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicOrganizationDetail } from "@/context/PublicContentContext";
+import { usePublicOrganizationsData } from "@/hooks/usePublicContentData";
+import { useEffect } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +25,29 @@ import {
 
 export default function PublicOrganizationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { organization, loading, error, refetch } =
-    usePublicOrganizationDetail(id);
+  const {
+    loadById,
+    data: organizations,
+    loading,
+    error,
+  } = usePublicOrganizationsData();
+
+  // Find the organization from loaded data
+  const organization = organizations?.find(
+    (org) => org.organizationId?.toString() === id
+  );
+
+  useEffect(() => {
+    if (id) {
+      loadById(parseInt(id));
+    }
+  }, [id, loadById]);
+
+  const handleRetry = () => {
+    if (id) {
+      loadById(parseInt(id));
+    }
+  };
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -43,7 +65,7 @@ export default function PublicOrganizationDetailPage() {
       breadcrumbs={breadcrumbs}
       loadingText="Đang tải thông tin tổ chức..."
       notFoundMessage="Không tìm thấy tổ chức"
-      onRetry={refetch}
+      onRetry={handleRetry}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}

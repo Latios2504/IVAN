@@ -1,8 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import {
-  usePublicEventDetail,
-  usePublicContent,
-} from "@/context/PublicContentContext";
+import { usePublicEventsData } from "@/hooks/usePublicContentData";
 import { useEffect } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,18 +25,20 @@ import {
 
 export default function PublicEventDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { event, loading, loadEvent } = usePublicEventDetail();
-  const { eventsError } = usePublicContent();
+  const { loadById, data: events, loading, error } = usePublicEventsData();
+
+  // Find the event from loaded data
+  const event = events?.find((e) => e.eventId?.toString() === id);
 
   useEffect(() => {
     if (id) {
-      loadEvent(parseInt(id));
+      loadById(parseInt(id));
     }
-  }, [id, loadEvent]);
+  }, [id, loadById]);
 
   const handleRetry = () => {
     if (id) {
-      loadEvent(parseInt(id));
+      loadById(parseInt(id));
     }
   };
 
@@ -83,259 +82,318 @@ export default function PublicEventDetailPage() {
           </Badge>
         );
       case "completed":
-      case "đã hoàn thành":
+      case "hoàn thành":
         return (
           <Badge className="bg-blue-500 text-white">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Đã hoàn thành
+            Hoàn thành
           </Badge>
         );
       case "cancelled":
-      case "đã hủy":
+      case "hủy bỏ":
         return (
           <Badge className="bg-red-500 text-white">
             <XCircle className="w-3 h-3 mr-1" />
-            Đã hủy
+            Hủy bỏ
           </Badge>
         );
       default:
-        return <Badge variant="secondary">{statusName}</Badge>;
+        return (
+          <Badge className="bg-gray-500 text-white">
+            <Info className="w-3 h-3 mr-1" />
+            {statusName}
+          </Badge>
+        );
     }
   };
 
+  const getPriorityBadge = (isUrgent: boolean) => {
+    if (isUrgent) {
+      return (
+        <Badge className="bg-red-500 text-white">
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Khẩn cấp
+        </Badge>
+      );
+    }
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <PublicDetailPageLayout
+        title="Đang tải..."
+        description="Đang tải thông tin sự kiện..."
+        breadcrumbs={breadcrumbs}
+        loading={true}
+        error={null}
+        data={null}
+      >
+        <div />
+      </PublicDetailPageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <PublicDetailPageLayout
+        title="Lỗi"
+        description="Không thể tải thông tin sự kiện"
+        breadcrumbs={breadcrumbs}
+        loading={false}
+        error={error}
+        data={null}
+        onRetry={handleRetry}
+      >
+        <div />
+      </PublicDetailPageLayout>
+    );
+  }
+
+  if (!event) {
+    return (
+      <PublicDetailPageLayout
+        title="Không tìm thấy"
+        description="Sự kiện không tồn tại hoặc đã bị xóa"
+        breadcrumbs={breadcrumbs}
+        loading={false}
+        error={null}
+        data={null}
+      >
+        <div className="text-center py-12">
+          <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            Không tìm thấy sự kiện
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Sự kiện bạn tìm kiếm không tồn tại hoặc đã bị xóa.
+          </p>
+          <div className="mt-6">
+            <Link to="/events">
+              <Button>Quay lại danh sách sự kiện</Button>
+            </Link>
+          </div>
+        </div>
+      </PublicDetailPageLayout>
+    );
+  }
+
   return (
     <PublicDetailPageLayout
-      loading={loading}
-      error={eventsError}
-      data={event}
-      title={event?.eventName || "Event"}
-      description={event?.description}
+      title={event.eventName}
+      description={event.description}
       breadcrumbs={breadcrumbs}
-      loadingText="Đang tải thông tin sự kiện..."
-      notFoundMessage="Không tìm thấy sự kiện"
-      onRetry={handleRetry}
+      loading={false}
+      error={null}
+      data={event}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Header Card */}
-          <Card>
-            <CardHeader>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h1 className="text-3xl font-bold">{event?.eventName}</h1>
-                  {event?.statusName && getStatusBadge(event.statusName)}
-                </div>
-
-                {event?.organizationName && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Building2 className="h-4 w-4" />
-                    <span>Tổ chức bởi: {event.organizationName}</span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                  {event?.startDate && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Ngày bắt đầu
-                        </p>
-                        <p className="font-medium">
-                          {formatDate(event.startDate)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {event?.endDate && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Ngày kết thúc
-                        </p>
-                        <p className="font-medium">
-                          {formatDate(event.endDate)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {event?.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Địa điểm
-                        </p>
-                        <p className="font-medium">{event.location}</p>
-                      </div>
-                    </div>
+      <div className="space-y-6">
+        {/* Event Header Info */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <CardTitle className="text-2xl">{event.eventName}</CardTitle>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(event.statusName || "")}
+                  {getPriorityBadge(event.isUrgent || false)}
+                  {event.categoryName && (
+                    <Badge variant="outline">{event.categoryName}</Badge>
                   )}
                 </div>
               </div>
-            </CardHeader>
-          </Card>
-
-          {/* Description */}
-          {event?.description && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5" />
-                  Mô tả sự kiện
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
-                  {event.description}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Additional Details */}
-          <Tabs defaultValue="requirements" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="requirements">Yêu cầu</TabsTrigger>
-              <TabsTrigger value="benefits">Quyền lợi</TabsTrigger>
-            </TabsList>
-            {event?.requirements && (
-              <TabsContent value="requirements">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5" />
-                      Yêu cầu tham gia
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {event.requirements}
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-            {event?.benefits && (
-              <TabsContent value="benefits">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Heart className="h-5 w-5" />
-                      Quyền lợi tham gia
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {event.benefits}
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-          </Tabs>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Registration Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Thông tin đăng ký</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {event?.maxVolunteers && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Số lượng tối đa
-                  </span>
-                  <span className="font-medium">
-                    {event.maxVolunteers} người
-                  </span>
+              <div className="text-right">
+                <div className="flex items-center text-sm text-gray-500 mb-1">
+                  <Eye className="w-4 h-4 mr-1" />
+                  <span>0 lượt xem</span>
                 </div>
-              )}
-
-              {event?.currentVolunteers !== undefined && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Đã đăng ký
-                  </span>
-                  <span className="font-medium text-blue-600">
-                    {event.currentVolunteers} người
-                  </span>
-                </div>
-              )}
-
-              {event?.registrationEndDate && (
-                <div className="space-y-1">
-                  <span className="text-sm text-muted-foreground">
-                    Hạn đăng ký
-                  </span>
-                  <p className="font-medium text-orange-600">
-                    {formatDate(event.registrationEndDate)}
+                {event.isUrgent && (
+                  <div className="flex items-center text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    <span>Khẩn cấp</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 text-blue-500 mr-2" />
+                <div>
+                  <p className="text-sm font-medium">Ngày bắt đầu</p>
+                  <p className="text-sm text-gray-600">
+                    {event.startDate
+                      ? formatDate(event.startDate)
+                      : "Chưa xác định"}
                   </p>
                 </div>
-              )}
-
-              {/* Registration Status */}
-              <div className="pt-4 border-t">
-                {event?.statusName === "active" ? (
-                  <Button className="w-full" size="lg">
-                    Đăng ký tham gia
-                  </Button>
-                ) : (
-                  <Button className="w-full" size="lg" disabled>
-                    Không thể đăng ký
-                  </Button>
-                )}
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 text-green-500 mr-2" />
+                <div>
+                  <p className="text-sm font-medium">Thời gian</p>
+                  <p className="text-sm text-gray-600">
+                    {event.startDate
+                      ? formatTime(event.startDate)
+                      : "Chưa xác định"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 text-red-500 mr-2" />
+                <div>
+                  <p className="text-sm font-medium">Địa điểm</p>
+                  <p className="text-sm text-gray-600">
+                    {[event.wardCommune, event.district, event.province]
+                      .filter(Boolean)
+                      .join(", ") || "Chưa xác định"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <Building2 className="w-4 h-4 text-purple-500 mr-2" />
+                <div>
+                  <p className="text-sm font-medium">Tổ chức</p>
+                  <p className="text-sm text-gray-600">
+                    {event.organizationName || "Chưa xác định"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Event Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Thống kê</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {event?.rating && event.rating > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Đánh giá
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">
-                      {event.rating.toFixed(1)}
-                    </span>
+        {/* Volunteers Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Thông tin tình nguyện viên
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <Target className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-blue-600">
+                  {event.maxVolunteers || 0}
+                </p>
+                <p className="text-sm text-gray-600">Cần tuyển</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <User className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-green-600">
+                  {event.currentVolunteers || 0}
+                </p>
+                <p className="text-sm text-gray-600">Đã đăng ký</p>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <Heart className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-600">
+                  {(event.maxVolunteers || 0) - (event.currentVolunteers || 0)}
+                </p>
+                <p className="text-sm text-gray-600">Còn lại</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Event Details Tabs */}
+        <Tabs defaultValue="description" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="description">Mô tả</TabsTrigger>
+            <TabsTrigger value="requirements">Yêu cầu</TabsTrigger>
+            <TabsTrigger value="contact">Liên hệ</TabsTrigger>
+          </TabsList>
+          <TabsContent value="description" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Mô tả sự kiện</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: event.description || "Không có mô tả chi tiết.",
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="requirements" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Yêu cầu tham gia</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Yêu cầu kỹ năng:</h4>
+                    <p className="text-gray-600">
+                      {event.requiredSkills ||
+                        "Không có yêu cầu kỹ năng đặc biệt"}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Độ tuổi:</h4>
+                    <p className="text-gray-600">
+                      {event.ageRequirement || "Không giới hạn độ tuổi"}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Yêu cầu khác:</h4>
+                    <p className="text-gray-600">
+                      {event.requirements || "Không có yêu cầu đặc biệt"}
+                    </p>
                   </div>
                 </div>
-              )}
-
-              {event?.registrationCount !== undefined && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Tổng đăng ký
-                  </span>
-                  <span className="font-medium text-green-600">
-                    {event.registrationCount}
-                  </span>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="contact" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Thông tin liên hệ</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Tổ chức:</h4>
+                    <p className="text-gray-600">{event.organizationName}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Người liên hệ:</h4>
+                    <p className="text-gray-600">
+                      Liên hệ trực tiếp với tổ chức
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Email:</h4>
+                    <p className="text-gray-600">
+                      Liên hệ qua trang chủ tổ chức
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Số điện thoại:</h4>
+                    <p className="text-gray-600">
+                      Liên hệ qua trang chủ tổ chức
+                    </p>
+                  </div>
                 </div>
-              )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-              {event?.createdAt && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Ngày tạo
-                  </span>
-                  <span className="text-sm">{formatDate(event.createdAt)}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* Action Buttons */}
+        <div className="flex gap-4 justify-center">
+          <Button size="lg" className="px-8">
+            Đăng ký tham gia
+          </Button>
+          <Button variant="outline" size="lg">
+            Chia sẻ
+          </Button>
         </div>
       </div>
     </PublicDetailPageLayout>

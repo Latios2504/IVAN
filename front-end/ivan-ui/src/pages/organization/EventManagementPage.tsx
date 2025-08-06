@@ -1,5 +1,10 @@
 import React, { useEffect } from "react";
-import { useEvent } from "@/context/EventContext";
+import {
+  useEventData,
+  useEventStats,
+  useEventCategories,
+  useEventStatuses,
+} from "@/hooks/useEventData";
 import { EventDashboard } from "@/components/organization/event-management/EventDashboard";
 import { EventList } from "@/components/organization/event-management/EventList";
 import { EventFilters } from "@/components/organization/event-management/EventFilters";
@@ -16,19 +21,12 @@ import {
 import { Plus, Users, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function EventManagementPage() {
-  const {
-    events,
-    stats,
-    categories,
-    statuses,
-    loading,
-    error,
-    loadEvents,
-    loadStats,
-    loadCategories,
-    loadStatuses,
-  } = useEvent();
+export default function EventManagementPageNew() {
+  // Use the new useData hooks
+  const events = useEventData();
+  const stats = useEventStats();
+  const categories = useEventCategories();
+  const statuses = useEventStatuses();
 
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
@@ -38,33 +36,45 @@ export default function EventManagementPage() {
 
   const loadInitialData = async () => {
     await Promise.all([
-      loadEvents(),
-      loadStats(),
-      loadCategories(),
-      loadStatuses(),
+      events.loadAll(),
+      stats.loadAll(),
+      categories.loadAll(),
+      statuses.loadAll(),
     ]);
   };
 
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    loadEvents();
-    loadStats();
+    events.loadAll();
+    stats.loadAll();
   };
 
   const handleEditSuccess = () => {
     // Refresh data after edit
-    loadEvents();
-    loadStats();
+    events.loadAll();
+    stats.loadAll();
   };
 
-  if (loading && !events.length) {
+  // Determine loading state - loading if any critical data is loading
+  const isLoading = events.loading && !events.data.length;
+
+  // Combine errors from all hooks
+  const hasError =
+    events.error || stats.error || categories.error || statuses.error;
+  const errorMessage =
+    events.error || stats.error || categories.error || statuses.error;
+
+  if (isLoading) {
     return <LoadingState loading={true} />;
   }
 
-  if (error) {
+  if (hasError) {
     return (
       <div className="p-6">
-        <div className="text-red-600">Error: {error?.message || error?.toString() || 'Đã xảy ra lỗi'}</div>
+        <div className="text-red-600">
+          Error:{" "}
+          {typeof errorMessage === "string" ? errorMessage : "Đã xảy ra lỗi"}
+        </div>
         <Button onClick={loadInitialData} className="mt-4">
           Retry
         </Button>
@@ -132,14 +142,16 @@ export default function EventManagementPage() {
       </div>
 
       {/* Dashboard */}
-      {stats && <EventDashboard stats={stats} />}
+      {stats.data.length > 0 && stats.data[0] && (
+        <EventDashboard stats={stats.data[0]} />
+      )}
 
       {/* Filters */}
-      <EventFilters categories={categories} statuses={statuses} />
+      <EventFilters categories={categories.data} statuses={statuses.data} />
 
       {/* Event List */}
-      {events.length > 0 ? (
-        <EventList events={events} onEventUpdated={handleEditSuccess} />
+      {events.data.length > 0 ? (
+        <EventList events={events.data} onEventUpdated={handleEditSuccess} />
       ) : (
         <div className="text-center py-12">
           <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -161,7 +173,7 @@ export default function EventManagementPage() {
         open={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         onSuccess={handleCreateSuccess}
-        categories={categories}
+        categories={categories.data}
       />
     </div>
   );

@@ -1,9 +1,6 @@
-import React, { useState } from "react";
-import {
-  useEventRegistration,
-  EventRegistrationProvider,
-} from "@/context/EventRegistrationContext";
-import { useEvent } from "@/context/EventContext";
+import React, { useState, useEffect } from "react";
+import { useEventRegistrations } from "@/hooks/useEventRegistrationData";
+import { useEventData } from "@/hooks/useEventData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,235 +46,202 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   onEventSelect,
   selectedEvent,
 }) => {
-  const { events, loading } = useEvent();
+  const {
+    data: events,
+    loading: eventsLoading,
+    loadAll: loadEvents,
+  } = useEventData();
 
-  return (
-    <div className="flex items-center space-x-4">
-      <div className="flex items-center space-x-2">
-        <Calendar className="w-5 h-5 text-gray-500" />
-        <span className="text-sm font-medium text-gray-700">Select Event:</span>
-      </div>
-      <Select
-        value={selectedEvent?.eventId.toString() || ""}
-        onValueChange={(value: string) => {
-          if (value) {
-            const event = events.find(
-              (e: any) => e.eventId === parseInt(value)
-            );
-            onEventSelect(event || null);
-          } else {
-            onEventSelect(null);
-          }
-        }}
-      >
-        <SelectTrigger className="w-[300px]">
-          <SelectValue placeholder="Choose an event to manage registrations" />
-        </SelectTrigger>
-        <SelectContent>
-          {loading ? (
-            <SelectItem value="loading" disabled>
-              Loading events...
-            </SelectItem>
-          ) : events.length === 0 ? (
-            <SelectItem value="empty" disabled>
-              No events available
-            </SelectItem>
-          ) : (
-            events.map((event: any) => (
-              <SelectItem key={event.eventId} value={event.eventId.toString()}>
-                <div className="flex items-center justify-between w-full">
-                  <span className="font-medium">{event.eventName}</span>
-                  <Badge variant="outline" className="ml-2">
-                    {event.statusName}
-                  </Badge>
-                </div>
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-};
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
-const EmptyEventState: React.FC = () => {
-  return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Select an Event
-        </h3>
-        <p className="text-gray-600 mb-4">
-          Choose an event from the dropdown above to start managing volunteer
-          registrations.
-        </p>
-        <Button variant="outline">
-          <Settings className="w-4 h-4 mr-2" />
-          View Event Settings
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const EventRegistrationPageContent: React.FC = () => {
-  const { setSelectedEvent, selectedEventId, stats, loading, error } =
-    useEventRegistration();
-  const { events } = useEvent();
-  const [selectedEvent, setSelectedEventLocal] = useState<Event | null>(null);
-
-  const handleEventSelect = (event: Event | null) => {
-    setSelectedEventLocal(event);
-    setSelectedEvent(event?.eventId || null);
+  const handleEventChange = (eventId: string) => {
+    if (eventId === "none") {
+      onEventSelect(null);
+    } else {
+      const event = events.find((e) => e.eventId.toString() === eventId);
+      onEventSelect(event || null);
+    }
   };
 
-  const currentEvent =
-    selectedEvent || events.find((e) => e.eventId === selectedEventId);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Select Event
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Select
+          value={selectedEvent?.eventId.toString() || "none"}
+          onValueChange={handleEventChange}
+          disabled={eventsLoading}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Choose an event to manage registrations" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Select an event...</SelectItem>
+            {events?.map((event) => (
+              <SelectItem key={event.eventId} value={event.eventId.toString()}>
+                <div className="flex items-center gap-2">
+                  <span>{event.eventName}</span>
+                  <Badge variant="outline">{event.statusName}</Badge>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-  if (error) {
-    // Check if it's an authentication error
-    const isAuthError = error?.message?.includes('Forbidden') || 
-                       error?.message?.includes('Unauthorized') ||
-                       error?.toString()?.includes('403') ||
-                       error?.toString()?.includes('401');
-
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              {isAuthError ? (
-                <>
-                  <UserX className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Access Denied
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    You don't have permission to view event registrations. Please check your account permissions or contact your administrator.
-                  </p>
-                  <div className="space-y-2">
-                    <Button onClick={() => window.location.href = '/login'} className="w-full">
-                      Login Again
-                    </Button>
-                    <Button variant="outline" onClick={() => window.history.back()} className="w-full">
-                      Go Back
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <UserX className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Failed to load registrations
-                  </h3>
-                  <p className="text-gray-600 mb-4">{error?.message || error?.toString() || 'An error occurred'}</p>
-                  <Button onClick={() => window.location.reload()}>
-                    Try Again
-                  </Button>
-                </>
-              )}
+        {selectedEvent && (
+          <div className="mt-4 p-4 bg-muted rounded-lg">
+            <h4 className="font-medium">{selectedEvent.eventName}</h4>
+            <p className="text-sm text-muted-foreground">
+              {selectedEvent.description}
+            </p>
+            <div className="flex items-center gap-4 mt-2 text-sm">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {new Date(selectedEvent.startDate).toLocaleDateString()}
+              </span>
+              <Badge variant="outline">{selectedEvent.statusName}</Badge>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Registration Context Provider Component that provides eventId to child components
+interface RegistrationProviderProps {
+  eventId: number;
+  children: React.ReactNode;
+}
+
+const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
+  eventId,
+  children,
+}) => {
+  // Initialize the registration hooks with eventId
+  const registrations = useEventRegistrations(eventId);
+
+  // Load initial data
+  useEffect(() => {
+    registrations.loadAll();
+    registrations.stats.loadStats();
+  }, [eventId]);
+
+  // Create a context-like object to pass down
+  const contextValue = {
+    eventId,
+    ...registrations,
+  };
+
+  // Use React Context or just pass as props to children
+  return (
+    <div data-event-id={eventId}>
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(child, {
+            registrationContext: contextValue,
+          } as any);
+        }
+        return child;
+      })}
+    </div>
+  );
+};
+
+// Main Event Registration Management Page
+const EventRegistrationManagement: React.FC = () => {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+  if (!selectedEvent) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Event Registration Management
+            </h1>
+            <p className="text-muted-foreground">
+              Manage volunteer registrations for your events
+            </p>
+          </div>
+        </div>
+
+        <EventSelector
+          selectedEvent={selectedEvent}
+          onEventSelect={setSelectedEvent}
+        />
+
+        <EmptyState
+          icon={ClipboardList}
+          title="No Event Selected"
+          description="Please select an event to view and manage registrations."
+          show={true}
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
-                <Users className="w-8 h-8 text-blue-600" />
-                <span>Event Registration Management</span>
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Manage volunteer registrations for your events
-              </p>
-            </div>
-
-            <EventSelector
-              onEventSelect={handleEventSelect}
-              selectedEvent={currentEvent || null}
-            />
-          </div>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Registration Management
+          </h1>
+          <p className="text-muted-foreground">
+            Managing registrations for: {selectedEvent.eventName}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+          <Button variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-2" />
+            Export Data
+          </Button>
         </div>
       </div>
 
-      {currentEvent ? (
-        <>
-          {/* Event Header */}
-          <div className="bg-white border-b">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      {currentEvent.eventName}
-                    </h2>
-                    <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                      <span className="flex items-center space-x-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {new Date(
-                            currentEvent.startDate
-                          ).toLocaleDateString()}{" "}
-                          -{" "}
-                          {new Date(currentEvent.endDate).toLocaleDateString()}
-                        </span>
-                      </span>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span>{currentEvent.location}</span>
-                    </div>
-                  </div>
-                </div>
+      {/* Event Selector */}
+      <EventSelector
+        selectedEvent={selectedEvent}
+        onEventSelect={setSelectedEvent}
+      />
 
-                <div className="flex items-center space-x-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 text-blue-700 border-blue-200"
-                  >
-                    {currentEvent.statusName}
-                  </Badge>
-                  {stats && (
-                    <Badge variant="secondary">
-                      {stats.totalRegistrations} registrations
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Registration Management */}
+      <div className="space-y-6">
+        {/* TODO: Pass selectedEvent.eventId to these components after migration */}
+        {/* Analytics Dashboard */}
+        {/* <RegistrationAnalyticsDashboard /> */}
 
-          {/* Analytics Dashboard */}
-          <RegistrationAnalyticsDashboard />
+        <Separator />
 
-          {/* Management Interface */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Filters Sidebar */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-4">
-                  <RegistrationFilters />
-                </div>
-              </div>
+        {/* Filters */}
+        {/* <RegistrationFilters /> */}
 
-              {/* Main Content */}
-              <div className="lg:col-span-3">
-                <RegistrationList eventId={currentEvent.eventId} />
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <EmptyEventState />
-      )}
+        {/* Registration List */}
+        {/* <RegistrationList /> */}
 
-      {/* Modals */}
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center text-muted-foreground">
+              Registration management components will be migrated next...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modal Dialogs */}
       <RegistrationDetailDialog />
       <ApprovalDialog />
       <RejectionDialog />
@@ -286,10 +250,4 @@ const EventRegistrationPageContent: React.FC = () => {
   );
 };
 
-export default function EventRegistrationPage() {
-  return (
-    <EventRegistrationProvider>
-      <EventRegistrationPageContent />
-    </EventRegistrationProvider>
-  );
-}
+export default EventRegistrationManagement;

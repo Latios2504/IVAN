@@ -1,58 +1,74 @@
 import React, { useEffect } from "react";
-import { useVolunteerCoordinator } from "@/context/VolunteerCoordinatorContext";
-import { VolunteerCoordinatorProvider } from "@/context/VolunteerCoordinatorContext";
+import { useVolunteerCoordinators } from "@/hooks/useVolunteerCoordinatorData";
+import { useAuth } from "@/hooks/useAuth";
 import { VolunteerCoordinatorDashboard } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorDashboard";
-import { VolunteerCoordinatorList } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorList";
-import { VolunteerCoordinatorFilters } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorFilters";
-import { CreateVolunteerCoordinatorDialog } from "@/components/organization/volunteer-coordinator-management/CreateVolunteerCoordinatorDialog";
+import { VolunteerCoordinatorList } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorList_new";
+import { VolunteerCoordinatorFilters } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorFilters_new";
+import { CreateVolunteerCoordinatorDialog } from "@/components/organization/volunteer-coordinator-management/CreateVolunteerCoordinatorDialog_new";
 import { LoadingState } from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
+import type { VolunteerCoordinatorFilterDto } from "@/types/volunteer-coordinator";
 
-const VolunteerCoordinatorManagementContent = () => {
+const VolunteerCoordinatorManagementPage = () => {
+  const { user } = useAuth();
+  const organizationId = user?.organizationId;
+
+  const coordinatorHooks = useVolunteerCoordinators(organizationId);
   const {
-    coordinators,
-    stats,
-    managementLevels,
-    specializations,
-    availableManagers,
+    data: coordinators,
     loading,
     error,
-    loadCoordinators,
-    loadStats,
-    loadManagementLevels,
-    loadSpecializations,
-    loadAvailableManagers,
-  } = useVolunteerCoordinator();
+    loadAll: loadCoordinators,
+    stats,
+    lookups,
+    operations,
+  } = coordinatorHooks;
 
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+  const [filters, setFilters] = React.useState<VolunteerCoordinatorFilterDto>({
+    page: 1,
+    size: 10,
+  });
 
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [organizationId]);
 
   const loadInitialData = async () => {
+    if (!organizationId) return;
+
     await Promise.all([
       loadCoordinators(),
-      loadStats(),
-      loadManagementLevels(),
-      loadSpecializations(),
-      loadAvailableManagers(),
+      stats.loadStats(),
+      lookups.loadAll(),
     ]);
   };
 
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
     loadCoordinators();
-    loadStats();
-    loadAvailableManagers(); // Refresh managers list
+    stats.loadStats();
+    lookups.loadAvailableManagers(); // Refresh managers list
   };
 
   const handleUpdateSuccess = () => {
-    // Refresh data after updates
     loadCoordinators();
-    loadStats();
-    loadAvailableManagers();
+    stats.loadStats();
+    lookups.loadAvailableManagers();
+  };
+
+  const handleFiltersChange = (
+    newFilters: Partial<VolunteerCoordinatorFilterDto>
+  ) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      page: 1,
+      size: 10,
+    });
   };
 
   if (loading && !coordinators.length) {
@@ -89,32 +105,38 @@ const VolunteerCoordinatorManagementContent = () => {
       </div>
 
       {/* Dashboard */}
-      {stats && <VolunteerCoordinatorDashboard stats={stats} />}
+      {stats.stats && <VolunteerCoordinatorDashboard stats={stats.stats} />}
 
       {/* Filters */}
       <VolunteerCoordinatorFilters
-        managementLevels={managementLevels}
-        specializations={specializations}
+        organizationId={organizationId!}
+        managementLevels={lookups.managementLevels}
+        specializations={lookups.specializations}
+        availableManagers={lookups.availableManagers}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onReset={handleResetFilters}
       />
 
       {/* Coordinator List */}
       {coordinators.length > 0 ? (
         <VolunteerCoordinatorList
+          organizationId={organizationId!}
           coordinators={coordinators}
           onCoordinatorUpdated={handleUpdateSuccess}
         />
       ) : (
         <div className="text-center py-12">
-          <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No volunteer coordinators found
+            No coordinators yet
           </h3>
           <p className="text-gray-600 mb-4">
-            Add your first volunteer coordinator to get started
+            Start by adding your first volunteer coordinator.
           </p>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Add Coordinator
+            Add First Coordinator
           </Button>
         </div>
       )}
@@ -124,17 +146,12 @@ const VolunteerCoordinatorManagementContent = () => {
         open={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         onSuccess={handleCreateSuccess}
-        managementLevels={managementLevels}
-        specializations={specializations}
+        organizationId={organizationId!}
+        managementLevels={lookups.managementLevels}
+        specializations={lookups.specializations}
       />
     </div>
   );
 };
 
-export default function VolunteerCoordinatorManagementPage() {
-  return (
-    <VolunteerCoordinatorProvider>
-      <VolunteerCoordinatorManagementContent />
-    </VolunteerCoordinatorProvider>
-  );
-}
+export default VolunteerCoordinatorManagementPage;

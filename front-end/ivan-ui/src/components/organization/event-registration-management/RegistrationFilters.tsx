@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useEventRegistration } from "@/context/EventRegistrationContext";
+// Removed useEventRegistration import - will pass filters as props or use different approach
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,9 +31,26 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
-export default function RegistrationFilters() {
-  const { filters, setFilters, loading } = useEventRegistration();
+interface RegistrationFiltersProps {
+  filters: {
+    status?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+    page: number;
+    limit: number;
+  };
+  onFiltersChange: (filters: any) => void;
+  loading?: boolean;
+}
 
+export default function RegistrationFilters({
+  filters,
+  onFiltersChange,
+  loading = false,
+}: RegistrationFiltersProps) {
   // Local state for search input to enable debouncing
   const [searchInput, setSearchInput] = useState(filters.search || "");
   const debouncedSearch = useDebounce(searchInput, 300);
@@ -41,12 +58,17 @@ export default function RegistrationFilters() {
   // Update filters when debounced search changes
   useEffect(() => {
     if (debouncedSearch !== (filters.search || "")) {
-      setFilters({ search: debouncedSearch || undefined, page: 1 });
+      onFiltersChange({
+        ...filters,
+        search: debouncedSearch || undefined,
+        page: 1,
+      });
     }
-  }, [debouncedSearch, filters.search, setFilters]);
+  }, [debouncedSearch, filters.search, onFiltersChange]);
 
   const handleStatusChange = (status: string) => {
-    setFilters({
+    onFiltersChange({
+      ...filters,
       status: status === "all" ? undefined : status,
       page: 1,
     });
@@ -54,17 +76,18 @@ export default function RegistrationFilters() {
 
   const handleSortChange = (sortValue: string) => {
     const [sortBy, sortOrder] = sortValue.split("-") as [
-      RegistrationFiltersType["sortBy"],
-      RegistrationFiltersType["sortOrder"]
+      string,
+      "asc" | "desc"
     ];
-    setFilters({ sortBy, sortOrder, page: 1 });
+    onFiltersChange({ ...filters, sortBy, sortOrder, page: 1 });
   };
 
   const handleReset = () => {
     setSearchInput("");
-    setFilters({
+    onFiltersChange({
+      ...filters,
       page: 1,
-      size: 20,
+      limit: 20,
       sortBy: "applicationDate",
       sortOrder: "desc",
       status: undefined,
@@ -207,7 +230,8 @@ export default function RegistrationFilters() {
               variant="outline"
               size="sm"
               onClick={() =>
-                setFilters({
+                onFiltersChange({
+                  ...filters,
                   sortBy: "applicationDate",
                   sortOrder: "desc",
                   page: 1,
@@ -224,7 +248,7 @@ export default function RegistrationFilters() {
         {/* Results Summary */}
         <div className="pt-4 border-t">
           <div className="text-xs text-gray-500">
-            {loading ? "Loading..." : `Showing ${filters.size} items per page`}
+            {loading ? "Loading..." : `Showing ${filters.limit} items per page`}
           </div>
         </div>
       </CardContent>

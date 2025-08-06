@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
-import { usePublicEvents } from "@/context/PublicContentContext";
+import { usePublicEventsPagination } from "@/hooks/usePublicContentData";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PublicEvent, PublicEventFilters } from "@/types/publicContent";
 import type { StatCard } from "@/components/public/StatsSection";
@@ -76,13 +76,22 @@ export default function PublicEventsPage() {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the new context hook
-  const { events, loading, error, pagination, loadEvents } = usePublicEvents();
+  // Use the new pagination hook
+  const { data, loading, error, loadWithFilters } = usePublicEventsPagination();
+
+  // Extract events and pagination from the wrapped result
+  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
+  const events = pagedResult?.items || [];
+  const pagination = {
+    page: pagedResult?.pageNumber || 1,
+    totalPages: pagedResult?.totalPages || 0,
+    totalItems: pagedResult?.totalCount || 0,
+  };
 
   // Load events when filters change
   useEffect(() => {
-    loadEvents(filters);
-  }, [filters, loadEvents]);
+    loadWithFilters(filters);
+  }, [filters]);
 
   // Map backend data to component props
   const mappedEvents = useMemo(
@@ -106,7 +115,7 @@ export default function PublicEventsPage() {
   };
 
   const handleRetry = () => {
-    loadEvents(filters);
+    loadWithFilters(filters);
   };
 
   // Filter options (TODO: fetch from backend)
@@ -123,7 +132,7 @@ export default function PublicEventsPage() {
   const statsCards: StatCard[] = [
     {
       title: "Tổng sự kiện",
-      value: pagination.totalItems.toString(),
+      value: pagination?.totalItems?.toString() || "0",
       subtitle: "Sự kiện đang mở",
       icon: Calendar,
     },
@@ -165,7 +174,7 @@ export default function PublicEventsPage() {
           icon: <Building className="h-4 w-4" />,
         },
       ]}
-      resultCount={pagination.totalItems}
+      resultCount={pagination?.totalItems || 0}
       stats={statsCards}
       loading={loading}
       error={error || null}
@@ -176,12 +185,12 @@ export default function PublicEventsPage() {
       emptyTitle="Không tìm thấy sự kiện"
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
-        page: pagination.page,
+        page: pagination?.page || 1,
         size: 6, // Default size since it's not in context pagination
-        totalPages: pagination.totalPages,
-        totalItems: pagination.totalItems,
-        hasNextPage: pagination.page < pagination.totalPages,
-        hasPreviousPage: pagination.page > 1,
+        totalPages: pagination?.totalPages || 0,
+        totalItems: pagination?.totalItems || 0,
+        hasNextPage: (pagination?.page || 1) < (pagination?.totalPages || 0),
+        hasPreviousPage: (pagination?.page || 1) > 1,
       }}
       onPageChange={handlePageChange}
       itemName="sự kiện"

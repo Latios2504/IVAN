@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Users, MapPin, Clock, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { VolunteerCard } from "@/components/public/VolunteerCard";
-import { usePublicVolunteers } from "@/context/PublicContentContext";
+import { usePublicVolunteersPagination } from "@/hooks/usePublicContentData";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicVolunteerFilters,
@@ -91,8 +91,32 @@ export const PublicVolunteersPage = () => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  const { volunteers, loading, error, pagination, refetch, setPage } =
-    usePublicVolunteers(filters);
+  // Use the new pagination hook
+  const { data, loading, error, loadWithFilters } =
+    usePublicVolunteersPagination();
+
+  // Extract volunteers and pagination from the wrapped result
+  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
+  const volunteers = pagedResult?.items || [];
+  const pagination = {
+    page: pagedResult?.pageNumber || 1,
+    totalPages: pagedResult?.totalPages || 0,
+    totalItems: pagedResult?.totalCount || 0,
+  };
+
+  // Load volunteers when filters change
+  useEffect(() => {
+    loadWithFilters(filters);
+  }, [filters]);
+
+  // Handlers
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  const handleRetry = () => {
+    loadWithFilters(filters);
+  };
 
   // Convert volunteers data to card format
   const convertToCardData = (volunteers: any[]): VolunteerCardData[] => {
@@ -264,7 +288,7 @@ export const PublicVolunteersPage = () => {
       stats={statsCards}
       loading={loading}
       error={error || null}
-      onRetry={refetch}
+      onRetry={handleRetry}
       isEmpty={!volunteers || volunteers.length === 0}
       gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       emptyIcon={Search}
@@ -272,13 +296,13 @@ export const PublicVolunteersPage = () => {
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
         page: pagination.page,
-        size: pagination.size,
+        size: 12, // Default page size
         totalPages: pagination.totalPages,
         totalItems: pagination.totalItems,
-        hasNextPage: pagination.hasNextPage,
-        hasPreviousPage: pagination.hasPreviousPage,
+        hasNextPage: pagination.page < pagination.totalPages,
+        hasPreviousPage: pagination.page > 1,
       }}
-      onPageChange={setPage}
+      onPageChange={handlePageChange}
       itemName="tình nguyện viên"
     >
       {mappedVolunteers.map((volunteer) => (

@@ -3,6 +3,7 @@ import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayo
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import {
   MapPin,
@@ -15,7 +16,7 @@ import {
   Award,
   Users,
 } from "lucide-react";
-import { usePublicVolunteerDetail } from "@/context/PublicContentContext";
+import { usePublicVolunteersData } from "@/hooks/usePublicContentData";
 
 export const PublicVolunteerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,23 @@ export const PublicVolunteerDetailPage = () => {
     return <Navigate to="/volunteers" replace />;
   }
 
-  const { volunteer, loading, error } = usePublicVolunteerDetail(volunteerId);
+  const {
+    loadById,
+    data: volunteers,
+    loading,
+    error,
+  } = usePublicVolunteersData();
+
+  // Find the volunteer from loaded data
+  const volunteer = volunteers?.find(
+    (vol) => vol.volunteerId?.toString() === id
+  );
+
+  useEffect(() => {
+    if (volunteerId) {
+      loadById(volunteerId);
+    }
+  }, [volunteerId, loadById]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {

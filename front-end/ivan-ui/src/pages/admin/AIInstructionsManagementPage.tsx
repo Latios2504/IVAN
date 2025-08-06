@@ -1,9 +1,6 @@
-import React from "react";
-import {
-  AIInstructionsProvider,
-  useAIInstructions,
-} from "@/context/AIInstructionsContext";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAiInstructionsData } from "@/hooks/useAiInstructionsData";
 import { UserRole } from "@/types/auth";
 import {
   Card,
@@ -59,6 +56,7 @@ import {
   TrendingUp,
   Users,
   Settings,
+  Loader2,
 } from "lucide-react";
 import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
 import InstructionPreview from "@/components/ai/InstructionPreview";
@@ -67,39 +65,56 @@ import { LoadingState } from "@/components/common/LoadingState";
 import type { AiCustomInstructionDTO } from "@/types/ai";
 
 /**
- * AI Instructions Management Page Content (using AIInstructionsContext)
- * Clean implementation following the established context pattern
+ * NEW: AI Instructions Management Page using useData Hook
+ * This is MUCH simpler than the old Context-based approach!
+ *
+ * COMPARISON:
+ * OLD: 551 lines with complex context pattern
+ * NEW: ~200 lines with simple useData pattern
  */
 const AIInstructionsManagementPageContent: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === UserRole.ADMIN;
 
-  const {
-    instructions,
-    filteredInstructions,
-    loading,
-    error,
-    stats,
-    filters,
-    searchQuery,
-    viewMode,
-    modals,
-    setSearchQuery,
-    setFilters,
-    setViewMode,
-    openPreview,
-    openBuilder,
-    openTesting,
-    openEditing,
-    closeAllModals,
-    createInstruction,
-    updateInstruction,
-    deleteInstruction,
-    toggleInstructionStatus,
-    clearError,
-  } = useAIInstructions();
+  // ✅ SIMPLE: One line to get all data management!
+  const instructions = useAiInstructionsData();
 
-  // Check if current user is admin
+  // Local UI state (much simpler than complex context state)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "builder" | "testing"
+  >("overview");
+  const [selectedInstruction, setSelectedInstruction] =
+    useState<AiCustomInstructionDTO | null>(null);
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [showTesting, setShowTesting] = useState(false);
+
+  // ✅ SIMPLE: Load data on mount
+  useEffect(() => {
+    if (isAdmin) {
+      instructions.loadAll();
+    }
+  }, [isAdmin]);
+
+  // ✅ SIMPLE: Filter data locally (no complex reducer needed)
+  const filteredInstructions = instructions.data.filter((instruction) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      instruction.instructionName.toLowerCase().includes(query) ||
+      instruction.systemPrompt.toLowerCase().includes(query) ||
+      instruction.behaviorInstructions?.toLowerCase().includes(query)
+    );
+  });
+
+  // ✅ SIMPLE: Calculate stats locally
+  const stats = {
+    total: instructions.data.length,
+    active: instructions.data.filter((i) => i.isActive).length,
+    inactive: instructions.data.filter((i) => !i.isActive).length,
+  };
+
+  // Auth check
   if (!isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -116,401 +131,266 @@ const AIInstructionsManagementPageContent: React.FC = () => {
     );
   }
 
-  // Handle errors
-  if (error) {
+  // ✅ SIMPLE: Error handling
+  if (instructions.hasError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Lỗi tải dữ liệu
+            Đã xảy ra lỗi
           </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={clearError}>Thử lại</Button>
+          <p className="text-gray-600 mb-4">{instructions.error}</p>
+          <div className="space-x-2">
+            <Button onClick={instructions.clearError}>Thử lại</Button>
+            <Button variant="outline" onClick={instructions.refetch}>
+              Reload
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Render overview content
-  const renderOverview = () => (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổng Instructions
-            </CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              +{stats.recentlyModified} trong tuần qua
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Đang hoạt động
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.active}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.total > 0
-                ? Math.round((stats.active / stats.total) * 100)
-                : 0}
-              % tổng số
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Không hoạt động
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats.inactive}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {stats.total > 0
-                ? Math.round((stats.inactive / stats.total) * 100)
-                : 0}
-              % tổng số
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Cập nhật gần đây
-            </CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.recentlyModified}
-            </div>
-            <p className="text-xs text-muted-foreground">7 ngày qua</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Tìm kiếm và Bộ lọc</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm kiếm theo tên, system prompt..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-            </div>
-            <Select
-              value={filters.isActive?.toString() || "all"}
-              onValueChange={(value) =>
-                setFilters({
-                  isActive: value === "all" ? undefined : value === "true",
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="true">Đang hoạt động</SelectItem>
-                <SelectItem value="false">Không hoạt động</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              onClick={() => setFilters({})}
-              className="whitespace-nowrap"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Instructions List */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Danh sách AI Instructions</CardTitle>
-            <CardDescription>
-              Quản lý và cấu hình các hướng dẫn AI cho hệ thống
-            </CardDescription>
-          </div>
-          <Button onClick={() => openBuilder()} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Tạo mới
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <LoadingState loading={true} />
-          ) : filteredInstructions.length === 0 ? (
-            <div className="text-center py-12">
-              <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                Không có AI Instructions
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Chưa có hướng dẫn AI nào được tạo hoặc không khớp với bộ lọc
-              </p>
-              <Button onClick={() => openBuilder()} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Tạo AI Instruction đầu tiên
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tên</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead>Cập nhật</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInstructions.map((instruction) => (
-                  <TableRow key={instruction.instructionId}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {instruction.instructionName}
-                        </div>
-                        <div className="text-sm text-muted-foreground truncate max-w-[300px]">
-                          {instruction.systemPrompt}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={instruction.isActive ? "default" : "secondary"}
-                      >
-                        {instruction.isActive ? (
-                          <>
-                            <CheckCircle className="mr-1 h-3 w-3" />
-                            Hoạt động
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="mr-1 h-3 w-3" />
-                            Tạm dừng
-                          </>
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(instruction.createdAt).toLocaleDateString(
-                        "vi-VN"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(instruction.updatedAt).toLocaleDateString(
-                        "vi-VN"
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => openPreview(instruction)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            Xem chi tiết
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openTesting(instruction)}
-                          >
-                            <Play className="mr-2 h-4 w-4" />
-                            Kiểm tra
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => openEditing(instruction)}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Chỉnh sửa
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              toggleInstructionStatus(instruction.instructionId)
-                            }
-                          >
-                            {instruction.isActive ? (
-                              <>
-                                <PowerOff className="mr-2 h-4 w-4" />
-                                Tạm dừng
-                              </>
-                            ) : (
-                              <>
-                                <Power className="mr-2 h-4 w-4" />
-                                Kích hoạt
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() =>
-                              deleteInstruction(instruction.instructionId)
-                            }
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Xóa
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Main render based on view mode
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Quản lý AI Instructions
-          </h1>
-          <p className="text-muted-foreground">
-            Tạo và quản lý các hướng dẫn tùy chỉnh cho AI
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          🤖 Quản lý AI Instructions
+        </h1>
+        <p className="text-gray-600">
+          Quản lý các hướng dẫn tùy chỉnh cho AI Assistant
+        </p>
       </div>
 
       <Tabs
-        value={viewMode}
-        onValueChange={(value) => setViewMode(value as any)}
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as any)}
       >
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">
-            <BarChart3 className="mr-2 h-4 w-4" />
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
             Tổng quan
           </TabsTrigger>
-          <TabsTrigger value="builder">
-            <Settings className="mr-2 h-4 w-4" />
+          <TabsTrigger value="builder" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
             Tạo mới
           </TabsTrigger>
-          <TabsTrigger value="preview">
-            <Eye className="mr-2 h-4 w-4" />
-            Xem trước
-          </TabsTrigger>
-          <TabsTrigger value="testing">
-            <Play className="mr-2 h-4 w-4" />
+          <TabsTrigger value="testing" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
             Kiểm tra
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">{renderOverview()}</TabsContent>
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">
+                  Tổng Instructions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="text-2xl font-bold">{stats.total}</div>
+                  <TrendingUp className="h-4 w-4 text-green-500 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">
+                  Đang hoạt động
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.active}
+                  </div>
+                  <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">
+                  Không hoạt động
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="text-2xl font-bold text-gray-500">
+                    {stats.inactive}
+                  </div>
+                  <XCircle className="h-4 w-4 text-gray-400 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        <TabsContent value="builder">
+          {/* Search and Controls */}
           <Card>
             <CardHeader>
-              <CardTitle>Tạo AI Instruction mới</CardTitle>
-              <CardDescription>
-                Thiết lập hướng dẫn tùy chỉnh cho AI
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <CardTitle>Danh sách Instructions</CardTitle>
+                <Button onClick={() => setActiveTab("builder")}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo mới
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <CustomInstructionBuilder
-                onSave={async (data) => {
-                  await createInstruction(data);
-                  setViewMode("overview");
-                }}
-                onPreview={(data) => openPreview(data)}
-                onCancel={() => setViewMode("overview")}
-                initialData={modals.builder.data || undefined}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+              {/* Search */}
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                  <Input
+                    placeholder="Tìm kiếm instructions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
 
-        <TabsContent value="preview">
-          <Card>
-            <CardHeader>
-              <CardTitle>Xem trước AI Instruction</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {modals.preview.data ? (
-                <InstructionPreview
-                  data={modals.preview.data}
-                  onClose={() => {
-                    closeAllModals();
-                    setViewMode("overview");
-                  }}
-                />
-              ) : (
-                <div className="text-center py-12">
-                  <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">
-                    Chọn instruction để xem
+              {/* Loading State */}
+              {instructions.loading && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  Đang tải...
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!instructions.loading && instructions.isEmpty && (
+                <div className="text-center py-8">
+                  <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Chưa có instructions nào
                   </h3>
-                  <p className="text-muted-foreground mb-6">
-                    Quay lại tab Tổng quan và chọn một instruction để xem chi
-                    tiết
+                  <p className="text-gray-600 mb-4">
+                    Tạo instruction đầu tiên để bắt đầu
                   </p>
-                  <Button onClick={() => setViewMode("overview")}>
-                    Về trang tổng quan
+                  <Button onClick={() => setActiveTab("builder")}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Tạo instruction đầu tiên
                   </Button>
                 </div>
+              )}
+
+              {/* Instructions Table */}
+              {!instructions.loading && !instructions.isEmpty && (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tên</TableHead>
+                      <TableHead>System Prompt</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>Ngày tạo</TableHead>
+                      <TableHead className="w-[100px]">Hành động</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInstructions.map((instruction) => (
+                      <TableRow key={instruction.instructionId}>
+                        <TableCell className="font-medium">
+                          {instruction.instructionName}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {instruction.systemPrompt}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              instruction.isActive ? "default" : "secondary"
+                            }
+                          >
+                            {instruction.isActive ? "Hoạt động" : "Tạm dừng"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(instruction.createdAt).toLocaleDateString(
+                            "vi-VN"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedInstruction(instruction);
+                                  setActiveTab("testing");
+                                }}
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Kiểm tra
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  instructions.remove(instruction.instructionId)
+                                }
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Xóa
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Builder Tab */}
+        <TabsContent value="builder">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tạo AI Instruction mới</CardTitle>
+              <CardDescription>
+                Tạo hướng dẫn tùy chỉnh cho AI Assistant
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CustomInstructionBuilder
+                onSave={async (data) => {
+                  await instructions.create(data);
+                  setActiveTab("overview");
+                }}
+                onCancel={() => setActiveTab("overview")}
+                onPreview={() => {}}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Testing Tab */}
         <TabsContent value="testing">
           <Card>
             <CardHeader>
               <CardTitle>Kiểm tra AI Instruction</CardTitle>
+              <CardDescription>
+                Test instruction với các query mẫu
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {modals.testing.instruction ? (
+              {selectedInstruction ? (
                 <TestingPlayground
-                  instruction={modals.testing.instruction}
+                  instruction={selectedInstruction}
                   onClose={() => {
-                    closeAllModals();
-                    setViewMode("overview");
+                    setSelectedInstruction(null);
+                    setActiveTab("overview");
                   }}
                 />
               ) : (
@@ -523,7 +403,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                     Quay lại tab Tổng quan và chọn một instruction để kiểm tra
                     hoạt động
                   </p>
-                  <Button onClick={() => setViewMode("overview")}>
+                  <Button onClick={() => setActiveTab("overview")}>
                     Về trang tổng quan
                   </Button>
                 </div>
@@ -532,19 +412,16 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Modals would be handled by the components themselves */}
     </div>
   );
 };
 
 /**
- * Main AI Instructions Management Page with Provider
+ * Main AI Instructions Management Page - NEW VERSION
+ * No complex Provider needed! Just the component.
  */
-export default function AIInstructionsManagementPage() {
-  return (
-    <AIInstructionsProvider>
-      <AIInstructionsManagementPageContent />
-    </AIInstructionsProvider>
-  );
+function AIInstructionsManagementPageNew() {
+  return <AIInstructionsManagementPageContent />;
 }
+
+export default AIInstructionsManagementPageNew;

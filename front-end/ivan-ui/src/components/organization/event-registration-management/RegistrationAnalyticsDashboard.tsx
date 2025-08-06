@@ -1,5 +1,5 @@
 import React from "react";
-import { useEventRegistration } from "@/context/EventRegistrationContext";
+// Removed useEventRegistration import - will use hook
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -13,12 +13,36 @@ import {
   Award,
   AlertCircle,
 } from "lucide-react";
+import { useEventRegistrations } from "@/hooks/useEventRegistrationData";
+import type { Registration } from "@/types/eventRegistration";
 
-// Stats calculation hook
-const useRegistrationStats = () => {
-  const { registrations, loading } = useEventRegistration();
+interface RegistrationAnalyticsDashboardProps {
+  eventId: string;
+}
+
+// Internal stats calculation hook
+const useInternalRegistrationStats = (eventId: string) => {
+  const registrationHook = useEventRegistrations(parseInt(eventId));
+
+  // Load all registrations for stats when component mounts
+  React.useEffect(() => {
+    if (eventId) {
+      registrationHook.pagination.loadWithFilters({
+        status: undefined,
+        search: undefined,
+        dateRange: undefined,
+        sortBy: "applicationDate",
+        sortOrder: "desc",
+        page: 1,
+        size: 1000, // Get all registrations for stats
+      });
+    }
+  }, [eventId]);
 
   const stats = React.useMemo(() => {
+    const paginatedData = registrationHook.pagination.data[0]; // Get first page result
+    const registrations = paginatedData?.items || [];
+
     if (!registrations.length) {
       return {
         total: 0,
@@ -34,16 +58,16 @@ const useRegistrationStats = () => {
 
     const total = registrations.length;
     const pending = registrations.filter(
-      (r) => r.statusName === "Pending"
+      (r: Registration) => r.statusName === "Pending"
     ).length;
     const approved = registrations.filter(
-      (r) => r.statusName === "Approved"
+      (r: Registration) => r.statusName === "Approved"
     ).length;
     const rejected = registrations.filter(
-      (r) => r.statusName === "Rejected"
+      (r: Registration) => r.statusName === "Rejected"
     ).length;
     const cancelled = registrations.filter(
-      (r) => r.statusName === "Cancelled"
+      (r: Registration) => r.statusName === "Cancelled"
     ).length;
 
     const approvalRate =
@@ -53,7 +77,7 @@ const useRegistrationStats = () => {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     const recentApplications = registrations.filter(
-      (r) => new Date(r.applicationDate) >= weekAgo
+      (r: Registration) => new Date(r.applicationDate) >= weekAgo
     ).length;
 
     // Weekly growth (mock calculation - would need historical data)
@@ -69,9 +93,9 @@ const useRegistrationStats = () => {
       recentApplications,
       weeklyGrowth,
     };
-  }, [registrations]);
+  }, [registrationHook.pagination.data]);
 
-  return { stats, loading };
+  return { stats, loading: registrationHook.pagination.loading };
 };
 
 interface StatCardProps {
@@ -125,8 +149,10 @@ function StatCard({
   );
 }
 
-export default function RegistrationAnalyticsDashboard() {
-  const { stats, loading } = useRegistrationStats();
+export default function RegistrationAnalyticsDashboard({
+  eventId,
+}: RegistrationAnalyticsDashboardProps) {
+  const { stats, loading } = useInternalRegistrationStats(eventId);
 
   if (loading) {
     return (

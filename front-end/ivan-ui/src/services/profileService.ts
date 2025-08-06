@@ -1,25 +1,25 @@
 // Profile Service for IVAN System
 // Handles all profile-related API calls for different user roles
 
-import { BaseService } from "./BaseService";
+import { apiClient } from "./apiClient";
 
-class ProfileService extends BaseService {
+class ProfileService  {
   // Get profile by role and user ID (unified method)
   async getProfileByRole(userId: number, role: string): Promise<any> {
     try {
       switch (role.toLowerCase()) {
         case "volunteer":
-          const volunteerResponse = await this.api.get(
+          const volunteerResponse = await apiClient.get(
             `/VolunteerProfile/${userId}`
           );
           return volunteerResponse.data;
         case "organization":
-          const orgResponse = await this.api.get(
+          const orgResponse = await apiClient.get(
             `/OrganizationProfile/get/${userId}`
           );
           return orgResponse.data;
         case "partner":
-          const partnerResponse = await this.api.get(
+          const partnerResponse = await apiClient.get(
             `/PartnerProfile/get/${userId}`
           );
           return partnerResponse.data;
@@ -71,19 +71,19 @@ class ProfileService extends BaseService {
     try {
       switch (role.toLowerCase()) {
         case "volunteer":
-          const volunteerResponse = await this.api.put(
+          const volunteerResponse = await apiClient.put(
             `/VolunteerProfile/${userId}`,
             data
           );
           return volunteerResponse.data;
         case "organization":
-          const orgResponse = await this.api.put(
+          const orgResponse = await apiClient.put(
             `/OrganizationProfile/update/${userId}`,
             data
           );
           return orgResponse.data;
         case "partner":
-          const partnerResponse = await this.api.put(
+          const partnerResponse = await apiClient.put(
             `/PartnerProfile/update/${userId}`,
             data
           );
@@ -148,7 +148,7 @@ class ProfileService extends BaseService {
   // Get available skills for volunteers
   async getAvailableSkills(): Promise<any[]> {
     try {
-      const response = await this.api.get("/skills");
+      const response = await apiClient.get("/skills");
       return response.data as any[];
     } catch (error) {
       console.error("Error fetching skills:", error);
@@ -159,7 +159,7 @@ class ProfileService extends BaseService {
   // Get organization types
   async getOrganizationTypes(): Promise<any[]> {
     try {
-      const response = await this.api.get("/organization-types");
+      const response = await apiClient.get("/organization-types");
       return response.data as any[];
     } catch (error) {
       console.error("Error fetching organization types:", error);
@@ -170,7 +170,7 @@ class ProfileService extends BaseService {
   // Get partner industries
   async getPartnerIndustries(): Promise<any[]> {
     try {
-      const response = await this.api.get("/partner-industries");
+      const response = await apiClient.get("/partner-industries");
       return response.data as any[];
     } catch (error) {
       console.error("Error fetching partner industries:", error);

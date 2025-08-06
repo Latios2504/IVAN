@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Building, HandHeart, Users, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { PartnerCard } from "@/components/public/PartnerCard";
-import { usePublicPartners } from "@/context/PublicContentContext";
+import { usePublicPartnersPagination } from "@/hooks/usePublicContentData";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicPartner,
@@ -46,9 +46,32 @@ export default function PublicPartnersPage() {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the custom hook to fetch partners
-  const { partners, loading, error, pagination, refetch, setPage } =
-    usePublicPartners(filters);
+  // Use the new pagination hook
+  const { data, loading, error, loadWithFilters } =
+    usePublicPartnersPagination();
+
+  // Extract partners and pagination from the wrapped result
+  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
+  const partners = pagedResult?.items || [];
+  const pagination = {
+    page: pagedResult?.pageNumber || 1,
+    totalPages: pagedResult?.totalPages || 0,
+    totalItems: pagedResult?.totalCount || 0,
+  };
+
+  // Load partners when filters change
+  useEffect(() => {
+    loadWithFilters(filters);
+  }, [filters]);
+
+  // Handlers
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  const handleRetry = () => {
+    loadWithFilters(filters);
+  };
 
   // Map backend data to component props
   const mappedPartners = useMemo(
@@ -126,7 +149,7 @@ export default function PublicPartnersPage() {
       stats={statsCards}
       loading={loading}
       error={error || null}
-      onRetry={refetch}
+      onRetry={handleRetry}
       isEmpty={mappedPartners.length === 0}
       gridClassName="grid grid-cols-1 lg:grid-cols-2 gap-6"
       emptyIcon={Search}
@@ -134,13 +157,13 @@ export default function PublicPartnersPage() {
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
         page: pagination.page,
-        size: pagination.size,
+        size: 12,
         totalPages: pagination.totalPages,
         totalItems: pagination.totalItems,
-        hasNextPage: pagination.hasNextPage,
-        hasPreviousPage: pagination.hasPreviousPage,
+        hasNextPage: pagination.page < pagination.totalPages,
+        hasPreviousPage: pagination.page > 1,
       }}
-      onPageChange={setPage}
+      onPageChange={handlePageChange}
       itemName="đối tác"
     >
       {mappedPartners.map((partner) => (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useEventRegistration } from "@/context/EventRegistrationContext";
+import { useEventRegistrations } from "@/hooks/useEventRegistrationData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,16 @@ import {
 import type { Registration } from "@/types/eventRegistration";
 
 interface RegistrationListProps {
-  eventId: number;
+  eventId: number | string;
+  filters?: {
+    status?: string;
+    search?: string;
+    dateRange?: any;
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+    page: number;
+    size: number;
+  };
 }
 
 interface RegistrationCardProps {
@@ -257,36 +266,76 @@ const EmptyRegistrationsState: React.FC = () => (
   </div>
 );
 
-export default function RegistrationList({ eventId }: RegistrationListProps) {
-  const {
-    registrations,
-    loading,
-    pagination,
-    selectedRegistrations,
-    filters,
-    toggleRegistrationSelection,
-    selectAllRegistrations,
-    clearSelection,
-    openRegistrationDetail,
-    openApprovalDialog,
-    openRejectionDialog,
-    setFilters,
-  } = useEventRegistration();
+export default function RegistrationList({
+  eventId,
+  filters,
+}: RegistrationListProps) {
+  const numericEventId =
+    typeof eventId === "string" ? parseInt(eventId) : eventId;
+  const registrationHook = useEventRegistrations(numericEventId);
+  const { data: registrations, loading } = registrationHook;
+  const { data: paginationData } = registrationHook.pagination;
+
+  // Extract pagination info
+  const pagedResult = paginationData?.[0];
+  const pagination = {
+    currentPage: pagedResult?.page || 1,
+    totalPages: pagedResult?.totalPages || 0,
+    totalCount: pagedResult?.totalItems || 0,
+    pageSize: pagedResult?.size || 20,
+  };
 
   const [localSelectedRegistrations, setLocalSelectedRegistrations] = useState<
     number[]
   >([]);
+  const [internalFilters, setInternalFilters] = useState({
+    page: 1,
+    size: 20,
+    sortBy: "applicationDate" as const,
+    sortOrder: "desc" as const,
+  });
 
+  // Use external filters if provided, otherwise use internal filters
+  const activeFilters = filters || internalFilters;
+
+  // Load registrations when component mounts or eventId changes
   useEffect(() => {
-    setLocalSelectedRegistrations(selectedRegistrations);
-  }, [selectedRegistrations]);
+    if (eventId) {
+      // Simple call without filters for now - external filters can be added later
+      registrationHook.pagination.loadAll();
+    }
+  }, [eventId]);
 
   const handleSelectAll = () => {
-    if (localSelectedRegistrations.length === registrations.length) {
-      clearSelection();
+    if (localSelectedRegistrations.length === (registrations?.length || 0)) {
+      setLocalSelectedRegistrations([]);
     } else {
-      selectAllRegistrations();
+      const allIds = registrations?.map((r) => r.registrationId) || [];
+      setLocalSelectedRegistrations(allIds);
     }
+  };
+
+  const toggleRegistrationSelection = (registrationId: number) => {
+    setLocalSelectedRegistrations((prev) =>
+      prev.includes(registrationId)
+        ? prev.filter((id) => id !== registrationId)
+        : [...prev, registrationId]
+    );
+  };
+
+  const openRegistrationDetail = (registration: Registration) => {
+    // TODO: Implement modal opening logic
+    console.log("Opening registration detail:", registration);
+  };
+
+  const openApprovalDialog = (registration: Registration) => {
+    // TODO: Implement approval dialog
+    console.log("Opening approval dialog:", registration);
+  };
+
+  const openRejectionDialog = (registration: Registration) => {
+    // TODO: Implement rejection dialog
+    console.log("Opening rejection dialog:", registration);
   };
 
   const handleSelectRegistration = (
@@ -408,7 +457,9 @@ export default function RegistrationList({ eventId }: RegistrationListProps) {
               hasNextPage: pagination.currentPage < pagination.totalPages,
               hasPreviousPage: pagination.currentPage > 1,
             }}
-            onPageChange={(page) => setFilters({ page })}
+            onPageChange={(page) =>
+              setInternalFilters((prev) => ({ ...prev, page }))
+            }
             itemName="registration"
           />
         </div>

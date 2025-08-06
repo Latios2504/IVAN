@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { apiClient } from "./apiClient";
 import { environment, API_ENDPOINTS } from "../config";
 import type {
   AnalyticsExportRequest,
@@ -10,7 +10,7 @@ import type {
   ExportStatistics,
 } from "../types/export";
 
-class ExportService extends BaseService {
+class ExportService {
   private readonly API_BASE_URL = environment.API_BASE_URL;
 
   /**
@@ -111,7 +111,6 @@ class ExportService extends BaseService {
 
       return await response.blob();
     } catch (error) {
-      
       throw error;
     }
   }
@@ -144,7 +143,6 @@ class ExportService extends BaseService {
 
       return await response.blob();
     } catch (error) {
-      
       throw error;
     }
   }
@@ -175,7 +173,6 @@ class ExportService extends BaseService {
 
       return await response.blob();
     } catch (error) {
-      
       throw error;
     }
   }
@@ -185,10 +182,9 @@ class ExportService extends BaseService {
    */
   async getSupportedFormats(): Promise<ExportFormat[]> {
     try {
-      const response = await this.api.get<ExportFormat[]>("/export/formats");
+      const response = await apiClient.get<ExportFormat[]>("/export/formats");
       return response.data || [];
     } catch (error) {
-      
       // Return default formats if API fails
       return [
         {
@@ -229,7 +225,7 @@ class ExportService extends BaseService {
    */
   async getExportStatistics(): Promise<ExportStatistics> {
     try {
-      const response = await this.api.get<ExportStatistics>(
+      const response = await apiClient.get<ExportStatistics>(
         "/export/statistics"
       );
       return (
@@ -241,7 +237,6 @@ class ExportService extends BaseService {
         }
       );
     } catch (error) {
-      
       return {
         totalExports: 0,
         exportsThisMonth: 0,

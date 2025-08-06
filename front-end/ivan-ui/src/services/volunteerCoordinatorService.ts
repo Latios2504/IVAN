@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { apiClient } from "./apiClient";
 import type {
   VolunteerCoordinatorDto,
   CreateVolunteerCoordinatorDto,
@@ -12,7 +12,7 @@ import type {
 } from "../types/volunteer-coordinator";
 import type { ApiResponse } from "../types/common";
 
-class VolunteerCoordinatorService extends BaseService {
+class VolunteerCoordinatorService  {
   private readonly baseUrl = "/VolunteerCoordinator";
 
   /**
@@ -40,7 +40,7 @@ class VolunteerCoordinatorService extends BaseService {
       );
     }
 
-    const response = await this.api.post<
+    const response = await apiClient.post<
       ApiResponse<{
         coordinators: VolunteerCoordinatorDto[];
         totalCount: number;
@@ -77,7 +77,7 @@ class VolunteerCoordinatorService extends BaseService {
   async getCoordinatorById(
     coordinatorId: number
   ): Promise<VolunteerCoordinatorDto> {
-    const response = await this.api.get<ApiResponse<VolunteerCoordinatorDto>>(
+    const response = await apiClient.get<ApiResponse<VolunteerCoordinatorDto>>(
       `${this.baseUrl}/${coordinatorId}`
     );
     return response.data.data!;
@@ -90,7 +90,7 @@ class VolunteerCoordinatorService extends BaseService {
     if (!organizationId) {
       throw new Error("Organization ID is required for creating coordinator.");
     }
-    const response = await this.api.post<ApiResponse<number>>(
+    const response = await apiClient.post<ApiResponse<number>>(
       `${this.baseUrl}/${organizationId}`,
       coordinatorData
     );
@@ -101,14 +101,14 @@ class VolunteerCoordinatorService extends BaseService {
     coordinatorId: number,
     coordinatorData: UpdateVolunteerCoordinatorDto
   ): Promise<void> {
-    await this.api.put<ApiResponse<void>>(
+    await apiClient.put<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}`,
       coordinatorData
     );
   }
 
   async deleteCoordinator(coordinatorId: number): Promise<void> {
-    await this.api.delete<ApiResponse<void>>(
+    await apiClient.delete<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}`
     );
   }
@@ -122,7 +122,7 @@ class VolunteerCoordinatorService extends BaseService {
         "Organization ID is required for getting coordinator stats."
       );
     }
-    const response = await this.api.get<
+    const response = await apiClient.get<
       ApiResponse<VolunteerCoordinatorStatsDto>
     >(`${this.baseUrl}/stats/${organizationId}`);
     return response.data.data!;
@@ -130,7 +130,7 @@ class VolunteerCoordinatorService extends BaseService {
 
   // Hierarchy Management
   async getCoordinatorHierarchy(): Promise<VolunteerCoordinatorHierarchyDto[]> {
-    const response = await this.api.get<VolunteerCoordinatorHierarchyDto[]>(
+    const response = await apiClient.get<VolunteerCoordinatorHierarchyDto[]>(
       `${this.baseUrl}/hierarchy`
     );
     return response.data;
@@ -139,7 +139,7 @@ class VolunteerCoordinatorService extends BaseService {
   // Lookup Data (Mock implementations since backend doesn't have these endpoints)
   async getManagementLevels(): Promise<ManagementLevelDto[]> {
     try {
-      const response = await this.api.get<ManagementLevelDto[]>(
+      const response = await apiClient.get<ManagementLevelDto[]>(
         `${this.baseUrl}/management-levels`
       );
       return response.data || [];
@@ -152,7 +152,7 @@ class VolunteerCoordinatorService extends BaseService {
 
   async getSpecializations(): Promise<SpecializationDto[]> {
     try {
-      const response = await this.api.get<SpecializationDto[]>(
+      const response = await apiClient.get<SpecializationDto[]>(
         `${this.baseUrl}/specializations`
       );
       return response.data || [];
@@ -172,7 +172,7 @@ class VolunteerCoordinatorService extends BaseService {
         "Organization ID is required for getting available managers."
       );
     }
-    const response = await this.api.get<ApiResponse<VolunteerCoordinatorDto[]>>(
+    const response = await apiClient.get<ApiResponse<VolunteerCoordinatorDto[]>>(
       `${this.baseUrl}/managers/${organizationId}`
     );
     return response.data.data!;
@@ -181,34 +181,34 @@ class VolunteerCoordinatorService extends BaseService {
   async getCoordinatorsByLevel(
     level: string
   ): Promise<VolunteerCoordinatorDto[]> {
-    const response = await this.api.get<VolunteerCoordinatorDto[]>(
+    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
       `${this.baseUrl}/by-level/${level}`
     );
     return response.data;
   }
 
   async getActiveCoordinators(): Promise<VolunteerCoordinatorDto[]> {
-    const response = await this.api.get<VolunteerCoordinatorDto[]>(
+    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
       `${this.baseUrl}/active`
     );
     return response.data;
   }
 
   async toggleCoordinatorStatus(coordinatorId: number): Promise<void> {
-    await this.api.patch<ApiResponse<void>>(
+    await apiClient.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/toggle-status`
     );
   }
 
   async assignManager(coordinatorId: number, managerId: number): Promise<void> {
-    await this.api.patch<ApiResponse<void>>(
+    await apiClient.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/assign-manager`,
       { managerId }
     );
   }
 
   async removeManager(coordinatorId: number): Promise<void> {
-    await this.api.patch<ApiResponse<void>>(
+    await apiClient.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/remove-manager`
     );
   }
