@@ -28,10 +28,10 @@ export default function OrganizationProfilePage() {
 
   const handleSave = async (data: any) => {
     try {
-      console.log("Saving profile data:", data);
+      
       await updateProfile(data);
       setIsEditing(false);
-      console.log("Profile saved successfully");
+      
       // Don't automatically refetch as useProfile hook handles this
     } catch (error) {
       console.error("Error saving profile:", error);

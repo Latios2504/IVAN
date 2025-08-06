@@ -11,6 +11,7 @@ import type {
   UpdateEventDto,
 } from "../types/event";
 import { eventService } from "../services/eventService";
+import { useAuth } from "./AuthContext";
 
 interface EventState {
   // Data
@@ -232,9 +233,15 @@ interface EventProviderProps {
 
 export const EventProvider: React.FC<EventProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(eventReducer, initialState);
+  const { isAuthenticated, user } = useAuth();
 
   // Event CRUD Operations
   const loadEvents = async () => {
+    // Only load events if user is authenticated and has organization role
+    if (!isAuthenticated || user?.role !== "organization") {
+      return;
+    }
+
     try {
       dispatch({ type: "LOAD_START" });
       const events = await eventService.getOrganizationEvents(state.filters);
@@ -305,6 +312,11 @@ export const EventProvider: React.FC<EventProviderProps> = ({ children }) => {
 
   // Stats & Analytics
   const loadStats = async () => {
+    // Only load stats if user is authenticated and has organization role
+    if (!isAuthenticated || user?.role !== "organization") {
+      return;
+    }
+
     try {
       const stats = await eventService.getOrganizationStats();
       dispatch({ type: "SET_STATS", payload: stats });
@@ -352,10 +364,14 @@ export const EventProvider: React.FC<EventProviderProps> = ({ children }) => {
     dispatch({ type: "SET_CURRENT_EVENT", payload: event });
   };
 
-  // Auto-load events when filters change
+  // Auto-load events when filters change and user is authenticated with Organization role
   useEffect(() => {
-    loadEvents();
+    if (isAuthenticated && user?.role === "organization") {
+      loadEvents();
+    }
   }, [
+    isAuthenticated,
+    user?.role,
     state.filters.page,
     state.filters.size,
     state.filters.sortBy,

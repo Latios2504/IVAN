@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
-import { Building, Users, MapPin, Award, Search } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Building, Users, MapPin, Target, Search, Award } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { OrganizationCard } from "@/components/public/OrganizationCard";
-import { usePublicOrganizations } from "@/hooks/public/usePublicOrganizations";
+import { usePublicOrganizations } from "@/context/PublicContentContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicOrganization,
@@ -49,8 +49,13 @@ export default function PublicOrganizationsPage() {
   }, [debouncedSearch]);
 
   // Use the custom hook to fetch organizations
-  const { organizations, loading, error, pagination, refetch, setPage } =
-    usePublicOrganizations(filters);
+  const { organizations, loading, error, loadOrganizations, pagination } =
+    usePublicOrganizations();
+
+  // Load organizations when filters change
+  useEffect(() => {
+    loadOrganizations(filters);
+  }, [filters, loadOrganizations]);
 
   // Map backend data to component props
   const mappedOrganizations = useMemo(
@@ -72,6 +77,14 @@ export default function PublicOrganizationsPage() {
   const handleLocationFilterChange = (location: string) => {
     const province = location === "all" ? "" : location;
     setFilters((prev) => ({ ...prev, province }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  const handleRetry = () => {
+    loadOrganizations(filters);
   };
 
   // Filter options (TODO: fetch from backend)
@@ -148,7 +161,7 @@ export default function PublicOrganizationsPage() {
       stats={statsCards}
       loading={loading}
       error={error || null}
-      onRetry={refetch}
+      onRetry={handleRetry}
       isEmpty={mappedOrganizations.length === 0}
       gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       emptyIcon={Search}
@@ -156,13 +169,13 @@ export default function PublicOrganizationsPage() {
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
         page: pagination.page,
-        size: pagination.size,
+        size: 6, // Default size since it's not in context pagination
         totalPages: pagination.totalPages,
         totalItems: pagination.totalItems,
-        hasNextPage: pagination.hasNextPage,
-        hasPreviousPage: pagination.hasPreviousPage,
+        hasNextPage: pagination.page < pagination.totalPages,
+        hasPreviousPage: pagination.page > 1,
       }}
-      onPageChange={setPage}
+      onPageChange={handlePageChange}
       itemName="tổ chức"
     >
       {mappedOrganizations.map((organization) => (

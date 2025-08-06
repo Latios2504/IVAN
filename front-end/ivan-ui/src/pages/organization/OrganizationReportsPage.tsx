@@ -191,7 +191,7 @@ export default function OrganizationReportsPage() {
   });
 
   const handleCreateReport = () => {
-    console.log("Tạo báo cáo:", formData);
+    
     setIsCreateDialogOpen(false);
     // Reset form
     setFormData({
@@ -211,7 +211,7 @@ export default function OrganizationReportsPage() {
   };
 
   const handleDownloadReport = (reportId: string) => {
-    console.log("Tải xuống báo cáo:", reportId);
+    
     // Simulate download
   };
 

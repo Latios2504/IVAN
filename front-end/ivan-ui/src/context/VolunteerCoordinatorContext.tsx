@@ -12,6 +12,7 @@ import type {
   UpdateVolunteerCoordinatorDto,
 } from "../types/volunteer-coordinator";
 import { volunteerCoordinatorService } from "../services/volunteerCoordinatorService";
+import { useAuth } from "../hooks/useAuth";
 
 interface VolunteerCoordinatorState {
   // Data
@@ -146,10 +147,7 @@ const volunteerCoordinatorReducer = (
         coordinators: action.payload.coordinators.items,
         pagination: {
           currentPage: action.payload.coordinators.pageNumber,
-          totalPages: Math.ceil(
-            action.payload.coordinators.totalCount /
-              action.payload.coordinators.pageSize
-          ),
+          totalPages: action.payload.coordinators.totalPages,
           totalCount: action.payload.coordinators.totalCount,
           pageSize: action.payload.coordinators.pageSize,
         },
@@ -287,17 +285,26 @@ export const VolunteerCoordinatorProvider: React.FC<
     volunteerCoordinatorReducer,
     initialState
   );
+  const { isAuthenticated, user } = useAuth();
 
   const loadCoordinators = async () => {
     try {
       dispatch({ type: "LOAD_START" });
-      const coordinators =
+
+      // Get organization ID from authenticated user
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức. Vui lòng đăng nhập lại.");
+      }
+
+      const coordinatorsData =
         await volunteerCoordinatorService.getOrganizationCoordinators(
-          state.filters
+          state.filters,
+          organizationId
         );
       dispatch({
         type: "LOAD_SUCCESS",
-        payload: { coordinators },
+        payload: { coordinators: coordinatorsData },
       });
     } catch (error) {
       dispatch({
@@ -334,8 +341,14 @@ export const VolunteerCoordinatorProvider: React.FC<
     coordinatorData: CreateVolunteerCoordinatorDto
   ): Promise<number> => {
     try {
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức để tạo coordinator.");
+      }
+
       const coordinatorId = await volunteerCoordinatorService.createCoordinator(
-        coordinatorData
+        coordinatorData,
+        organizationId
       );
 
       // Load the created coordinator to add to state
@@ -407,7 +420,14 @@ export const VolunteerCoordinatorProvider: React.FC<
 
   const loadStats = async () => {
     try {
-      const stats = await volunteerCoordinatorService.getCoordinatorStats();
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức để tải thống kê.");
+      }
+
+      const stats = await volunteerCoordinatorService.getCoordinatorStats(
+        organizationId
+      );
       dispatch({
         type: "SET_STATS",
         payload: stats,
@@ -477,7 +497,14 @@ export const VolunteerCoordinatorProvider: React.FC<
 
   const loadAvailableManagers = async () => {
     try {
-      const managers = await volunteerCoordinatorService.getAvailableManagers();
+      const organizationId = user?.organizationId;
+      if (!organizationId) {
+        throw new Error("Không thể xác định tổ chức để tải danh sách quản lý.");
+      }
+
+      const managers = await volunteerCoordinatorService.getAvailableManagers(
+        organizationId
+      );
       dispatch({
         type: "SET_AVAILABLE_MANAGERS",
         payload: managers,
@@ -600,8 +627,11 @@ export const VolunteerCoordinatorProvider: React.FC<
 
   // Auto-load data when filters change
   useEffect(() => {
-    loadCoordinators();
-  }, [state.filters]);
+    // Only load coordinators if user is authenticated and has organization role
+    if (isAuthenticated && user?.role === "organization") {
+      loadCoordinators();
+    }
+  }, [state.filters, isAuthenticated, user?.role]);
 
   const contextValue: VolunteerCoordinatorContextType = {
     ...state,

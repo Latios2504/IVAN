@@ -25,7 +25,7 @@ import {
 import { TrendingUp, RefreshCw } from "lucide-react";
 import { Button } from "../ui/button";
 import { ExportButton, type ExportOptions } from "../common/ExportButton";
-import { apiClient } from "../../services/apiClient";
+import { dashboardService } from "../../services/dashboardService";
 import { exportService } from "../../services/exportService";
 import { toast } from "sonner";
 
@@ -128,19 +128,15 @@ const AdminAnalyticsDashboard: React.FC = () => {
       setLoading(true);
 
       // Fetch user analytics
-      const userResponse = await apiClient.get<UserAnalytics>(
-        "/dashboard/admin-analytics/users"
-      );
-      if (userResponse.success && userResponse.data) {
-        setUserAnalytics(userResponse.data);
+      const userResponse = await dashboardService.getUserAnalytics();
+      if (userResponse) {
+        setUserAnalytics(userResponse);
       }
 
       // Fetch event analytics
-      const eventResponse = await apiClient.get<EventAnalytics>(
-        "/dashboard/admin-analytics/events"
-      );
-      if (eventResponse.success && eventResponse.data) {
-        setEventAnalytics(eventResponse.data);
+      const eventResponse = await dashboardService.getEventAnalytics();
+      if (eventResponse) {
+        setEventAnalytics(eventResponse);
       }
     } catch (error) {
       console.error("Error fetching analytics data:", error);

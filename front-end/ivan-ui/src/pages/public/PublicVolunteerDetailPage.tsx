@@ -15,7 +15,7 @@ import {
   Award,
   Users,
 } from "lucide-react";
-import { usePublicVolunteerDetail } from "@/hooks/public/usePublicVolunteerDetail";
+import { usePublicVolunteerDetail } from "@/context/PublicContentContext";
 
 export const PublicVolunteerDetailPage = () => {
   const { id } = useParams<{ id: string }>();

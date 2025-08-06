@@ -81,7 +81,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             className="hidden"
             onChange={() => {
               // TODO: Implement file upload when backend endpoint is ready
-              console.log("File upload not implemented yet");
+              
             }}
           />
         </div>
@@ -166,7 +166,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             className="hidden"
             onChange={() => {
               // TODO: Implement file upload when backend endpoint is ready
-              console.log("File upload not implemented yet");
+              
             }}
           />
           <p className="text-xs text-gray-500">

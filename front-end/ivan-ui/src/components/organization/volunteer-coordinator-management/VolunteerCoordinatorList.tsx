@@ -118,7 +118,9 @@ export const VolunteerCoordinatorList: React.FC<
     return isActive ? "default" : "secondary";
   };
 
-  const getManagementLevelVariant = (level: string) => {
+  const getManagementLevelVariant = (level: string | null | undefined) => {
+    if (!level) return "outline";
+
     switch (level.toLowerCase()) {
       case "senior":
         return "default";
@@ -131,7 +133,8 @@ export const VolunteerCoordinatorList: React.FC<
     }
   };
 
-  const getInitials = (fullName: string) => {
+  const getInitials = (fullName: string | undefined) => {
+    if (!fullName) return "??";
     return fullName
       .split(" ")
       .map((name) => name.charAt(0))
@@ -172,7 +175,7 @@ export const VolunteerCoordinatorList: React.FC<
       header: "Level",
       render: (value, coordinator) => (
         <Badge variant={getManagementLevelVariant(coordinator.managementLevel)}>
-          {coordinator.managementLevel}
+          {coordinator.managementLevel || "N/A"}
         </Badge>
       ),
       sortable: true,
@@ -311,15 +314,11 @@ export const VolunteerCoordinatorList: React.FC<
         pagination={{
           currentPage: pagination.currentPage,
           totalPages: pagination.totalPages,
-          totalCount: pagination.totalCount,
+          totalItems: pagination.totalCount,
           pageSize: pagination.pageSize,
+          onPageChange: handlePageChange,
         }}
-        sorting={{
-          sortBy: filters.sortBy || "fullName",
-          sortDirection: filters.sortDirection || "asc",
-        }}
-        onSort={handleSort}
-        onPageChange={handlePageChange}
+        showPagination={true}
         emptyMessage="No volunteer coordinators found"
       />
 

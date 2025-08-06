@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import type {
   VolunteerCoordinatorDto,
   CreateVolunteerCoordinatorDto,
@@ -12,77 +12,86 @@ import type {
 } from "../types/volunteer-coordinator";
 import type { ApiResponse } from "../types/common";
 
-class VolunteerCoordinatorService {
-  private readonly baseUrl = "/volunteer-coordinators";
+class VolunteerCoordinatorService extends BaseService {
+  private readonly baseUrl = "/VolunteerCoordinator";
+
+  /**
+   * Get organization ID from current user context
+   * This should be passed from the component that has access to the auth context
+   */
+  private getOrganizationIdFromContext(): number {
+    // Since services shouldn't directly access React contexts,
+    // we'll expect the organization ID to be passed as a parameter
+    // For now, return a default value that should be overridden
+    throw new Error(
+      "Organization ID must be provided as parameter. Services should not access React context directly."
+    );
+  }
 
   // Volunteer Coordinator CRUD Operations
   async getOrganizationCoordinators(
-    filters: VolunteerCoordinatorFilterDto
+    filters: VolunteerCoordinatorFilterDto,
+    organizationId?: number
   ): Promise<PagedResultDto<VolunteerCoordinatorDto>> {
-    const params = new URLSearchParams();
-
-    if (filters.search) params.append("search", filters.search);
-    if (filters.managementLevels?.length) {
-      filters.managementLevels.forEach((level) =>
-        params.append("managementLevels", level)
+    // Organization ID should be passed from the context that has access to auth
+    if (!organizationId) {
+      throw new Error(
+        "Organization ID is required. Please ensure user is authenticated with organization context."
       );
     }
-    if (filters.isActive !== undefined)
-      params.append("isActive", filters.isActive.toString());
-    if (filters.specializations?.length) {
-      filters.specializations.forEach((spec) =>
-        params.append("specializations", spec)
-      );
+
+    const response = await this.api.post<
+      ApiResponse<{
+        coordinators: VolunteerCoordinatorDto[];
+        totalCount: number;
+        page: number;
+        size: number;
+        totalPages: number;
+      }>
+    >(
+      `${this.baseUrl}/getCoordinatorsByOrganization/${organizationId}`,
+      filters
+    );
+
+    // The API response structure handling
+    const backendData = response.data.data;
+
+    // Add null safety check
+    if (!backendData || !backendData.coordinators) {
+      console.error("Invalid API response structure:", response.data);
+      console.error("Full response:", response);
+      throw new Error("Invalid response format: coordinators data is missing");
     }
-    if (filters.minVolunteersManaged)
-      params.append(
-        "minVolunteersManaged",
-        filters.minVolunteersManaged.toString()
-      );
-    if (filters.maxVolunteersManaged)
-      params.append(
-        "maxVolunteersManaged",
-        filters.maxVolunteersManaged.toString()
-      );
-    if (filters.dateJoinedFrom)
-      params.append("dateJoinedFrom", filters.dateJoinedFrom);
-    if (filters.dateJoinedTo)
-      params.append("dateJoinedTo", filters.dateJoinedTo);
-    if (filters.managerCoordinatorId)
-      params.append(
-        "managerCoordinatorId",
-        filters.managerCoordinatorId.toString()
-      );
-    if (filters.hasManagerOnly !== undefined)
-      params.append("hasManagerOnly", filters.hasManagerOnly.toString());
 
-    // Pagination and sorting
-    params.append("page", (filters.page || 1).toString());
-    params.append("size", (filters.size || 20).toString());
-    if (filters.sortBy) params.append("sortBy", filters.sortBy);
-    if (filters.sortDirection)
-      params.append("sortDirection", filters.sortDirection);
-
-    const response = await apiClient.get<
-      PagedResultDto<VolunteerCoordinatorDto>
-    >(`${this.baseUrl}?${params}`);
-    return response.data;
+    return {
+      items: backendData.coordinators,
+      totalCount: backendData.totalCount,
+      pageNumber: backendData.page,
+      pageSize: backendData.size,
+      totalPages: backendData.totalPages,
+      hasPreviousPage: backendData.page > 1,
+      hasNextPage: backendData.page < backendData.totalPages,
+    };
   }
 
   async getCoordinatorById(
     coordinatorId: number
   ): Promise<VolunteerCoordinatorDto> {
-    const response = await apiClient.get<VolunteerCoordinatorDto>(
+    const response = await this.api.get<ApiResponse<VolunteerCoordinatorDto>>(
       `${this.baseUrl}/${coordinatorId}`
     );
-    return response.data;
+    return response.data.data!;
   }
 
   async createCoordinator(
-    coordinatorData: CreateVolunteerCoordinatorDto
+    coordinatorData: CreateVolunteerCoordinatorDto,
+    organizationId?: number
   ): Promise<number> {
-    const response = await apiClient.post<ApiResponse<number>>(
-      this.baseUrl,
+    if (!organizationId) {
+      throw new Error("Organization ID is required for creating coordinator.");
+    }
+    const response = await this.api.post<ApiResponse<number>>(
+      `${this.baseUrl}/${organizationId}`,
       coordinatorData
     );
     return response.data.data!;
@@ -92,88 +101,114 @@ class VolunteerCoordinatorService {
     coordinatorId: number,
     coordinatorData: UpdateVolunteerCoordinatorDto
   ): Promise<void> {
-    await apiClient.put<ApiResponse<void>>(
+    await this.api.put<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}`,
       coordinatorData
     );
   }
 
   async deleteCoordinator(coordinatorId: number): Promise<void> {
-    await apiClient.delete<ApiResponse<void>>(
+    await this.api.delete<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}`
     );
   }
 
   // Stats & Analytics
-  async getCoordinatorStats(): Promise<VolunteerCoordinatorStatsDto> {
-    const response = await apiClient.get<VolunteerCoordinatorStatsDto>(
-      `${this.baseUrl}/stats`
-    );
-    return response.data;
+  async getCoordinatorStats(
+    organizationId?: number
+  ): Promise<VolunteerCoordinatorStatsDto> {
+    if (!organizationId) {
+      throw new Error(
+        "Organization ID is required for getting coordinator stats."
+      );
+    }
+    const response = await this.api.get<
+      ApiResponse<VolunteerCoordinatorStatsDto>
+    >(`${this.baseUrl}/stats/${organizationId}`);
+    return response.data.data!;
   }
 
   // Hierarchy Management
   async getCoordinatorHierarchy(): Promise<VolunteerCoordinatorHierarchyDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorHierarchyDto[]>(
+    const response = await this.api.get<VolunteerCoordinatorHierarchyDto[]>(
       `${this.baseUrl}/hierarchy`
     );
     return response.data;
   }
 
-  // Lookup Data
+  // Lookup Data (Mock implementations since backend doesn't have these endpoints)
   async getManagementLevels(): Promise<ManagementLevelDto[]> {
-    const response = await apiClient.get<ManagementLevelDto[]>(
-      `${this.baseUrl}/management-levels`
-    );
-    return response.data;
+    try {
+      const response = await this.api.get<ManagementLevelDto[]>(
+        `${this.baseUrl}/management-levels`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching management levels:", error);
+      // Return empty array instead of mock data
+      return [];
+    }
   }
 
   async getSpecializations(): Promise<SpecializationDto[]> {
-    const response = await apiClient.get<SpecializationDto[]>(
-      `${this.baseUrl}/specializations`
-    );
-    return response.data;
+    try {
+      const response = await this.api.get<SpecializationDto[]>(
+        `${this.baseUrl}/specializations`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching specializations:", error);
+      // Return empty array instead of mock data
+      return [];
+    }
   }
 
   // Utility Methods
-  async getAvailableManagers(): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
-      `${this.baseUrl}/available-managers`
+  async getAvailableManagers(
+    organizationId?: number
+  ): Promise<VolunteerCoordinatorDto[]> {
+    if (!organizationId) {
+      throw new Error(
+        "Organization ID is required for getting available managers."
+      );
+    }
+    const response = await this.api.get<ApiResponse<VolunteerCoordinatorDto[]>>(
+      `${this.baseUrl}/managers/${organizationId}`
     );
-    return response.data;
+    return response.data.data!;
   }
 
   async getCoordinatorsByLevel(
     level: string
   ): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
+    const response = await this.api.get<VolunteerCoordinatorDto[]>(
       `${this.baseUrl}/by-level/${level}`
     );
     return response.data;
   }
 
   async getActiveCoordinators(): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
+    const response = await this.api.get<VolunteerCoordinatorDto[]>(
       `${this.baseUrl}/active`
     );
     return response.data;
   }
 
   async toggleCoordinatorStatus(coordinatorId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(
+    await this.api.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/toggle-status`
     );
   }
 
   async assignManager(coordinatorId: number, managerId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(
+    await this.api.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/assign-manager`,
       { managerId }
     );
   }
 
   async removeManager(coordinatorId: number): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(
+    await this.api.patch<ApiResponse<void>>(
       `${this.baseUrl}/${coordinatorId}/remove-manager`
     );
   }

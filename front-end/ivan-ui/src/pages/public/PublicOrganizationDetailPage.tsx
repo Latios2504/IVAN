@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicOrganizationDetail } from "@/hooks/public/usePublicOrganizationDetail";
+import { usePublicOrganizationDetail } from "@/context/PublicContentContext";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

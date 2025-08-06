@@ -23,14 +23,6 @@ export interface PaginatedResponse<T> {
   };
 }
 
-// Legacy pagination interface for backward compatibility
-export interface PaginationData {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
 export interface SearchFilters {
   query?: string;
   category?: string;

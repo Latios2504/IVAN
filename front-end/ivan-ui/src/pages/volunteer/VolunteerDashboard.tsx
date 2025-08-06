@@ -137,7 +137,7 @@ export default function VolunteerDashboard() {
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-          Không thể tải thông tin thống kê: {error}
+          Không thể tải thông tin thống kê: {error?.message || error?.toString() || 'Đã xảy ra lỗi'}
         </div>
       )}
 

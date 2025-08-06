@@ -170,7 +170,7 @@ export default function OrganizationCoordinatorRequestPage() {
   });
 
   const handleCreateRequest = () => {
-    console.log("Tạo yêu cầu coordinator:", formData);
+    
     setIsCreateDialogOpen(false);
     // Reset form
     setFormData({

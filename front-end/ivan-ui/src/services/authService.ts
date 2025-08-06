@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { BaseService } from "./BaseService";
 import { ApiError } from "./errorHandler";
 import type {
   LoginRequest,
@@ -34,9 +34,9 @@ interface SuccessResponse {
   message: string;
 }
 
-class AuthService {
+class AuthService extends BaseService {
   private get api() {
-    return apiClient;
+    return this.api;
   }
 
   async login(

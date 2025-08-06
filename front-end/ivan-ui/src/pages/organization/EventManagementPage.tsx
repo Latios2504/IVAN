@@ -64,7 +64,7 @@ export default function EventManagementPage() {
   if (error) {
     return (
       <div className="p-6">
-        <div className="text-red-600">Error: {error}</div>
+        <div className="text-red-600">Error: {error?.message || error?.toString() || 'Đã xảy ra lỗi'}</div>
         <Button onClick={loadInitialData} className="mt-4">
           Retry
         </Button>

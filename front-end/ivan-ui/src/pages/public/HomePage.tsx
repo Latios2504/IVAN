@@ -96,7 +96,7 @@ export default function HomePage() {
             🎉 Chào mừng đến với IVAN
           </Badge>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 whitespace-nowrap">
             {isAuthenticated ? (
               <>
                 Chào mừng trở lại,
@@ -107,17 +107,21 @@ export default function HomePage() {
               </>
             ) : (
               <>
-                Nền tảng quản lý
-                <span className="text-primary"> tình nguyện viên </span>
-                hàng đầu
+                Nền tảng quản lý<span className="text-primary"> tình nguyện viên </span>hàng đầu
               </>
             )}
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            {isAuthenticated
-              ? "Tiếp tục hành trình tình nguyện của bạn và tạo ra những tác động tích cực cho cộng đồng."
-              : "Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của bạn."}
+            {isAuthenticated ? (
+              <>
+                Tiếp tục hành trình tình nguyện của bạn
+                <br />
+                và tạo ra những tác động tích cực cho cộng đồng.
+              </>
+            ) : (
+              "Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của bạn."
+            )}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

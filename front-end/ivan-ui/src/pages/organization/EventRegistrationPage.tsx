@@ -136,19 +136,47 @@ const EventRegistrationPageContent: React.FC = () => {
     selectedEvent || events.find((e) => e.eventId === selectedEventId);
 
   if (error) {
+    // Check if it's an authentication error
+    const isAuthError = error?.message?.includes('Forbidden') || 
+                       error?.message?.includes('Unauthorized') ||
+                       error?.toString()?.includes('403') ||
+                       error?.toString()?.includes('401');
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
-              <UserX className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Failed to load registrations
-              </h3>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
+              {isAuthError ? (
+                <>
+                  <UserX className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Access Denied
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You don't have permission to view event registrations. Please check your account permissions or contact your administrator.
+                  </p>
+                  <div className="space-y-2">
+                    <Button onClick={() => window.location.href = '/login'} className="w-full">
+                      Login Again
+                    </Button>
+                    <Button variant="outline" onClick={() => window.history.back()} className="w-full">
+                      Go Back
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <UserX className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Failed to load registrations
+                  </h3>
+                  <p className="text-gray-600 mb-4">{error?.message || error?.toString() || 'An error occurred'}</p>
+                  <Button onClick={() => window.location.reload()}>
+                    Try Again
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
