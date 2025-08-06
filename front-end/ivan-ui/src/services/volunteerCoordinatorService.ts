@@ -24,12 +24,43 @@ class VolunteerCoordinatorService {
     const organizationId = 1; // TODO: Get this from user context
 
     const response = await apiClient.post<
-      ApiResponse<PagedResultDto<VolunteerCoordinatorDto>>
+      ApiResponse<{
+        coordinators: VolunteerCoordinatorDto[];
+        totalCount: number;
+        page: number;
+        size: number;
+        totalPages: number;
+      }>
     >(
       `${this.baseUrl}/getCoordinatorsByOrganization/${organizationId}`,
       filters
     );
-    return response.data.data!;
+    
+    // The API response structure is: { success: true, message: '...', data: { coordinators: [...], ... } }
+    // But based on the error, it seems the data is directly in response.data, not response.data.data
+    let backendData = response.data.data;
+    
+    // If data is not nested, try the direct response data
+    if (!backendData && response.data.coordinators) {
+      backendData = response.data;
+    }
+    
+    // Add null safety check
+    if (!backendData || !backendData.coordinators) {
+      console.error('Invalid API response structure:', response.data);
+      console.error('Full response:', response);
+      throw new Error('Invalid response format: coordinators data is missing');
+    }
+    
+    return {
+      items: backendData.coordinators,
+      totalCount: backendData.totalCount,
+      pageNumber: backendData.page,
+      pageSize: backendData.size,
+      totalPages: backendData.totalPages,
+      hasPreviousPage: backendData.page > 1,
+      hasNextPage: backendData.page < backendData.totalPages,
+    };
   }
 
   async getCoordinatorById(

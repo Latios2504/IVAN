@@ -30,8 +30,8 @@ interface CreateVolunteerCoordinatorDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  managementLevels: ManagementLevelDto[];
-  specializations: SpecializationDto[];
+  managementLevels: ManagementLevelDto[] | undefined;
+  specializations: SpecializationDto[] | undefined;
 }
 
 export const CreateVolunteerCoordinatorDialog: React.FC<
@@ -171,11 +171,11 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
                   <SelectValue placeholder="Select management level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {managementLevels.map((level) => (
+                  {managementLevels?.map((level) => (
                     <SelectItem key={level.levelId} value={level.levelName}>
                       {level.levelName}
                     </SelectItem>
-                  ))}
+                  )) || []}
                 </SelectContent>
               </Select>
             </div>
@@ -193,14 +193,14 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
                   <SelectValue placeholder="Select specialization" />
                 </SelectTrigger>
                 <SelectContent>
-                  {specializations.map((spec) => (
+                  {specializations?.map((spec) => (
                     <SelectItem
                       key={spec.specializationId}
                       value={spec.specializationName}
                     >
                       {spec.specializationName}
                     </SelectItem>
-                  ))}
+                  )) || []}
                 </SelectContent>
               </Select>
             </div>
@@ -229,7 +229,11 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="managerCoordinatorId">Manager</Label>
               <Select
-                value={formData.managerCoordinatorId ? formData.managerCoordinatorId.toString() : "none"}
+                value={
+                  formData.managerCoordinatorId
+                    ? formData.managerCoordinatorId.toString()
+                    : "none"
+                }
                 onValueChange={(value) =>
                   handleInputChange(
                     "managerCoordinatorId",
@@ -242,14 +246,14 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No Manager</SelectItem>
-                  {availableManagers.map((manager) => (
+                  {availableManagers?.map((manager) => (
                     <SelectItem
                       key={manager.coordinatorId}
                       value={manager.coordinatorId.toString()}
                     >
                       {manager.fullName} - {manager.managementLevel}
                     </SelectItem>
-                  ))}
+                  )) || []}
                 </SelectContent>
               </Select>
             </div>

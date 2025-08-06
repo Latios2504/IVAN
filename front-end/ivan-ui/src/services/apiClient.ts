@@ -54,6 +54,55 @@ class ApiClient {
         ? await response.json()
         : { message: response.statusText };
 
+      // Handle authentication errors
+      if (response.status === 401) {
+        // 401 Unauthorized - token is invalid/expired, logout user
+        if (config.ENABLE_LOGGING) {
+          console.warn(
+            `🔐 Authentication error (401): Token invalid/expired, clearing token and redirecting to login`
+          );
+        }
+
+        // Clear the token
+        this.setToken(null);
+
+        // Redirect to login page if not already there
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
+      } else if (response.status === 403) {
+        // 403 Forbidden - user is authenticated but lacks permission
+        // Only logout if it's explicitly a token-related error
+        const errorMessage = errorData.message || "";
+        const isTokenError =
+          errorMessage.toLowerCase().includes("token") ||
+          errorMessage.toLowerCase().includes("expired") ||
+          errorMessage.toLowerCase().includes("invalid token");
+
+        if (isTokenError) {
+          if (config.ENABLE_LOGGING) {
+            console.warn(
+              `🔐 Authentication error (403): Token-related error, clearing token and redirecting to login`
+            );
+          }
+
+          // Clear the token
+          this.setToken(null);
+
+          // Redirect to login page if not already there
+          if (!window.location.pathname.includes("/login")) {
+            window.location.href = "/login";
+          }
+        } else {
+          if (config.ENABLE_LOGGING) {
+            console.warn(
+              `🚫 Access denied (403): User lacks permission for this resource`
+            );
+          }
+          // Don't logout - just let the error propagate
+        }
+      }
+
       const apiError = new ApiError(
         errorData.message || `HTTP ${response.status}: ${response.statusText}`,
         response.status,
