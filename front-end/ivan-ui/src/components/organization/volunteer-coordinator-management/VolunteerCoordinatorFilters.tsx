@@ -24,57 +24,69 @@ import { cn } from "@/lib/utils";
 import type {
   ManagementLevelDto,
   SpecializationDto,
+  VolunteerCoordinatorFilterDto,
+  VolunteerCoordinatorDto,
 } from "../../../types/volunteer-coordinator";
-import { useVolunteerCoordinator } from "../../../context/VolunteerCoordinatorContext";
 
 interface VolunteerCoordinatorFiltersProps {
+  organizationId: number;
   managementLevels: ManagementLevelDto[];
   specializations: SpecializationDto[];
+  availableManagers: VolunteerCoordinatorDto[];
+  filters: VolunteerCoordinatorFilterDto;
+  onFiltersChange: (filters: Partial<VolunteerCoordinatorFilterDto>) => void;
+  onReset: () => void;
 }
 
 export const VolunteerCoordinatorFilters: React.FC<
   VolunteerCoordinatorFiltersProps
-> = ({ managementLevels, specializations }) => {
-  const { filters, setFilters, resetFilters, availableManagers } =
-    useVolunteerCoordinator();
+> = ({
+  organizationId,
+  managementLevels,
+  specializations,
+  availableManagers,
+  filters,
+  onFiltersChange,
+  onReset,
+}) => {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
 
   const handleSearchChange = (value: string) => {
-    setFilters({ search: value, page: 1 });
+    onFiltersChange({ search: value, page: 1 });
   };
 
   const handleManagementLevelChange = (level: string) => {
     const managementLevels = level === "all" ? undefined : [level];
-    setFilters({ managementLevels, page: 1 });
+    onFiltersChange({ managementLevels, page: 1 });
   };
 
   const handleSpecializationChange = (specialization: string) => {
     const specializations =
       specialization === "all" ? undefined : [specialization];
-    setFilters({ specializations, page: 1 });
+    onFiltersChange({ specializations, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
     const isActive = value === "all" ? undefined : value === "true";
-    setFilters({ isActive, page: 1 });
+    onFiltersChange({ isActive, page: 1 });
   };
 
   const handleManagerChange = (managerId: string) => {
     const managerCoordinatorId =
       managerId === "all" ? undefined : parseInt(managerId);
-    setFilters({ managerCoordinatorId, page: 1 });
+    onFiltersChange({ managerCoordinatorId, page: 1 });
   };
 
   const handleHasManagerChange = (value: string) => {
     const hasManagerOnly = value === "all" ? undefined : value === "true";
-    setFilters({ hasManagerOnly, page: 1 });
+    onFiltersChange({ hasManagerOnly, page: 1 });
   };
 
   const handleDateChange = (
     field: "dateJoinedFrom" | "dateJoinedTo",
     date: Date | undefined
   ) => {
-    setFilters({
+    onFiltersChange({
       [field]: date ? date.toISOString().split("T")[0] : undefined,
       page: 1,
     });
@@ -85,7 +97,7 @@ export const VolunteerCoordinatorFilters: React.FC<
     value: string
   ) => {
     const numValue = value ? parseInt(value) : undefined;
-    setFilters({
+    onFiltersChange({
       [field]: numValue,
       page: 1,
     });
@@ -143,7 +155,7 @@ export const VolunteerCoordinatorFilters: React.FC<
               {showAdvanced ? "Simple" : "Advanced"}
             </Button>
             {hasActiveFilters && (
-              <Button variant="outline" size="sm" onClick={resetFilters}>
+              <Button variant="outline" size="sm" onClick={onReset}>
                 <X className="h-4 w-4 mr-1" />
                 Clear
               </Button>
@@ -151,31 +163,34 @@ export const VolunteerCoordinatorFilters: React.FC<
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search */}
-        <div className="space-y-2">
-          <Label>Search Coordinators</Label>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, email, or specialization..."
-              value={filters.search || ""}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
 
-        {/* Basic Filters Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <CardContent className="space-y-4">
+        {/* Basic Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Search */}
           <div className="space-y-2">
-            <Label>Management Level</Label>
+            <Label htmlFor="search">Search</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="search"
+                placeholder="Search coordinators..."
+                value={filters.search || ""}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {/* Management Level */}
+          <div className="space-y-2">
+            <Label htmlFor="managementLevel">Management Level</Label>
             <Select
               value={filters.managementLevels?.[0] || "all"}
               onValueChange={handleManagementLevelChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All Levels" />
+                <SelectValue placeholder="All levels" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Levels</SelectItem>
@@ -188,37 +203,15 @@ export const VolunteerCoordinatorFilters: React.FC<
             </Select>
           </div>
 
+          {/* Specialization */}
           <div className="space-y-2">
-            <Label>Status</Label>
-            <Select
-              value={
-                filters.isActive === undefined
-                  ? "all"
-                  : filters.isActive
-                  ? "true"
-                  : "false"
-              }
-              onValueChange={handleStatusChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="true">Active</SelectItem>
-                <SelectItem value="false">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Specialization</Label>
+            <Label htmlFor="specialization">Specialization</Label>
             <Select
               value={filters.specializations?.[0] || "all"}
               onValueChange={handleSpecializationChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All Specializations" />
+                <SelectValue placeholder="All specializations" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Specializations</SelectItem>
@@ -233,63 +226,85 @@ export const VolunteerCoordinatorFilters: React.FC<
               </SelectContent>
             </Select>
           </div>
+
+          {/* Status */}
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={
+                filters.isActive === undefined
+                  ? "all"
+                  : filters.isActive.toString()
+              }
+              onValueChange={handleStatusChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="true">Active</SelectItem>
+                <SelectItem value="false">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Manager */}
+          <div className="space-y-2">
+            <Label htmlFor="manager">Manager</Label>
+            <Select
+              value={filters.managerCoordinatorId?.toString() || "all"}
+              onValueChange={handleManagerChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All managers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Managers</SelectItem>
+                {availableManagers.map((manager) => (
+                  <SelectItem
+                    key={manager.coordinatorId}
+                    value={manager.coordinatorId.toString()}
+                  >
+                    {manager.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Has Manager */}
+          <div className="space-y-2">
+            <Label htmlFor="hasManager">Management</Label>
+            <Select
+              value={
+                filters.hasManagerOnly === undefined
+                  ? "all"
+                  : filters.hasManagerOnly.toString()
+              }
+              onValueChange={handleHasManagerChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All coordinators" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Coordinators</SelectItem>
+                <SelectItem value="true">Has Manager</SelectItem>
+                <SelectItem value="false">No Manager</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Advanced Filters */}
         {showAdvanced && (
-          <div className="space-y-4 border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Manager Selection */}
-              <div className="space-y-2">
-                <Label>Manager</Label>
-                <Select
-                  value={filters.managerCoordinatorId?.toString() || "all"}
-                  onValueChange={handleManagerChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Managers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Managers</SelectItem>
-                    {availableManagers.map((manager) => (
-                      <SelectItem
-                        key={manager.coordinatorId}
-                        value={manager.coordinatorId.toString()}
-                      >
-                        {manager.fullName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="text-sm font-medium text-gray-700">
+              Advanced Filters
+            </h4>
 
-              {/* Has Manager Filter */}
-              <div className="space-y-2">
-                <Label>Management Structure</Label>
-                <Select
-                  value={
-                    filters.hasManagerOnly === undefined
-                      ? "all"
-                      : filters.hasManagerOnly
-                      ? "true"
-                      : "false"
-                  }
-                  onValueChange={handleHasManagerChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Coordinators" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Coordinators</SelectItem>
-                    <SelectItem value="true">With Manager</SelectItem>
-                    <SelectItem value="false">Without Manager</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Date Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Date Range */}
               <div className="space-y-2">
                 <Label>Date Joined From</Label>
                 <Popover>
@@ -309,7 +324,7 @@ export const VolunteerCoordinatorFilters: React.FC<
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={
@@ -345,7 +360,7 @@ export const VolunteerCoordinatorFilters: React.FC<
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={
@@ -361,17 +376,17 @@ export const VolunteerCoordinatorFilters: React.FC<
                   </PopoverContent>
                 </Popover>
               </div>
-            </div>
 
-            {/* Volunteer Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Volunteers Managed Range */}
               <div className="space-y-2">
-                <Label>Min Volunteers Managed</Label>
+                <Label htmlFor="minVolunteers">Min Volunteers Managed</Label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
+                    id="minVolunteers"
                     type="number"
-                    placeholder="0"
+                    min="0"
+                    placeholder="Min"
                     value={filters.minVolunteersManaged || ""}
                     onChange={(e) =>
                       handleVolunteerRangeChange(
@@ -380,18 +395,19 @@ export const VolunteerCoordinatorFilters: React.FC<
                       )
                     }
                     className="pl-10"
-                    min="0"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Max Volunteers Managed</Label>
+                <Label htmlFor="maxVolunteers">Max Volunteers Managed</Label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
+                    id="maxVolunteers"
                     type="number"
-                    placeholder="1000"
+                    min="0"
+                    placeholder="Max"
                     value={filters.maxVolunteersManaged || ""}
                     onChange={(e) =>
                       handleVolunteerRangeChange(
@@ -400,10 +416,53 @@ export const VolunteerCoordinatorFilters: React.FC<
                       )
                     }
                     className="pl-10"
-                    min="0"
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filter Summary */}
+        {hasActiveFilters && (
+          <div className="border-t pt-4">
+            <div className="flex flex-wrap gap-2">
+              {filters.search && (
+                <Badge variant="outline" className="gap-1">
+                  Search: {filters.search}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => handleSearchChange("")}
+                  />
+                </Badge>
+              )}
+              {filters.managementLevels?.map((level) => (
+                <Badge key={level} variant="outline" className="gap-1">
+                  Level: {level}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => handleManagementLevelChange("all")}
+                  />
+                </Badge>
+              ))}
+              {filters.specializations?.map((spec) => (
+                <Badge key={spec} variant="outline" className="gap-1">
+                  Spec: {spec}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => handleSpecializationChange("all")}
+                  />
+                </Badge>
+              ))}
+              {filters.isActive !== undefined && (
+                <Badge variant="outline" className="gap-1">
+                  Status: {filters.isActive ? "Active" : "Inactive"}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => handleStatusChange("all")}
+                  />
+                </Badge>
+              )}
             </div>
           </div>
         )}

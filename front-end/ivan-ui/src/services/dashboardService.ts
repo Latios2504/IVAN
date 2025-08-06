@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { apiClient } from "./apiClient";
 import { ApiError } from "./errorHandler";
 
 // Dashboard Statistics Types
@@ -42,13 +42,13 @@ export interface AdminStats extends SystemStats {
   systemHealth: string;
 }
 
-class DashboardService extends BaseService {
+class DashboardService {
   private readonly baseUrl = "/dashboard";
 
   // Get system-wide statistics for homepage
   async getSystemStats(): Promise<SystemStats> {
     try {
-      const response = await this.api.get<SystemStats>(
+      const response = await apiClient.get<SystemStats>(
         `${this.baseUrl}/system-stats`
       );
 
@@ -69,7 +69,7 @@ class DashboardService extends BaseService {
   // Get organization-specific dashboard stats
   async getOrganizationStats(): Promise<OrganizationStats> {
     try {
-      const response = await this.api.get<OrganizationStats>(
+      const response = await apiClient.get<OrganizationStats>(
         `${this.baseUrl}/organization-stats`
       );
 
@@ -93,7 +93,7 @@ class DashboardService extends BaseService {
   // Get volunteer-specific dashboard stats
   async getVolunteerStats(): Promise<VolunteerStats> {
     try {
-      const response = await this.api.get<VolunteerStats>(
+      const response = await apiClient.get<VolunteerStats>(
         `${this.baseUrl}/volunteer-stats`
       );
 
@@ -117,7 +117,7 @@ class DashboardService extends BaseService {
   // Get partner-specific dashboard stats
   async getPartnerStats(): Promise<PartnerStats> {
     try {
-      const response = await this.api.get<PartnerStats>(
+      const response = await apiClient.get<PartnerStats>(
         `${this.baseUrl}/partner-stats`
       );
 
@@ -141,7 +141,7 @@ class DashboardService extends BaseService {
   // Get admin-specific dashboard stats
   async getAdminStats(): Promise<AdminStats> {
     try {
-      const response = await this.api.get<AdminStats>(
+      const response = await apiClient.get<AdminStats>(
         `${this.baseUrl}/admin-stats`
       );
 
@@ -214,20 +214,20 @@ class DashboardService extends BaseService {
   // Admin analytics methods for AdminAnalyticsDashboard
   async getUserAnalytics(): Promise<any> {
     try {
-      const response = await this.api.get<any>("/admin/analytics/users");
+      const response = await apiClient.get<any>("/admin/analytics/users");
       return response.success ? response.data : null;
     } catch (error) {
-      this.logError("getUserAnalytics", error);
+      console.error("DashboardService.getUserAnalytics error:", error);
       return null;
     }
   }
 
   async getEventAnalytics(): Promise<any> {
     try {
-      const response = await this.api.get<any>("/admin/analytics/events");
+      const response = await apiClient.get<any>("/admin/analytics/events");
       return response.success ? response.data : null;
     } catch (error) {
-      this.logError("getEventAnalytics", error);
+      console.error("DashboardService.getEventAnalytics error:", error);
       return null;
     }
   }

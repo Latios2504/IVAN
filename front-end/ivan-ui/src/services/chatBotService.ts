@@ -1,9 +1,9 @@
-import { BaseService } from "./BaseService";
+import { apiClient } from "./apiClient";
 import { ApiError } from "./errorHandler";
 import type { ChatMessageRequest, ChatMessageResponse } from "../types/chatbot";
 import type { AiQueryRequest, AiQueryResponse } from "../types/ai";
 
-class ChatBotService extends BaseService {
+class ChatBotService {
   async sendMessage(request: ChatMessageRequest): Promise<ChatMessageResponse> {
     try {
       // Use the AI query endpoint instead of non-existent chatbot endpoint
@@ -14,23 +14,23 @@ class ChatBotService extends BaseService {
         includeContext: true, // Include user role context
       };
 
-      const aiResponse = await this.post<AiQueryResponse>(
+      const aiResponse = await apiClient.post<AiQueryResponse>(
         "/Ai/query",
         aiRequest
       );
 
       // Convert AI response to chatbot response format
       const chatResponse: ChatMessageResponse = {
-        response: aiResponse.response,
+        response: aiResponse.data.response,
         conversationId: request.conversationId || "", // Keep existing conversation ID
-        timestamp: aiResponse.generatedAt || new Date().toISOString(),
-        modelUsed: aiResponse.modelUsed,
-        customInstructionUsed: aiResponse.customInstructionUsed,
+        timestamp: aiResponse.data.generatedAt || new Date().toISOString(),
+        modelUsed: aiResponse.data.modelUsed,
+        customInstructionUsed: aiResponse.data.customInstructionUsed,
       };
 
       return chatResponse;
     } catch (error) {
-      this.logError("sendMessage", error);
+      console.error("ChatBotService.sendMessage error:", error);
       if (error instanceof ApiError) {
         throw error;
       }

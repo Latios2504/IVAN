@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicPartnerDetail } from "@/context/PublicContentContext";
+import { usePublicPartnersData } from "@/hooks/usePublicContentData";
+import { useEffect } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,22 @@ import {
 
 export default function PublicPartnerDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { partner, loading, error, refetch } = usePublicPartnerDetail(id);
+  const { loadById, data: partners, loading, error } = usePublicPartnersData();
+
+  // Find the partner from loaded data
+  const partner = partners?.find((p) => p.partnerId?.toString() === id);
+
+  useEffect(() => {
+    if (id) {
+      loadById(parseInt(id));
+    }
+  }, [id, loadById]);
+
+  const handleRetry = () => {
+    if (id) {
+      loadById(parseInt(id));
+    }
+  };
 
   const breadcrumbs = [
     { label: "Home", href: "/" },
@@ -36,7 +52,7 @@ export default function PublicPartnerDetailPage() {
       breadcrumbs={breadcrumbs}
       loadingText="Đang tải thông tin đối tác..."
       notFoundMessage="Không tìm thấy đối tác"
-      onRetry={refetch}
+      onRetry={handleRetry}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}

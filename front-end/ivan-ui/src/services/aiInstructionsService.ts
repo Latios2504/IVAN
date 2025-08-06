@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { apiClient } from "./apiClient";
 import { ApiError } from "./errorHandler";
 import type { ApiResponse } from "../types/common";
 import type {
@@ -12,7 +12,7 @@ import type {
  * Service for managing AI Custom Instructions
  * Updated to work with the new AiCustomInstructionController backend endpoints
  */
-class AIInstructionsService extends BaseService {
+class AIInstructionsService  {
   /**
    * Helper function to handle Entity Framework's $values format
    */
@@ -44,7 +44,7 @@ class AIInstructionsService extends BaseService {
   private readonly baseEndpoint = "/AiCustomInstruction";
 
   private get api() {
-    return this.api;
+    return apiClient;
   }
 
   /**
@@ -54,7 +54,7 @@ class AIInstructionsService extends BaseService {
     data: AiCustomInstructionCreateDTO
   ): Promise<AiCustomInstructionDTO> {
     try {
-      const response = await this.api.post<AiCustomInstructionDTO>(
+      const response = await apiClient.post<AiCustomInstructionDTO>(
         this.baseEndpoint,
         data
       );
@@ -84,7 +84,7 @@ class AIInstructionsService extends BaseService {
     data: AiCustomInstructionUpdateDTO
   ): Promise<AiCustomInstructionDTO> {
     try {
-      const response = await this.api.put<AiCustomInstructionDTO>(
+      const response = await apiClient.put<AiCustomInstructionDTO>(
         `${this.baseEndpoint}/${instructionId}`,
         data
       );
@@ -113,7 +113,7 @@ class AIInstructionsService extends BaseService {
     try {
       const deleteUrl = `${this.baseEndpoint}/${instructionId}`;
       
-      const response = await this.api.delete<boolean>(deleteUrl);
+      const response = await apiClient.delete<boolean>(deleteUrl);
 
       if (!response.success) {
         throw new ApiError(
@@ -137,7 +137,7 @@ class AIInstructionsService extends BaseService {
     isActive: boolean
   ): Promise<AiCustomInstructionDTO> {
     try {
-      const response = await this.api.patch<AiCustomInstructionDTO>(
+      const response = await apiClient.patch<AiCustomInstructionDTO>(
         `${this.baseEndpoint}/${instructionId}/status`,
         { isActive }
       );
@@ -163,7 +163,7 @@ class AIInstructionsService extends BaseService {
    */
   async getUserInstructions(): Promise<AiCustomInstructionDTO[]> {
     try {
-      const response = await this.api.get<AiCustomInstructionDTO[]>(
+      const response = await apiClient.get<AiCustomInstructionDTO[]>(
         this.baseEndpoint
       );
 
@@ -187,7 +187,7 @@ class AIInstructionsService extends BaseService {
   async getInstructions(isAdmin: boolean): Promise<AiCustomInstructionDTO[]> {
     try {
       // The new AiCustomInstructionController handles role-based filtering automatically
-      const response = await this.api.get<AiCustomInstructionDTO[]>(
+      const response = await apiClient.get<AiCustomInstructionDTO[]>(
         this.baseEndpoint
       );
 
@@ -263,7 +263,7 @@ class AIInstructionsService extends BaseService {
    */
   async getGeminiConfig(): Promise<object> {
     try {
-      const response = await this.api.get<object>("/Ai/configuration");
+      const response = await apiClient.get<object>("/Ai/configuration");
 
       if (!response.success || !response.data) {
         throw new ApiError("Failed to fetch AI configuration", 400);
@@ -284,7 +284,7 @@ class AIInstructionsService extends BaseService {
    */
   async getAvailableModels(): Promise<string[]> {
     try {
-      const response = await this.api.get<string[]>("/Ai/models");
+      const response = await apiClient.get<string[]>("/Ai/models");
 
       if (!response.success || !response.data) {
         throw new ApiError("Failed to fetch available models", 400);

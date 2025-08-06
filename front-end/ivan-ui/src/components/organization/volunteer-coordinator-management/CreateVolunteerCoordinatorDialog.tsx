@@ -23,22 +23,36 @@ import type {
   CreateVolunteerCoordinatorDto,
   ManagementLevelDto,
   SpecializationDto,
+  VolunteerCoordinatorDto,
 } from "../../../types/volunteer-coordinator";
-import { useVolunteerCoordinator } from "../../../context/VolunteerCoordinatorContext";
+import {
+  useCoordinatorOperations,
+  useCoordinatorLookups,
+} from "@/hooks/useVolunteerCoordinatorData";
 
 interface CreateVolunteerCoordinatorDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  managementLevels: ManagementLevelDto[] | undefined;
-  specializations: SpecializationDto[] | undefined;
+  organizationId: number;
+  managementLevels?: ManagementLevelDto[];
+  specializations?: SpecializationDto[];
 }
 
 export const CreateVolunteerCoordinatorDialog: React.FC<
   CreateVolunteerCoordinatorDialogProps
-> = ({ open, onClose, onSuccess, managementLevels, specializations }) => {
-  const { createCoordinator, availableManagers } = useVolunteerCoordinator();
-  const [loading, setLoading] = React.useState(false);
+> = ({
+  open,
+  onClose,
+  onSuccess,
+  organizationId,
+  managementLevels,
+  specializations,
+}) => {
+  const { createCoordinator, loading: isCreating } =
+    useCoordinatorOperations(organizationId);
+  const { availableManagers } = useCoordinatorLookups(organizationId);
+
   const [formData, setFormData] = React.useState<
     Partial<CreateVolunteerCoordinatorDto>
   >({
@@ -84,15 +98,12 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
     }
 
     try {
-      setLoading(true);
       await createCoordinator(formData as CreateVolunteerCoordinatorDto);
       onSuccess();
       handleClose();
     } catch (error) {
       console.error("Failed to create coordinator:", error);
       alert("Failed to create coordinator. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -123,306 +134,354 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
             Create New Volunteer Coordinator
           </DialogTitle>
           <DialogDescription>
-            Add a new volunteer coordinator to your organization.
+            Add a new volunteer coordinator to your organization. Fill in the
+            required information below.
           </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* User ID - Required */}
-            <div className="space-y-2">
-              <Label htmlFor="userId">
-                User ID <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="userId"
-                type="number"
-                placeholder="Enter user ID"
-                value={formData.userId || ""}
-                onChange={(e) =>
-                  handleInputChange(
-                    "userId",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                required
-              />
-            </div>
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Basic Information</h3>
 
-            {/* Management Level - Required */}
-            <div className="space-y-2">
-              <Label htmlFor="managementLevel">
-                Management Level <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.managementLevel}
-                onValueChange={(value) =>
-                  handleInputChange("managementLevel", value)
-                }
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select management level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {managementLevels?.map((level) => (
-                    <SelectItem key={level.levelId} value={level.levelName}>
-                      {level.levelName}
-                    </SelectItem>
-                  )) || []}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Specialization */}
-            <div className="space-y-2">
-              <Label htmlFor="specialization">Specialization</Label>
-              <Select
-                value={formData.specialization}
-                onValueChange={(value) =>
-                  handleInputChange("specialization", value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select specialization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {specializations?.map((spec) => (
-                    <SelectItem
-                      key={spec.specializationId}
-                      value={spec.specializationName}
-                    >
-                      {spec.specializationName}
-                    </SelectItem>
-                  )) || []}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Max Volunteers Managed */}
-            <div className="space-y-2">
-              <Label htmlFor="maxVolunteersManaged">
-                Max Volunteers Managed
-              </Label>
-              <Input
-                id="maxVolunteersManaged"
-                type="number"
-                placeholder="10"
-                value={formData.maxVolunteersManaged || ""}
-                onChange={(e) =>
-                  handleInputChange(
-                    "maxVolunteersManaged",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                min="1"
-              />
-            </div>
-
-            {/* Manager */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="managerCoordinatorId">Manager</Label>
-              <Select
-                value={
-                  formData.managerCoordinatorId
-                    ? formData.managerCoordinatorId.toString()
-                    : "none"
-                }
-                onValueChange={(value) =>
-                  handleInputChange(
-                    "managerCoordinatorId",
-                    value === "none" ? undefined : parseInt(value)
-                  )
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select manager (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Manager</SelectItem>
-                  {availableManagers?.map((manager) => (
-                    <SelectItem
-                      key={manager.coordinatorId}
-                      value={manager.coordinatorId.toString()}
-                    >
-                      {manager.fullName} - {manager.managementLevel}
-                    </SelectItem>
-                  )) || []}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Emergency Contact Information */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Emergency Contact
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="emergencyContact">Emergency Contact Name</Label>
+                <Label htmlFor="userId">
+                  User ID <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="userId"
+                  type="number"
+                  value={formData.userId || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "userId",
+                      e.target.value ? parseInt(e.target.value) : undefined
+                    )
+                  }
+                  placeholder="Enter user ID"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="managementLevel">
+                  Management Level <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.managementLevel}
+                  onValueChange={(value) =>
+                    handleInputChange("managementLevel", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select management level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managementLevels?.map((level) => (
+                      <SelectItem key={level.levelId} value={level.levelName}>
+                        {level.levelName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="specialization">Specialization</Label>
+                <Select
+                  value={formData.specialization}
+                  onValueChange={(value) =>
+                    handleInputChange("specialization", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select specialization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specializations?.map((spec) => (
+                      <SelectItem
+                        key={spec.specializationId}
+                        value={spec.specializationName}
+                      >
+                        {spec.specializationName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="maxVolunteersManaged">
+                  Max Volunteers Managed
+                </Label>
+                <Input
+                  id="maxVolunteersManaged"
+                  type="number"
+                  min="1"
+                  value={formData.maxVolunteersManaged || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "maxVolunteersManaged",
+                      e.target.value ? parseInt(e.target.value) : undefined
+                    )
+                  }
+                  placeholder="Maximum number of volunteers"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="managerCoordinatorId">Manager</Label>
+                <Select
+                  value={formData.managerCoordinatorId?.toString() || ""}
+                  onValueChange={(value) =>
+                    handleInputChange(
+                      "managerCoordinatorId",
+                      value ? parseInt(value) : undefined
+                    )
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select manager (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Manager</SelectItem>
+                    {availableManagers?.map((manager) => (
+                      <SelectItem
+                        key={manager.coordinatorId}
+                        value={manager.coordinatorId.toString()}
+                      >
+                        {manager.managerCoordinatorName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Contact & Availability */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Contact & Availability</h3>
+
+              <div className="space-y-2">
+                <Label htmlFor="emergencyContact">Emergency Contact</Label>
                 <Input
                   id="emergencyContact"
-                  placeholder="Contact person name"
-                  value={formData.emergencyContact || ""}
+                  value={formData.emergencyContact}
                   onChange={(e) =>
                     handleInputChange("emergencyContact", e.target.value)
                   }
+                  placeholder="Emergency contact name"
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="emergencyPhone">Emergency Phone</Label>
                 <Input
                   id="emergencyPhone"
-                  placeholder="Phone number"
-                  value={formData.emergencyPhone || ""}
+                  value={formData.emergencyPhone}
                   onChange={(e) =>
                     handleInputChange("emergencyPhone", e.target.value)
                   }
+                  placeholder="Emergency phone number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="workSchedule">Work Schedule</Label>
+                <Textarea
+                  id="workSchedule"
+                  value={formData.workSchedule}
+                  onChange={(e) =>
+                    handleInputChange("workSchedule", e.target.value)
+                  }
+                  placeholder="Describe work schedule availability"
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="availabilityHours">Availability Hours</Label>
+                <Input
+                  id="availabilityHours"
+                  value={formData.availabilityHours}
+                  onChange={(e) =>
+                    handleInputChange("availabilityHours", e.target.value)
+                  }
+                  placeholder="e.g., Monday-Friday 9AM-5PM"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="languagesSpoken">Languages Spoken</Label>
+                <Input
+                  id="languagesSpoken"
+                  value={formData.languagesSpoken}
+                  onChange={(e) =>
+                    handleInputChange("languagesSpoken", e.target.value)
+                  }
+                  placeholder="e.g., English, Spanish, French"
                 />
               </div>
             </div>
           </div>
 
-          {/* Professional Information */}
+          {/* Skills & Experience */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Professional Information
-            </h4>
+            <h3 className="text-lg font-medium">Skills & Experience</h3>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="skills">Skills</Label>
                 <Textarea
                   id="skills"
-                  placeholder="List relevant skills..."
-                  value={formData.skills || ""}
+                  value={formData.skills}
                   onChange={(e) => handleInputChange("skills", e.target.value)}
+                  placeholder="List relevant skills"
                   rows={3}
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="certifications">Certifications</Label>
                 <Textarea
                   id="certifications"
-                  placeholder="List certifications..."
-                  value={formData.certifications || ""}
+                  value={formData.certifications}
                   onChange={(e) =>
                     handleInputChange("certifications", e.target.value)
                   }
+                  placeholder="List certifications"
                   rows={3}
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="experience">Experience</Label>
                 <Textarea
                   id="experience"
-                  placeholder="Describe relevant experience..."
-                  value={formData.experience || ""}
+                  value={formData.experience}
                   onChange={(e) =>
                     handleInputChange("experience", e.target.value)
                   }
+                  placeholder="Describe relevant experience"
                   rows={3}
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="education">Education</Label>
                 <Textarea
                   id="education"
-                  placeholder="Educational background..."
-                  value={formData.education || ""}
+                  value={formData.education}
                   onChange={(e) =>
                     handleInputChange("education", e.target.value)
                   }
+                  placeholder="Educational background"
                   rows={3}
                 />
               </div>
             </div>
-          </div>
 
-          {/* Work Information */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Work Information
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="workSchedule">Work Schedule</Label>
-                <Textarea
-                  id="workSchedule"
-                  placeholder="Describe work schedule..."
-                  value={formData.workSchedule || ""}
-                  onChange={(e) =>
-                    handleInputChange("workSchedule", e.target.value)
-                  }
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="availabilityHours">Availability Hours</Label>
-                <Input
-                  id="availabilityHours"
-                  placeholder="e.g., Mon-Fri 9AM-5PM"
-                  value={formData.availabilityHours || ""}
-                  onChange={(e) =>
-                    handleInputChange("availabilityHours", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="preferredEventTypes">
-                  Preferred Event Types
-                </Label>
-                <Input
-                  id="preferredEventTypes"
-                  placeholder="Types of events preferred"
-                  value={formData.preferredEventTypes || ""}
-                  onChange={(e) =>
-                    handleInputChange("preferredEventTypes", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="languagesSpoken">Languages Spoken</Label>
-                <Input
-                  id="languagesSpoken"
-                  placeholder="e.g., English, Vietnamese"
-                  value={formData.languagesSpoken || ""}
-                  onChange={(e) =>
-                    handleInputChange("languagesSpoken", e.target.value)
-                  }
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="preferredEventTypes">Preferred Event Types</Label>
+              <Input
+                id="preferredEventTypes"
+                value={formData.preferredEventTypes}
+                onChange={(e) =>
+                  handleInputChange("preferredEventTypes", e.target.value)
+                }
+                placeholder="e.g., Community Service, Education, Healthcare"
+              />
             </div>
           </div>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              placeholder="Additional notes about the coordinator..."
-              value={formData.notes || ""}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-              rows={3}
-            />
-          </div>
+          {/* Additional Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Additional Information</h3>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Coordinator
-            </Button>
-          </DialogFooter>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="profileImageUrl">Profile Image URL</Label>
+                <Input
+                  id="profileImageUrl"
+                  value={formData.profileImageUrl}
+                  onChange={(e) =>
+                    handleInputChange("profileImageUrl", e.target.value)
+                  }
+                  placeholder="URL to profile image"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="socialMediaLinks">Social Media Links</Label>
+                <Input
+                  id="socialMediaLinks"
+                  value={formData.socialMediaLinks}
+                  onChange={(e) =>
+                    handleInputChange("socialMediaLinks", e.target.value)
+                  }
+                  placeholder="Social media profile links"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange("notes", e.target.value)}
+                placeholder="Additional notes about the coordinator"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="personalNotes">Personal Notes</Label>
+              <Textarea
+                id="personalNotes"
+                value={formData.personalNotes}
+                onChange={(e) =>
+                  handleInputChange("personalNotes", e.target.value)
+                }
+                placeholder="Personal notes (private)"
+                rows={3}
+              />
+            </div>
+          </div>
         </form>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={
+              isCreating || !formData.userId || !formData.managementLevel
+            }
+          >
+            {isCreating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Create Coordinator
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

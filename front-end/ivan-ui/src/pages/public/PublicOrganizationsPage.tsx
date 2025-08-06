@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Building, Users, MapPin, Target, Search, Award } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { OrganizationCard } from "@/components/public/OrganizationCard";
-import { usePublicOrganizations } from "@/context/PublicContentContext";
+import { usePublicOrganizationsPagination } from "@/hooks/usePublicContentData";
 import { useDebounce } from "@/hooks/useDebounce";
 import type {
   PublicOrganization,
@@ -48,14 +48,23 @@ export default function PublicOrganizationsPage() {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the custom hook to fetch organizations
-  const { organizations, loading, error, loadOrganizations, pagination } =
-    usePublicOrganizations();
+  // Use the new pagination hook
+  const { data, loading, error, loadWithFilters } =
+    usePublicOrganizationsPagination();
+
+  // Extract organizations and pagination from the wrapped result
+  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
+  const organizations = pagedResult?.items || [];
+  const pagination = {
+    page: pagedResult?.pageNumber || 1,
+    totalPages: pagedResult?.totalPages || 0,
+    totalItems: pagedResult?.totalCount || 0,
+  };
 
   // Load organizations when filters change
   useEffect(() => {
-    loadOrganizations(filters);
-  }, [filters, loadOrganizations]);
+    loadWithFilters(filters);
+  }, [filters]);
 
   // Map backend data to component props
   const mappedOrganizations = useMemo(
@@ -84,7 +93,7 @@ export default function PublicOrganizationsPage() {
   };
 
   const handleRetry = () => {
-    loadOrganizations(filters);
+    loadWithFilters(filters);
   };
 
   // Filter options (TODO: fetch from backend)
