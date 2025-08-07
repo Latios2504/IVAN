@@ -1,11 +1,13 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicOrganizationsData } from "@/hooks/usePublicContentData";
-import { useEffect } from "react";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
+import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { PublicOrganization } from "@/types/publicContent";
 import {
   MapPin,
   Globe,
@@ -25,27 +27,35 @@ import {
 
 export default function PublicOrganizationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const {
-    loadById,
-    data: organizations,
-    loading,
-    error,
-  } = usePublicOrganizationsData();
 
-  // Find the organization from loaded data
-  const organization = organizations?.find(
-    (org) => org.organizationId?.toString() === id
+  // Service adapter for public organizations
+  const publicOrganizationsService = {
+    getById: async (orgId: string | number): Promise<PublicOrganization> => {
+      return await publicContentService.getPublicOrganization(Number(orgId));
+    },
+  };
+
+  // Use the new useApi hook
+  const organizationsApi = useApi<PublicOrganization, never, never>(
+    publicOrganizationsService
   );
+
+  // Extract organization data
+  const [organization, setOrganization] = useState<PublicOrganization | null>(
+    null
+  );
+  const loading = organizationsApi.loading;
+  const error = organizationsApi.error;
 
   useEffect(() => {
     if (id) {
-      loadById(parseInt(id));
+      organizationsApi.loadById(id).then(setOrganization);
     }
-  }, [id, loadById]);
+  }, [id]);
 
   const handleRetry = () => {
     if (id) {
-      loadById(parseInt(id));
+      organizationsApi.loadById(id).then(setOrganization);
     }
   };
 

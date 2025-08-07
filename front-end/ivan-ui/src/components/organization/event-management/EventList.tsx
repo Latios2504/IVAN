@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DataTable } from "../../common/DataTable";
 import type { TableColumn, TableAction } from "../../common/DataTable";
 import { Button } from "../../ui/button";
@@ -11,11 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import type { EventDto } from "../../../types/event";
-import {
-  useEventData,
-  useEventCategories,
-  useEventStatuses,
-} from "../../../hooks/useEventData";
+import { useApi } from "../../../hooks/useApi";
+import { eventService } from "../../../services/eventService";
 import { EditEventDialog } from "./EditEventDialog";
 import { EventDetailDialog } from "./EventDetailDialog";
 
@@ -28,9 +25,38 @@ export const EventList: React.FC<EventListProps> = ({
   events,
   onEventUpdated,
 }) => {
-  const eventData = useEventData();
-  const categories = useEventCategories();
-  const statuses = useEventStatuses();
+  // Service adapters for events, categories, and statuses
+  const eventsService = {
+    remove: async (id: string | number) => {
+      await eventService.deleteEvent(Number(id));
+      return true;
+    },
+  };
+
+  const categoriesService = {
+    getAll: async () => {
+      return await eventService.getEventCategories();
+    },
+  };
+
+  const statusesService = {
+    getAll: async () => {
+      return await eventService.getEventStatuses();
+    },
+  };
+
+  const eventsApi = useApi(eventsService);
+  const categoriesApi = useApi(categoriesService);
+  const statusesApi = useApi(statusesService);
+
+  // Load categories and statuses on mount
+  useEffect(() => {
+    categoriesApi.loadAll();
+    statusesApi.loadAll();
+  }, []);
+
+  const categories = categoriesApi.data || [];
+  const statuses = statusesApi.data || [];
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -53,7 +79,7 @@ export const EventList: React.FC<EventListProps> = ({
   const handleDelete = async (event: EventDto) => {
     if (confirm(`Are you sure you want to delete "${event.eventName}"?`)) {
       try {
-        await eventData.remove(event.eventId);
+        await eventService.deleteEvent(event.eventId);
         onEventUpdated?.();
       } catch (error) {
         console.error("Failed to delete event:", error);
@@ -197,7 +223,7 @@ export const EventList: React.FC<EventListProps> = ({
           open={showEditDialog}
           onClose={() => setShowEditDialog(false)}
           event={editingEvent}
-          categories={categories.data}
+          categories={categories}
           onSuccess={handleEditSuccess}
         />
       )}
@@ -208,8 +234,8 @@ export const EventList: React.FC<EventListProps> = ({
           open={showDetailDialog}
           onClose={handleDetailClose}
           event={viewingEvent}
-          categories={categories.data}
-          statuses={statuses.data}
+          categories={categories}
+          statuses={statuses}
           onEventUpdated={handleEventUpdated}
         />
       )}

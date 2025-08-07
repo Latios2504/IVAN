@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import {
-  useUserData,
-  useUserStats,
-  useUserManagementOperations,
-  roleUtils,
-  userSelectors,
-  type UserListItem,
-  type UserFilters,
-} from "@/hooks/useUserData";
+import { useApi } from "@/hooks/useApi";
+import { userManagementService } from "@/services/userManagementService";
+import type {
+  UserAccountListDto,
+  UserAccountDetailDto,
+  UserAccountFilterDto,
+  UserAccountUpdateDto,
+  UserStatisticsDto,
+  PagedResultDto,
+} from "@/types/userManagement";
 import { useAuth } from "@/context/AuthContext";
 import {
   AlertCircle,
@@ -50,18 +51,66 @@ import { Pagination } from "@/components/common/Pagination";
 export default function UserManagementPageNew() {
   const { user: currentUser } = useAuth();
 
-  // Use the new useData hooks
-  const users = useUserData();
-  const stats = useUserStats();
-  const { updateUserStatus, createCoordinator, loadUserById } =
-    useUserManagementOperations();
+  // Service adapters
+  const userDataService = {
+    getAll: async (): Promise<UserAccountListDto[]> => {
+      const defaultFilter: UserAccountFilterDto = {
+        page: 1,
+        size: 100,
+        sortBy: "createdDate",
+        sortDirection: "desc",
+        searchTerm: "",
+      };
+      const result = await userManagementService.getUsers(defaultFilter);
+      return result.items;
+    },
+    getById: async (id: number | string): Promise<UserAccountDetailDto> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await userManagementService.getUserById(numericId);
+    },
+    update: async (
+      id: number | string,
+      data: UserAccountUpdateDto
+    ): Promise<UserAccountListDto> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      await userManagementService.updateUser(numericId, data);
+      // Return a basic user object - you might need to fetch the updated user
+      return { userId: numericId, ...data } as UserAccountListDto;
+    },
+  };
+
+  const userStatsService = {
+    getAll: async (): Promise<UserStatisticsDto[]> => {
+      const result = await userManagementService.getUserStats();
+      return [result]; // Wrap in array since useApi expects arrays
+    },
+  };
+
+  // Use the new useApi hooks
+  const users = useApi<UserAccountListDto, never, UserAccountUpdateDto>(
+    userDataService,
+    {
+      successMessages: {
+        update: "User updated successfully",
+      },
+    }
+  );
+
+  const stats = useApi<UserStatisticsDto, never, never>(userStatsService);
+
+  // Load data on component mount
+  useEffect(() => {
+    users.loadAll();
+    stats.loadAll();
+  }, []);
 
   // Local state for UI
-  const [filters, setFilters] = useState<UserFilters>({
-    role: "all",
-    status: "all",
+  const [filters, setFilters] = useState<UserAccountFilterDto>({
+    page: 1,
+    size: 100,
+    sortBy: "createdDate",
+    sortDirection: "desc",
     searchTerm: "",
-    dateRange: "all",
   });
 
   const [pagination, setPagination] = useState({
@@ -76,7 +125,9 @@ export default function UserManagementPageNew() {
   });
 
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserAccountListDto | null>(
+    null
+  );
 
   useEffect(() => {
     loadInitialData();

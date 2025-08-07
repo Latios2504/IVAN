@@ -13,7 +13,8 @@ import {
   Award,
   AlertCircle,
 } from "lucide-react";
-import { useEventRegistrations } from "@/hooks/useEventRegistrationData";
+import { useApi } from "@/hooks/useApi";
+import { eventRegistrationService } from "@/services/eventRegistrationService";
 import type { Registration } from "@/types/eventRegistration";
 
 interface RegistrationAnalyticsDashboardProps {
@@ -22,26 +23,38 @@ interface RegistrationAnalyticsDashboardProps {
 
 // Internal stats calculation hook
 const useInternalRegistrationStats = (eventId: string) => {
-  const registrationHook = useEventRegistrations(parseInt(eventId));
+  // Service adapter for event registrations
+  const registrationsService = {
+    getAll: async (): Promise<Registration[]> => {
+      const result = await eventRegistrationService.getRegistrations(
+        parseInt(eventId),
+        {
+          status: undefined,
+          search: undefined,
+          dateRange: undefined,
+          sortBy: "applicationDate",
+          sortOrder: "desc",
+          page: 1,
+          size: 1000, // Get all registrations for stats
+        }
+      );
+      return result.items;
+    },
+  };
+
+  const registrationsApi = useApi<Registration, never, never>(
+    registrationsService
+  );
 
   // Load all registrations for stats when component mounts
   React.useEffect(() => {
     if (eventId) {
-      registrationHook.pagination.loadWithFilters({
-        status: undefined,
-        search: undefined,
-        dateRange: undefined,
-        sortBy: "applicationDate",
-        sortOrder: "desc",
-        page: 1,
-        size: 1000, // Get all registrations for stats
-      });
+      registrationsApi.loadAll();
     }
   }, [eventId]);
 
   const stats = React.useMemo(() => {
-    const paginatedData = registrationHook.pagination.data[0]; // Get first page result
-    const registrations = paginatedData?.items || [];
+    const registrations = registrationsApi.data || [];
 
     if (!registrations.length) {
       return {
@@ -93,9 +106,9 @@ const useInternalRegistrationStats = (eventId: string) => {
       recentApplications,
       weeklyGrowth,
     };
-  }, [registrationHook.pagination.data]);
+  }, [registrationsApi.data]);
 
-  return { stats, loading: registrationHook.pagination.loading };
+  return { stats, loading: registrationsApi.loading };
 };
 
 interface StatCardProps {

@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import type { VolunteerCoordinatorDto } from "../../../types/volunteer-coordinator";
-import { useCoordinatorOperations } from "@/hooks/useVolunteerCoordinatorData";
+import { volunteerCoordinatorService } from "../../../services/volunteerCoordinatorService";
 // import { EditVolunteerCoordinatorDialog } from "./EditVolunteerCoordinatorDialog";
 // import { VolunteerCoordinatorDetailDialog } from "./VolunteerCoordinatorDetailDialog";
 // import { AssignManagerDialog } from "./AssignManagerDialog";
@@ -35,7 +35,7 @@ interface VolunteerCoordinatorListProps {
 export const VolunteerCoordinatorList: React.FC<
   VolunteerCoordinatorListProps
 > = ({ organizationId, coordinators, onCoordinatorUpdated }) => {
-  const operations = useCoordinatorOperations(organizationId);
+  const [loading, setLoading] = useState(false);
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -71,10 +71,15 @@ export const VolunteerCoordinatorList: React.FC<
 
   const handleToggleStatus = async (coordinator: VolunteerCoordinatorDto) => {
     try {
-      await operations.toggleStatus(coordinator.coordinatorId);
+      setLoading(true);
+      await volunteerCoordinatorService.toggleCoordinatorStatus(
+        coordinator.coordinatorId
+      );
       onCoordinatorUpdated?.();
     } catch (error) {
       console.error("Failed to toggle coordinator status:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,10 +90,15 @@ export const VolunteerCoordinatorList: React.FC<
 
   const handleRemoveManager = async (coordinator: VolunteerCoordinatorDto) => {
     try {
-      await operations.removeManager(coordinator.coordinatorId);
+      setLoading(true);
+      await volunteerCoordinatorService.removeManager(
+        coordinator.coordinatorId
+      );
       onCoordinatorUpdated?.();
     } catch (error) {
       console.error("Failed to remove manager:", error);
+    } finally {
+      setLoading(false);
     }
   };
 

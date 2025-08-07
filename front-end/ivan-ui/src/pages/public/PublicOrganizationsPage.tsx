@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { Building, Users, MapPin, Target, Search, Award } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { OrganizationCard } from "@/components/public/OrganizationCard";
-import { usePublicOrganizationsPagination } from "@/hooks/usePublicContentData";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
 import type {
   PublicOrganization,
   PublicOrganizationFilters,
@@ -32,8 +32,18 @@ export default function PublicOrganizationsPage() {
   // Local search state (not debounced for immediate UI feedback)
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Debounced search for API calls (500ms delay)
-  const debouncedSearch = useDebounce(searchQuery, 500);
+  // Inline debounce implementation
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   // Filter state
   const [filters, setFilters] = useState<PublicOrganizationFilters>({
@@ -48,23 +58,35 @@ export default function PublicOrganizationsPage() {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the new pagination hook
-  const { data, loading, error, loadWithFilters } =
-    usePublicOrganizationsPagination();
-
-  // Extract organizations and pagination from the wrapped result
-  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
-  const organizations = pagedResult?.items || [];
-  const pagination = {
-    page: pagedResult?.pageNumber || 1,
-    totalPages: pagedResult?.totalPages || 0,
-    totalItems: pagedResult?.totalCount || 0,
+  // Service adapter for public organizations
+  const publicOrganizationsService = {
+    getAll: async (): Promise<PublicOrganization[]> => {
+      const result = await publicContentService.getPublicOrganizations(filters);
+      return result.items;
+    },
   };
+
+  // Use the new useApi hook
+  const organizationsApi = useApi<PublicOrganization, never, never>(
+    publicOrganizationsService
+  );
 
   // Load organizations when filters change
   useEffect(() => {
-    loadWithFilters(filters);
+    organizationsApi.loadAll();
   }, [filters]);
+
+  // Extract organizations from the API response
+  const organizations = organizationsApi.data || [];
+  const loading = organizationsApi.loading;
+  const error = organizationsApi.error;
+
+  // For pagination, we'll use simple client-side pagination for now
+  const pagination = {
+    page: filters.page || 1,
+    totalPages: Math.ceil(organizations.length / (filters.size || 20)),
+    totalItems: organizations.length,
+  };
 
   // Map backend data to component props
   const mappedOrganizations = useMemo(
@@ -93,7 +115,7 @@ export default function PublicOrganizationsPage() {
   };
 
   const handleRetry = () => {
-    loadWithFilters(filters);
+    organizationsApi.loadAll();
   };
 
   // Filter options (TODO: fetch from backend)

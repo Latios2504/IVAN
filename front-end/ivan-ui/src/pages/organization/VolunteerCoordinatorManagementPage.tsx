@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
-import { useVolunteerCoordinators } from "@/hooks/useVolunteerCoordinatorData";
+import React, { useEffect, useState } from "react";
+import { useApi } from "@/hooks/useApi";
+import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
 import { useAuth } from "@/context/AuthContext";
 import { VolunteerCoordinatorDashboard } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorDashboard";
 import { VolunteerCoordinatorList } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorList";
@@ -8,25 +9,101 @@ import { CreateVolunteerCoordinatorDialog } from "@/components/organization/volu
 import { LoadingState } from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
-import type { VolunteerCoordinatorFilterDto } from "@/types/volunteer-coordinator";
+import type {
+  VolunteerCoordinatorFilterDto,
+  VolunteerCoordinatorDto,
+  VolunteerCoordinatorStatsDto,
+  ManagementLevelDto,
+  SpecializationDto,
+} from "@/types/volunteer-coordinator";
 
 const VolunteerCoordinatorManagementPage = () => {
   const { user } = useAuth();
   const organizationId = user?.organizationId;
 
-  const coordinatorHooks = useVolunteerCoordinators(organizationId);
-  const {
-    data: coordinators,
-    loading,
-    error,
-    loadAll: loadCoordinators,
-    stats,
-    lookups,
-    operations,
-  } = coordinatorHooks;
+  // Service adapter for volunteer coordinators
+  const coordinatorsService = {
+    getAll: async (): Promise<VolunteerCoordinatorDto[]> => {
+      if (!organizationId) {
+        throw new Error("Organization ID is required");
+      }
+      const result =
+        await volunteerCoordinatorService.getOrganizationCoordinators(
+          {}, // empty filters for initial load
+          organizationId
+        );
+      return result.items;
+    },
+  };
 
-  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
-  const [filters, setFilters] = React.useState<VolunteerCoordinatorFilterDto>({
+  const coordinatorsApi = useApi<VolunteerCoordinatorDto, never, never>(
+    coordinatorsService
+  );
+
+  // Service adapter for stats
+  const statsService = {
+    getAll: async (): Promise<VolunteerCoordinatorStatsDto[]> => {
+      if (!organizationId) {
+        throw new Error("Organization ID is required");
+      }
+      const stats = await volunteerCoordinatorService.getCoordinatorStats(
+        organizationId
+      );
+      return [stats]; // Wrap in array for consistency with useApi
+    },
+  };
+
+  const statsApi = useApi<VolunteerCoordinatorStatsDto, never, never>(
+    statsService
+  );
+
+  // Service adapter for management levels
+  const managementLevelsService = {
+    getAll: async (): Promise<ManagementLevelDto[]> => {
+      return await volunteerCoordinatorService.getManagementLevels();
+    },
+  };
+
+  const managementLevelsApi = useApi<ManagementLevelDto, never, never>(
+    managementLevelsService
+  );
+
+  // Service adapter for specializations
+  const specializationsService = {
+    getAll: async (): Promise<SpecializationDto[]> => {
+      return await volunteerCoordinatorService.getSpecializations();
+    },
+  };
+
+  const specializationsApi = useApi<SpecializationDto, never, never>(
+    specializationsService
+  );
+
+  // Service adapter for available managers
+  const availableManagersService = {
+    getAll: async (): Promise<any[]> => {
+      if (!organizationId) {
+        throw new Error("Organization ID is required");
+      }
+      return await volunteerCoordinatorService.getAvailableManagers(
+        organizationId
+      );
+    },
+  };
+
+  const availableManagersApi = useApi(availableManagersService);
+
+  // Extract data from API responses
+  const coordinators = coordinatorsApi.data || [];
+  const loading = coordinatorsApi.loading;
+  const error = coordinatorsApi.error;
+  const stats = statsApi.data?.[0]; // Extract single stats object
+  const managementLevels = managementLevelsApi.data || [];
+  const specializations = specializationsApi.data || [];
+  const availableManagers = availableManagersApi.data || [];
+
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [filters, setFilters] = useState<VolunteerCoordinatorFilterDto>({
     page: 1,
     size: 10,
   });
@@ -39,23 +116,25 @@ const VolunteerCoordinatorManagementPage = () => {
     if (!organizationId) return;
 
     await Promise.all([
-      loadCoordinators(),
-      stats.loadStats(),
-      lookups.loadAll(),
+      coordinatorsApi.loadAll(),
+      statsApi.loadAll(),
+      managementLevelsApi.loadAll(),
+      specializationsApi.loadAll(),
+      availableManagersApi.loadAll(),
     ]);
   };
 
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    loadCoordinators();
-    stats.loadStats();
-    lookups.loadAvailableManagers(); // Refresh managers list
+    coordinatorsApi.loadAll();
+    statsApi.loadAll();
+    availableManagersApi.loadAll(); // Refresh managers list
   };
 
   const handleUpdateSuccess = () => {
-    loadCoordinators();
-    stats.loadStats();
-    lookups.loadAvailableManagers();
+    coordinatorsApi.loadAll();
+    statsApi.loadAll();
+    availableManagersApi.loadAll();
   };
 
   const handleFiltersChange = (
@@ -105,14 +184,14 @@ const VolunteerCoordinatorManagementPage = () => {
       </div>
 
       {/* Dashboard */}
-      {stats.stats && <VolunteerCoordinatorDashboard stats={stats.stats} />}
+      {stats && <VolunteerCoordinatorDashboard stats={stats} />}
 
       {/* Filters */}
       <VolunteerCoordinatorFilters
         organizationId={organizationId!}
-        managementLevels={lookups.managementLevels}
-        specializations={lookups.specializations}
-        availableManagers={lookups.availableManagers}
+        managementLevels={managementLevels}
+        specializations={specializations}
+        availableManagers={availableManagers}
         filters={filters}
         onFiltersChange={handleFiltersChange}
         onReset={handleResetFilters}
@@ -147,8 +226,8 @@ const VolunteerCoordinatorManagementPage = () => {
         onClose={() => setShowCreateDialog(false)}
         onSuccess={handleCreateSuccess}
         organizationId={organizationId!}
-        managementLevels={lookups.managementLevels}
-        specializations={lookups.specializations}
+        managementLevels={managementLevels}
+        specializations={specializations}
       />
     </div>
   );

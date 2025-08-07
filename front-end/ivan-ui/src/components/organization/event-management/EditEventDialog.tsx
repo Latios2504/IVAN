@@ -28,7 +28,7 @@ import type {
   EventCategoryDto,
   CreateEventDto,
 } from "../../../types/event";
-import { useEventData } from "../../../hooks/useEventData";
+import { eventService } from "../../../services/eventService";
 import { ImageUpload } from "./ImageUpload";
 
 interface EditEventDialogProps {
@@ -58,7 +58,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
   categories,
   onSuccess,
 }) => {
-  const eventData = useEventData();
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<EditFormData>({
     eventName: "",
@@ -254,14 +254,17 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
     }
 
     try {
+      setLoading(true);
       // Create update payload with eventId
       const updatePayload = { ...formData, eventId: event.eventId };
-      await eventData.update(event.eventId, updatePayload);
+      await eventService.updateEvent(event.eventId, updatePayload);
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error("Failed to update event:", error);
       setErrors({ submit: "Failed to update event. Please try again." });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -860,12 +863,8 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
           <Button type="button" variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={eventData.loading}
-          >
-            {eventData.loading ? "Updating..." : "Update Event"}
+          <Button type="submit" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Updating..." : "Update Event"}
           </Button>
         </DialogFooter>
       </DialogContent>

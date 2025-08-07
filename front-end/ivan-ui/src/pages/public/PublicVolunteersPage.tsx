@@ -2,9 +2,10 @@ import { useState, useMemo, useEffect } from "react";
 import { Users, MapPin, Clock, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { VolunteerCard } from "@/components/public/VolunteerCard";
-import { usePublicVolunteersPagination } from "@/hooks/usePublicContentData";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
 import type {
+  PublicVolunteer,
   PublicVolunteerFilters,
   VolunteerCardData,
 } from "@/types/publicContent";
@@ -83,30 +84,57 @@ export const PublicVolunteersPage = () => {
     size: 6,
   });
 
-  // Use debounced search to avoid too many API calls
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  // Inline debounce implementation
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   // Update filters when debounced search changes
   useMemo(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the new pagination hook
-  const { data, loading, error, loadWithFilters } =
-    usePublicVolunteersPagination();
+  // Service adapter for public volunteers
+  const publicVolunteersService = {
+    getAll: async (): Promise<PublicVolunteer[]> => {
+      const result = await publicContentService.getPublicVolunteers(filters);
+      return result.items;
+    },
+  };
 
-  // Extract volunteers and pagination from the wrapped result
-  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
-  const volunteers = pagedResult?.items || [];
+  // Use the new useApi hook
+  const volunteersApi = useApi<PublicVolunteer, never, never>(
+    publicVolunteersService
+  );
+
+  // Load volunteers when filters change
+  useEffect(() => {
+    volunteersApi.loadAll();
+  }, [filters]);
+
+  // Extract volunteers from the API response
+  const volunteers = volunteersApi.data || [];
+  const loading = volunteersApi.loading;
+  const error = volunteersApi.error;
+
+  // For pagination, we'll use simple client-side pagination for now
   const pagination = {
-    page: pagedResult?.pageNumber || 1,
-    totalPages: pagedResult?.totalPages || 0,
-    totalItems: pagedResult?.totalCount || 0,
+    page: filters.page || 1,
+    totalPages: Math.ceil(volunteers.length / (filters.size || 20)),
+    totalItems: volunteers.length,
   };
 
   // Load volunteers when filters change
   useEffect(() => {
-    loadWithFilters(filters);
+    volunteersApi.loadAll();
   }, [filters]);
 
   // Handlers
@@ -115,7 +143,7 @@ export const PublicVolunteersPage = () => {
   };
 
   const handleRetry = () => {
-    loadWithFilters(filters);
+    volunteersApi.loadAll();
   };
 
   // Convert volunteers data to card format

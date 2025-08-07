@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useEventRegistrations } from "@/hooks/useEventRegistrationData";
-import { useEventData } from "@/hooks/useEventData";
+import { useApi } from "@/hooks/useApi";
+import { eventRegistrationService } from "@/services/eventRegistrationService";
+import { eventService } from "@/services/eventService";
+import type {
+  Registration,
+  RegistrationFilters as RegistrationFilterType,
+  PagedResult,
+  ApproveRegistrationRequest,
+  RejectRegistrationRequest,
+} from "@/types/eventRegistration";
+import type { EventDto, CreateEventDto, UpdateEventDto } from "@/types/event";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,21 +55,31 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   onEventSelect,
   selectedEvent,
 }) => {
-  const {
-    data: events,
-    loading: eventsLoading,
-    loadAll: loadEvents,
-  } = useEventData();
+  // Event service adapter
+  const eventDataService = {
+    getAll: async (): Promise<EventDto[]> => {
+      const filters = {
+        page: 1,
+        size: 100,
+        sortBy: "startDate",
+        sortDirection: "desc" as const,
+      };
+      const result = await eventService.getOrganizationEvents(filters);
+      return result.items;
+    },
+  };
+
+  const events = useApi<EventDto, never, never>(eventDataService);
 
   useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+    events.loadAll();
+  }, []);
 
   const handleEventChange = (eventId: string) => {
     if (eventId === "none") {
       onEventSelect(null);
     } else {
-      const event = events.find((e) => e.eventId.toString() === eventId);
+      const event = events.data.find((e) => e.eventId.toString() === eventId);
       onEventSelect(event || null);
     }
   };
@@ -77,14 +96,14 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         <Select
           value={selectedEvent?.eventId.toString() || "none"}
           onValueChange={handleEventChange}
-          disabled={eventsLoading}
+          disabled={events.loading}
         >
           <SelectTrigger>
             <SelectValue placeholder="Choose an event to manage registrations" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Select an event...</SelectItem>
-            {events?.map((event) => (
+            {events.data?.map((event) => (
               <SelectItem key={event.eventId} value={event.eventId.toString()}>
                 <div className="flex items-center gap-2">
                   <span>{event.eventName}</span>
@@ -125,13 +144,61 @@ const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
   eventId,
   children,
 }) => {
-  // Initialize the registration hooks with eventId
-  const registrations = useEventRegistrations(eventId);
+  // Registration service adapter
+  const registrationDataService = {
+    getAll: async (): Promise<Registration[]> => {
+      const filters: RegistrationFilterType = {
+        page: 1,
+        size: 100,
+        sortBy: "applicationDate",
+        sortOrder: "desc",
+      };
+      const result = await eventRegistrationService.getRegistrations(
+        eventId,
+        filters
+      );
+      return result.items;
+    },
+    getById: async (id: number | string): Promise<Registration> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await eventRegistrationService.getRegistration(eventId, numericId);
+    },
+    update: async (
+      id: number | string,
+      data: ApproveRegistrationRequest | RejectRegistrationRequest
+    ): Promise<Registration> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      if ("approvedDate" in data) {
+        await eventRegistrationService.approveRegistration(
+          eventId,
+          numericId,
+          data as ApproveRegistrationRequest
+        );
+      } else {
+        await eventRegistrationService.rejectRegistration(
+          eventId,
+          numericId,
+          data as RejectRegistrationRequest
+        );
+      }
+      return await eventRegistrationService.getRegistration(eventId, numericId);
+    },
+  };
+
+  // Initialize the registration hooks with service
+  const registrations = useApi<
+    Registration,
+    never,
+    ApproveRegistrationRequest | RejectRegistrationRequest
+  >(registrationDataService, {
+    successMessages: {
+      update: "Registration updated successfully",
+    },
+  });
 
   // Load initial data
   useEffect(() => {
     registrations.loadAll();
-    registrations.stats.loadStats();
   }, [eventId]);
 
   // Create a context-like object to pass down

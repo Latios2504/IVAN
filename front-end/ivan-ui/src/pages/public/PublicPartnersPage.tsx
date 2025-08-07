@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { Building, HandHeart, Users, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { PartnerCard } from "@/components/public/PartnerCard";
-import { usePublicPartnersPagination } from "@/hooks/usePublicContentData";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
 import type {
   PublicPartner,
   PublicPartnerFilters,
@@ -38,31 +38,53 @@ export default function PublicPartnersPage() {
     isVerified: undefined,
   });
 
-  // Use debounced search to avoid too many API calls
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  // Inline debounce implementation
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   // Update filters when debounced search changes
   useMemo(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the new pagination hook
-  const { data, loading, error, loadWithFilters } =
-    usePublicPartnersPagination();
-
-  // Extract partners and pagination from the wrapped result
-  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
-  const partners = pagedResult?.items || [];
-  const pagination = {
-    page: pagedResult?.pageNumber || 1,
-    totalPages: pagedResult?.totalPages || 0,
-    totalItems: pagedResult?.totalCount || 0,
+  // Service adapter for public partners
+  const publicPartnersService = {
+    getAll: async (): Promise<PublicPartner[]> => {
+      const result = await publicContentService.getPublicPartners(filters);
+      return result.items;
+    },
   };
+
+  // Use the new useApi hook
+  const partnersApi = useApi<PublicPartner, never, never>(
+    publicPartnersService
+  );
 
   // Load partners when filters change
   useEffect(() => {
-    loadWithFilters(filters);
+    partnersApi.loadAll();
   }, [filters]);
+
+  // Extract partners from the API response
+  const partners = partnersApi.data || [];
+  const loading = partnersApi.loading;
+  const error = partnersApi.error;
+
+  // For pagination, we'll use simple client-side pagination for now
+  const pagination = {
+    page: filters.page || 1,
+    totalPages: Math.ceil(partners.length / (filters.size || 20)),
+    totalItems: partners.length,
+  };
 
   // Handlers
   const handlePageChange = (page: number) => {
@@ -70,7 +92,7 @@ export default function PublicPartnersPage() {
   };
 
   const handleRetry = () => {
-    loadWithFilters(filters);
+    partnersApi.loadAll();
   };
 
   // Map backend data to component props

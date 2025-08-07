@@ -3,8 +3,11 @@ import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayo
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
+import type { PublicVolunteer } from "@/types/publicContent";
 import {
   MapPin,
   GraduationCap,
@@ -16,7 +19,6 @@ import {
   Award,
   Users,
 } from "lucide-react";
-import { usePublicVolunteersData } from "@/hooks/usePublicContentData";
 
 export const PublicVolunteerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,23 +28,28 @@ export const PublicVolunteerDetailPage = () => {
     return <Navigate to="/volunteers" replace />;
   }
 
-  const {
-    loadById,
-    data: volunteers,
-    loading,
-    error,
-  } = usePublicVolunteersData();
+  // Service adapter for public volunteers
+  const publicVolunteersService = {
+    getById: async (volId: string | number): Promise<PublicVolunteer> => {
+      return await publicContentService.getPublicVolunteer(Number(volId));
+    },
+  };
 
-  // Find the volunteer from loaded data
-  const volunteer = volunteers?.find(
-    (vol) => vol.volunteerId?.toString() === id
+  // Use the new useApi hook
+  const volunteersApi = useApi<PublicVolunteer, never, never>(
+    publicVolunteersService
   );
+
+  // Extract volunteer data
+  const [volunteer, setVolunteer] = useState<PublicVolunteer | null>(null);
+  const loading = volunteersApi.loading;
+  const error = volunteersApi.error;
 
   useEffect(() => {
     if (volunteerId) {
-      loadById(volunteerId);
+      volunteersApi.loadById(volunteerId).then(setVolunteer);
     }
-  }, [volunteerId, loadById]);
+  }, [volunteerId]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {

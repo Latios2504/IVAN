@@ -60,34 +60,45 @@ const AdminOrganizationListPage = () => {
   const { user } = useAuth();
   // Remove useToast hook since we're using sonner directly
 
+  // Create simple service adapters for the new useApi pattern
+  const organizationService = {
+    getAll: async () => sampleOrganizations,
+  };
+
+  const typesService = {
+    getAll: async () => sampleOrganizationTypes,
+  };
+
+  const statsService = {
+    getAll: async () => [sampleStats], // Wrap in array for useApi
+  };
+
   // Use the new API pattern
-  const organizationsApi = useApi<OrganizationProfileData[]>();
-  const typesApi = useApi<OrganizationType[]>();
-  const statsApi = useApi<OrganizationStats>();
+  const organizationsHook = useApi<OrganizationProfileData, never, never>(
+    organizationService
+  );
+  const organizationTypesHook = useApi<OrganizationType, never, never>(
+    typesService
+  );
+  const statsHook = useApi<OrganizationStats, never, never>(statsService);
 
   // Load data on component mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // For now, use sample data until services are properly implemented
-        organizationsApi.execute(async () => sampleOrganizations);
-        typesApi.execute(async () => sampleOrganizationTypes);
-        statsApi.execute(async () => sampleStats);
-      } catch (error) {
-        console.error("Failed to load organization data:", error);
-      }
-    };
-
-    loadData();
+    organizationsHook.loadAll();
+    organizationTypesHook.loadAll();
+    statsHook.loadAll();
   }, []);
 
-  // Destructure the data
-  const organizations = organizationsApi.data || [];
-  const organizationTypes = typesApi.data || [];
-  const stats = statsApi.data;
+  // Extract data from hooks
+  const organizations = organizationsHook.data || [];
+  const organizationTypes = organizationTypesHook.data || [];
+  const stats = statsHook.data?.[0]; // Extract first item since we wrapped in array
   const loading =
-    organizationsApi.loading || typesApi.loading || statsApi.loading;
-  const error = organizationsApi.error || typesApi.error || statsApi.error;
+    organizationsHook.loading ||
+    organizationTypesHook.loading ||
+    statsHook.loading;
+  const error =
+    organizationsHook.error || organizationTypesHook.error || statsHook.error;
 
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     OrganizationProfileData[]

@@ -25,10 +25,7 @@ import type {
   SpecializationDto,
   VolunteerCoordinatorDto,
 } from "../../../types/volunteer-coordinator";
-import {
-  useCoordinatorOperations,
-  useCoordinatorLookups,
-} from "@/hooks/useVolunteerCoordinatorData";
+import { volunteerCoordinatorService } from "../../../services/volunteerCoordinatorService";
 
 interface CreateVolunteerCoordinatorDialogProps {
   open: boolean;
@@ -49,9 +46,8 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
   managementLevels,
   specializations,
 }) => {
-  const { createCoordinator, loading: isCreating } =
-    useCoordinatorOperations(organizationId);
-  const { availableManagers } = useCoordinatorLookups(organizationId);
+  const [isCreating, setIsCreating] = React.useState(false);
+  const [availableManagers, setAvailableManagers] = React.useState<any[]>([]);
 
   const [formData, setFormData] = React.useState<
     Partial<CreateVolunteerCoordinatorDto>
@@ -98,12 +94,18 @@ export const CreateVolunteerCoordinatorDialog: React.FC<
     }
 
     try {
-      await createCoordinator(formData as CreateVolunteerCoordinatorDto);
+      setIsCreating(true);
+      await volunteerCoordinatorService.createCoordinator(
+        formData as CreateVolunteerCoordinatorDto,
+        organizationId
+      );
       onSuccess();
       handleClose();
     } catch (error) {
       console.error("Failed to create coordinator:", error);
       alert("Failed to create coordinator. Please try again.");
+    } finally {
+      setIsCreating(false);
     }
   };
 

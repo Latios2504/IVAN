@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useAiInstructionsData } from "@/hooks/useAiInstructionsData";
+import { useApi } from "@/hooks/useApi";
+import { aiInstructionsService } from "@/services/aiInstructionsService";
+import type {
+  AiCustomInstructionDTO,
+  AiCustomInstructionCreateDTO,
+  AiCustomInstructionUpdateDTO,
+} from "@/types/ai";
 import { UserRole } from "@/types/auth";
 import {
   Card,
@@ -62,7 +68,6 @@ import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
 import InstructionPreview from "@/components/ai/InstructionPreview";
 import TestingPlayground from "@/components/ai/TestingPlayground";
 import { LoadingState } from "@/components/common/LoadingState";
-import type { AiCustomInstructionDTO } from "@/types/ai";
 
 /**
  * NEW: AI Instructions Management Page using useData Hook
@@ -76,8 +81,46 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === UserRole.ADMIN;
 
-  // ✅ SIMPLE: One line to get all data management!
-  const instructions = useAiInstructionsData();
+  // Service adapter for AI Instructions
+  const aiInstructionsDataService = {
+    getAll: async (): Promise<AiCustomInstructionDTO[]> => {
+      return await aiInstructionsService.getInstructions(true);
+    },
+    create: async (
+      data: AiCustomInstructionCreateDTO
+    ): Promise<AiCustomInstructionDTO> => {
+      return await aiInstructionsService.createInstruction(data);
+    },
+    update: async (
+      id: number | string,
+      data: AiCustomInstructionUpdateDTO
+    ): Promise<AiCustomInstructionDTO> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await aiInstructionsService.updateInstruction(numericId, data);
+    },
+    delete: async (id: number | string): Promise<void> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await aiInstructionsService.adminDeleteInstruction(numericId);
+    },
+  };
+
+  // ✅ SIMPLE: Direct useApi usage!
+  const instructions = useApi<
+    AiCustomInstructionDTO,
+    AiCustomInstructionCreateDTO,
+    AiCustomInstructionUpdateDTO
+  >(aiInstructionsDataService, {
+    successMessages: {
+      create: "AI instruction created successfully",
+      update: "AI instruction updated successfully",
+      delete: "AI instruction deleted successfully",
+    },
+  });
+
+  // Load data on component mount
+  useEffect(() => {
+    instructions.loadAll();
+  }, []);
 
   // Local UI state (much simpler than complex context state)
   const [searchQuery, setSearchQuery] = useState("");

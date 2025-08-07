@@ -20,7 +20,6 @@ import {
 import { Badge } from "../../ui/badge";
 import { AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react";
 import type { EventDto, EventStatusDto } from "../../../types/event";
-import { useEventData } from "../../../hooks/useEventData";
 import { eventService } from "../../../services/eventService";
 
 interface StatusTransitionDialogProps {
@@ -38,7 +37,7 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
   statuses,
   onSuccess,
 }) => {
-  const eventData = useEventData();
+  const [loading, setLoading] = useState(false);
   const [selectedStatusId, setSelectedStatusId] = useState<number>(0);
   const [reason, setReason] = useState("");
   const [availableTransitions, setAvailableTransitions] = useState<number[]>(
@@ -160,6 +159,7 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
 
     try {
       setError("");
+      setLoading(true);
       await eventService.updateEventStatus(event.eventId, {
         statusId: selectedStatusId,
         reason: reason || undefined,
@@ -169,6 +169,8 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
     } catch (error) {
       console.error("Failed to update event status:", error);
       setError("Failed to update event status. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -315,11 +317,9 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={
-              eventData.loading || selectedStatusId === 0 || loadingTransitions
-            }
+            disabled={loading || selectedStatusId === 0 || loadingTransitions}
           >
-            {eventData.loading ? "Updating..." : "Update Status"}
+            {loading ? "Updating..." : "Update Status"}
           </Button>
         </DialogFooter>
       </DialogContent>

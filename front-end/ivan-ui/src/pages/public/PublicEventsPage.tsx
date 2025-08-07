@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
-import { usePublicEventsPagination } from "@/hooks/usePublicContentData";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
 import type { PublicEvent, PublicEventFilters } from "@/types/publicContent";
 import type { StatCard } from "@/components/public/StatsSection";
 
@@ -68,29 +68,56 @@ export default function PublicEventsPage() {
     endDate: "",
   });
 
-  // Use debounced search to avoid too many API calls
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  // Inline debounce implementation
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   // Update filters when debounced search changes
   useMemo(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Use the new pagination hook
-  const { data, loading, error, loadWithFilters } = usePublicEventsPagination();
+  // Service adapter for public events
+  const publicEventsService = {
+    getAll: async (): Promise<PublicEvent[]> => {
+      const result = await publicContentService.getPublicEvents(filters);
+      return result.items;
+    },
+  };
 
-  // Extract events and pagination from the wrapped result
-  const pagedResult = data?.[0]; // The hook wraps PagedResult in an array
-  const events = pagedResult?.items || [];
+  // Use the new useApi hook
+  const eventsApi = useApi<PublicEvent, never, never>(publicEventsService);
+
+  // Load events whenever filters change
+  useEffect(() => {
+    eventsApi.loadAll();
+  }, [filters]);
+
+  // Extract events from the API response
+  const events = eventsApi.data || [];
+  const loading = eventsApi.loading;
+  const error = eventsApi.error;
+
+  // For pagination, we'll use simple client-side pagination for now
+  // TODO: Implement server-side pagination by updating the service
   const pagination = {
-    page: pagedResult?.pageNumber || 1,
-    totalPages: pagedResult?.totalPages || 0,
-    totalItems: pagedResult?.totalCount || 0,
+    page: filters.page || 1,
+    totalPages: Math.ceil(events.length / (filters.size || 20)),
+    totalItems: events.length,
   };
 
   // Load events when filters change
   useEffect(() => {
-    loadWithFilters(filters);
+    eventsApi.loadAll();
   }, [filters]);
 
   // Map backend data to component props
@@ -115,7 +142,7 @@ export default function PublicEventsPage() {
   };
 
   const handleRetry = () => {
-    loadWithFilters(filters);
+    eventsApi.loadAll();
   };
 
   // Filter options (TODO: fetch from backend)

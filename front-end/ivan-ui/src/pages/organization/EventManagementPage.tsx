@@ -1,10 +1,15 @@
 import React, { useEffect } from "react";
-import {
-  useEventData,
-  useEventStats,
-  useEventCategories,
-  useEventStatuses,
-} from "@/hooks/useEventData";
+import { useApi } from "@/hooks/useApi";
+import { eventService } from "@/services/eventService";
+import type {
+  EventDto,
+  CreateEventDto,
+  UpdateEventDto,
+  EventStatsDto,
+  EventCategoryDto,
+  EventStatusDto,
+  PagedResultDto,
+} from "@/types/event";
 import { EventDashboard } from "@/components/organization/event-management/EventDashboard";
 import { EventList } from "@/components/organization/event-management/EventList";
 import { EventFilters } from "@/components/organization/event-management/EventFilters";
@@ -22,11 +27,77 @@ import { Plus, Users, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function EventManagementPageNew() {
-  // Use the new useData hooks
-  const events = useEventData();
-  const stats = useEventStats();
-  const categories = useEventCategories();
-  const statuses = useEventStatuses();
+  // Service adapters
+  const eventDataService = {
+    getAll: async (): Promise<EventDto[]> => {
+      const filters = {
+        page: 1,
+        size: 100,
+        sortBy: "startDate",
+        sortDirection: "desc" as const,
+      };
+      const result = await eventService.getOrganizationEvents(filters);
+      return result.items;
+    },
+    getById: async (id: number | string): Promise<EventDto> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await eventService.getOrganizationEvent(numericId);
+    },
+    create: async (data: CreateEventDto): Promise<EventDto> => {
+      const eventId = await eventService.createEvent(data);
+      // Return the created event by fetching it
+      return await eventService.getOrganizationEvent(eventId);
+    },
+    update: async (
+      id: number | string,
+      data: UpdateEventDto
+    ): Promise<EventDto> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      await eventService.updateEvent(numericId, data);
+      // Return the updated event by fetching it
+      return await eventService.getOrganizationEvent(numericId);
+    },
+    delete: async (id: number | string): Promise<void> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await eventService.deleteEvent(numericId);
+    },
+  };
+
+  const eventStatsService = {
+    getAll: async (): Promise<EventStatsDto[]> => {
+      const result = await eventService.getOrganizationStats();
+      return [result]; // Wrap in array since useApi expects arrays
+    },
+  };
+
+  const eventCategoriesService = {
+    getAll: async (): Promise<EventCategoryDto[]> => {
+      return await eventService.getEventCategories();
+    },
+  };
+
+  const eventStatusesService = {
+    getAll: async (): Promise<EventStatusDto[]> => {
+      return await eventService.getEventStatuses();
+    },
+  };
+
+  // Use the new useApi hooks
+  const events = useApi<EventDto, CreateEventDto, UpdateEventDto>(
+    eventDataService,
+    {
+      successMessages: {
+        create: "Event created successfully",
+        update: "Event updated successfully",
+        delete: "Event deleted successfully",
+      },
+    }
+  );
+  const stats = useApi<EventStatsDto, never, never>(eventStatsService);
+  const categories = useApi<EventCategoryDto, never, never>(
+    eventCategoriesService
+  );
+  const statuses = useApi<EventStatusDto, never, never>(eventStatusesService);
 
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 

@@ -1,10 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicPartnersData } from "@/hooks/usePublicContentData";
-import { useEffect } from "react";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
+import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { PublicPartner } from "@/types/publicContent";
 import {
   MapPin,
   Globe,
@@ -19,20 +21,33 @@ import {
 
 export default function PublicPartnerDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { loadById, data: partners, loading, error } = usePublicPartnersData();
 
-  // Find the partner from loaded data
-  const partner = partners?.find((p) => p.partnerId?.toString() === id);
+  // Service adapter for public partners
+  const publicPartnersService = {
+    getById: async (partnerId: string | number): Promise<PublicPartner> => {
+      return await publicContentService.getPublicPartner(Number(partnerId));
+    },
+  };
+
+  // Use the new useApi hook
+  const partnersApi = useApi<PublicPartner, never, never>(
+    publicPartnersService
+  );
+
+  // Extract partner data
+  const [partner, setPartner] = useState<PublicPartner | null>(null);
+  const loading = partnersApi.loading;
+  const error = partnersApi.error;
 
   useEffect(() => {
     if (id) {
-      loadById(parseInt(id));
+      partnersApi.loadById(id).then(setPartner);
     }
-  }, [id, loadById]);
+  }, [id]);
 
   const handleRetry = () => {
     if (id) {
-      loadById(parseInt(id));
+      partnersApi.loadById(id).then(setPartner);
     }
   };
 

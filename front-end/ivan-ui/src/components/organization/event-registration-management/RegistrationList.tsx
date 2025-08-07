@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useEventRegistrations } from "@/hooks/useEventRegistrationData";
+import { useApi } from "@/hooks/useApi";
+import { eventRegistrationService } from "@/services/eventRegistrationService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -272,17 +273,42 @@ export default function RegistrationList({
 }: RegistrationListProps) {
   const numericEventId =
     typeof eventId === "string" ? parseInt(eventId) : eventId;
-  const registrationHook = useEventRegistrations(numericEventId);
-  const { data: registrations, loading } = registrationHook;
-  const { data: paginationData } = registrationHook.pagination;
 
-  // Extract pagination info
-  const pagedResult = paginationData?.[0];
+  // Service adapter for event registrations
+  const registrationsService = {
+    getAll: async (): Promise<Registration[]> => {
+      const result = await eventRegistrationService.getRegistrations(
+        numericEventId,
+        {
+          status: filters?.status,
+          search: filters?.search,
+          dateRange: filters?.dateRange,
+          sortBy:
+            (filters?.sortBy as
+              | "applicationDate"
+              | "status"
+              | "volunteerName") || "applicationDate",
+          sortOrder: filters?.sortOrder || "desc",
+          page: filters?.page || 1,
+          size: filters?.size || 20,
+        }
+      );
+      return result.items;
+    },
+  };
+
+  const registrationsApi = useApi<Registration, never, never>(
+    registrationsService
+  );
+  const registrations = registrationsApi.data || [];
+  const loading = registrationsApi.loading;
+
+  // Extract pagination info (simplified for now)
   const pagination = {
-    currentPage: pagedResult?.page || 1,
-    totalPages: pagedResult?.totalPages || 0,
-    totalCount: pagedResult?.totalItems || 0,
-    pageSize: pagedResult?.size || 20,
+    currentPage: filters?.page || 1,
+    totalPages: Math.ceil(registrations.length / (filters?.size || 20)),
+    totalCount: registrations.length,
+    pageSize: filters?.size || 20,
   };
 
   const [localSelectedRegistrations, setLocalSelectedRegistrations] = useState<
@@ -302,7 +328,7 @@ export default function RegistrationList({
   useEffect(() => {
     if (eventId) {
       // Simple call without filters for now - external filters can be added later
-      registrationHook.pagination.loadAll();
+      registrationsApi.loadAll();
     }
   }, [eventId]);
 

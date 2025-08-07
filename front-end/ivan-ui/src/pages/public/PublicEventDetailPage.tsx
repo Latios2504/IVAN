@@ -1,11 +1,13 @@
 import { useParams, Link } from "react-router-dom";
-import { usePublicEventsData } from "@/hooks/usePublicContentData";
-import { useEffect } from "react";
+import { useApi } from "@/hooks/useApi";
+import { publicContentService } from "@/services/publicContentService";
+import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { PublicEvent } from "@/types/publicContent";
 import {
   MapPin,
   Calendar,
@@ -25,20 +27,31 @@ import {
 
 export default function PublicEventDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { loadById, data: events, loading, error } = usePublicEventsData();
 
-  // Find the event from loaded data
-  const event = events?.find((e) => e.eventId?.toString() === id);
+  // Service adapter for public events
+  const publicEventsService = {
+    getById: async (eventId: string | number): Promise<PublicEvent> => {
+      return await publicContentService.getPublicEvent(Number(eventId));
+    },
+  };
+
+  // Use the new useApi hook
+  const eventsApi = useApi<PublicEvent, never, never>(publicEventsService);
+
+  // Extract event data - loadById returns the item directly, not stored in data array
+  const [event, setEvent] = useState<PublicEvent | null>(null);
+  const loading = eventsApi.loading;
+  const error = eventsApi.error;
 
   useEffect(() => {
     if (id) {
-      loadById(parseInt(id));
+      eventsApi.loadById(id).then(setEvent);
     }
-  }, [id, loadById]);
+  }, [id]);
 
   const handleRetry = () => {
     if (id) {
-      loadById(parseInt(id));
+      eventsApi.loadById(id).then(setEvent);
     }
   };
 
