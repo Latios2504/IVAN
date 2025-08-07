@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Heart, Users, Calendar, Award, LayoutDashboard } from "lucide-react";
 import { useSystemStats } from "@/hooks/useDashboardStats";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 export default function HomePage() {
   const { stats, loading, error } = useSystemStats();
@@ -107,7 +107,8 @@ export default function HomePage() {
               </>
             ) : (
               <>
-                Nền tảng quản lý<span className="text-primary"> tình nguyện viên </span>hàng đầu
+                Nền tảng quản lý
+                <span className="text-primary"> tình nguyện viên </span>hàng đầu
               </>
             )}
           </h1>

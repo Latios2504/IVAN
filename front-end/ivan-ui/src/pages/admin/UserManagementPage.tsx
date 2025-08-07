@@ -8,7 +8,7 @@ import {
   type UserListItem,
   type UserFilters,
 } from "@/hooks/useUserData";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import {
   AlertCircle,
   UserPlus,

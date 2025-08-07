@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { profileService } from "@/services/profileService";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 interface UseProfileState {

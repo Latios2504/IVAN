@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import ProfileLayout from "@/components/profile/ProfileLayout";
 import VolunteerProfileSection from "@/components/profile/sections/VolunteerProfileSection";

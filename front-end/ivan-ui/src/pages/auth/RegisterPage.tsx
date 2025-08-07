@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import {
   type RegisterData,
   type PublicRegistrationRole,

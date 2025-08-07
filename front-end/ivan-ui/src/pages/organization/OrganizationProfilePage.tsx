@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import ProfileLayout from "@/components/profile/ProfileLayout";
 import OrganizationProfileSection from "@/components/profile/sections/OrganizationProfileSection";
@@ -28,10 +28,9 @@ export default function OrganizationProfilePage() {
 
   const handleSave = async (data: any) => {
     try {
-      
       await updateProfile(data);
       setIsEditing(false);
-      
+
       // Don't automatically refetch as useProfile hook handles this
     } catch (error) {
       console.error("Error saving profile:", error);

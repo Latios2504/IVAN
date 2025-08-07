@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { User } from "@/types/auth";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -28,8 +35,8 @@ const deactivationSchema = z.object({
   password: z.string().min(1, "Vui lòng nhập mật khẩu để xác nhận"),
   feedback: z.string().optional(),
   dataExport: z.boolean(),
-  confirmUnderstanding: z.boolean().refine(val => val === true, {
-    message: "Bạn phải xác nhận hiểu về hậu quả của việc vô hiệu hóa tài khoản"
+  confirmUnderstanding: z.boolean().refine((val) => val === true, {
+    message: "Bạn phải xác nhận hiểu về hậu quả của việc vô hiệu hóa tài khoản",
   }),
 });
 
@@ -50,7 +57,11 @@ const DEACTIVATION_REASONS = [
   "Khác (vui lòng ghi rõ)",
 ];
 
-export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeactivateDialogProps) {
+export function AccountDeactivateDialog({
+  isOpen,
+  onClose,
+  user,
+}: AccountDeactivateDialogProps) {
   const { logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<"confirm" | "form">("confirm");
@@ -90,8 +101,8 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
       // });
 
       // Mock API call with validation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Simulate password validation
       if (data.password === "wrongpassword") {
         form.setError("password", { message: "Mật khẩu không đúng" });
@@ -101,16 +112,18 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
       // If data export is requested, initiate export process
       if (data.dataExport) {
         // TODO: Trigger data export process
-        toast.success("Yêu cầu xuất dữ liệu đã được gửi. Bạn sẽ nhận được email khi hoàn tất.");
+        toast.success(
+          "Yêu cầu xuất dữ liệu đã được gửi. Bạn sẽ nhận được email khi hoàn tất."
+        );
       }
 
       toast.success("Tài khoản đã được vô hiệu hóa thành công.");
-      
+
       // Log out user after successful deactivation
       setTimeout(() => {
         logout();
       }, 1500);
-      
+
       handleClose();
     } catch (error) {
       toast.error("Không thể vô hiệu hóa tài khoản. Vui lòng thử lại.");
@@ -187,7 +200,10 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
                   <FormControl>
                     <div className="space-y-2">
                       {DEACTIVATION_REASONS.map((reason) => (
-                        <div key={reason} className="flex items-center space-x-2">
+                        <div
+                          key={reason}
+                          className="flex items-center space-x-2"
+                        >
                           <input
                             type="radio"
                             id={reason}
@@ -196,7 +212,10 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
                             onChange={() => field.onChange(reason)}
                             className="text-red-600 focus:ring-red-500"
                           />
-                          <Label htmlFor={reason} className="text-sm font-normal cursor-pointer">
+                          <Label
+                            htmlFor={reason}
+                            className="text-sm font-normal cursor-pointer"
+                          >
                             {reason}
                           </Label>
                         </div>
@@ -216,7 +235,9 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {watchedReason === "Khác (vui lòng ghi rõ)" ? "Chi tiết lý do *" : "Góp ý bổ sung (tùy chọn)"}
+                      {watchedReason === "Khác (vui lòng ghi rõ)"
+                        ? "Chi tiết lý do *"
+                        : "Góp ý bổ sung (tùy chọn)"}
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -248,7 +269,8 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
                       Yêu cầu xuất dữ liệu cá nhân
                     </FormLabel>
                     <p className="text-xs text-gray-600">
-                      Chúng tôi sẽ gửi email chứa tất cả dữ liệu của bạn trong vòng 7 ngày
+                      Chúng tôi sẽ gửi email chứa tất cả dữ liệu của bạn trong
+                      vòng 7 ngày
                     </p>
                   </div>
                 </FormItem>
@@ -269,7 +291,8 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel className="text-sm font-normal">
-                      Tôi hiểu rằng việc vô hiệu hóa tài khoản sẽ khiến tôi không thể truy cập vào hệ thống
+                      Tôi hiểu rằng việc vô hiệu hóa tài khoản sẽ khiến tôi
+                      không thể truy cập vào hệ thống
                     </FormLabel>
                   </div>
                   <FormMessage />
@@ -301,12 +324,17 @@ export function AccountDeactivateDialog({ isOpen, onClose, user }: AccountDeacti
             />
 
             <DialogFooter className="gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+              >
                 Hủy bỏ
               </Button>
-              <Button 
-                type="submit" 
-                variant="destructive" 
+              <Button
+                type="submit"
+                variant="destructive"
                 disabled={isLoading}
                 className="min-w-[120px]"
               >

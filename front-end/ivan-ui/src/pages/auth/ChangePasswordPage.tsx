@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
 import { ApiError } from "@/services/errorHandler";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ChangePasswordPage() {
   const { user } = useAuth();

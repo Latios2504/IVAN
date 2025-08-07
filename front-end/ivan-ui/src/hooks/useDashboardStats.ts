@@ -7,7 +7,7 @@ import {
   type PartnerStats,
   type AdminStats,
 } from "../services/dashboardService";
-import { useAuth } from "./useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 // Hook for system statistics (used on homepage)
 export const useSystemStats = () => {
