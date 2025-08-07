@@ -11,6 +11,7 @@ import {
   Eye,
   Plus,
 } from "lucide-react";
+import { useModal, useModalWithData } from "@/hooks/useModal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -120,10 +121,11 @@ const mockReports: OrganizationReport[] = [
 export default function OrganizationReportsPage() {
   const [reports] = useState<OrganizationReport[]>(mockReports);
   const [selectedTab, setSelectedTab] = useState("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedReport, setSelectedReport] =
-    useState<OrganizationReport | null>(null);
+
+  // Modal hooks for managing dialog states
+  const createDialog = useModal();
+  const viewModal = useModalWithData<OrganizationReport>();
+
   const [formData, setFormData] = useState<ReportFormData>({
     title: "",
     type: "event",
@@ -191,8 +193,7 @@ export default function OrganizationReportsPage() {
   });
 
   const handleCreateReport = () => {
-    
-    setIsCreateDialogOpen(false);
+    createDialog.close();
     // Reset form
     setFormData({
       title: "",
@@ -206,12 +207,10 @@ export default function OrganizationReportsPage() {
   };
 
   const handleViewReport = (report: OrganizationReport) => {
-    setSelectedReport(report);
-    setIsViewDialogOpen(true);
+    viewModal.openWith(report);
   };
 
   const handleDownloadReport = (reportId: string) => {
-    
     // Simulate download
   };
 
@@ -226,7 +225,7 @@ export default function OrganizationReportsPage() {
               Quản lý và tạo báo cáo về hoạt động của tổ chức
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={createDialog.open}>
             <Plus className="mr-2 h-4 w-4" />
             Tạo báo cáo mới
           </Button>
@@ -373,7 +372,7 @@ export default function OrganizationReportsPage() {
         </Tabs>
 
         {/* Create Report Dialog */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Tạo báo cáo mới</DialogTitle>
@@ -499,10 +498,7 @@ export default function OrganizationReportsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={createDialog.close}>
                 Hủy
               </Button>
               <Button onClick={handleCreateReport}>Tạo báo cáo</Button>
@@ -511,46 +507,46 @@ export default function OrganizationReportsPage() {
         </Dialog>
 
         {/* View Report Dialog */}
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{selectedReport?.title}</DialogTitle>
+              <DialogTitle>{viewModal.data?.title}</DialogTitle>
               <DialogDescription>
                 Chi tiết báo cáo của tổ chức
               </DialogDescription>
             </DialogHeader>
-            {selectedReport && (
+            {viewModal.data && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Loại báo cáo</Label>
                     <p className="text-sm text-gray-600">
-                      {getTypeName(selectedReport.type)}
+                      {getTypeName(viewModal.data.type)}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Thời gian</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedReport.period}
+                      {viewModal.data.period}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Ngày tạo</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedReport.createdDate}
+                      {viewModal.data.createdDate}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Trạng thái</Label>
                     <div className="mt-1">
-                      {getStatusBadge(selectedReport.status)}
+                      {getStatusBadge(viewModal.data.status)}
                     </div>
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Tóm tắt</Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedReport.summary}
+                    {viewModal.data.summary}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -559,7 +555,7 @@ export default function OrganizationReportsPage() {
                       Kích thước file
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedReport.fileSize}
+                      {viewModal.data.fileSize}
                     </p>
                   </div>
                   <div>
@@ -567,22 +563,19 @@ export default function OrganizationReportsPage() {
                       Lượt tải xuống
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedReport.downloadCount}
+                      {viewModal.data.downloadCount}
                     </p>
                   </div>
                 </div>
               </div>
             )}
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsViewDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={viewModal.close}>
                 Đóng
               </Button>
               <Button
                 onClick={() =>
-                  selectedReport && handleDownloadReport(selectedReport.id)
+                  viewModal.data && handleDownloadReport(viewModal.data.id)
                 }
               >
                 <Download className="mr-2 h-4 w-4" />

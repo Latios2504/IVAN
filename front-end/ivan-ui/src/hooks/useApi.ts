@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { ApiError } from "@/services/errorHandler";
+import { ApiError } from "@/services/apiClient";
 
 /**
  * Generic API Management Hook
@@ -95,15 +95,12 @@ export function useApi<
     );
   }, []);
 
-  // Error handler
+  // Simplified error handler - let ApiClient handle detailed error processing
   const handleError = useCallback(
     (error: unknown, action: string) => {
+      // ApiClient already processed the error, just extract the message
       const errorMessage =
-        error instanceof ApiError
-          ? error.message
-          : error instanceof Error
-          ? error.message
-          : `Lỗi khi ${action}`;
+        error instanceof ApiError ? error.message : `Lỗi khi ${action}`;
 
       setError(errorMessage);
       toast.error(errorMessage);
@@ -111,8 +108,6 @@ export function useApi<
       if (throwOnError) {
         throw error;
       }
-
-      console.error(`useApi.${action} error:`, error);
     },
     [throwOnError]
   );

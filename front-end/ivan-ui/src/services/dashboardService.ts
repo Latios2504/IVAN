@@ -1,5 +1,4 @@
 import { apiClient } from "./apiClient";
-import { ApiError } from "./errorHandler";
 
 // Dashboard Statistics Types
 export interface SystemStats {
@@ -29,15 +28,14 @@ export interface VolunteerStats {
   upcomingEvents: number;
 }
 
-export interface PartnerStats {
-  totalCollaborations: number;
-  activeProjects: number;
-  totalInvestment: number;
-  partneredOrganizations: number;
-}
-
-export interface AdminStats extends SystemStats {
+export interface AdminStats {
+  totalUsers: number;
+  totalOrganizations: number;
+  totalVolunteers: number;
+  totalCoordinators: number;
+  totalEvents: number;
   pendingApprovals: number;
+  systemIssues: number;
   recentUsers: number;
   systemHealth: string;
 }
@@ -45,192 +43,109 @@ export interface AdminStats extends SystemStats {
 class DashboardService {
   private readonly baseUrl = "/dashboard";
 
-  // Get system-wide statistics for homepage
+  /**
+   * Get system-wide statistics for homepage
+   * Simplified with consistent error handling via ApiClient
+   */
   async getSystemStats(): Promise<SystemStats> {
-    try {
-      const response = await apiClient.get<SystemStats>(
-        `${this.baseUrl}/system-stats`
-      );
-
-      if (!response.success) {
-        throw new ApiError(
-          response.message || "Failed to get system stats",
-          500
-        );
-      }
-
-      return response.data || this.getFallbackSystemStats();
-    } catch (error) {
-      console.warn("Failed to fetch system stats, using fallback data:", error);
-      return this.getFallbackSystemStats();
-    }
+    const response = await apiClient.get<SystemStats>(
+      `${this.baseUrl}/system-stats`
+    );
+    return response.data || this.getFallbackSystemStats();
   }
 
-  // Get organization-specific dashboard stats
+  /**
+   * Get organization-specific dashboard stats
+   * Simplified with consistent error handling via ApiClient
+   */
   async getOrganizationStats(): Promise<OrganizationStats> {
-    try {
-      const response = await apiClient.get<OrganizationStats>(
-        `${this.baseUrl}/organization-stats`
-      );
-
-      if (!response.success) {
-        throw new ApiError(
-          response.message || "Failed to get organization stats",
-          500
-        );
-      }
-
-      return response.data || this.getFallbackOrganizationStats();
-    } catch (error) {
-      console.warn(
-        "Failed to fetch organization stats, using fallback data:",
-        error
-      );
-      return this.getFallbackOrganizationStats();
-    }
+    const response = await apiClient.get<OrganizationStats>(
+      `${this.baseUrl}/organization-stats`
+    );
+    return response.data || this.getFallbackOrganizationStats();
   }
 
-  // Get volunteer-specific dashboard stats
+  /**
+   * Get volunteer-specific dashboard stats
+   * Simplified with consistent error handling via ApiClient
+   */
   async getVolunteerStats(): Promise<VolunteerStats> {
-    try {
-      const response = await apiClient.get<VolunteerStats>(
-        `${this.baseUrl}/volunteer-stats`
-      );
-
-      if (!response.success) {
-        throw new ApiError(
-          response.message || "Failed to get volunteer stats",
-          500
-        );
-      }
-
-      return response.data || this.getFallbackVolunteerStats();
-    } catch (error) {
-      console.warn(
-        "Failed to fetch volunteer stats, using fallback data:",
-        error
-      );
-      return this.getFallbackVolunteerStats();
-    }
+    const response = await apiClient.get<VolunteerStats>(
+      `${this.baseUrl}/volunteer-stats`
+    );
+    return response.data || this.getFallbackVolunteerStats();
   }
 
-  // Get partner-specific dashboard stats
-  async getPartnerStats(): Promise<PartnerStats> {
-    try {
-      const response = await apiClient.get<PartnerStats>(
-        `${this.baseUrl}/partner-stats`
-      );
-
-      if (!response.success) {
-        throw new ApiError(
-          response.message || "Failed to get partner stats",
-          500
-        );
-      }
-
-      return response.data || this.getFallbackPartnerStats();
-    } catch (error) {
-      console.warn(
-        "Failed to fetch partner stats, using fallback data:",
-        error
-      );
-      return this.getFallbackPartnerStats();
-    }
-  }
-
-  // Get admin-specific dashboard stats
+  /**
+   * Get admin dashboard stats
+   * Simplified with consistent error handling via ApiClient
+   */
   async getAdminStats(): Promise<AdminStats> {
-    try {
-      const response = await apiClient.get<AdminStats>(
-        `${this.baseUrl}/admin-stats`
-      );
-
-      if (!response.success) {
-        throw new ApiError(
-          response.message || "Failed to get admin stats",
-          500
-        );
-      }
-
-      return response.data || this.getFallbackAdminStats();
-    } catch (error) {
-      console.warn("Failed to fetch admin stats, using fallback data:", error);
-      return this.getFallbackAdminStats();
-    }
+    const response = await apiClient.get<AdminStats>(
+      `${this.baseUrl}/admin-stats`
+    );
+    return response.data || this.getFallbackAdminStats();
   }
 
-  // Fallback data based on database sample data
+  /**
+   * Get recent activities for dashboard
+   * Simplified with consistent error handling via ApiClient
+   */
+  async getRecentActivities(): Promise<any[]> {
+    const response = await apiClient.get<any[]>(
+      `${this.baseUrl}/recent-activities`
+    );
+    return response.data || [];
+  }
+
+  // Fallback methods provide default data when API calls fail
   private getFallbackSystemStats(): SystemStats {
     return {
-      totalVolunteers: 10, // From database: users with volunteer profile
-      totalOrganizations: 10, // From database: organizations table
-      totalEvents: 10, // From database: events table
-      totalHours: 280, // Sum from VolunteerProfiles.VolunteerHours
-      totalPartnerships: 10, // From database: partners table
+      totalVolunteers: 0,
+      totalOrganizations: 0,
+      totalEvents: 0,
+      totalHours: 0,
+      totalPartnerships: 0,
     };
   }
 
   private getFallbackOrganizationStats(): OrganizationStats {
     return {
-      totalVolunteers: 156, // Realistic number for an organization
-      activeEvents: 23,
-      totalCoordinators: 8,
-      certificatesIssued: 89,
-      newVolunteersThisMonth: 12,
-      hoursThisMonth: 2456,
-      averageRating: 4.8,
+      totalVolunteers: 0,
+      activeEvents: 0,
+      totalCoordinators: 0,
+      certificatesIssued: 0,
+      newVolunteersThisMonth: 0,
+      hoursThisMonth: 0,
+      averageRating: 0,
     };
   }
 
   private getFallbackVolunteerStats(): VolunteerStats {
     return {
-      eventsJoined: 3,
-      eventsCompleted: 2,
-      hoursVolunteered: 45,
-      certificatesEarned: 2,
-      currentRating: 4.5,
-      upcomingEvents: 1,
-    };
-  }
-
-  private getFallbackPartnerStats(): PartnerStats {
-    return {
-      totalCollaborations: 5,
-      activeProjects: 2,
-      totalInvestment: 500000,
-      partneredOrganizations: 8,
+      eventsJoined: 0,
+      eventsCompleted: 0,
+      hoursVolunteered: 0,
+      certificatesEarned: 0,
+      currentRating: 0,
+      upcomingEvents: 0,
     };
   }
 
   private getFallbackAdminStats(): AdminStats {
     return {
-      ...this.getFallbackSystemStats(),
-      pendingApprovals: 15,
-      recentUsers: 25,
-      systemHealth: "Good",
+      totalUsers: 0,
+      totalOrganizations: 0,
+      totalVolunteers: 0,
+      totalCoordinators: 0,
+      totalEvents: 0,
+      pendingApprovals: 0,
+      systemIssues: 0,
+      recentUsers: 0,
+      systemHealth: "Unknown",
     };
-  }
-
-  // Admin analytics methods for AdminAnalyticsDashboard
-  async getUserAnalytics(): Promise<any> {
-    try {
-      const response = await apiClient.get<any>("/admin/analytics/users");
-      return response.success ? response.data : null;
-    } catch (error) {
-      console.error("DashboardService.getUserAnalytics error:", error);
-      return null;
-    }
-  }
-
-  async getEventAnalytics(): Promise<any> {
-    try {
-      const response = await apiClient.get<any>("/admin/analytics/events");
-      return response.success ? response.data : null;
-    } catch (error) {
-      console.error("DashboardService.getEventAnalytics error:", error);
-      return null;
-    }
   }
 }
 
 export const dashboardService = new DashboardService();
+export default dashboardService;

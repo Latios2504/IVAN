@@ -1,6 +1,19 @@
 // User Management DTOs and Types
 // Moved from userManagementService.ts for better organization
 
+import type {
+  OrganizationProfile,
+  PartnerProfile,
+  CoordinatorProfile,
+  VolunteerProfile,
+} from "./profile/profiles";
+
+// Re-export profile types for compatibility
+export type OrganizationProfileData = OrganizationProfile;
+export type PartnerProfileData = PartnerProfile;
+export type CoordinatorProfileData = CoordinatorProfile;
+export type VolunteerProfileData = VolunteerProfile;
+
 export interface UserAccountListDto {
   userId: number;
   email: string;
@@ -54,88 +67,6 @@ export interface UserAccountDetailDto {
   organizationProfile?: OrganizationProfileData;
   partnerProfile?: PartnerProfileData;
   coordinatorProfile?: CoordinatorProfileData;
-}
-
-export interface VolunteerProfileData {
-  volunteerId: number;
-  studentId?: string;
-  university?: string;
-  major?: string;
-  yearOfStudy?: number;
-  motivation?: string;
-  experience?: string;
-  availability?: string;
-  volunteerHours: number;
-  rating?: number;
-  ratingCount: number;
-  isVerified: boolean;
-  verifiedAt?: string;
-  totalHoursVolunteered: number;
-  skills?: string;
-  lastActiveDate?: string;
-}
-
-export interface OrganizationProfileData {
-  organizationId: number;
-  organizationName: string;
-  shortName?: string;
-  typeId: number;
-  typeName?: string;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
-  description?: string;
-  mission?: string;
-  vision?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  employeeCount?: number;
-  totalDonated?: number;
-  isVerified: boolean;
-  verifiedAt?: string;
-  averageRating?: number;
-  totalRatings: number;
-  totalEventsCreated: number;
-  activeEventsCount: number;
-  totalVolunteersReached: number;
-}
-
-export interface PartnerProfileData {
-  partnerId: number;
-  companyName: string;
-  industry?: string;
-  companySize?: string;
-  website?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  servicesOffered?: string;
-  collaborationType?: string;
-  totalDonated?: number;
-  totalCollaborations: number;
-  isVerified: boolean;
-  verifiedAt?: string;
-  averageRating?: number;
-  totalRatings: number;
-}
-
-export interface CoordinatorProfileData {
-  coordinatorId: number;
-  specialization?: string;
-  experience?: string;
-  managementLevel?: string;
-  assignedDate?: string;
-  isActive: boolean;
-  eventsCoordinated: number;
-  totalVolunteersManaged: number;
-  averageEventRating?: number;
-  totalEventRatings: number;
 }
 
 export interface UserStatisticsDto {

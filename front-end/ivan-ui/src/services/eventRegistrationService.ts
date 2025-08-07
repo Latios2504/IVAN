@@ -8,7 +8,7 @@ import type {
   RegistrationAnalytics,
 } from "../types/eventRegistration";
 
-class EventRegistrationService  {
+class EventRegistrationService {
   private readonly baseUrl = "/EventRegistrations";
 
   async getRegistrations(
@@ -30,18 +30,20 @@ class EventRegistrationService  {
       params.append("endDate", filters.dateRange.to.toISOString());
     }
 
-    const response = await apiClient.get(`${this.baseUrl}?${params}`);
-    return response.data as PagedResult<Registration>;
+    const response = await apiClient.get<PagedResult<Registration>>(
+      `${this.baseUrl}?${params}`
+    );
+    return response.data;
   }
 
   async getRegistration(
     eventId: number,
     registrationId: number
   ): Promise<Registration> {
-    const response = await apiClient.get(
+    const response = await apiClient.get<Registration>(
       `${this.baseUrl}/${registrationId}?eventId=${eventId}`
     );
-    return response.data as Registration;
+    return response.data;
   }
 
   async approveRegistration(
@@ -49,11 +51,11 @@ class EventRegistrationService  {
     registrationId: number,
     request: ApproveRegistrationRequest
   ): Promise<Registration> {
-    const response = await apiClient.patch(
+    const response = await apiClient.patch<Registration>(
       `${this.baseUrl}/${registrationId}/approve?eventId=${eventId}`,
       request
     );
-    return response.data as Registration;
+    return response.data;
   }
 
   async rejectRegistration(
@@ -61,11 +63,11 @@ class EventRegistrationService  {
     registrationId: number,
     request: RejectRegistrationRequest
   ): Promise<Registration> {
-    const response = await apiClient.patch(
+    const response = await apiClient.patch<Registration>(
       `${this.baseUrl}/${registrationId}/reject?eventId=${eventId}`,
       request
     );
-    return response.data as Registration;
+    return response.data;
   }
 
   async bulkApproveRegistrations(

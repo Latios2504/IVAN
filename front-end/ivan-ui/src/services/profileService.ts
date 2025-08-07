@@ -3,26 +3,26 @@
 
 import { apiClient } from "./apiClient";
 
-class ProfileService  {
+class ProfileService {
   // Get profile by role and user ID (unified method)
   async getProfileByRole(userId: number, role: string): Promise<any> {
     try {
       switch (role.toLowerCase()) {
         case "volunteer":
-          const volunteerResponse = await apiClient.get(
+          const response = await apiClient.get<any>(
             `/VolunteerProfile/${userId}`
           );
-          return volunteerResponse.data;
+          return response.data;
         case "organization":
-          const orgResponse = await apiClient.get(
+          const response2 = await apiClient.get<any>(
             `/OrganizationProfile/get/${userId}`
           );
-          return orgResponse.data;
+          return response2.data;
         case "partner":
-          const partnerResponse = await apiClient.get(
+          const response3 = await apiClient.get<any>(
             `/PartnerProfile/get/${userId}`
           );
-          return partnerResponse.data;
+          return response3.data;
         case "coordinator":
           // Coordinator profiles not yet implemented in backend
           return {
@@ -50,14 +50,10 @@ class ProfileService  {
       }
     } catch (error: any) {
       // If profile doesn't exist (404), return null instead of throwing
-      if (error.response?.status === 404) {
+      // This is intentional business logic, not redundant error handling
+      if (error.status === 404) {
         return null;
       }
-
-      console.error(
-        `Error fetching ${role} profile for user ${userId}:`,
-        error
-      );
       throw error;
     }
   }
@@ -71,23 +67,23 @@ class ProfileService  {
     try {
       switch (role.toLowerCase()) {
         case "volunteer":
-          const volunteerResponse = await apiClient.put(
+          const response = await apiClient.put<any>(
             `/VolunteerProfile/${userId}`,
             data
           );
-          return volunteerResponse.data;
+          return response.data;
         case "organization":
-          const orgResponse = await apiClient.put(
+          const response2 = await apiClient.put<any>(
             `/OrganizationProfile/update/${userId}`,
             data
           );
-          return orgResponse.data;
+          return response2.data;
         case "partner":
-          const partnerResponse = await apiClient.put(
+          const response3 = await apiClient.put<any>(
             `/PartnerProfile/update/${userId}`,
             data
           );
-          return partnerResponse.data;
+          return response3.data;
         case "coordinator":
           // Coordinator profile updates not yet implemented in backend
           return data;
@@ -148,8 +144,8 @@ class ProfileService  {
   // Get available skills for volunteers
   async getAvailableSkills(): Promise<any[]> {
     try {
-      const response = await apiClient.get("/skills");
-      return response.data as any[];
+      const response = await apiClient.get<any[]>("/skills");
+      return response.data;
     } catch (error) {
       console.error("Error fetching skills:", error);
       throw error;
@@ -159,8 +155,8 @@ class ProfileService  {
   // Get organization types
   async getOrganizationTypes(): Promise<any[]> {
     try {
-      const response = await apiClient.get("/organization-types");
-      return response.data as any[];
+      const response = await apiClient.get<any[]>("/organization-types");
+      return response.data;
     } catch (error) {
       console.error("Error fetching organization types:", error);
       throw error;
@@ -170,8 +166,8 @@ class ProfileService  {
   // Get partner industries
   async getPartnerIndustries(): Promise<any[]> {
     try {
-      const response = await apiClient.get("/partner-industries");
-      return response.data as any[];
+      const response = await apiClient.get<any[]>("/partner-industries");
+      return response.data;
     } catch (error) {
       console.error("Error fetching partner industries:", error);
       throw error;

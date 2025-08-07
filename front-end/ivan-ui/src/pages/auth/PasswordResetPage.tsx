@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
-import { ApiError } from "@/services/errorHandler";
+import { ApiError } from "@/services/apiClient";
 
 export default function PasswordResetPage() {
   const [searchParams] = useSearchParams();
@@ -72,11 +72,11 @@ export default function PasswordResetPage() {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword(
-        formData.email,
-        formData.resetCode,
-        formData.password
-      );
+      await authService.resetPassword({
+        token: formData.resetCode,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
 
       // Redirect to login with success message
       navigate("/login", {

@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
-import { ApiError } from "@/services/errorHandler";
+import { ApiError } from "@/services/apiClient";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ChangePasswordPage() {
@@ -89,10 +89,11 @@ export default function ChangePasswordPage() {
 
     setIsLoading(true);
     try {
-      await authService.changePassword(
-        formData.currentPassword,
-        formData.newPassword
-      );
+      await authService.changePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword,
+      });
 
       // Redirect to user's dashboard with success message
       const dashboardUrl = getDashboardUrl();

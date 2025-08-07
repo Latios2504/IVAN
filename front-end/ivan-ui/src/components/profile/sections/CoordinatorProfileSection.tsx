@@ -343,7 +343,9 @@ export default function CoordinatorProfileSection({
               <Building2 className="h-4 w-4 text-gray-500" />
               <div>
                 <p className="font-medium">
-                  {profile.organizationName || "Chưa cập nhật"}
+                  {profile.organizationId
+                    ? `Tổ chức #${profile.organizationId}`
+                    : "Chưa cập nhật"}
                 </p>
                 <p className="text-sm text-gray-500">Tổ chức</p>
               </div>
@@ -389,11 +391,11 @@ export default function CoordinatorProfileSection({
               </div>
             )}
 
-            {profile.managerName && (
+            {profile.managerId && (
               <div className="flex items-center gap-3">
                 <User className="h-4 w-4 text-gray-500" />
                 <div>
-                  <p className="font-medium">{profile.managerName}</p>
+                  <p className="font-medium">Quản lý #{profile.managerId}</p>
                   <p className="text-sm text-gray-500">Người quản lý</p>
                 </div>
               </div>

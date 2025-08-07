@@ -1,8 +1,22 @@
 import type { ApiResponse } from "../types/common";
 import { environment } from "../config";
-import { ApiError } from "./errorHandler";
 
 const API_BASE_URL = environment.API_BASE_URL;
+
+/**
+ * API Error class for consistent error handling
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+    public code?: string,
+    public details?: unknown
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 /**
  * Enhanced API Client with improved error handling and logging
@@ -82,10 +96,8 @@ class ApiClient {
             );
           }
 
-          // Clear the token
+          // Clear the token and redirect
           this.setToken(null);
-
-          // Redirect to login page if not already there
           if (!window.location.pathname.includes("/login")) {
             window.location.href = "/login";
           }

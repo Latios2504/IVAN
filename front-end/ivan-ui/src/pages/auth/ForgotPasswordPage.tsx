@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
-import { ApiError } from "@/services/errorHandler";
+import { ApiError } from "@/services/apiClient";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
 
     setIsLoading(true);
     try {
-      await authService.forgotPassword(email);
+      await authService.requestPasswordReset(email);
       setIsSubmitted(true);
     } catch (error) {
       console.error("Password reset error:", error);

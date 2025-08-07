@@ -1,100 +1,18 @@
 // Organization Profile Management Types for IVAN
+// Re-exports from unified profiles.ts to maintain compatibility
 
-export interface OrganizationProfileData {
-  organizationId: number;
-  userId: number;
-  organizationName: string;
-  shortName?: string;
-  typeId: number;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
-  description?: string;
-  mission?: string;
-  vision?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  isVerified?: boolean;
-  verifiedAt?: string;
-  verifiedBy?: number;
-  rating?: number;
-  ratingCount?: number;
-  totalEvents?: number;
-  totalVolunteers?: number;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type {
+  OrganizationProfile,
+  OrganizationProfileExtended,
+  UpdateOrganizationProfileData,
+} from "./profiles";
 
-export interface CreateOrganizationProfileData {
-  userId: number;
-  organizationName: string;
-  shortName?: string;
-  typeId: number;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
-  description?: string;
-  mission?: string;
-  vision?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-}
+// Re-export main interfaces with alternate names for compatibility
+export type OrganizationProfileData = OrganizationProfile;
+export type OrganizationProfileDataExtended = OrganizationProfileExtended;
+export type CreateOrganizationProfileData = UpdateOrganizationProfileData;
 
-export interface UpdateOrganizationProfileData {
-  organizationId: number;
-  organizationName?: string;
-  shortName?: string;
-  typeId?: number;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
-  description?: string;
-  mission?: string;
-  vision?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  isVerified?: boolean;
-  verifiedBy?: number;
-  isActive?: boolean;
-}
-
+// Organization-specific filters and additional interfaces
 export interface OrganizationProfileFilters {
   typeId?: number;
   province?: string;
@@ -128,19 +46,23 @@ export interface OrganizationStats {
 export interface VerificationDocument {
   documentId: number;
   organizationId: number;
-  documentType: 'business_license' | 'tax_certificate' | 'registration_certificate' | 'other';
+  documentType:
+    | "business_license"
+    | "tax_certificate"
+    | "registration_certificate"
+    | "other";
   fileName: string;
   fileUrl: string;
   uploadedAt: string;
   verifiedAt?: string;
   verifiedBy?: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   rejectionReason?: string;
 }
 
 export interface OrganizationVerificationData {
   organizationId: number;
-  verificationStatus: 'pending' | 'verified' | 'rejected';
+  verificationStatus: "pending" | "verified" | "rejected";
   verifiedBy?: number;
   verifiedAt?: string;
   rejectionReason?: string;

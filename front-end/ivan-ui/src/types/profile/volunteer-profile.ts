@@ -1,37 +1,15 @@
 // Volunteer Profile Types for IVAN System
-// Extended types specific to volunteer functionality
+// Re-exports from unified profiles.ts to maintain compatibility
 
 import type {
   VolunteerProfile,
-  VolunteerSkill,
   UpdateVolunteerProfileData,
-} from "@/types/profile/profiles";
+  VolunteerSkill,
+} from "./profiles";
 
-// Volunteer profile creation data
-export interface CreateVolunteerProfileData {
-  userId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: "Male" | "Female" | "Other" | "Prefer not to say";
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  studentId?: string;
-  university?: string;
-  major?: string;
-  yearOfStudy?: number;
-  motivation?: string;
-  experience?: string;
-  availability?: string;
-  avatar?: string;
-}
+// Re-export main interfaces with alternate names for compatibility
+export type VolunteerProfileData = VolunteerProfile;
+export type CreateVolunteerProfileData = UpdateVolunteerProfileData;
 
 // Volunteer profile filters for search/listing
 export interface VolunteerProfileFilters {

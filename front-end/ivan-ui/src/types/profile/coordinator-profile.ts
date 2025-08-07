@@ -1,40 +1,16 @@
 // Coordinator Profile Types for IVAN System
-// Extended types specific to coordinator functionality
+// Re-exports from unified profiles.ts to maintain compatibility
 
 import type {
   CoordinatorProfile,
+  CoordinatorProfileExtended,
   UpdateCoordinatorProfileData,
-} from "@/types/profile/profiles";
+} from "./profiles";
 
-// Coordinator profile creation data
-export interface CreateCoordinatorProfileData {
-  userId: number;
-  organizationId: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: "Male" | "Female" | "Other" | "Prefer not to say";
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  employeeId?: string;
-  position?: string;
-  department?: string;
-  responsibilities?: string;
-  hireDate?: string;
-  salary?: number;
-  managerId?: number;
-  avatar?: string;
-  notes?: string;
-  createdBy: number;
-  requestedBy: number;
-}
+// Re-export main interfaces with alternate names for compatibility
+export type CoordinatorProfileData = CoordinatorProfile;
+export type CoordinatorProfileDataExtended = CoordinatorProfileExtended;
+export type CreateCoordinatorProfileData = UpdateCoordinatorProfileData;
 
 // Coordinator profile filters
 export interface CoordinatorProfileFilters {

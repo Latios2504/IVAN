@@ -1,5 +1,4 @@
-import { apiClient } from "./apiClient";
-import { ApiError } from "./errorHandler";
+import { apiClient, ApiError } from "./apiClient";
 import type { ApiResponse } from "../types/common";
 import type { User, UserRole } from "../types/auth";
 import type { BaseProfile } from "../types/profile/profiles";
@@ -22,31 +21,17 @@ import type {
  * Integrates with backend UserAccountController
  */
 class UserManagementService {
-  private get api() {
-    return apiClient;
-  }
-
   /**
    * Get paginated list of users with filtering
    */
   async getUsers(
     filter: UserAccountFilterDto
   ): Promise<PagedResultDto<UserAccountListDto>> {
-    try {
-      const response = await this.api.post<PagedResultDto<UserAccountListDto>>(
-        "/useraccount/getListUser",
-        filter
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(response.message || "Failed to fetch users", 400);
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      throw error;
-    }
+    const response = await apiClient.post<PagedResultDto<UserAccountListDto>>(
+      "/useraccount/getListUser",
+      filter
+    );
+    return response.data;
   }
 
   /**
@@ -56,25 +41,15 @@ class UserManagementService {
     userId?: number,
     email?: string
   ): Promise<UserAccountDetailDto> {
-    try {
-      const params = new URLSearchParams();
-      if (userId) params.append("userId", userId.toString());
-      if (email) params.append("email", email);
+    const params = new URLSearchParams();
+    if (userId) params.append("userId", userId.toString());
+    if (email) params.append("email", email);
 
-      const response = await this.api.post<UserAccountDetailDto>(
-        `/useraccount/getUserInforDetail?${params.toString()}`,
-        {} // Empty body since we're using query parameters
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(response.message || "User not found", 404);
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user detail:", error);
-      throw error;
-    }
+    const response = await apiClient.post<UserAccountDetailDto>(
+      `/useraccount/getUserInforDetail?${params.toString()}`,
+      {} // Empty body since we're using query parameters
+    );
+    return response.data;
   }
 
   /**
@@ -85,21 +60,11 @@ class UserManagementService {
     adminUserId: number,
     updateData: UserAccountUpdateDto
   ): Promise<UserAccountDetailDto> {
-    try {
-      const response = await this.api.post<UserAccountDetailDto>(
-        `/useraccount/updateUserAccount?userId=${userId}&adminUser=${adminUserId}`,
-        updateData
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(response.message || "Failed to update user", 400);
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
-    }
+    const response = await apiClient.post<UserAccountDetailDto>(
+      `/useraccount/updateUserAccount?userId=${userId}&adminUser=${adminUserId}`,
+      updateData
+    );
+    return response.data;
   }
 
   /**
@@ -139,25 +104,12 @@ class UserManagementService {
   async createCoordinator(
     coordinatorData: CoordinatorCreationRequest
   ): Promise<{ message: string; userId: number }> {
-    try {
-      // This endpoint doesn't exist yet in the backend, would need to be implemented
-      const response = await this.api.post<{ message: string; userId: number }>(
-        "/useraccount/createCoordinator",
-        coordinatorData
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(
-          response.message || "Failed to create coordinator",
-          400
-        );
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Error creating coordinator:", error);
-      throw error;
-    }
+    // This endpoint doesn't exist yet in the backend, would need to be implemented
+    const response = await apiClient.post<{ message: string; userId: number }>(
+      "/useraccount/createCoordinator",
+      coordinatorData
+    );
+    return response.data;
   }
 
   /**
@@ -170,28 +122,15 @@ class UserManagementService {
     unverifiedUsers: number;
     usersByRole: Record<string, number>;
   }> {
-    try {
-      // This would need a separate endpoint in the backend for statistics
-      const response = await this.api.get<{
-        totalUsers: number;
-        activeUsers: number;
-        inactiveUsers: number;
-        unverifiedUsers: number;
-        usersByRole: Record<string, number>;
-      }>("/useraccount/statistics");
-
-      if (!response.success || !response.data) {
-        throw new ApiError(
-          response.message || "Failed to fetch statistics",
-          400
-        );
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user statistics:", error);
-      throw error;
-    }
+    // This would need a separate endpoint in the backend for statistics
+    const response = await apiClient.get<{
+      totalUsers: number;
+      activeUsers: number;
+      inactiveUsers: number;
+      unverifiedUsers: number;
+      usersByRole: Record<string, number>;
+    }>("/useraccount/statistics");
+    return response.data;
   }
 
   /**

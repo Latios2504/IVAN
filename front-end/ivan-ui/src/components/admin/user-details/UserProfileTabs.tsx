@@ -5,7 +5,7 @@ import { VolunteerProfileTab } from "./VolunteerProfileTab";
 import { OrganizationProfileTab } from "./OrganizationProfileTab";
 import { PartnerProfileTab } from "./PartnerProfileTab";
 import { CoordinatorProfileTab } from "./CoordinatorProfileTab";
-import type { UserAccountDetailDto } from "@/services/userManagementService";
+import type { UserAccountDetailDto } from "@/types/userManagement";
 
 interface UserProfileTabsProps {
   user: UserAccountDetailDto;

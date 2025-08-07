@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useModal } from "@/hooks/useModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -218,7 +219,10 @@ export default function AdminNotificationManagementPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Modal hooks for managing dialog states
+  const createDialog = useModal();
+
   const [selectedNotification, setSelectedNotification] =
     useState<SystemNotification | null>(null);
   const [activeTab, setActiveTab] = useState("notifications");
@@ -314,7 +318,7 @@ export default function AdminNotificationManagementPage() {
     };
 
     setNotifications([newNotification, ...notifications]);
-    setIsCreateDialogOpen(false);
+    createDialog.close();
 
     // Reset form
     setFormData({
@@ -387,7 +391,7 @@ export default function AdminNotificationManagementPage() {
           </p>
         </div>
 
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -595,7 +599,7 @@ export default function AdminNotificationManagementPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
+                  onClick={() => createDialog.close()}
                 >
                   Hủy
                 </Button>

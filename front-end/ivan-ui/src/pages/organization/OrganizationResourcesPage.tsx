@@ -11,6 +11,7 @@ import {
   Eye,
   Settings,
 } from "lucide-react";
+import { useModal, useModalWithData } from "@/hooks/useModal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -139,10 +140,11 @@ const mockResources: OrganizationResource[] = [
 export default function OrganizationResourcesPage() {
   const [resources] = useState<OrganizationResource[]>(mockResources);
   const [selectedTab, setSelectedTab] = useState("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedResource, setSelectedResource] =
-    useState<OrganizationResource | null>(null);
+
+  // Modal hooks for managing dialog states
+  const createDialog = useModal();
+  const viewModal = useModalWithData<OrganizationResource>();
+
   const [formData, setFormData] = useState<ResourceFormData>({
     name: "",
     type: "equipment",
@@ -213,8 +215,7 @@ export default function OrganizationResourcesPage() {
   });
 
   const handleCreateResource = () => {
-    
-    setIsCreateDialogOpen(false);
+    createDialog.close();
     // Reset form
     setFormData({
       name: "",
@@ -231,8 +232,7 @@ export default function OrganizationResourcesPage() {
   };
 
   const handleViewResource = (resource: OrganizationResource) => {
-    setSelectedResource(resource);
-    setIsViewDialogOpen(true);
+    viewModal.openWith(resource);
   };
 
   const formatCurrency = (amount: number) => {
@@ -265,7 +265,7 @@ export default function OrganizationResourcesPage() {
               Quản lý các tài nguyên có sẵn của tổ chức
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={createDialog.open}>
             <Plus className="mr-2 h-4 w-4" />
             Thêm tài nguyên
           </Button>
@@ -429,7 +429,7 @@ export default function OrganizationResourcesPage() {
         </Tabs>
 
         {/* Create Resource Dialog */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Thêm tài nguyên mới</DialogTitle>
@@ -591,10 +591,7 @@ export default function OrganizationResourcesPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={createDialog.close}>
                 Hủy
               </Button>
               <Button onClick={handleCreateResource}>Thêm tài nguyên</Button>
@@ -603,15 +600,15 @@ export default function OrganizationResourcesPage() {
         </Dialog>
 
         {/* View Resource Dialog */}
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{selectedResource?.name}</DialogTitle>
+              <DialogTitle>{viewModal.data?.name}</DialogTitle>
               <DialogDescription>
                 Chi tiết thông tin tài nguyên
               </DialogDescription>
             </DialogHeader>
-            {selectedResource && (
+            {viewModal.data && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -619,19 +616,19 @@ export default function OrganizationResourcesPage() {
                       Loại tài nguyên
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {getTypeName(selectedResource.type)}
+                      {getTypeName(viewModal.data.type)}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Trạng thái</Label>
                     <div className="mt-1">
-                      {getAvailabilityBadge(selectedResource.availability)}
+                      {getAvailabilityBadge(viewModal.data.availability)}
                     </div>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Số lượng</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedResource.quantity} {selectedResource.unit}
+                      {viewModal.data.quantity} {viewModal.data.unit}
                     </p>
                   </div>
                   <div>
@@ -639,8 +636,8 @@ export default function OrganizationResourcesPage() {
                       Giá trị ước tính
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedResource.estimatedValue
-                        ? formatCurrency(selectedResource.estimatedValue)
+                      {viewModal.data.estimatedValue
+                        ? formatCurrency(viewModal.data.estimatedValue)
                         : "N/A"}
                     </p>
                   </div>
@@ -648,14 +645,14 @@ export default function OrganizationResourcesPage() {
                 <div>
                   <Label className="text-sm font-medium">Mô tả</Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedResource.description}
+                    {viewModal.data.description}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Vị trí</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedResource.location || "Không có"}
+                      {viewModal.data.location || "Không có"}
                     </p>
                   </div>
                   <div>
@@ -663,7 +660,7 @@ export default function OrganizationResourcesPage() {
                       Người phụ trách
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedResource.contactPerson || "Không có"}
+                      {viewModal.data.contactPerson || "Không có"}
                     </p>
                   </div>
                 </div>
@@ -671,7 +668,7 @@ export default function OrganizationResourcesPage() {
                   <div>
                     <Label className="text-sm font-medium">Số điện thoại</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedResource.contactPhone || "Không có"}
+                      {viewModal.data.contactPhone || "Không có"}
                     </p>
                   </div>
                   <div>
@@ -679,18 +676,18 @@ export default function OrganizationResourcesPage() {
                       Điều kiện sử dụng
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedResource.conditions || "Không có"}
+                      {viewModal.data.conditions || "Không có"}
                     </p>
                   </div>
                 </div>
-                {selectedResource.lastUsed && (
+                {viewModal.data.lastUsed && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium">
                         Lần sử dụng cuối
                       </Label>
                       <p className="text-sm text-gray-600">
-                        {selectedResource.lastUsed}
+                        {viewModal.data.lastUsed}
                       </p>
                     </div>
                     <div>
@@ -698,7 +695,7 @@ export default function OrganizationResourcesPage() {
                         Có sẵn trở lại
                       </Label>
                       <p className="text-sm text-gray-600">
-                        {selectedResource.nextAvailable || "Chưa xác định"}
+                        {viewModal.data.nextAvailable || "Chưa xác định"}
                       </p>
                     </div>
                   </div>
@@ -706,10 +703,7 @@ export default function OrganizationResourcesPage() {
               </div>
             )}
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsViewDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={viewModal.close}>
                 Đóng
               </Button>
               <Button>

@@ -1,83 +1,18 @@
 // Partner Profile Management Types for IVAN
+// Re-exports from unified profiles.ts to maintain compatibility
 
-export interface PartnerProfileData {
-  partnerId: number;
-  userId: number;
-  companyName: string;
-  industryId: number;
-  taxCode?: string;
-  businessLicense?: string;
-  website?: string;
-  description?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  isVerified?: boolean;
-  verifiedAt?: string;
-  verifiedBy?: number;
-  rating?: number;
-  ratingCount?: number;
-  totalCollaborations?: number;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type {
+  PartnerProfile,
+  PartnerProfileExtended,
+  UpdatePartnerProfileData,
+} from "./profiles";
 
-// Extended partner profile with joined data for UI display
-export interface PartnerProfileDataExtended extends PartnerProfileData {
-  industryName?: string; // From PartnerIndustries join
-}
+// Re-export main interfaces with alternate names for compatibility
+export type PartnerProfileData = PartnerProfile;
+export type PartnerProfileDataExtended = PartnerProfileExtended;
+export type CreatePartnerProfileData = UpdatePartnerProfileData;
 
-export interface CreatePartnerProfileData {
-  userId: number;
-  companyName: string;
-  industryId: number;
-  taxCode?: string;
-  businessLicense?: string;
-  website?: string;
-  description?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-}
-
-export interface UpdatePartnerProfileData {
-  partnerId: number;
-  companyName?: string;
-  industryId?: number;
-  taxCode?: string;
-  businessLicense?: string;
-  website?: string;
-  description?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  isVerified?: boolean;
-  verifiedBy?: number;
-  isActive?: boolean;
-}
-
+// Partner-specific filters and additional interfaces
 export interface PartnerProfileFilters {
   industryId?: number;
   province?: string;

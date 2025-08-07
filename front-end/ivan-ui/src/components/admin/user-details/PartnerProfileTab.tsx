@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { profileService } from "@/services/profileService";
-import type { UserAccountDetailDto } from "@/services/userManagementService";
+import type { UserAccountDetailDto } from "@/types/userManagement";
 
 interface PartnerProfileTabProps {
   user: UserAccountDetailDto;

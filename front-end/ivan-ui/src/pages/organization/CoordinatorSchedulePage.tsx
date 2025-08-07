@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useModal, useModalWithData } from "@/hooks/useModal";
 import {
   Card,
   CardContent,
@@ -161,10 +162,11 @@ export default function CoordinatorSchedulePage() {
   const [schedules, setSchedules] =
     useState<CoordinatorSchedule[]>(mockSchedules);
   const [selectedTab, setSelectedTab] = useState("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] =
-    useState<CoordinatorSchedule | null>(null);
+
+  // Modal hooks for managing dialog states
+  const createDialog = useModal();
+  const viewModal = useModalWithData<CoordinatorSchedule>();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState<ScheduleFormData>({
     coordinatorId: "",
@@ -275,7 +277,7 @@ export default function CoordinatorSchedulePage() {
     };
 
     setSchedules((prev) => [newSchedule, ...prev]);
-    setIsCreateDialogOpen(false);
+    createDialog.close();
     resetForm();
   };
 
@@ -294,8 +296,7 @@ export default function CoordinatorSchedulePage() {
   };
 
   const handleViewSchedule = (schedule: CoordinatorSchedule) => {
-    setSelectedSchedule(schedule);
-    setIsViewDialogOpen(true);
+    viewModal.openWith(schedule);
   };
 
   const getScheduleStats = () => {
@@ -329,7 +330,7 @@ export default function CoordinatorSchedulePage() {
               <Download className="mr-2 h-4 w-4" />
               Xuất Excel
             </Button>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button onClick={() => createDialog.open()}>
               <Plus className="mr-2 h-4 w-4" />
               Thêm lịch trình
             </Button>
@@ -518,7 +519,7 @@ export default function CoordinatorSchedulePage() {
         </Tabs>
 
         {/* Create Schedule Dialog */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Thêm lịch trình mới</DialogTitle>
@@ -646,10 +647,7 @@ export default function CoordinatorSchedulePage() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={createDialog.open}>
                 Hủy
               </Button>
               <Button onClick={handleCreateSchedule}>
@@ -661,7 +659,7 @@ export default function CoordinatorSchedulePage() {
         </Dialog>
 
         {/* View Schedule Dialog */}
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Chi tiết lịch trình</DialogTitle>
@@ -669,46 +667,46 @@ export default function CoordinatorSchedulePage() {
                 Thông tin chi tiết về lịch trình Coordinator
               </DialogDescription>
             </DialogHeader>
-            {selectedSchedule && (
+            {viewModal.data && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Coordinator</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedSchedule.coordinatorName}
+                      {viewModal.data.coordinatorName}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Trạng thái</Label>
                     <div className="mt-1">
-                      {getStatusBadge(selectedSchedule.status)}
+                      {getStatusBadge(viewModal.data.status)}
                     </div>
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Sự kiện</Label>
                   <p className="text-sm text-gray-600">
-                    {selectedSchedule.eventTitle}
+                    {viewModal.data.eventTitle}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium">Ngày bắt đầu</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedSchedule.startDate}
+                      {viewModal.data.startDate}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Ngày kết thúc</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedSchedule.endDate}
+                      {viewModal.data.endDate}
                     </p>
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Địa điểm</Label>
                   <p className="text-sm text-gray-600">
-                    {selectedSchedule.location}
+                    {viewModal.data.location}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -717,29 +715,29 @@ export default function CoordinatorSchedulePage() {
                       Tình nguyện viên phân công
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedSchedule.volunteersAssigned} người
+                      {viewModal.data.volunteersAssigned} người
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Độ ưu tiên</Label>
                     <div className="mt-1">
-                      {getPriorityBadge(selectedSchedule.priority)}
+                      {getPriorityBadge(viewModal.data.priority)}
                     </div>
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Nhiệm vụ</Label>
                   <ul className="text-sm text-gray-600 mt-1 list-disc list-inside">
-                    {selectedSchedule.tasks.map((task, index) => (
+                    {viewModal.data.tasks.map((task, index) => (
                       <li key={index}>{task}</li>
                     ))}
                   </ul>
                 </div>
-                {selectedSchedule.notes && (
+                {viewModal.data.notes && (
                   <div>
                     <Label className="text-sm font-medium">Ghi chú</Label>
                     <p className="text-sm text-gray-600 mt-1">
-                      {selectedSchedule.notes}
+                      {viewModal.data.notes}
                     </p>
                   </div>
                 )}
@@ -749,16 +747,16 @@ export default function CoordinatorSchedulePage() {
                       Số giờ dự kiến
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedSchedule.estimatedHours} giờ
+                      {viewModal.data.estimatedHours} giờ
                     </p>
                   </div>
-                  {selectedSchedule.actualHours && (
+                  {viewModal.data.actualHours && (
                     <div>
                       <Label className="text-sm font-medium">
                         Số giờ thực tế
                       </Label>
                       <p className="text-sm text-gray-600">
-                        {selectedSchedule.actualHours} giờ
+                        {viewModal.data.actualHours} giờ
                       </p>
                     </div>
                   )}
@@ -766,10 +764,7 @@ export default function CoordinatorSchedulePage() {
               </div>
             )}
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsViewDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => viewModal.close()}>
                 Đóng
               </Button>
               <Button>

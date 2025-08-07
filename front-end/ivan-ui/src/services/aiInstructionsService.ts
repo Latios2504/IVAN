@@ -1,5 +1,4 @@
 import { apiClient } from "./apiClient";
-import { ApiError } from "./errorHandler";
 import type { ApiResponse } from "../types/common";
 import type {
   AiCustomInstructionDTO,
@@ -10,9 +9,9 @@ import type {
 
 /**
  * Service for managing AI Custom Instructions
- * Updated to work with the new AiCustomInstructionController backend endpoints
+ * Simplified with consistent error handling via ApiClient
  */
-class AIInstructionsService  {
+class AIInstructionsService {
   /**
    * Helper function to handle Entity Framework's $values format
    */
@@ -40,12 +39,7 @@ class AIInstructionsService  {
     return [];
   }
 
-  // Updated to use new AiCustomInstructionController endpoints
   private readonly baseEndpoint = "/AiCustomInstruction";
-
-  private get api() {
-    return apiClient;
-  }
 
   /**
    * Create a new AI instruction
@@ -53,254 +47,135 @@ class AIInstructionsService  {
   async createInstruction(
     data: AiCustomInstructionCreateDTO
   ): Promise<AiCustomInstructionDTO> {
-    try {
-      const response = await apiClient.post<AiCustomInstructionDTO>(
-        this.baseEndpoint,
-        data
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(
-          response.message || "Failed to create AI instruction",
-          400
-        );
-      }
-
-      return response.data;
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to create AI instruction", 500);
-    }
+    const response = await apiClient.post<AiCustomInstructionDTO>(
+      this.baseEndpoint,
+      data
+    );
+    return response.data;
   }
 
   /**
-   * Update an existing AI instruction (Admin can update any instruction)
-   * Updated to use new AiController endpoint
+   * Update an existing AI instruction
    */
   async updateInstruction(
     instructionId: number,
     data: AiCustomInstructionUpdateDTO
   ): Promise<AiCustomInstructionDTO> {
-    try {
-      const response = await apiClient.put<AiCustomInstructionDTO>(
-        `${this.baseEndpoint}/${instructionId}`,
-        data
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(
-          response.message || "Failed to update AI instruction",
-          400
-        );
-      }
-
-      return response.data;
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to update AI instruction", 500);
-    }
+    const response = await apiClient.put<AiCustomInstructionDTO>(
+      `${this.baseEndpoint}/${instructionId}`,
+      data
+    );
+    return response.data;
   }
 
   /**
-   * Delete an AI instruction as admin (force new method to bypass cache)
-   * Updated to use new AiCustomInstructionController endpoint
+   * Delete an AI instruction
    */
-  async adminDeleteInstruction(instructionId: number): Promise<void> {
-    try {
-      const deleteUrl = `${this.baseEndpoint}/${instructionId}`;
-      
-      const response = await apiClient.delete<boolean>(deleteUrl);
-
-      if (!response.success) {
-        throw new ApiError(
-          response.message || "Failed to delete AI instruction",
-          400
-        );
-      }
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to delete AI instruction", 500);
-    }
+  async deleteInstruction(instructionId: number): Promise<void> {
+    await apiClient.delete(`${this.baseEndpoint}/${instructionId}`);
   }
 
   /**
-   * Toggle instruction active status
+   * Toggle instruction status (activate/deactivate)
    */
   async toggleInstructionStatus(
     instructionId: number,
-    isActive: boolean
+    data: ToggleInstructionStatusDTO
   ): Promise<AiCustomInstructionDTO> {
-    try {
-      const response = await apiClient.patch<AiCustomInstructionDTO>(
-        `${this.baseEndpoint}/${instructionId}/status`,
-        { isActive }
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError(
-          response.message || "Failed to update instruction status",
-          400
-        );
-      }
-
-      return response.data;
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to update instruction status", 500);
-    }
+    const response = await apiClient.patch<AiCustomInstructionDTO>(
+      `${this.baseEndpoint}/${instructionId}/toggle-status`,
+      data
+    );
+    return response.data;
   }
 
   /**
-   * Get AI instructions for current user only
+   * Get user's AI instructions
    */
   async getUserInstructions(): Promise<AiCustomInstructionDTO[]> {
-    try {
-      const response = await apiClient.get<AiCustomInstructionDTO[]>(
-        this.baseEndpoint
-      );
-
-      if (!response.success || !response.data) {
-        throw new ApiError("Failed to fetch user AI instructions", 400);
-      }
-
-      return this.normalizeArrayResponse<AiCustomInstructionDTO>(response.data);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to fetch user AI instructions", 500);
-    }
+    const response = await apiClient.get<AiCustomInstructionDTO[]>(
+      `${this.baseEndpoint}/user`
+    );
+    return this.normalizeArrayResponse(response.data);
   }
 
   /**
-   * Get instructions based on user role
-   * Updated to use new AiCustomInstructionController endpoint
+   * Get all AI instructions (Admin only)
    */
-  async getInstructions(isAdmin: boolean): Promise<AiCustomInstructionDTO[]> {
-    try {
-      // The new AiCustomInstructionController handles role-based filtering automatically
-      const response = await apiClient.get<AiCustomInstructionDTO[]>(
-        this.baseEndpoint
-      );
-
-      if (!response.success) {
-        throw new ApiError("Failed to fetch AI instructions", 400);
-      }
-
-      // Use helper to normalize the response
-      const instructionsData =
-        this.normalizeArrayResponse<AiCustomInstructionDTO>(response.data);
-
-      console.log(
-        `✅ AI Instructions loaded:`,
-        instructionsData.length,
-        "items"
-      );
-      return instructionsData;
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      console.error("Failed to fetch AI instructions:", error);
-      throw new ApiError("Failed to fetch AI instructions", 500);
-    }
+  async getAllInstructions(): Promise<AiCustomInstructionDTO[]> {
+    const response = await apiClient.get<AiCustomInstructionDTO[]>(
+      this.baseEndpoint
+    );
+    return this.normalizeArrayResponse(response.data);
   }
 
   /**
-   * Validate instruction data before creation/update
+   * Get a specific instruction by ID
    */
-  validateInstruction(data: AiCustomInstructionCreateDTO): {
-    isValid: boolean;
-    errors: string[];
-    warnings: string[];
-  } {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    // Required field validation
-    if (!data.instructionName?.trim()) {
-      errors.push("Tên hướng dẫn là bắt buộc");
-    }
-
-    if (!data.systemPrompt?.trim()) {
-      errors.push("System prompt là bắt buộc");
-    }
-
-    // Length validation
-    if (data.instructionName && data.instructionName.length > 200) {
-      errors.push("Tên hướng dẫn không được vượt quá 200 ký tự");
-    }
-
-    // No character limits for systemPrompt and behaviorInstructions
-
-    // Warning validation
-    if (data.systemPrompt && data.systemPrompt.length < 50) {
-      warnings.push("System prompt khá ngắn, hãy xem xét mở rộng thêm");
-    }
-
-    if (!data.behaviorInstructions?.trim()) {
-      warnings.push("Nên thêm hướng dẫn hành vi để AI hoạt động tốt hơn");
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
+  async getInstructionById(
+    instructionId: number
+  ): Promise<AiCustomInstructionDTO> {
+    const response = await apiClient.get<AiCustomInstructionDTO>(
+      `${this.baseEndpoint}/${instructionId}`
+    );
+    return response.data;
   }
 
   /**
-   * Get current AI configuration
-   * Uses AiController for general AI configuration
+   * Search instructions by content (Client-side filtering)
    */
-  async getGeminiConfig(): Promise<object> {
-    try {
-      const response = await apiClient.get<object>("/Ai/configuration");
+  async searchInstructions(query: string): Promise<AiCustomInstructionDTO[]> {
+    const instructions = await this.getUserInstructions();
 
-      if (!response.success || !response.data) {
-        throw new ApiError("Failed to fetch AI configuration", 400);
-      }
-
-      return response.data;
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to fetch AI configuration", 500);
+    if (!query.trim()) {
+      return instructions;
     }
+
+    const searchTerm = query.toLowerCase().trim();
+    return instructions.filter(
+      (instruction) =>
+        instruction.instructionName.toLowerCase().includes(searchTerm) ||
+        instruction.systemPrompt.toLowerCase().includes(searchTerm) ||
+        instruction.behaviorInstructions?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  /**
+   * Get AI configuration
+   */
+  async getAiConfiguration(): Promise<Record<string, any>> {
+    const response = await apiClient.get<Record<string, any>>(
+      `/Ai/configuration`
+    );
+    return response.data;
   }
 
   /**
    * Get available AI models
-   * Uses AiController for general AI models
    */
   async getAvailableModels(): Promise<string[]> {
-    try {
-      const response = await apiClient.get<string[]>("/Ai/models");
+    const response = await apiClient.get<string[]>(`/Ai/models`);
+    return this.normalizeArrayResponse(response.data);
+  }
 
-      if (!response.success || !response.data) {
-        throw new ApiError("Failed to fetch available models", 400);
-      }
+  /**
+   * Get user's most recently used instructions for quick access
+   */
+  async getRecentInstructions(
+    limit: number = 5
+  ): Promise<AiCustomInstructionDTO[]> {
+    const instructions = await this.getUserInstructions();
 
-      // Normalize the response data to handle $values format
-      return this.normalizeArrayResponse<string>(response.data);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      throw new ApiError("Failed to fetch available Gemini models", 500);
-    }
+    // Sort by last modified date and take the most recent ones
+    return instructions
+      .filter((instruction) => instruction.isActive)
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+      .slice(0, limit);
   }
 }
 
-// Export singleton instance
 export const aiInstructionsService = new AIInstructionsService();
-export { AIInstructionsService };
+export default aiInstructionsService;
