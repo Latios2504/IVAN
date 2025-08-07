@@ -9,11 +9,9 @@ import type {
   EventStatusDto,
   PagedResultDto,
   UpdateEventStatusDto,
-  EventAnalyticsDto,
 } from "../types/event";
-import type { ApiResponse } from "../types/common";
 
-class EventService  {
+class EventService {
   private readonly baseUrl = "/events";
 
   // Event CRUD Operations

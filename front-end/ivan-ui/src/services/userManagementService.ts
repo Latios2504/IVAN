@@ -1,15 +1,8 @@
-import { apiClient, ApiError } from "./apiClient";
-import type { ApiResponse } from "../types/common";
+import { apiClient } from "./apiClient";
 import type { User, UserRole } from "../types/auth";
-import type { BaseProfile } from "../types/profile/profiles";
 import type {
   UserAccountListDto,
   UserAccountDetailDto,
-  VolunteerProfileData,
-  OrganizationProfileData,
-  PartnerProfileData,
-  CoordinatorProfileData,
-  UserStatisticsDto,
   UserAccountFilterDto,
   UserAccountUpdateDto,
   PagedResultDto,

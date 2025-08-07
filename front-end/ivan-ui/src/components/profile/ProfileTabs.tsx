@@ -11,7 +11,6 @@ import {
   BarChart3,
   History,
   Star,
-  MapPin,
 } from "lucide-react";
 
 interface ProfileTabsProps {
