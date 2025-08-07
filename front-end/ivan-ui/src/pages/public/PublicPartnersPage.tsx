@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Building, HandHeart, Users, Search } from "lucide-react";
-import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
+import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { PartnerCard } from "@/components/public/PartnerCard";
 import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";

@@ -194,3 +194,6 @@ class UserManagementService {
 }
 
 export const userManagementService = new UserManagementService();
+
+// Re-export types for convenience
+export type { UserAccountDetailDto } from "../types/userManagement";

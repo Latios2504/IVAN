@@ -1,7 +1,7 @@
 import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
-import Navbar from "./components/layout/Navbar";
+import Navbar from "./components/common/Navbar";
 import ChatBotFloatingButton from "./components/chatbot/ChatBotFloatingButton";
 import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "next-themes";

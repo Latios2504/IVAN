@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import { useEffect, useState } from "react";
-import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
+import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

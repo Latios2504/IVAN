@@ -47,6 +47,72 @@ export interface PartnerStats {
   partneredOrganizations: number;
 }
 
+// Additional types for analytics dashboard
+export interface UserAnalytics {
+  userStats: {
+    totalUsers: number;
+    activeUsers: number;
+    newUsers: number;
+    verifiedUsers: number;
+    userRetentionRate: number;
+    averageSessionDuration: number;
+    mostActiveRole: number;
+    mostActiveRoleName: string;
+  };
+  userGrowth: {
+    date: string;
+    newUsers: number;
+    totalUsers: number;
+    activeUsers: number;
+  }[];
+  roleDistribution: {
+    roleName: string;
+    userCount: number;
+    percentage: number;
+  }[];
+  geographicDistribution: {
+    province: string;
+    userCount: number;
+    percentage: number;
+  }[];
+}
+
+export interface EventAnalytics {
+  eventStats: {
+    totalEvents: number;
+    activeEvents: number;
+    completedEvents: number;
+    cancelledEvents: number;
+    averageRegistrationsPerEvent: number;
+    eventCompletionRate: number;
+    totalRegistrations: number;
+    approvedRegistrations: number;
+    registrationApprovalRate: number;
+  };
+  eventTrends: {
+    date: string;
+    eventsCreated: number;
+    eventsCompleted: number;
+    registrations: number;
+  }[];
+  categoryStats: {
+    categoryName: string;
+    eventCount: number;
+    totalRegistrations: number;
+    averageRating: number;
+    percentage: number;
+  }[];
+  registrationStats: {
+    totalRegistrations: number;
+    approvedRegistrations: number;
+    pendingRegistrations: number;
+    rejectedRegistrations: number;
+    approvalRate: number;
+    averageProcessingTime: number;
+    attendanceRate: number;
+  };
+}
+
 class DashboardService {
   private readonly baseUrl = "/dashboard";
 
@@ -116,6 +182,26 @@ class DashboardService {
     return response.data || [];
   }
 
+  /**
+   * Get user analytics for admin dashboard
+   */
+  async getUserAnalytics(): Promise<UserAnalytics> {
+    const response = await apiClient.get<UserAnalytics>(
+      `${this.baseUrl}/user-analytics`
+    );
+    return response.data || this.getFallbackUserAnalytics();
+  }
+
+  /**
+   * Get event analytics for admin dashboard
+   */
+  async getEventAnalytics(): Promise<EventAnalytics> {
+    const response = await apiClient.get<EventAnalytics>(
+      `${this.baseUrl}/event-analytics`
+    );
+    return response.data || this.getFallbackEventAnalytics();
+  }
+
   // Fallback methods provide default data when API calls fail
   private getFallbackSystemStats(): SystemStats {
     return {
@@ -170,6 +256,51 @@ class DashboardService {
       activeProjects: 0,
       totalInvestment: 0,
       partneredOrganizations: 0,
+    };
+  }
+
+  private getFallbackUserAnalytics(): UserAnalytics {
+    return {
+      userStats: {
+        totalUsers: 0,
+        activeUsers: 0,
+        newUsers: 0,
+        verifiedUsers: 0,
+        userRetentionRate: 0,
+        averageSessionDuration: 0,
+        mostActiveRole: 1,
+        mostActiveRoleName: "volunteer",
+      },
+      userGrowth: [],
+      roleDistribution: [],
+      geographicDistribution: [],
+    };
+  }
+
+  private getFallbackEventAnalytics(): EventAnalytics {
+    return {
+      eventStats: {
+        totalEvents: 0,
+        activeEvents: 0,
+        completedEvents: 0,
+        cancelledEvents: 0,
+        averageRegistrationsPerEvent: 0,
+        eventCompletionRate: 0,
+        totalRegistrations: 0,
+        approvedRegistrations: 0,
+        registrationApprovalRate: 0,
+      },
+      eventTrends: [],
+      categoryStats: [],
+      registrationStats: {
+        totalRegistrations: 0,
+        approvedRegistrations: 0,
+        pendingRegistrations: 0,
+        rejectedRegistrations: 0,
+        approvalRate: 0,
+        averageProcessingTime: 0,
+        attendanceRate: 0,
+      },
     };
   }
 }

@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/auth";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { TooltipWrapper } from "@/components/common/TooltipWrapper";
+import { NotificationBell } from "./NotificationBell";
+import { TooltipWrapper } from "./TooltipWrapper";
 import { ThemeToggle } from "./theme-toggle";
 import {
   Users,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { PublicPageLayout } from "./PublicPageLayout";
+import { PublicPageLayout } from "../public/PublicPageLayout";
 import { LoadingWithRetry } from "@/components/ui/skeletons";
 import { ErrorBoundary } from "@/components/common/ErrorDisplay";
 import {

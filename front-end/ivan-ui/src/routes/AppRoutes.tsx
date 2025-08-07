@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 import { UserRole } from "@/types/auth";
 
 // Lazy loading pages

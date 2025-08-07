@@ -1,5 +1,5 @@
 import { useParams, Navigate } from "react-router-dom";
-import { PublicDetailPageLayout } from "@/components/layout/PublicDetailPageLayout";
+import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

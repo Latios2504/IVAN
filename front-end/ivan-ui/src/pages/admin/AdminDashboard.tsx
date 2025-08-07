@@ -198,24 +198,18 @@ export default function AdminDashboard() {
                 <ActionButton to="/admin/blog" icon={FileText}>
                   Quản lý blog
                 </ActionButton>
-                <ActionButton to="/support" icon={MessageCircle}>
-                  Quản lý hỗ trợ
-                </ActionButton>
               </CardContent>
             </Card>
 
-            {/* Support & Content */}
+            {/* Content Management */}
             <Card>
               <CardHeader>
-                <CardTitle>Hỗ trợ & Nội dung</CardTitle>
+                <CardTitle>Quản lý nội dung</CardTitle>
                 <CardDescription>
-                  Đơn hỗ trợ và quản lý nội dung
+                  Bài tuyển dụng và hợp tác đối tác
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <ActionButton to="/admin/support" icon={MessageSquare}>
-                  Đơn hỗ trợ
-                </ActionButton>
                 <ActionButton to="/admin/job-posts" icon={UserCheck}>
                   Bài tuyển dụng
                 </ActionButton>

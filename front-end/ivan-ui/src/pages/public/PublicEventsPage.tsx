@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
-import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
+import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
 import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
