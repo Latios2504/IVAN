@@ -1,10 +1,10 @@
 -- Insert default user roles
 INSERT INTO UserRoles (RoleName, Description) VALUES
-(N'Admin', N'Quản trị viên hệ thống'),
-(N'Organization', N'Tổ chức từ thiện'),
 (N'Volunteer', N'Tình nguyện viên'),
+(N'Organization', N'Tổ chức từ thiện'),
 (N'Partner', N'Đối tác'),
-(N'Coordinator', N'Điều phối viên tình nguyện');
+(N'Coordinator', N'Điều phối viên tình nguyện'),
+(N'Admin', N'Quản trị viên hệ thống');
 
 INSERT INTO Users (Email, PasswordHash, Salt, RoleId) VALUES
 ('user1@demo.com', 'hash1', 'salt1', 1),

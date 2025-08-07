@@ -1,10 +1,10 @@
 import { useState } from "react";
-import {
-  exportService,
-  type AnalyticsExportRequest,
-  type UserExportRequest,
-  type EventExportRequest,
-} from "../services/exportService";
+import { exportService } from "../services/exportService";
+import type {
+  AnalyticsExportRequest,
+  UserExportRequest,
+  EventExportRequest,
+} from "../types/export";
 import { toast } from "sonner";
 
 export type ExportDataType =
@@ -22,6 +22,13 @@ export interface UseExportOptions {
 
 export const useExport = (options?: UseExportOptions) => {
   const [isExporting, setIsExporting] = useState(false);
+
+  // Helper function to generate filename
+  const generateFilename = (dataType: string, format: ExportFormat): string => {
+    const timestamp = new Date().toISOString().split("T")[0];
+    const extension = format === "excel" ? "xlsx" : format;
+    return `${dataType}-${timestamp}.${extension}`;
+  };
 
   const exportData = async (
     dataType: ExportDataType,
@@ -67,7 +74,7 @@ export const useExport = (options?: UseExportOptions) => {
           const userBlob = await exportService.exportUsers(userRequest);
           result = {
             blob: userBlob,
-            filename: exportService.generateFilename("users", format),
+            filename: generateFilename("users", format),
           };
           break;
 
@@ -87,7 +94,7 @@ export const useExport = (options?: UseExportOptions) => {
           const eventBlob = await exportService.exportEvents(eventRequest);
           result = {
             blob: eventBlob,
-            filename: exportService.generateFilename("events", format),
+            filename: generateFilename("events", format),
           };
           break;
 
@@ -110,7 +117,7 @@ export const useExport = (options?: UseExportOptions) => {
           );
           result = {
             blob: registrationBlob,
-            filename: exportService.generateFilename("registrations", format),
+            filename: generateFilename("registrations", format),
           };
           break;
 
@@ -124,7 +131,7 @@ export const useExport = (options?: UseExportOptions) => {
           const orgBlob = await exportService.exportOrganizations(orgRequest);
           result = {
             blob: orgBlob,
-            filename: exportService.generateFilename("organizations", format),
+            filename: generateFilename("organizations", format),
           };
           break;
 

@@ -40,6 +40,13 @@ export interface AdminStats {
   systemHealth: string;
 }
 
+export interface PartnerStats {
+  totalCollaborations: number;
+  activeProjects: number;
+  totalInvestment: number;
+  partneredOrganizations: number;
+}
+
 class DashboardService {
   private readonly baseUrl = "/dashboard";
 
@@ -85,6 +92,17 @@ class DashboardService {
       `${this.baseUrl}/admin-stats`
     );
     return response.data || this.getFallbackAdminStats();
+  }
+
+  /**
+   * Get partner dashboard stats
+   * Simplified with consistent error handling via ApiClient
+   */
+  async getPartnerStats(): Promise<PartnerStats> {
+    const response = await apiClient.get<PartnerStats>(
+      `${this.baseUrl}/partner-stats`
+    );
+    return response.data || this.getFallbackPartnerStats();
   }
 
   /**
@@ -143,6 +161,15 @@ class DashboardService {
       systemIssues: 0,
       recentUsers: 0,
       systemHealth: "Unknown",
+    };
+  }
+
+  private getFallbackPartnerStats(): PartnerStats {
+    return {
+      totalCollaborations: 0,
+      activeProjects: 0,
+      totalInvestment: 0,
+      partneredOrganizations: 0,
     };
   }
 }

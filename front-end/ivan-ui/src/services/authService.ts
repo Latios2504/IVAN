@@ -48,6 +48,15 @@ interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
+interface UserInfoResponse {
+  userId: number;
+  email: string;
+  roleName: string;
+  roleId: number;
+  isEmailVerified: boolean;
+  lastLoginAt?: string;
+}
+
 class AuthService {
   /**
    * Login user with email and password
@@ -142,10 +151,24 @@ class AuthService {
    * Simplified with consistent error handling via ApiClient
    */
   async getUserInfo(): Promise<User> {
-    const response = await apiClient.get<LoginApiResponse["user"]>(
-      "/authentication/user-info"
+    const response = await apiClient.get<UserInfoResponse>(
+      "/authentication/me"
     );
-    return this.mapApiUserToUser(response.data);
+    return this.mapUserInfoToUser(response.data);
+  }
+
+  /**
+   * Get current user (alias for getUserInfo for compatibility)
+   */
+  async getCurrentUser(): Promise<User> {
+    return this.getUserInfo();
+  }
+
+  /**
+   * Set authentication token
+   */
+  setToken(token: string | null): void {
+    apiClient.setToken(token);
   }
 
   /**
@@ -171,15 +194,30 @@ class AuthService {
   }
 
   /**
+   * Map UserInfo response to frontend User type
+   */
+  private mapUserInfoToUser(userInfo: UserInfoResponse): User {
+    return {
+      id: userInfo.userId,
+      email: userInfo.email,
+      fullName: "", // UserInfo doesn't include firstName/lastName, so we'll leave it empty
+      role: this.mapIdToRole(userInfo.roleId),
+      isActive: true, // UserInfo doesn't include isActive, default to true
+      isEmailVerified: userInfo.isEmailVerified,
+      createdAt: new Date().toISOString(), // Default value since not provided
+    };
+  }
+
+  /**
    * Map frontend role to backend roleId
    */
   private mapRoleToId(role: UserRole): number {
     const roleMap: Record<UserRole, number> = {
-      admin: 1,
-      coordinator: 2,
-      organization: 3,
-      volunteer: 4,
-      partner: 5,
+      volunteer: 1,
+      organization: 2,
+      partner: 3,
+      coordinator: 4,
+      admin: 5,
     };
     return roleMap[role];
   }
@@ -189,11 +227,11 @@ class AuthService {
    */
   private mapIdToRole(roleId: number): UserRole {
     const roleMap: Record<number, UserRole> = {
-      1: "admin",
-      2: "coordinator",
-      3: "organization",
-      4: "volunteer",
-      5: "partner",
+      1: "volunteer",
+      2: "organization",
+      3: "partner",
+      4: "coordinator",
+      5: "admin",
     };
     return roleMap[roleId] || "volunteer";
   }
