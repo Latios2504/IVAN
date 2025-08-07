@@ -20,7 +20,7 @@ import {
 import { Badge } from "../../ui/badge";
 import { AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react";
 import type { EventDto, EventStatusDto } from "../../../types/event";
-import { useEvent } from "../../../context/EventContext";
+import { useEventData } from "../../../hooks/useEventData";
 import { eventService } from "../../../services/eventService";
 
 interface StatusTransitionDialogProps {
@@ -38,7 +38,7 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
   statuses,
   onSuccess,
 }) => {
-  const { loading } = useEvent();
+  const eventData = useEventData();
   const [selectedStatusId, setSelectedStatusId] = useState<number>(0);
   const [reason, setReason] = useState("");
   const [availableTransitions, setAvailableTransitions] = useState<number[]>(
@@ -304,7 +304,7 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
 
           {error && (
             <div className="text-sm text-red-500 bg-red-50 p-3 rounded border border-red-200">
-              {error?.message || error?.toString() || 'Đã xảy ra lỗi'}
+              {error || "Đã xảy ra lỗi"}
             </div>
           )}
         </div>
@@ -315,9 +315,11 @@ export const StatusTransitionDialog: React.FC<StatusTransitionDialogProps> = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={loading || selectedStatusId === 0 || loadingTransitions}
+            disabled={
+              eventData.loading || selectedStatusId === 0 || loadingTransitions
+            }
           >
-            {loading ? "Updating..." : "Update Status"}
+            {eventData.loading ? "Updating..." : "Update Status"}
           </Button>
         </DialogFooter>
       </DialogContent>

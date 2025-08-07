@@ -11,7 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import type { EventDto } from "../../../types/event";
-import { useEvent } from "../../../context/EventContext";
+import {
+  useEventData,
+  useEventCategories,
+  useEventStatuses,
+} from "../../../hooks/useEventData";
 import { EditEventDialog } from "./EditEventDialog";
 import { EventDetailDialog } from "./EventDetailDialog";
 
@@ -24,20 +28,15 @@ export const EventList: React.FC<EventListProps> = ({
   events,
   onEventUpdated,
 }) => {
-  const {
-    deleteEvent,
-    setCurrentEvent,
-    setFilters,
-    filters,
-    pagination,
-    categories,
-    statuses,
-  } = useEvent();
+  const eventData = useEventData();
+  const categories = useEventCategories();
+  const statuses = useEventStatuses();
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventDto | null>(null);
   const [viewingEvent, setViewingEvent] = useState<EventDto | null>(null);
+  const [currentEvent, setCurrentEvent] = useState<EventDto | null>(null);
 
   const handleEdit = (event: EventDto) => {
     setEditingEvent(event);
@@ -54,7 +53,8 @@ export const EventList: React.FC<EventListProps> = ({
   const handleDelete = async (event: EventDto) => {
     if (confirm(`Are you sure you want to delete "${event.eventName}"?`)) {
       try {
-        await deleteEvent(event.eventId);
+        await eventData.remove(event.eventId);
+        onEventUpdated?.();
       } catch (error) {
         console.error("Failed to delete event:", error);
       }
@@ -185,14 +185,7 @@ export const EventList: React.FC<EventListProps> = ({
         data={events}
         columns={columns}
         actions={actions}
-        pagination={{
-          currentPage: pagination.currentPage,
-          totalPages: pagination.totalPages,
-          pageSize: pagination.pageSize,
-          totalItems: pagination.totalCount,
-          onPageChange: (page) => setFilters({ page }),
-        }}
-        showPagination={true}
+        showPagination={false}
         emptyMessage="No events found"
         onRowClick={handleView}
         enableTooltips={true}
@@ -204,7 +197,7 @@ export const EventList: React.FC<EventListProps> = ({
           open={showEditDialog}
           onClose={() => setShowEditDialog(false)}
           event={editingEvent}
-          categories={categories}
+          categories={categories.data}
           onSuccess={handleEditSuccess}
         />
       )}
@@ -215,8 +208,8 @@ export const EventList: React.FC<EventListProps> = ({
           open={showDetailDialog}
           onClose={handleDetailClose}
           event={viewingEvent}
-          categories={categories}
-          statuses={statuses}
+          categories={categories.data}
+          statuses={statuses.data}
           onEventUpdated={handleEventUpdated}
         />
       )}

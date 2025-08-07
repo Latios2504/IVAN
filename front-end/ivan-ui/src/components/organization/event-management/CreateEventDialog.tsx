@@ -23,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { EventCategoryDto, CreateEventDto } from "../../../types/event";
-import { useEvent } from "../../../context/EventContext";
+import { useEventData } from "../../../hooks/useEventData";
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -38,7 +38,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
   onSuccess,
   categories,
 }) => {
-  const { createEvent } = useEvent();
+  const eventData = useEventData();
   const [loading, setLoading] = React.useState(false);
   const [formData, setFormData] = React.useState<Partial<CreateEventDto>>({
     eventName: "",
@@ -89,7 +89,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
     try {
       setLoading(true);
-      await createEvent(formData as CreateEventDto);
+      await eventData.create(formData as CreateEventDto);
       onSuccess();
       handleClose();
     } catch (error) {

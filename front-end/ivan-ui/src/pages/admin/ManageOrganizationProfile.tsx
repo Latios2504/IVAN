@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingWithRetry } from "@/components/ui/skeletons";
-import { useFetchData } from "@/hooks/useApiRequest";
+import { useApi } from "@/hooks/useApi";
 import { toast } from "sonner";
 import {
   Building2,
@@ -60,29 +60,34 @@ const AdminOrganizationListPage = () => {
   const { user } = useAuth();
   // Remove useToast hook since we're using sonner directly
 
-  // Use the new data fetching pattern
-  const {
-    data: organizationsData,
-    loading,
-    error,
-    refetch,
-  } = useFetchData<{
-    organizations: OrganizationProfileData[];
-    types: OrganizationType[];
-    stats: OrganizationStats;
-  }>("/admin/organizations", {
-    transformData: () => ({
-      organizations: sampleOrganizations,
-      types: sampleOrganizationTypes,
-      stats: sampleStats,
-    }),
-    showErrorToast: true,
-  });
+  // Use the new API pattern
+  const organizationsApi = useApi<OrganizationProfileData[]>();
+  const typesApi = useApi<OrganizationType[]>();
+  const statsApi = useApi<OrganizationStats>();
 
-  // Destructure the nested data
-  const organizations = organizationsData?.organizations || [];
-  const organizationTypes = organizationsData?.types || [];
-  const stats = organizationsData?.stats;
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // For now, use sample data until services are properly implemented
+        organizationsApi.execute(async () => sampleOrganizations);
+        typesApi.execute(async () => sampleOrganizationTypes);
+        statsApi.execute(async () => sampleStats);
+      } catch (error) {
+        console.error("Failed to load organization data:", error);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Destructure the data
+  const organizations = organizationsApi.data || [];
+  const organizationTypes = typesApi.data || [];
+  const stats = statsApi.data;
+  const loading =
+    organizationsApi.loading || typesApi.loading || statsApi.loading;
+  const error = organizationsApi.error || typesApi.error || statsApi.error;
 
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     OrganizationProfileData[]
@@ -293,9 +298,9 @@ const AdminOrganizationListPage = () => {
 
   // Apply filters and search
   useEffect(() => {
-    if (!organizationsData?.organizations) return;
+    if (!organizations?.length) return;
 
-    let filtered = [...organizationsData.organizations];
+    let filtered = [...organizations];
 
     // Search filter
     if (filters.searchTerm) {
