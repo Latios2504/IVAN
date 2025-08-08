@@ -18,7 +18,7 @@ export const partnerCollaborationService = {
     try {
       const response = await apiClient.get<
         PagedResultDto<CollaborationViewList>
-      >("/api/PartnerCollaboration", {
+      >("/PartnerCollaboration", {
         pageNumber,
         pageSize,
       });
@@ -46,7 +46,7 @@ export const partnerCollaborationService = {
   async create(data: PartnerCollaborationCreateDto): Promise<number> {
     try {
       const response = await apiClient.post<number>(
-        "/api/PartnerCollaboration/createCollaboration",
+        "/PartnerCollaboration/createCollaboration",
         data
       );
       return response.data;
@@ -131,7 +131,7 @@ export const partnerCollaborationService = {
     try {
       // Note: This endpoint might need to be created if it doesn't exist
       const response = await apiClient.get<CollaborationType[]>(
-        "/api/CollaborationType"
+        "/CollaborationType"
       );
       return response.data;
     } catch (error) {
@@ -151,7 +151,7 @@ export const partnerCollaborationService = {
   async getPartners(): Promise<Partner[]> {
     try {
       // Using existing partner profile endpoint
-      const response = await apiClient.get<any>("/api/PartnerProfile");
+      const response = await apiClient.get<any>("/PartnerProfile");
       const data = response.data;
       return data.items || data; // Handle both paginated and non-paginated responses
     } catch (error) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useModal, useModalWithData } from "@/hooks/useModal";
+import { useAuth } from "@/hooks/useAuth";
 import {
   coordinatorScheduleService,
   type CoordinatorScheduleDto,
@@ -7,7 +8,6 @@ import {
 } from "@/services/coordinatorScheduleService";
 import { eventService } from "@/services/eventService";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
-import { authService } from "@/services/authService";
 import type { EventDto } from "@/types/event";
 import type { VolunteerCoordinatorDto } from "@/types/volunteer-coordinator";
 import { toast } from "sonner";
@@ -78,6 +78,9 @@ interface ScheduleFormData {
 }
 
 export default function CoordinatorSchedulePage() {
+  // Auth hook
+  const { user } = useAuth();
+
   // State management
   const [schedules, setSchedules] = useState<CoordinatorScheduleDto[]>([]);
   const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>(
@@ -140,8 +143,11 @@ export default function CoordinatorSchedulePage() {
   const loadCoordinators = async () => {
     try {
       setCoordinatorsLoading(true);
-      const user = await authService.getCurrentUser();
-      if (!user?.organizationId) return;
+      // Use user from useAuth hook instead of making API call
+      if (!user?.organizationId) {
+        console.warn("No organization ID found for user");
+        return;
+      }
 
       const result =
         await volunteerCoordinatorService.getOrganizationCoordinators(

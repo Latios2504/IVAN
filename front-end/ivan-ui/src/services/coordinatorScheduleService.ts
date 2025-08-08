@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import { environment } from "../config";
 import type { PagedResultDto } from "../types/common";
 import type {
   CoordinatorSchedule,
@@ -124,7 +125,7 @@ class CoordinatorScheduleService {
     if (filters.status) queryParams.append("status", filters.status);
     if (filters.search) queryParams.append("search", filters.search);
 
-    const endpoint = `/api/coordinator-schedules${
+    const endpoint = `/coordinator-schedules${
       queryParams.toString() ? `?${queryParams.toString()}` : ""
     }`;
     const response = await apiClient.get<
@@ -138,7 +139,7 @@ class CoordinatorScheduleService {
    */
   async getScheduleById(id: number): Promise<CoordinatorScheduleDto> {
     const response = await apiClient.get<CoordinatorScheduleDto>(
-      `/api/coordinator-schedules/${id}`
+      `/coordinator-schedules/${id}`
     );
     return response.data;
   }
@@ -148,7 +149,7 @@ class CoordinatorScheduleService {
    */
   async createSchedule(data: CreateCoordinatorScheduleData): Promise<number> {
     const response = await apiClient.post<number>(
-      "/api/coordinator-schedules",
+      "/coordinator-schedules",
       data
     );
     return response.data;
@@ -162,7 +163,7 @@ class CoordinatorScheduleService {
     data: UpdateCoordinatorScheduleData
   ): Promise<boolean> {
     const response = await apiClient.put<boolean>(
-      `/api/coordinator-schedules/${id}`,
+      `/coordinator-schedules/${id}`,
       data
     );
     return response.data;
@@ -173,7 +174,7 @@ class CoordinatorScheduleService {
    */
   async deleteSchedule(id: number): Promise<boolean> {
     const response = await apiClient.delete<boolean>(
-      `/api/coordinator-schedules/${id}`
+      `/coordinator-schedules/${id}`
     );
     return response.data;
   }
@@ -219,7 +220,7 @@ class CoordinatorScheduleService {
    */
   async getScheduleStats(): Promise<CoordinatorScheduleStatsDto> {
     const response = await apiClient.get<CoordinatorScheduleStatsDto>(
-      "/api/coordinator-schedules/stats"
+      "/coordinator-schedules/stats"
     );
     return response.data;
   }
@@ -251,7 +252,7 @@ class CoordinatorScheduleService {
    */
   async updateScheduleStatus(id: number, status: string): Promise<boolean> {
     const response = await apiClient.patch<boolean>(
-      `/api/coordinator-schedules/${id}/status`,
+      `/coordinator-schedules/${id}/status`,
       { status }
     );
     return response.data;
@@ -264,7 +265,7 @@ class CoordinatorScheduleService {
     data: ConflictCheckData
   ): Promise<CoordinatorScheduleDto[]> {
     const response = await apiClient.post<CoordinatorScheduleDto[]>(
-      "/api/coordinator-schedules/check-conflicts",
+      "/coordinator-schedules/check-conflicts",
       data
     );
     return response.data;
@@ -275,7 +276,7 @@ class CoordinatorScheduleService {
    */
   async bulkUpdateStatus(ids: number[], status: string): Promise<boolean> {
     const response = await apiClient.patch<boolean>(
-      "/api/coordinator-schedules/bulk/status",
+      "/coordinator-schedules/bulk/status",
       { scheduleIds: ids, status }
     );
     return response.data;
@@ -295,11 +296,14 @@ class CoordinatorScheduleService {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch("/api/coordinator-schedules/bulk", {
-      method: "DELETE",
-      headers,
-      body: JSON.stringify({ scheduleIds: ids }),
-    });
+    const response = await fetch(
+      `${environment.API_BASE_URL}/coordinator-schedules/bulk`,
+      {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify({ scheduleIds: ids }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

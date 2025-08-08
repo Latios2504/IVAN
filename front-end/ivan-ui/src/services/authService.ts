@@ -118,6 +118,7 @@ class AuthService {
   }
 
   private mapRoleNameToEnum(roleName: string): UserRole {
+    console.log("DEBUG: Mapping role name:", roleName);
     const roleMap: Record<string, UserRole> = {
       volunteer: "volunteer",
       organization: "organization",
@@ -125,7 +126,9 @@ class AuthService {
       coordinator: "coordinator",
       admin: "admin",
     };
-    return roleMap[roleName.toLowerCase()] || "volunteer";
+    const mappedRole = roleMap[roleName.toLowerCase()] || "volunteer";
+    console.log("DEBUG: Mapped role:", mappedRole);
+    return mappedRole;
   }
 }
 

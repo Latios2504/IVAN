@@ -192,6 +192,9 @@ export default function CoordinatorDashboard() {
             <ActionButton to="/coordinator/onsite-tasks" icon={ClipboardList}>
               Quản lý nhiệm vụ tại chỗ
             </ActionButton>
+            <ActionButton to="/coordinator/my-tasks" icon={Settings}>
+              Xem nhiệm vụ của tôi
+            </ActionButton>
             <Button variant="outline" className="w-full" disabled>
               <UserCheck className="w-4 h-4 mr-2" />
               Duyệt đăng ký mới (Sắp có)

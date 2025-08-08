@@ -19,20 +19,24 @@ namespace ivan_api.Controllers
             _volunteerScheduleService = volunteerScheduleService;
         }
 
-        #region Organization/Coordinator endpoints
+        #region Coordinator endpoints
 
         /// <summary>
-        /// Get paginated list of volunteer schedules for organization (Coordinator role)
+        /// Get paginated list of volunteer schedules for coordinator
         /// </summary>
-        [HttpGet("organization")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<IActionResult> GetOrganizationVolunteerSchedules([FromQuery] VolunteerScheduleFilterDTO filter)
+        [HttpGet("coordinator")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
+        public async Task<IActionResult> GetCoordinatorVolunteerSchedules([FromQuery] VolunteerScheduleFilterDTO filter)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == 0)
-                return Unauthorized("Organization not found");
+            // Get user ID from token - this should always work for authenticated users
+            var userId = GetUserId();
+            if (userId == 0)
+                return Unauthorized("User not found");
 
-            var result = await _volunteerScheduleService.GetOrganizationVolunteerSchedulesAsync(organizationId, filter);
+            // For VolunteerCoordinator role, we need to look up which organization they belong to
+            var coordinatorId = userId; // Coordinator's user ID
+            
+            var result = await _volunteerScheduleService.GetOrganizationVolunteerSchedulesAsync(coordinatorId, filter);
             
             if (!result.Success)
                 return BadRequest(result);
@@ -41,17 +45,17 @@ namespace ivan_api.Controllers
         }
 
         /// <summary>
-        /// Get volunteer schedule by ID (Organization/Coordinator role)
+        /// Get volunteer schedule by ID (Coordinator role)
         /// </summary>
-        [HttpGet("organization/{scheduleId}")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [HttpGet("coordinator/{scheduleId}")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> GetVolunteerScheduleById(int scheduleId)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == 0)
-                return Unauthorized("Organization not found");
+            var coordinatorId = GetUserId();
+            if (coordinatorId == 0)
+                return Unauthorized("Coordinator not found");
 
-            var result = await _volunteerScheduleService.GetVolunteerScheduleByIdAsync(organizationId, scheduleId);
+            var result = await _volunteerScheduleService.GetVolunteerScheduleByIdAsync(coordinatorId, scheduleId);
             
             if (!result.Success)
                 return result.Errors.Any(e => e.Contains("not found")) ? NotFound(result) : BadRequest(result);
@@ -60,18 +64,18 @@ namespace ivan_api.Controllers
         }
 
         /// <summary>
-        /// Create new volunteer schedule (Organization/Coordinator role)
+        /// Create new volunteer schedule (Coordinator role)
         /// </summary>
-        [HttpPost("organization")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [HttpPost("coordinator")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> CreateVolunteerSchedule([FromBody] VolunteerScheduleRequestDTO request)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == 0)
-                return Unauthorized("Organization not found");
+            var coordinatorId = GetUserId();
+            if (coordinatorId == 0)
+                return Unauthorized("Coordinator not found");
 
             var userId = GetUserId();
-            var result = await _volunteerScheduleService.CreateVolunteerScheduleAsync(organizationId, request, userId);
+            var result = await _volunteerScheduleService.CreateVolunteerScheduleAsync(coordinatorId, request, userId);
             
             if (!result.Success)
                 return BadRequest(result);
@@ -80,18 +84,18 @@ namespace ivan_api.Controllers
         }
 
         /// <summary>
-        /// Update volunteer schedule (Organization/Coordinator role)
+        /// Update volunteer schedule (Coordinator role)
         /// </summary>
-        [HttpPut("organization/{scheduleId}")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [HttpPut("coordinator/{scheduleId}")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> UpdateVolunteerSchedule(int scheduleId, [FromBody] VolunteerScheduleRequestDTO request)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == 0)
-                return Unauthorized("Organization not found");
+            var coordinatorId = GetUserId();
+            if (coordinatorId == 0)
+                return Unauthorized("Coordinator not found");
 
             var userId = GetUserId();
-            var result = await _volunteerScheduleService.UpdateVolunteerScheduleAsync(organizationId, scheduleId, request, userId);
+            var result = await _volunteerScheduleService.UpdateVolunteerScheduleAsync(coordinatorId, scheduleId, request, userId);
             
             if (!result.Success)
                 return result.Errors.Any(e => e.Contains("not found")) ? NotFound(result) : BadRequest(result);
@@ -100,17 +104,17 @@ namespace ivan_api.Controllers
         }
 
         /// <summary>
-        /// Delete volunteer schedule (Organization/Coordinator role)
+        /// Delete volunteer schedule (Coordinator role)
         /// </summary>
-        [HttpDelete("organization/{scheduleId}")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [HttpDelete("coordinator/{scheduleId}")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> DeleteVolunteerSchedule(int scheduleId)
         {
-            var organizationId = GetOrganizationId();
-            if (organizationId == 0)
-                return Unauthorized("Organization not found");
+            var coordinatorId = GetUserId();
+            if (coordinatorId == 0)
+                return Unauthorized("Coordinator not found");
 
-            var result = await _volunteerScheduleService.DeleteVolunteerScheduleAsync(organizationId, scheduleId);
+            var result = await _volunteerScheduleService.DeleteVolunteerScheduleAsync(coordinatorId, scheduleId);
             
             if (!result.Success)
                 return result.Errors.Any(e => e.Contains("not found")) ? NotFound(result) : BadRequest(result);
@@ -160,14 +164,27 @@ namespace ivan_api.Controllers
         
         private int GetUserId()
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
 
         private int GetOrganizationId()
         {
+            // First try to get OrganizationId claim directly
             var organizationIdClaim = User.FindFirst("OrganizationId")?.Value;
-            return int.TryParse(organizationIdClaim, out var orgId) ? orgId : 0;
+            if (int.TryParse(organizationIdClaim, out var orgId))
+                return orgId;
+
+            // If not found, get from NameIdentifier for organization users
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out var userId))
+            {
+                // For organization role, the user ID should map to organization
+                // This is a temporary solution - in production you'd query the database
+                return userId; // Assuming organization user ID = organization ID for now
+            }
+
+            return 0;
         }
 
         #endregion

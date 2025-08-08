@@ -17,6 +17,17 @@ export default function ProtectedRoute({
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
 
+  console.log("DEBUG: ProtectedRoute state:", {
+    isAuthenticated,
+    isLoading,
+    userRole: user?.role,
+    requireAuth,
+    allowedRoles,
+    currentPath: location.pathname,
+    currentURL: window.location.href,
+    allowedRolesCount: allowedRoles?.length || 0,
+  });
+
   // Show loading spinner while checking auth
   if (isLoading) {
     return (
@@ -28,13 +39,26 @@ export default function ProtectedRoute({
 
   // Redirect to login if authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
+    console.log("DEBUG: Redirecting to login - not authenticated");
+    console.log("DEBUG: Current URL:", window.location.href);
+    console.log("DEBUG: Current path:", location.pathname);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Check role-based access
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Don't pass location state when user lacks permissions to avoid redirect loops
-    return <Navigate to="/unauthorized" replace />;
+  if (allowedRoles && user) {
+    console.log("DEBUG: User role:", user.role);
+    console.log("DEBUG: Allowed roles:", allowedRoles);
+    console.log("DEBUG: Role check result:", allowedRoles.includes(user.role));
+
+    if (!allowedRoles.includes(user.role)) {
+      console.log("DEBUG: Redirecting to unauthorized - insufficient role");
+      console.log("DEBUG: User role:", user.role);
+      console.log("DEBUG: Required roles:", allowedRoles);
+      console.log("DEBUG: Current URL:", window.location.href);
+      // Don't pass location state when user lacks permissions to avoid redirect loops
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <>{children}</>;

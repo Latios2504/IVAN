@@ -68,7 +68,7 @@ interface ApiResponse<T> {
 }
 
 class SupportRequestService {
-  private baseUrl = "/api/supportrequest";
+  private baseUrl = "/supportrequest";
 
   async getAll(
     status?: string,

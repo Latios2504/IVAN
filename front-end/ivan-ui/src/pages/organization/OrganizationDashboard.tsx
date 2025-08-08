@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import type { OrganizationStats } from "@/services/dashboardService";
+import type { OrganizationStats } from "@/types/dashboard";
 
 export default function OrganizationDashboard() {
   const { user } = useAuth();
@@ -146,7 +146,10 @@ export default function OrganizationDashboard() {
             >
               Quản lý Coordinators
             </ActionButton>
-            <ActionButton to="/organization/coordinators" icon={UserPlus}>
+            <ActionButton
+              to="/organization/coordinator-schedule"
+              icon={Calendar}
+            >
               Lịch trình Coordinators
             </ActionButton>
             <ActionButton to="/organization/coordinator-tasks" icon={Settings}>

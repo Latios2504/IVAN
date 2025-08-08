@@ -1,8 +1,11 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using ivan_api.Constants;
 using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.Services.OnSiteTasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ivan_api.Controllers
@@ -25,21 +28,33 @@ namespace ivan_api.Controllers
         //    return Ok(result);
         //}
 
+        /// <summary>
+        /// Get list of on-site tasks (Coordinator and Volunteer can view)
+        /// </summary>
         [HttpGet]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _service.GetList(pageNumber, pageSize);
             return Ok(result);
         }
 
+        /// <summary>
+        /// Get on-site task details by ID (Coordinator and Volunteer can view)
+        /// </summary>
         [HttpGet("get/{id}")]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<IActionResult> Details(int id)
         {
             var result = await _service.GetOnSiteTaskById(id);
             return Ok(result);
         }
 
+        /// <summary>
+        /// Add new on-site task (Only Coordinator can add)
+        /// </summary>
         [HttpPost("add")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> Add([FromBody] OnSiteTaskInputModel input)
         {
             if (input == null)
@@ -57,7 +72,7 @@ namespace ivan_api.Controllers
 
             if (!result)//if false
             {
-                return BadRequest(null);
+                return BadRequest("Failed to add task");
             }
 
             var listDto = await _service.GetList(1, 100);
@@ -69,7 +84,11 @@ namespace ivan_api.Controllers
             return Ok(postAdd);
         }
 
+        /// <summary>
+        /// Update on-site task (Only Coordinator can update)
+        /// </summary>
         [HttpPut("update/{id}")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> Update([FromBody] OnSiteTaskUpdateModel input, int id)
         {
             if (input == null)
@@ -95,14 +114,9 @@ namespace ivan_api.Controllers
             return Ok(postUpate);
         }
 
-        //public async Task<int> getLastId()
-        //{
-        //    var temp = await _service.GetList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().TaskId;
-
-        //    return last == null ? -1 : last;
-        //}
+        private int GetUserId()
+        {
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        }
     }
 }

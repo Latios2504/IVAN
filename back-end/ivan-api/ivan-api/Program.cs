@@ -42,6 +42,8 @@ using ivan_api.Services.VolunteerCoordinatorServ;
 using ivan_api.Repository.VolunteerCoordinatorRepo;
 using ivan_api.Repository.CoordinatorScheduleRepo;
 using ivan_api.Services.CoordinatorScheduleServ;
+using ivan_api.Repository.VolunteerScheduleRepo;
+using ivan_api.Services.VolunteerScheduleServ;
 
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
@@ -171,6 +173,10 @@ builder.Services.AddScoped<IVolunteerCoordinatorService, VolunteerCoordinatorSer
 // Coordinator Schedule DI
 builder.Services.AddScoped<ICoordinatorScheduleRepository, CoordinatorScheduleRepository>();
 builder.Services.AddScoped<ICoordinatorScheduleService, CoordinatorScheduleService>();
+
+// Volunteer Schedule DI
+builder.Services.AddScoped<IVolunteerScheduleRepository, VolunteerScheduleRepository>();
+builder.Services.AddScoped<IVolunteerScheduleService, VolunteerScheduleService>();
 
 builder.Services.AddScoped<IOrganizationProfileRepository, OrganizationProfileRepository>();
 builder.Services.AddScoped<IOrganizationProfileService, OrganizationProfileService>();

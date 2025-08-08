@@ -10,7 +10,7 @@ import type {
 import type { ApiResponse } from "@/types/common";
 
 class OnSiteTaskService {
-  private readonly baseUrl = "/api/OnSiteTask";
+  private readonly baseUrl = "/OnSiteTask";
 
   // Get paginated list of on-site tasks
   async getOnSiteTasks(

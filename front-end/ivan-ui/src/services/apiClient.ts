@@ -35,6 +35,11 @@ class ApiClient {
   }
 
   public setToken(token: string | null): void {
+    console.log(
+      "DEBUG: ApiClient.setToken called with:",
+      token ? token.substring(0, 20) + "..." : "null"
+    );
+    console.log("DEBUG: Call stack:", new Error().stack);
     this.token = token;
     if (token) {
       localStorage.setItem("authToken", token);
@@ -67,6 +72,15 @@ class ApiClient {
       // Handle authentication errors
       if (response.status === 401) {
         // 401 Unauthorized - token is invalid/expired, logout user
+        console.log(
+          "DEBUG: Got 401 unauthorized, clearing token and redirecting"
+        );
+        console.log("DEBUG: Failed request URL:", response.url);
+        console.log(
+          "DEBUG: Current token:",
+          this.token ? this.token.substring(0, 20) + "..." : "null"
+        );
+
         if (environment.ENABLE_LOGGING) {
           console.warn(
             `🔐 Authentication error (401): Token invalid/expired, clearing token and redirecting to login`
@@ -78,7 +92,10 @@ class ApiClient {
 
         // Redirect to login page if not already there
         if (!window.location.pathname.includes("/login")) {
-          window.location.href = "/login";
+          console.log("DEBUG: Redirecting to login page");
+          // Use pushState instead of hard redirect to avoid losing debug context
+          window.history.pushState({}, "", "/login");
+          window.location.reload();
         }
       } else if (response.status === 403) {
         // 403 Forbidden - user is authenticated but lacks permission

@@ -23,11 +23,12 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
 import type { Certificate, CertificateStatus } from "@/types/certificate";
+import CertificateDetailModal from "@/components/organization/certificates/CertificateDetailModal";
+import CreateCertificateModal from "@/components/organization/certificates/CreateCertificateModal";
 
 export default function CertificateManagementPage() {
   // State management
@@ -39,6 +40,13 @@ export default function CertificateManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(10);
+
+  // Modal state
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedCertificateId, setSelectedCertificateId] = useState<
+    number | null
+  >(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Status configuration for UI
   const statusConfig = {
@@ -132,6 +140,33 @@ export default function CertificateManagementPage() {
     }
   };
 
+  // Handle opening certificate detail modal
+  const handleViewDetail = (certificateId: number) => {
+    setSelectedCertificateId(certificateId);
+    setIsDetailModalOpen(true);
+  };
+
+  // Handle closing certificate detail modal
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedCertificateId(null);
+  };
+
+  // Handle opening create certificate modal
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  // Handle closing create certificate modal
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  // Handle successful certificate creation
+  const handleCreateSuccess = () => {
+    loadCertificates(); // Reload the list
+  };
+
   // Handle certificate approval
   const handleApprove = async (certificateId: number) => {
     try {
@@ -176,11 +211,9 @@ export default function CertificateManagementPage() {
             Tạo, cấp phát và quản lý chứng chỉ cho tình nguyện viên
           </p>
         </div>
-        <Button className="mt-4 md:mt-0" asChild>
-          <Link to="/organization/certificates/create">
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo chứng chỉ mới
-          </Link>
+        <Button className="mt-4 md:mt-0" onClick={handleOpenCreateModal}>
+          <Plus className="mr-2 h-4 w-4" />
+          Tạo chứng chỉ mới
         </Button>
       </div>
 
@@ -402,13 +435,15 @@ export default function CertificateManagementPage() {
                         </div>
 
                         <div className="flex flex-col lg:flex-row gap-2">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link
-                              to={`/organization/certificates/${certificate.certificateId}`}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Xem chi tiết
-                            </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleViewDetail(certificate.certificateId)
+                            }
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Xem chi tiết
                           </Button>
 
                           {certificate.status === "issued" && (
@@ -427,17 +462,15 @@ export default function CertificateManagementPage() {
                             </Button>
                           )}
 
+                          {/* TODO: Add edit modal functionality
                           {(certificate.status === "draft" ||
                             certificate.status === "pending") && (
-                            <Button variant="outline" size="sm" asChild>
-                              <Link
-                                to={`/organization/certificates/${certificate.certificateId}/edit`}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Chỉnh sửa
-                              </Link>
+                            <Button variant="outline" size="sm" disabled>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Chỉnh sửa
                             </Button>
                           )}
+                          */}
 
                           {certificate.status === "pending" && (
                             <Button
@@ -509,6 +542,20 @@ export default function CertificateManagementPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Certificate Detail Modal */}
+      <CertificateDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        certificateId={selectedCertificateId}
+      />
+
+      {/* Create Certificate Modal */}
+      <CreateCertificateModal
+        isOpen={isCreateModalOpen}
+        onClose={handleCloseCreateModal}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 }

@@ -103,6 +103,9 @@ const VolunteerCoordinatorManagementPage = lazy(
 const OnSiteTaskManagementPage = lazy(
   () => import("@/pages/coordinator/OnSiteTaskManagementPage")
 );
+const CoordinatorTasksPage = lazy(
+  () => import("@/pages/coordinator/CoordinatorTasksPage")
+);
 const MyOnSiteTasksPage = lazy(
   () => import("@/pages/volunteer/MyOnSiteTasksPage")
 );
@@ -222,6 +225,14 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/coordinator/my-tasks"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
+              <CoordinatorTasksPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/volunteer/schedule"
           element={
             <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
@@ -326,11 +337,17 @@ export default function AppRoutes() {
           }
         />{" "}
         <Route
+          path="/organization/volunteer-schedule"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
+              <VolunteerScheduleManagementPage />
+            </ProtectedRoute>
+          }
+        />{" "}
+        <Route
           path="/organization/coordinator-tasks"
           element={
-            <ProtectedRoute
-              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
-            >
+            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
               <CoordinatorTaskManagementPage />
             </ProtectedRoute>
           }

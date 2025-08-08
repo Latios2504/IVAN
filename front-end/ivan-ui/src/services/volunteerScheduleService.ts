@@ -62,14 +62,14 @@ export interface VolunteerScheduleDTO {
 }
 
 class VolunteerScheduleService {
-  private readonly baseUrl = "/api/VolunteerSchedule";
+  private readonly baseUrl = "/VolunteerSchedule";
 
-  // Organization/Coordinator endpoints
-  async getOrganizationVolunteerSchedules(
+  // Coordinator endpoints
+  async getCoordinatorVolunteerSchedules(
     filter: VolunteerScheduleFilterDTO
   ): Promise<PagedResultDto<VolunteerScheduleDTO>> {
     const response = await apiClient.get<PagedResultDto<VolunteerScheduleDTO>>(
-      `${this.baseUrl}/organization`,
+      `${this.baseUrl}/coordinator`,
       filter as Record<string, string | number | boolean | undefined | null>
     );
     return response.data;
@@ -79,7 +79,7 @@ class VolunteerScheduleService {
     scheduleId: number
   ): Promise<VolunteerScheduleDTO> {
     const response = await apiClient.get<VolunteerScheduleDTO>(
-      `${this.baseUrl}/organization/${scheduleId}`
+      `${this.baseUrl}/coordinator/${scheduleId}`
     );
     return response.data;
   }
@@ -88,7 +88,7 @@ class VolunteerScheduleService {
     request: VolunteerScheduleRequestDTO
   ): Promise<VolunteerScheduleDTO> {
     const response = await apiClient.post<VolunteerScheduleDTO>(
-      `${this.baseUrl}/organization`,
+      `${this.baseUrl}/coordinator`,
       request
     );
     return response.data;
@@ -99,14 +99,22 @@ class VolunteerScheduleService {
     request: VolunteerScheduleRequestDTO
   ): Promise<VolunteerScheduleDTO> {
     const response = await apiClient.put<VolunteerScheduleDTO>(
-      `${this.baseUrl}/organization/${scheduleId}`,
+      `${this.baseUrl}/coordinator/${scheduleId}`,
       request
     );
     return response.data;
   }
 
   async deleteVolunteerSchedule(scheduleId: number): Promise<void> {
-    await apiClient.delete<void>(`${this.baseUrl}/organization/${scheduleId}`);
+    await apiClient.delete<void>(`${this.baseUrl}/coordinator/${scheduleId}`);
+  }
+
+  // Legacy method for backward compatibility
+  async getOrganizationVolunteerSchedules(
+    filter: VolunteerScheduleFilterDTO
+  ): Promise<PagedResultDto<VolunteerScheduleDTO>> {
+    // Redirect to coordinator method for backward compatibility
+    return this.getCoordinatorVolunteerSchedules(filter);
   }
 
   // Volunteer personal endpoints

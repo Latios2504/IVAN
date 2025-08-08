@@ -368,11 +368,15 @@ export default function VolunteerScheduleManagementPage() {
             <div className="space-y-2">
               <Label>Sự kiện</Label>
               <Select
-                value={filters.eventId?.toString() || ""}
+                value={filters.eventId?.toString() || "all"}
                 onValueChange={(value) =>
                   handleFilterChange(
                     "eventId",
-                    value ? parseInt(value) : undefined
+                    value === "all"
+                      ? undefined
+                      : value
+                      ? parseInt(value)
+                      : undefined
                   )
                 }
               >
@@ -380,7 +384,7 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectValue placeholder="Tất cả sự kiện" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả sự kiện</SelectItem>
+                  <SelectItem value="all">Tất cả sự kiện</SelectItem>
                   {events.map((event) => (
                     <SelectItem
                       key={event.eventId}
@@ -396,16 +400,19 @@ export default function VolunteerScheduleManagementPage() {
             <div className="space-y-2">
               <Label>Trạng thái</Label>
               <Select
-                value={filters.status || ""}
+                value={filters.status || "all"}
                 onValueChange={(value) =>
-                  handleFilterChange("status", value || undefined)
+                  handleFilterChange(
+                    "status",
+                    value === "all" ? undefined : value || undefined
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
                   <SelectItem value="InProgress">Đang thực hiện</SelectItem>
                   <SelectItem value="Completed">Hoàn thành</SelectItem>
@@ -417,16 +424,19 @@ export default function VolunteerScheduleManagementPage() {
             <div className="space-y-2">
               <Label>Loại lịch trình</Label>
               <Select
-                value={filters.scheduleType || ""}
+                value={filters.scheduleType || "all"}
                 onValueChange={(value) =>
-                  handleFilterChange("scheduleType", value || undefined)
+                  handleFilterChange(
+                    "scheduleType",
+                    value === "all" ? undefined : value || undefined
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả loại" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả loại</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value="Event">Sự kiện</SelectItem>
                   <SelectItem value="Training">Đào tạo</SelectItem>
                   <SelectItem value="Meeting">Họp</SelectItem>
@@ -665,11 +675,11 @@ export default function VolunteerScheduleManagementPage() {
             <div className="space-y-2">
               <Label>Sự kiện</Label>
               <Select
-                value={formData.eventId?.toString() || ""}
+                value={formData.eventId?.toString() || "none"}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    eventId: value ? parseInt(value) : null,
+                    eventId: value === "none" ? null : value ? parseInt(value) : null,
                   })
                 }
               >
@@ -677,7 +687,7 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Không chọn sự kiện</SelectItem>
+                  <SelectItem value="none">Không chọn sự kiện</SelectItem>
                   {events.map((event) => (
                     <SelectItem
                       key={event.eventId}
@@ -879,11 +889,11 @@ export default function VolunteerScheduleManagementPage() {
             <div className="space-y-2">
               <Label>Sự kiện</Label>
               <Select
-                value={formData.eventId?.toString() || ""}
+                value={formData.eventId?.toString() || "none"}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    eventId: value ? parseInt(value) : null,
+                    eventId: value === "none" ? null : value ? parseInt(value) : null,
                   })
                 }
               >
@@ -891,7 +901,7 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Không chọn sự kiện</SelectItem>
+                  <SelectItem value="none">Không chọn sự kiện</SelectItem>
                   {events.map((event) => (
                     <SelectItem
                       key={event.eventId}
