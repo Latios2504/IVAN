@@ -111,9 +111,7 @@ export const PublicVolunteersPage = () => {
   };
 
   // Use the new useApi hook
-  const volunteersApi = useApi<PublicVolunteer, never, never>(
-    publicVolunteersService
-  );
+  const volunteersApi = useApi(publicVolunteersService, { autoLoad: true });
 
   // Load volunteers when filters change
   useEffect(() => {

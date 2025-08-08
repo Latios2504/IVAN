@@ -1,18 +1,12 @@
 import { apiClient } from "./apiClient";
-import type { User, UserRole } from "../types/auth";
-
-interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-interface RegisterRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  role: UserRole;
-}
+import type {
+  User,
+  UserRole,
+  LoginRequest,
+  RegisterRequest,
+  LoginResponse,
+  ResetPasswordData,
+} from "../types/auth";
 
 interface LoginApiResponse {
   token: string;
@@ -34,12 +28,6 @@ interface SuccessResponse {
 
 interface PasswordResetRequest {
   email: string;
-}
-
-interface ResetPasswordRequest {
-  token: string;
-  password: string;
-  confirmPassword: string;
 }
 
 interface ChangePasswordRequest {
@@ -122,12 +110,15 @@ class AuthService {
    * Reset password with token
    * Simplified with consistent error handling via ApiClient
    */
-  async resetPassword(
-    data: ResetPasswordRequest
-  ): Promise<{ message: string }> {
+  async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
     const response = await apiClient.post<SuccessResponse>(
       "/authentication/reset-password",
-      data
+      {
+        email: data.email,
+        resetCode: data.resetCode,
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
+      }
     );
     return response.data;
   }

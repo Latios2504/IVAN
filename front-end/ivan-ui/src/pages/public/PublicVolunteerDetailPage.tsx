@@ -36,9 +36,7 @@ export const PublicVolunteerDetailPage = () => {
   };
 
   // Use the new useApi hook
-  const volunteersApi = useApi<PublicVolunteer, never, never>(
-    publicVolunteersService
-  );
+  const volunteersApi = useApi(publicVolunteersService, { autoLoad: true });
 
   // Extract volunteer data
   const [volunteer, setVolunteer] = useState<PublicVolunteer | null>(null);

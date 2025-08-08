@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ivan_api.Models;
 using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.Common;
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;

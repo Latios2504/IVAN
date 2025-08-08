@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
 import ChatBot from "./ChatBot";
 

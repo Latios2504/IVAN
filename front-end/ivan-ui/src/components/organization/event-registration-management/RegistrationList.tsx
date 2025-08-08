@@ -297,9 +297,7 @@ export default function RegistrationList({
     },
   };
 
-  const registrationsApi = useApi<Registration, never, never>(
-    registrationsService
-  );
+  const registrationsApi = useApi(registrationsService, { autoLoad: true });
   const registrations = registrationsApi.data || [];
   const loading = registrationsApi.loading;
 

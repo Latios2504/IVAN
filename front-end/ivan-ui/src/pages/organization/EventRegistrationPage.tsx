@@ -69,7 +69,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     },
   };
 
-  const events = useApi<EventDto, never, never>(eventDataService);
+  const events = useApi(eventDataService, { autoLoad: true });
 
   useEffect(() => {
     events.loadAll();
@@ -186,14 +186,8 @@ const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
   };
 
   // Initialize the registration hooks with service
-  const registrations = useApi<
-    Registration,
-    never,
-    ApproveRegistrationRequest | RejectRegistrationRequest
-  >(registrationDataService, {
-    successMessages: {
-      update: "Registration updated successfully",
-    },
+  const registrations = useApi(registrationDataService, {
+    autoLoad: true,
   });
 
   // Load initial data

@@ -70,7 +70,7 @@ export interface RegisterRequest {
   lastName: string;
   email: string;
   password: string;
-  role: string;
+  role: UserRole; // Use typed enum instead of string
 }
 
 // Response types matching backend
@@ -87,8 +87,9 @@ export interface RegisterData extends RegisterRequest {
 }
 
 export interface ResetPasswordData {
-  token: string;
-  password: string;
+  email: string;
+  resetCode: string;
+  newPassword: string;
   confirmPassword: string;
 }
 

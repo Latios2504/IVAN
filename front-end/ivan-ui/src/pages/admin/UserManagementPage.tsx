@@ -8,7 +8,7 @@ import type {
   UserAccountUpdateDto,
   UserStatisticsDto,
 } from "@/types/userManagement";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertCircle,
   UserPlus,
@@ -191,22 +191,13 @@ export default function UserManagementPageNew() {
   };
 
   // Use the new useApi hooks
-  const users = useApi<UserAccountListDto, never, UserAccountUpdateDto>(
-    userDataService,
-    {
-      successMessages: {
-        update: "User updated successfully",
-      },
-    }
-  );
+  const users = useApi(userDataService, {
+    autoLoad: true,
+  });
 
-  const stats = useApi<any, never, never>(userStatsService);
-
-  // Load data on component mount
-  useEffect(() => {
-    users.loadAll();
-    stats.loadAll();
-  }, []);
+  const stats = useApi(userStatsService, {
+    autoLoad: true,
+  });
 
   // Local state for UI
   const [filters, setFilters] = useState<ExtendedFilterDto>({

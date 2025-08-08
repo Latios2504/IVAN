@@ -83,51 +83,35 @@ export default function EventManagementPageNew() {
   };
 
   // Use the new useApi hooks
-  const events = useApi<EventDto, CreateEventDto, UpdateEventDto>(
-    eventDataService,
-    {
-      successMessages: {
-        create: "Event created successfully",
-        update: "Event updated successfully",
-        delete: "Event deleted successfully",
-      },
-    }
-  );
-  const stats = useApi<EventStatsDto, never, never>(eventStatsService);
-  const categories = useApi<EventCategoryDto, never, never>(
-    eventCategoriesService
-  );
-  const statuses = useApi<EventStatusDto, never, never>(eventStatusesService);
+  const events = useApi(eventDataService, {
+    autoLoad: true,
+  });
+  const stats = useApi(eventStatsService, {
+    autoLoad: true,
+  });
+  const categories = useApi(eventCategoriesService, {
+    autoLoad: true,
+  });
+  const statuses = useApi(eventStatusesService, {
+    autoLoad: true,
+  });
 
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
-    await Promise.all([
-      events.loadAll(),
-      stats.loadAll(),
-      categories.loadAll(),
-      statuses.loadAll(),
-    ]);
-  };
-
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    events.loadAll();
-    stats.loadAll();
+    events.refetch();
+    stats.refetch();
   };
 
   const handleEditSuccess = () => {
     // Refresh data after edit
-    events.loadAll();
-    stats.loadAll();
+    events.refetch();
+    stats.refetch();
   };
 
   // Determine loading state - loading if any critical data is loading
-  const isLoading = events.loading && !events.data.length;
+  const isLoading = events.loading;
 
   // Combine errors from all hooks
   const hasError =
@@ -146,7 +130,7 @@ export default function EventManagementPageNew() {
           Error:{" "}
           {typeof errorMessage === "string" ? errorMessage : "Đã xảy ra lỗi"}
         </div>
-        <Button onClick={loadInitialData} className="mt-4">
+        <Button onClick={() => events.refetch()} className="mt-4">
           Retry
         </Button>
       </div>

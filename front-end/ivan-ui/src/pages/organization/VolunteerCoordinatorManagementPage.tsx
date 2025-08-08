@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { VolunteerCoordinatorDashboard } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorDashboard";
 import { VolunteerCoordinatorList } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorList";
 import { VolunteerCoordinatorFilters } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorFilters";
@@ -36,9 +36,7 @@ const VolunteerCoordinatorManagementPage = () => {
     },
   };
 
-  const coordinatorsApi = useApi<VolunteerCoordinatorDto, never, never>(
-    coordinatorsService
-  );
+  const coordinatorsApi = useApi(coordinatorsService, { autoLoad: true });
 
   // Service adapter for stats
   const statsService = {
@@ -53,9 +51,7 @@ const VolunteerCoordinatorManagementPage = () => {
     },
   };
 
-  const statsApi = useApi<VolunteerCoordinatorStatsDto, never, never>(
-    statsService
-  );
+  const statsApi = useApi(statsService, { autoLoad: true });
 
   // Service adapter for management levels
   const managementLevelsService = {
@@ -64,9 +60,9 @@ const VolunteerCoordinatorManagementPage = () => {
     },
   };
 
-  const managementLevelsApi = useApi<ManagementLevelDto, never, never>(
-    managementLevelsService
-  );
+  const managementLevelsApi = useApi(managementLevelsService, {
+    autoLoad: true,
+  });
 
   // Service adapter for specializations
   const specializationsService = {
@@ -75,9 +71,7 @@ const VolunteerCoordinatorManagementPage = () => {
     },
   };
 
-  const specializationsApi = useApi<SpecializationDto, never, never>(
-    specializationsService
-  );
+  const specializationsApi = useApi(specializationsService, { autoLoad: true });
 
   // Service adapter for available managers
   const availableManagersService = {

@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Heart, Users, Calendar, Award, LayoutDashboard } from "lucide-react";
 import { useSystemStats } from "@/hooks/useDashboardStats";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
   const { stats, loading, error } = useSystemStats();

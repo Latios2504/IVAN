@@ -36,9 +36,9 @@ export default function PublicOrganizationDetailPage() {
   };
 
   // Use the new useApi hook
-  const organizationsApi = useApi<PublicOrganization, never, never>(
-    publicOrganizationsService
-  );
+  const organizationsApi = useApi(publicOrganizationsService, {
+    autoLoad: true,
+  });
 
   // Extract organization data
   const [organization, setOrganization] = useState<PublicOrganization | null>(

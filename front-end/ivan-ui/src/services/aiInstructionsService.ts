@@ -1,5 +1,4 @@
 import { apiClient } from "./apiClient";
-import type { ApiResponse } from "../types/common";
 import type {
   AiCustomInstructionDTO,
   AiCustomInstructionCreateDTO,
@@ -174,6 +173,59 @@ class AIInstructionsService {
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       )
       .slice(0, limit);
+  }
+
+  /**
+   * Validate instruction data (client-side validation)
+   */
+  validateInstruction(
+    data: AiCustomInstructionCreateDTO | AiCustomInstructionUpdateDTO
+  ): {
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+  } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Check required fields
+    if (!data.instructionName?.trim()) {
+      errors.push("Tên instruction không được để trống");
+    }
+
+    if (!data.systemPrompt?.trim()) {
+      errors.push("System prompt không được để trống");
+    }
+
+    // Check length limits
+    if (data.instructionName && data.instructionName.length > 100) {
+      errors.push("Tên instruction không được vượt quá 100 ký tự");
+    }
+
+    if (data.systemPrompt && data.systemPrompt.length > 5000) {
+      errors.push("System prompt không được vượt quá 5000 ký tự");
+    }
+
+    if (data.behaviorInstructions && data.behaviorInstructions.length > 3000) {
+      errors.push("Behavior instructions không được vượt quá 3000 ký tự");
+    }
+
+    // Warnings for length recommendations
+    if (data.systemPrompt && data.systemPrompt.length < 50) {
+      warnings.push(
+        "System prompt khá ngắn, nên mở rộng thêm để có hiệu quả tốt hơn"
+      );
+    }
+
+    if (data.instructionName && data.instructionName.length < 5) {
+      warnings.push("Tên instruction nên dài hơn để dễ nhận biết");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
   }
 }
 

@@ -1,274 +1,174 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/services/apiClient";
 
 /**
- * Generic API Management Hook
- * Replaces complex Context patterns with simple, reusable hook
- *
- * @template T - The data type (e.g., AiCustomInstructionDTO, EventDto)
- * @template CreateType - The creation DTO type
- * @template UpdateType - The update DTO type
+ * Simple Generic API Hook
+ * Works with any service that has CRUD operations
  */
-
-interface UseApiService<T, CreateType, UpdateType> {
+interface ApiService<T> {
   getAll?: () => Promise<T[]>;
-  getById?: (id: number | string) => Promise<T>;
-  create?: (data: CreateType) => Promise<T>;
-  update?: (id: number | string, data: UpdateType) => Promise<T>;
-  delete?: (id: number | string) => Promise<void>;
+  getById?: (id: string | number) => Promise<T>;
+  create?: (data: any) => Promise<T>;
+  update?: (id: string | number, data: any) => Promise<T>;
+  delete?: (id: string | number) => Promise<void>;
+  [key: string]: any; // Custom methods
 }
 
 interface UseApiOptions {
-  // Auto-toast messages
-  successMessages?: {
-    create?: string;
-    update?: string;
-    delete?: string;
-  };
-
-  // Error handling
-  throwOnError?: boolean;
-
-  // Loading states
-  globalLoading?: boolean;
+  autoLoad?: boolean;
+  showToast?: boolean;
 }
 
-interface UseApiReturn<T, CreateType, UpdateType> {
-  // State
-  data: T[];
-  loading: boolean;
-  error: string | null;
-
-  // Actions
-  loadAll: () => Promise<void>;
-  loadById: (id: number | string) => Promise<T | null>;
-  create: (createData: CreateType) => Promise<T | null>;
-  update: (id: number | string, updateData: UpdateType) => Promise<T | null>;
-  remove: (id: number | string) => Promise<boolean>;
-
-  // Utilities
-  refetch: () => Promise<void>;
-  clearError: () => void;
-  setData: (data: T[]) => void;
-
-  // Helpers
-  findById: (id: number | string) => T | undefined;
-  isEmpty: boolean;
-  hasError: boolean;
-}
-
-/**
- * Generic hook for API data management - replaces complex Context patterns
- */
-export function useApi<
-  T extends { id?: number | string; [key: string]: any },
-  CreateType = Partial<T>,
-  UpdateType = Partial<T>
->(
-  service: UseApiService<T, CreateType, UpdateType>,
+export function useApi<T extends Record<string, any>>(
+  service: ApiService<T>,
   options: UseApiOptions = {}
-): UseApiReturn<T, CreateType, UpdateType> {
-  const {
-    successMessages = {
-      create: "Tạo thành công",
-      update: "Cập nhật thành công",
-      delete: "Xóa thành công",
-    },
-    throwOnError = false,
-    globalLoading = true,
-  } = options;
+) {
+  const { autoLoad = false, showToast = true } = options;
 
   // State
   const [data, setData] = useState<T[]>([]);
+  const [item, setItem] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to extract ID from item
-  const getItemId = useCallback((item: T): number | string => {
-    return (
+  // Helper functions
+  const handleError = useCallback(
+    (error: any, action: string) => {
+      const message =
+        error instanceof ApiError ? error.message : `Error ${action}`;
+      setError(message);
+      if (showToast) toast.error(message);
+    },
+    [showToast]
+  );
+
+  const getId = useCallback(
+    (item: T) =>
       item.id ||
       (item as any).instructionId ||
       (item as any).eventId ||
-      (item as any).userId ||
-      0
-    );
-  }, []);
-
-  // Simplified error handler - let ApiClient handle detailed error processing
-  const handleError = useCallback(
-    (error: unknown, action: string) => {
-      // ApiClient already processed the error, just extract the message
-      const errorMessage =
-        error instanceof ApiError ? error.message : `Lỗi khi ${action}`;
-
-      setError(errorMessage);
-      toast.error(errorMessage);
-
-      if (throwOnError) {
-        throw error;
-      }
-    },
-    [throwOnError]
+      (item as any).userId,
+    []
   );
 
-  // Load all data
+  // API Methods
   const loadAll = useCallback(async () => {
-    if (!service.getAll) {
-      console.warn("useApi: getAll method not provided in service");
-      return;
-    }
+    if (!service.getAll) return;
 
-    if (globalLoading) setLoading(true);
+    setLoading(true);
     setError(null);
-
     try {
       const result = await service.getAll();
       setData(Array.isArray(result) ? result : []);
     } catch (error) {
-      handleError(error, "tải dữ liệu");
+      handleError(error, "loading data");
     } finally {
-      if (globalLoading) setLoading(false);
+      setLoading(false);
     }
-  }, [service.getAll, globalLoading, handleError]);
+  }, [service.getAll, handleError]);
 
-  // Load by ID
   const loadById = useCallback(
-    async (id: number | string): Promise<T | null> => {
-      if (!service.getById) {
-        console.warn("useApi: getById method not provided in service");
-        return null;
-      }
+    async (id: string | number) => {
+      if (!service.getById) return null;
 
       setError(null);
-
       try {
         const result = await service.getById(id);
+        setItem(result);
         return result;
       } catch (error) {
-        handleError(error, "tải dữ liệu");
+        handleError(error, "loading item");
         return null;
       }
     },
     [service.getById, handleError]
   );
 
-  // Create new item
   const create = useCallback(
-    async (createData: CreateType): Promise<T | null> => {
-      if (!service.create) {
-        console.warn("useApi: create method not provided in service");
-        return null;
-      }
+    async (createData: any) => {
+      if (!service.create) return null;
 
       setError(null);
-
       try {
         const result = await service.create(createData);
-
-        // Add to beginning of list
         setData((prev) => [result, ...prev]);
-
-        if (successMessages.create) {
-          toast.success(successMessages.create);
-        }
-
+        if (showToast) toast.success("Created successfully");
         return result;
       } catch (error) {
-        handleError(error, "tạo mới");
+        handleError(error, "creating");
         return null;
       }
     },
-    [service.create, successMessages.create, handleError]
+    [service.create, handleError, showToast]
   );
 
-  // Update existing item
   const update = useCallback(
-    async (id: number | string, updateData: UpdateType): Promise<T | null> => {
-      if (!service.update) {
-        console.warn("useApi: update method not provided in service");
-        return null;
-      }
+    async (id: string | number, updateData: any) => {
+      if (!service.update) return null;
 
       setError(null);
-
       try {
         const result = await service.update(id, updateData);
-
-        // Update in list
         setData((prev) =>
-          prev.map((item) => {
-            const itemId = getItemId(item);
-            return itemId === id ? result : item;
-          })
+          prev.map((item) => (getId(item) === id ? result : item))
         );
-
-        if (successMessages.update) {
-          toast.success(successMessages.update);
-        }
-
+        if (item && getId(item) === id) setItem(result);
+        if (showToast) toast.success("Updated successfully");
         return result;
       } catch (error) {
-        handleError(error, "cập nhật");
+        handleError(error, "updating");
         return null;
       }
     },
-    [service.update, successMessages.update, handleError, getItemId]
+    [service.update, handleError, showToast, getId, item]
   );
 
-  // Delete item
   const remove = useCallback(
-    async (id: number | string): Promise<boolean> => {
-      if (!service.delete) {
-        console.warn("useApi: delete method not provided in service");
-        return false;
-      }
+    async (id: string | number) => {
+      if (!service.delete) return false;
 
       setError(null);
-
       try {
         await service.delete(id);
-
-        // Remove from list
-        setData((prev) =>
-          prev.filter((item) => {
-            const itemId = getItemId(item);
-            return itemId !== id;
-          })
-        );
-
-        if (successMessages.delete) {
-          toast.success(successMessages.delete);
-        }
-
+        setData((prev) => prev.filter((item) => getId(item) !== id));
+        if (item && getId(item) === id) setItem(null);
+        if (showToast) toast.success("Deleted successfully");
         return true;
       } catch (error) {
-        handleError(error, "xóa");
+        handleError(error, "deleting");
         return false;
       }
     },
-    [service.delete, successMessages.delete, handleError, getItemId]
+    [service.delete, handleError, showToast, getId, item]
   );
 
-  // Utility functions
-  const refetch = useCallback(() => loadAll(), [loadAll]);
+  // Execute any custom method
+  const execute = useCallback(
+    async (methodName: string, ...args: any[]) => {
+      const method = service[methodName];
+      if (!method || typeof method !== "function") return null;
 
-  const clearError = useCallback(() => setError(null), []);
-
-  const findById = useCallback(
-    (id: number | string): T | undefined => {
-      return data.find((item) => getItemId(item) === id);
+      setError(null);
+      try {
+        return await method.apply(service, args);
+      } catch (error) {
+        handleError(error, methodName);
+        return null;
+      }
     },
-    [data, getItemId]
+    [service, handleError]
   );
 
-  // Computed properties
-  const isEmpty = data.length === 0;
-  const hasError = error !== null;
+  // Auto-load on mount
+  useEffect(() => {
+    if (autoLoad) loadAll();
+  }, [autoLoad, loadAll]);
 
   return {
     // State
     data,
+    item,
     loading,
     error,
 
@@ -278,16 +178,13 @@ export function useApi<
     create,
     update,
     remove,
+    execute,
 
     // Utilities
-    refetch,
-    clearError,
     setData,
-
-    // Helpers
-    findById,
-    isEmpty,
-    hasError,
+    setItem,
+    clearError: () => setError(null),
+    refetch: loadAll,
   };
 }
 

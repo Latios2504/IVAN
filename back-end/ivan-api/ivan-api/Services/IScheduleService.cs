@@ -1,5 +1,5 @@
 ﻿using ivan_api.DTOs;
-using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services
 {

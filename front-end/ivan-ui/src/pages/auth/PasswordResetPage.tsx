@@ -73,8 +73,9 @@ export default function PasswordResetPage() {
     setIsLoading(true);
     try {
       await authService.resetPassword({
-        token: formData.resetCode,
-        password: formData.password,
+        email: formData.email,
+        resetCode: formData.resetCode,
+        newPassword: formData.password,
         confirmPassword: formData.confirmPassword,
       });
 

@@ -77,42 +77,22 @@ export default function TestingPlayground({
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [currentConfig, setCurrentConfig] = useState<any>(null);
 
-  // Load available models and current config
+  // Load available models
   useEffect(() => {
-    const loadModelsAndConfig = async () => {
+    const loadModels = async () => {
       try {
-        const [modelsResponse, configResponse] = await Promise.all([
-          aiInstructionsService.getAvailableModels(),
-          aiInstructionsService.getGeminiConfig(),
-        ]);
+        const modelsResponse = await aiInstructionsService.getAvailableModels();
 
         // Handle direct array response for models
         if (Array.isArray(modelsResponse)) {
           setAvailableModels(modelsResponse);
-          // Set default to first available model
-          if (modelsResponse.length > 0) {
-            setSelectedModel(modelsResponse[0]);
-          }
-        }
-
-        // Handle direct object response for config
-        if (configResponse) {
-          setCurrentConfig(configResponse);
-          // Set default to current model if available
-          const config = configResponse as any;
-          if (
-            config.currentModel &&
-            modelsResponse?.includes(config.currentModel)
-          ) {
-            setSelectedModel(config.currentModel);
-          }
         }
       } catch (error) {
-        console.error("Error loading models and config:", error);
+        console.error("Error loading models:", error);
       }
     };
 
-    loadModelsAndConfig();
+    loadModels();
   }, []);
 
   const handleTest = async () => {

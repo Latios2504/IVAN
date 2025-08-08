@@ -13,7 +13,7 @@ import {
   FileText,
   TrendingUp,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 // Mock data for coordinator dashboard
 const mockCoordinatorData = {

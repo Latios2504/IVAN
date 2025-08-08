@@ -30,9 +30,7 @@ export default function PublicPartnerDetailPage() {
   };
 
   // Use the new useApi hook
-  const partnersApi = useApi<PublicPartner, never, never>(
-    publicPartnersService
-  );
+  const partnersApi = useApi(publicPartnersService, { autoLoad: true });
 
   // Extract partner data
   const [partner, setPartner] = useState<PublicPartner | null>(null);

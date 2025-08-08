@@ -1,5 +1,4 @@
 import React from "react";
-// Removed useEventRegistration import - will use hook
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -42,9 +41,7 @@ const useInternalRegistrationStats = (eventId: string) => {
     },
   };
 
-  const registrationsApi = useApi<Registration, never, never>(
-    registrationsService
-  );
+  const registrationsApi = useApi(registrationsService, { autoLoad: true });
 
   // Load all registrations for stats when component mounts
   React.useEffect(() => {

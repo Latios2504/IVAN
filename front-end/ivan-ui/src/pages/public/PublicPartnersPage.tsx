@@ -65,9 +65,7 @@ export default function PublicPartnersPage() {
   };
 
   // Use the new useApi hook
-  const partnersApi = useApi<PublicPartner, never, never>(
-    publicPartnersService
-  );
+  const partnersApi = useApi(publicPartnersService, { autoLoad: true });
 
   // Load partners when filters change
   useEffect(() => {

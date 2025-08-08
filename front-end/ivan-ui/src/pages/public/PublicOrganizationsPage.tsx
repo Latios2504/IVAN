@@ -67,9 +67,9 @@ export default function PublicOrganizationsPage() {
   };
 
   // Use the new useApi hook
-  const organizationsApi = useApi<PublicOrganization, never, never>(
-    publicOrganizationsService
-  );
+  const organizationsApi = useApi(publicOrganizationsService, {
+    autoLoad: true,
+  });
 
   // Load organizations when filters change
   useEffect(() => {

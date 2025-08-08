@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useApi } from "@/hooks/useApi";
 import { aiInstructionsService } from "@/services/aiInstructionsService";
 import type {
@@ -20,18 +20,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -46,28 +37,18 @@ import {
   Bot,
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
-  Edit,
   Trash2,
-  Eye,
   Play,
-  Power,
-  PowerOff,
-  BarChart3,
-  Zap,
   CheckCircle,
   XCircle,
-  Clock,
   TrendingUp,
-  Users,
   Settings,
   Loader2,
+  BarChart3,
 } from "lucide-react";
-import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
-import InstructionPreview from "@/components/ai/InstructionPreview";
-import TestingPlayground from "@/components/ai/TestingPlayground";
-import { LoadingState } from "@/components/common/LoadingState";
+import CustomInstructionBuilder from "@/components/admin/ai-custom-instructions/CustomInstructionBuilder";
+import TestingPlayground from "@/components/admin/ai-custom-instructions/TestingPlayground";
 
 /**
  * NEW: AI Instructions Management Page using useData Hook
@@ -84,7 +65,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   // Service adapter for AI Instructions
   const aiInstructionsDataService = {
     getAll: async (): Promise<AiCustomInstructionDTO[]> => {
-      return await aiInstructionsService.getInstructions(true);
+      return await aiInstructionsService.getAllInstructions();
     },
     create: async (
       data: AiCustomInstructionCreateDTO
@@ -100,27 +81,14 @@ const AIInstructionsManagementPageContent: React.FC = () => {
     },
     delete: async (id: number | string): Promise<void> => {
       const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      return await aiInstructionsService.adminDeleteInstruction(numericId);
+      return await aiInstructionsService.deleteInstruction(numericId);
     },
   };
 
   // ✅ SIMPLE: Direct useApi usage!
-  const instructions = useApi<
-    AiCustomInstructionDTO,
-    AiCustomInstructionCreateDTO,
-    AiCustomInstructionUpdateDTO
-  >(aiInstructionsDataService, {
-    successMessages: {
-      create: "AI instruction created successfully",
-      update: "AI instruction updated successfully",
-      delete: "AI instruction deleted successfully",
-    },
+  const instructions = useApi(aiInstructionsDataService, {
+    autoLoad: true,
   });
-
-  // Load data on component mount
-  useEffect(() => {
-    instructions.loadAll();
-  }, []);
 
   // Local UI state (much simpler than complex context state)
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,8 +97,6 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   >("overview");
   const [selectedInstruction, setSelectedInstruction] =
     useState<AiCustomInstructionDTO | null>(null);
-  const [showBuilder, setShowBuilder] = useState(false);
-  const [showTesting, setShowTesting] = useState(false);
 
   // ✅ SIMPLE: Load data on mount
   useEffect(() => {
@@ -175,7 +141,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   }
 
   // ✅ SIMPLE: Error handling
-  if (instructions.hasError) {
+  if (instructions.error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -308,7 +274,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
               )}
 
               {/* Empty State */}
-              {!instructions.loading && instructions.isEmpty && (
+              {!instructions.loading && instructions.data.length === 0 && (
                 <div className="text-center py-8">
                   <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -325,7 +291,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
               )}
 
               {/* Instructions Table */}
-              {!instructions.loading && !instructions.isEmpty && (
+              {!instructions.loading && instructions.data.length > 0 && (
                 <Table>
                   <TableHeader>
                     <TableRow>

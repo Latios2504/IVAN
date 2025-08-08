@@ -36,7 +36,7 @@ export default function PublicEventDetailPage() {
   };
 
   // Use the new useApi hook
-  const eventsApi = useApi<PublicEvent, never, never>(publicEventsService);
+  const eventsApi = useApi(publicEventsService, { autoLoad: true });
 
   // Extract event data - loadById returns the item directly, not stored in data array
   const [event, setEvent] = useState<PublicEvent | null>(null);

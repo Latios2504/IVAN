@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.DTOs.Authentication;
 
@@ -113,19 +114,4 @@ public class UserInfoDTO
     public int RoleId { get; set; }
     public bool IsEmailVerified { get; set; }
     public DateTime? LastLoginAt { get; set; }
-}
-
-// API Response wrapper
-public class ApiResponseDTO<T>
-{
-    public bool Success { get; set; }
-    public string Message { get; set; } = string.Empty;
-    public T? Data { get; set; }
-    public List<string> Errors { get; set; } = new();
-}
-
-// Simple success response
-public class SuccessResponseDTO
-{
-    public string Message { get; set; } = string.Empty;
 }

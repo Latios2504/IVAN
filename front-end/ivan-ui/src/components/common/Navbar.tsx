@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
 import { NotificationBell } from "./NotificationBell";
 import { TooltipWrapper } from "./TooltipWrapper";

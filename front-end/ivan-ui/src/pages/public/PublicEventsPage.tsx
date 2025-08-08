@@ -95,7 +95,7 @@ export default function PublicEventsPage() {
   };
 
   // Use the new useApi hook
-  const eventsApi = useApi<PublicEvent, never, never>(publicEventsService);
+  const eventsApi = useApi(publicEventsService, { autoLoad: true });
 
   // Load events whenever filters change
   useEffect(() => {

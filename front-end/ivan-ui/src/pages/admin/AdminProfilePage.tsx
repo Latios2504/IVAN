@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import ProfileLayout from "@/components/profile/ProfileLayout";
 import AdminProfileSection from "@/components/profile/sections/AdminProfileSection";
