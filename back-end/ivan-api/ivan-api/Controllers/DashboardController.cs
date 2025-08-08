@@ -85,6 +85,158 @@ namespace ivan_api.Controllers
             return Ok(stats);
         }
 
+        [HttpGet("coordinator/{coordinatorId}/stats")]
+        [Authorize(Roles = "Organization,Admin")]
+        public IActionResult GetCoordinatorStats(int coordinatorId)
+        {
+            var stats = new
+            {
+                coordinatorId = coordinatorId,
+                managedVolunteers = 15,
+                managedEvents = 8,
+                completedTasks = 45,
+                averageEventRating = 4.3,
+                hoursManaged = 320
+            };
+
+            return Ok(stats);
+        }
+
+        [HttpGet("{role}/charts")]
+        [Authorize]
+        public IActionResult GetDashboardCharts(string role, [FromQuery] int? userId = null)
+        {
+            var charts = new[]
+            {
+                new
+                {
+                    id = "events-chart",
+                    title = "Events Over Time",
+                    type = "line",
+                    data = new[] { 10, 15, 12, 20, 18, 25 },
+                    labels = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun" }
+                },
+                new
+                {
+                    id = "volunteers-chart", 
+                    title = "Volunteer Distribution",
+                    type = "pie",
+                    data = new[] { 30, 25, 20, 15, 10 },
+                    labels = new[] { "Active", "Pending", "Inactive", "New", "Alumni" }
+                }
+            };
+
+            return Ok(charts);
+        }
+
+        [HttpGet("{role}/activities")]
+        [Authorize]
+        public IActionResult GetRecentActivities(string role, [FromQuery] int? userId = null, [FromQuery] int limit = 10)
+        {
+            var activities = new[]
+            {
+                new
+                {
+                    id = "1",
+                    title = "New volunteer registered",
+                    description = "John Doe joined the platform",
+                    timestamp = DateTime.UtcNow.AddHours(-1),
+                    type = "volunteer_registration",
+                    userId = 123
+                },
+                new
+                {
+                    id = "2", 
+                    title = "Event completed",
+                    description = "Community cleanup event finished",
+                    timestamp = DateTime.UtcNow.AddHours(-3),
+                    type = "event_completion",
+                    userId = 456
+                }
+            }.Take(limit);
+
+            return Ok(activities);
+        }
+
+        [HttpGet("notifications/{userId}")]
+        [Authorize]
+        public IActionResult GetNotifications(int userId, [FromQuery] bool unreadOnly = false)
+        {
+            var notifications = new[]
+            {
+                new
+                {
+                    id = "1",
+                    title = "Event reminder",
+                    message = "Don't forget about tomorrow's community cleanup",
+                    timestamp = DateTime.UtcNow.AddHours(-2),
+                    isRead = false,
+                    type = "reminder",
+                    priority = "medium"
+                },
+                new
+                {
+                    id = "2",
+                    title = "New volunteer application", 
+                    message = "A new volunteer has applied to join your organization",
+                    timestamp = DateTime.UtcNow.AddHours(-5),
+                    isRead = unreadOnly ? false : true,
+                    type = "application",
+                    priority = "high"
+                }
+            };
+
+            var result = unreadOnly ? notifications.Where(n => !n.isRead) : notifications;
+            return Ok(result);
+        }
+
+        [HttpPatch("notifications/{notificationId}/read")]
+        [Authorize]
+        public IActionResult MarkNotificationAsRead(string notificationId)
+        {
+            // In a real implementation, you would update the notification in the database
+            return Ok(new { message = "Notification marked as read" });
+        }
+
+        [HttpGet("{role}/quick-actions")]
+        [Authorize]
+        public IActionResult GetQuickActions(string role)
+        {
+            var actions = role.ToLower() switch
+            {
+                "admin" => new[]
+                {
+                    new { id = "add-user", title = "Add User", icon = "user-plus", url = "/admin/users/add" },
+                    new { id = "view-reports", title = "View Reports", icon = "chart-bar", url = "/admin/reports" },
+                    new { id = "system-settings", title = "System Settings", icon = "cog", url = "/admin/settings" }
+                },
+                "organization" => new[]
+                {
+                    new { id = "create-event", title = "Create Event", icon = "calendar-plus", url = "/events/create" },
+                    new { id = "manage-volunteers", title = "Manage Volunteers", icon = "users", url = "/volunteers" },
+                    new { id = "view-analytics", title = "View Analytics", icon = "chart-line", url = "/analytics" }
+                },
+                "volunteer" => new[]
+                {
+                    new { id = "find-events", title = "Find Events", icon = "search", url = "/events" },
+                    new { id = "my-schedule", title = "My Schedule", icon = "calendar", url = "/schedule" },
+                    new { id = "update-profile", title = "Update Profile", icon = "user", url = "/profile" }
+                },
+                "partner" => new[]
+                {
+                    new { id = "collaboration-requests", title = "Collaboration Requests", icon = "handshake", url = "/collaborations" },
+                    new { id = "project-overview", title = "Project Overview", icon = "briefcase", url = "/projects" },
+                    new { id = "impact-reports", title = "Impact Reports", icon = "chart-pie", url = "/reports" }
+                },
+                _ => new[]
+                {
+                    new { id = "dashboard", title = "Dashboard", icon = "home", url = "/dashboard" }
+                }
+            };
+
+            return Ok(actions);
+        }
+
         [HttpGet("admin-stats")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAdminStats([FromQuery] TimePeriod period = TimePeriod.Last30Days)

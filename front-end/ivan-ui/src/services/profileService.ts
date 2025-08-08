@@ -73,35 +73,22 @@ class ProfileService {
   }
 
   async uploadProfileImage(
+    file: File,
     userId: number,
-    role: string,
-    imageFile: File,
     imageType: "avatar" | "banner" | "logo"
-  ): Promise<any> {
+  ): Promise<string> {
     const formData = new FormData();
-    formData.append("image", imageFile);
+    formData.append("image", file);
 
-    switch (role.toLowerCase()) {
-      case "volunteer":
-        const response = await apiClient.post<any>(
-          `/VolunteerProfile/${userId}/upload-${imageType}`,
-          formData
-        );
-        return response.data;
-      case "organization":
-        const response2 = await apiClient.post<any>(
-          `/OrganizationProfile/${userId}/upload-${imageType}`,
-          formData
-        );
-        return response2.data;
-      case "partner":
-        const response3 = await apiClient.post<any>(
-          `/PartnerProfile/${userId}/upload-${imageType}`,
-          formData
-        );
-        return response3.data;
-      default:
-        throw new Error(`Image upload not supported for role: ${role}`);
+    try {
+      const response = await apiClient.post<{ imageUrl: string }>(
+        `/Upload/${imageType}/${userId}`,
+        formData
+      );
+      return response.data.imageUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw new Error("Failed to upload image");
     }
   }
 
@@ -131,29 +118,40 @@ class ProfileService {
     }
   }
 
-  async getSkills(): Promise<any[]> {
+  async getAvailableSkills(): Promise<any[]> {
     try {
-      const response = await apiClient.get<any[]>("/skills");
+      const response = await apiClient.get<any[]>("/public/skills");
       return response.data;
     } catch (error) {
+      console.error("Error fetching skills:", error);
       return [];
     }
   }
 
-  async getIndustries(): Promise<any[]> {
+  async getPartnerIndustries(): Promise<any[]> {
     try {
-      const response = await apiClient.get<any[]>("/industries");
+      const response = await apiClient.get<any[]>("/public/partner-industries");
       return response.data;
     } catch (error) {
+      console.error("Error fetching partner industries:", error);
       return [];
     }
+  }
+
+  async getSkills(): Promise<any[]> {
+    return this.getAvailableSkills();
+  }
+
+  async getIndustries(): Promise<any[]> {
+    return this.getPartnerIndustries();
   }
 
   async getOrganizationTypes(): Promise<any[]> {
     try {
-      const response = await apiClient.get<any[]>("/organization-types");
+      const response = await apiClient.get<any[]>("/public/organization-types");
       return response.data;
     } catch (error) {
+      console.error("Error fetching organization types:", error);
       return [];
     }
   }

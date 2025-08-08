@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Building, Users, MapPin, Target, Search, Award } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { OrganizationCard } from "@/components/public/OrganizationCard";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import type {
   PublicOrganization,
@@ -54,32 +53,36 @@ export default function PublicOrganizationsPage() {
   });
 
   // Update filters when debounced search changes
-  useMemo(() => {
+  useEffect(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Service adapter for public organizations
-  const publicOrganizationsService = {
-    getAll: async (): Promise<PublicOrganization[]> => {
-      const result = await publicContentService.getPublicOrganizations(filters);
-      return result.items;
-    },
-  };
+  // State for API data
+  const [organizations, setOrganizations] = useState<PublicOrganization[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use the new useApi hook
-  const organizationsApi = useApi(publicOrganizationsService, {
-    autoLoad: true,
-  });
-
-  // Load organizations when filters change
+  // Load organizations whenever filters change
   useEffect(() => {
-    organizationsApi.loadAll();
-  }, [filters]);
+    const loadOrganizations = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await publicContentService.getPublicOrganizations(
+          filters
+        );
+        setOrganizations(result.items);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load organizations"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Extract organizations from the API response
-  const organizations = organizationsApi.data || [];
-  const loading = organizationsApi.loading;
-  const error = organizationsApi.error;
+    loadOrganizations();
+  }, [filters]);
 
   // For pagination, we'll use simple client-side pagination for now
   const pagination = {
@@ -115,7 +118,7 @@ export default function PublicOrganizationsPage() {
   };
 
   const handleRetry = () => {
-    organizationsApi.loadAll();
+    setFilters((prev) => ({ ...prev })); // Trigger reload
   };
 
   // Filter options (TODO: fetch from backend)

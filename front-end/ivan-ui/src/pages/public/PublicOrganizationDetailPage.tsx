@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
@@ -28,34 +27,55 @@ import {
 export default function PublicOrganizationDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  // Service adapter for public organizations
-  const publicOrganizationsService = {
-    getById: async (orgId: string | number): Promise<PublicOrganization> => {
-      return await publicContentService.getPublicOrganization(Number(orgId));
-    },
-  };
-
-  // Use the new useApi hook
-  const organizationsApi = useApi(publicOrganizationsService, {
-    autoLoad: true,
-  });
-
-  // Extract organization data
   const [organization, setOrganization] = useState<PublicOrganization | null>(
     null
   );
-  const loading = organizationsApi.loading;
-  const error = organizationsApi.error;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      organizationsApi.loadById(id).then(setOrganization);
+      const loadOrganization = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicOrganization(
+            Number(id)
+          );
+          setOrganization(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load organization"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadOrganization();
     }
   }, [id]);
 
   const handleRetry = () => {
     if (id) {
-      organizationsApi.loadById(id).then(setOrganization);
+      const loadOrganization = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicOrganization(
+            Number(id)
+          );
+          setOrganization(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load organization"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadOrganization();
     }
   };
 

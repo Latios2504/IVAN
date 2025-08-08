@@ -23,7 +23,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { EventCategoryDto, CreateEventDto } from "../../../types/event";
-import { useApi } from "../../../hooks/useApi";
 import { eventService } from "../../../services/eventService";
 
 interface CreateEventDialogProps {

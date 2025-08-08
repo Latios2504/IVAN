@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
@@ -22,30 +21,53 @@ import {
 export default function PublicPartnerDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  // Service adapter for public partners
-  const publicPartnersService = {
-    getById: async (partnerId: string | number): Promise<PublicPartner> => {
-      return await publicContentService.getPublicPartner(Number(partnerId));
-    },
-  };
-
-  // Use the new useApi hook
-  const partnersApi = useApi(publicPartnersService, { autoLoad: true });
-
-  // Extract partner data
   const [partner, setPartner] = useState<PublicPartner | null>(null);
-  const loading = partnersApi.loading;
-  const error = partnersApi.error;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      partnersApi.loadById(id).then(setPartner);
+      const loadPartner = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicPartner(
+            Number(id)
+          );
+          setPartner(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load partner"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadPartner();
     }
   }, [id]);
 
   const handleRetry = () => {
     if (id) {
-      partnersApi.loadById(id).then(setPartner);
+      const loadPartner = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicPartner(
+            Number(id)
+          );
+          setPartner(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load partner"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadPartner();
     }
   };
 

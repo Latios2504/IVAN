@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useApi } from "@/hooks/useApi";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
 import { useAuth } from "@/hooks/useAuth";
 import { VolunteerCoordinatorDashboard } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorDashboard";
@@ -36,65 +35,43 @@ const VolunteerCoordinatorManagementPage = () => {
     },
   };
 
-  const coordinatorsApi = useApi(coordinatorsService, { autoLoad: true });
+  // State management for coordinators
+  const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>(
+    []
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Service adapter for stats
-  const statsService = {
-    getAll: async (): Promise<VolunteerCoordinatorStatsDto[]> => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      const stats = await volunteerCoordinatorService.getCoordinatorStats(
-        organizationId
-      );
-      return [stats]; // Wrap in array for consistency with useApi
-    },
-  };
+  // State management for stats
+  const [stats, setStats] = useState<VolunteerCoordinatorStatsDto | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
-  const statsApi = useApi(statsService, { autoLoad: true });
+  // State management for management levels
+  const [managementLevels, setManagementLevels] = useState<
+    ManagementLevelDto[]
+  >([]);
+  const [managementLevelsLoading, setManagementLevelsLoading] = useState(false);
+  const [managementLevelsError, setManagementLevelsError] = useState<
+    string | null
+  >(null);
 
-  // Service adapter for management levels
-  const managementLevelsService = {
-    getAll: async (): Promise<ManagementLevelDto[]> => {
-      return await volunteerCoordinatorService.getManagementLevels();
-    },
-  };
+  // State management for specializations
+  const [specializations, setSpecializations] = useState<SpecializationDto[]>(
+    []
+  );
+  const [specializationsLoading, setSpecializationsLoading] = useState(false);
+  const [specializationsError, setSpecializationsError] = useState<
+    string | null
+  >(null);
 
-  const managementLevelsApi = useApi(managementLevelsService, {
-    autoLoad: true,
-  });
-
-  // Service adapter for specializations
-  const specializationsService = {
-    getAll: async (): Promise<SpecializationDto[]> => {
-      return await volunteerCoordinatorService.getSpecializations();
-    },
-  };
-
-  const specializationsApi = useApi(specializationsService, { autoLoad: true });
-
-  // Service adapter for available managers
-  const availableManagersService = {
-    getAll: async (): Promise<any[]> => {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      return await volunteerCoordinatorService.getAvailableManagers(
-        organizationId
-      );
-    },
-  };
-
-  const availableManagersApi = useApi(availableManagersService);
-
-  // Extract data from API responses
-  const coordinators = coordinatorsApi.data || [];
-  const loading = coordinatorsApi.loading;
-  const error = coordinatorsApi.error;
-  const stats = statsApi.data?.[0]; // Extract single stats object
-  const managementLevels = managementLevelsApi.data || [];
-  const specializations = specializationsApi.data || [];
-  const availableManagers = availableManagersApi.data || [];
+  // State management for available managers
+  const [availableManagers, setAvailableManagers] = useState<any[]>([]);
+  const [availableManagersLoading, setAvailableManagersLoading] =
+    useState(false);
+  const [availableManagersError, setAvailableManagersError] = useState<
+    string | null
+  >(null);
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [filters, setFilters] = useState<VolunteerCoordinatorFilterDto>({
@@ -109,26 +86,74 @@ const VolunteerCoordinatorManagementPage = () => {
   const loadInitialData = async () => {
     if (!organizationId) return;
 
-    await Promise.all([
-      coordinatorsApi.loadAll(),
-      statsApi.loadAll(),
-      managementLevelsApi.loadAll(),
-      specializationsApi.loadAll(),
-      availableManagersApi.loadAll(),
-    ]);
+    // Load coordinators
+    setLoading(true);
+    setError(null);
+    try {
+      const coordinatorsResult = await coordinatorsService.getAll();
+      setCoordinators(coordinatorsResult);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to load coordinators"
+      );
+    } finally {
+      setLoading(false);
+    }
+
+    // Load stats
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const statsResult = await volunteerCoordinatorService.getCoordinatorStats(
+        organizationId
+      );
+      setStats(statsResult);
+    } catch (err) {
+      setStatsError(
+        err instanceof Error ? err.message : "Failed to load stats"
+      );
+    } finally {
+      setStatsLoading(false);
+    }
+
+    // Load management levels
+    setManagementLevelsLoading(true);
+    setManagementLevelsError(null);
+    try {
+      const levelsResult =
+        await volunteerCoordinatorService.getManagementLevels();
+      setManagementLevels(levelsResult);
+    } catch (err) {
+      setManagementLevelsError(
+        err instanceof Error ? err.message : "Failed to load management levels"
+      );
+    } finally {
+      setManagementLevelsLoading(false);
+    }
+
+    // Load specializations
+    setSpecializationsLoading(true);
+    setSpecializationsError(null);
+    try {
+      const specializationsResult =
+        await volunteerCoordinatorService.getSpecializations();
+      setSpecializations(specializationsResult);
+    } catch (err) {
+      setSpecializationsError(
+        err instanceof Error ? err.message : "Failed to load specializations"
+      );
+    } finally {
+      setSpecializationsLoading(false);
+    }
   };
 
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    coordinatorsApi.loadAll();
-    statsApi.loadAll();
-    availableManagersApi.loadAll(); // Refresh managers list
+    loadInitialData(); // Refresh all data
   };
 
   const handleUpdateSuccess = () => {
-    coordinatorsApi.loadAll();
-    statsApi.loadAll();
-    availableManagersApi.loadAll();
+    loadInitialData(); // Refresh all data
   };
 
   const handleFiltersChange = (

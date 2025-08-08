@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
@@ -28,30 +27,45 @@ import {
 export default function PublicEventDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  // Service adapter for public events
-  const publicEventsService = {
-    getById: async (eventId: string | number): Promise<PublicEvent> => {
-      return await publicContentService.getPublicEvent(Number(eventId));
-    },
-  };
-
-  // Use the new useApi hook
-  const eventsApi = useApi(publicEventsService, { autoLoad: true });
-
-  // Extract event data - loadById returns the item directly, not stored in data array
   const [event, setEvent] = useState<PublicEvent | null>(null);
-  const loading = eventsApi.loading;
-  const error = eventsApi.error;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
-      eventsApi.loadById(id).then(setEvent);
+      const loadEvent = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicEvent(Number(id));
+          setEvent(result);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to load event");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadEvent();
     }
   }, [id]);
 
   const handleRetry = () => {
     if (id) {
-      eventsApi.loadById(id).then(setEvent);
+      const loadEvent = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicEvent(Number(id));
+          setEvent(result);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to load event");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadEvent();
     }
   };
 

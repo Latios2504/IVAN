@@ -12,7 +12,7 @@ import type {
 } from "../types/event";
 
 class EventService {
-  private readonly baseUrl = "/events";
+  private readonly baseUrl = "/Events";
 
   // Event CRUD Operations
   async getOrganizationEvents(

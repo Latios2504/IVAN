@@ -92,5 +92,65 @@ namespace ivan_api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// GET api/volunteer-profiles/{userId}/completion
+        /// Get profile completion percentage and missing fields
+        /// </summary>
+        [HttpGet("{userId:int}/completion")]
+        public async Task<ActionResult<ProfileCompletionDto>> GetProfileCompletion(int userId)
+        {
+            try
+            {
+                var profile = await _service.GetByIdAsync(userId);
+                if (profile == null)
+                    return NotFound(new { message = $"Volunteer profile for UserId={userId} not found." });
+
+                var completion = CalculateVolunteerProfileCompletion(profile);
+                return Ok(completion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error calculating profile completion", error = ex.Message });
+            }
+        }
+
+        private ProfileCompletionDto CalculateVolunteerProfileCompletion(VolunteerProfileDetailDto profile)
+        {
+            var totalFields = 15; // Total important fields
+            var completedFields = 0;
+            var missingFields = new List<string>();
+
+            // Check required fields
+            if (!string.IsNullOrEmpty(profile.FirstName)) completedFields++; else missingFields.Add("First Name");
+            if (!string.IsNullOrEmpty(profile.LastName)) completedFields++; else missingFields.Add("Last Name");
+            if (!string.IsNullOrEmpty(profile.PhoneNumber)) completedFields++; else missingFields.Add("Phone Number");
+            if (profile.DateOfBirth.HasValue) completedFields++; else missingFields.Add("Date of Birth");
+            if (!string.IsNullOrEmpty(profile.Gender)) completedFields++; else missingFields.Add("Gender");
+            if (!string.IsNullOrEmpty(profile.Address)) completedFields++; else missingFields.Add("Address");
+            if (!string.IsNullOrEmpty(profile.Province)) completedFields++; else missingFields.Add("Province");
+            if (!string.IsNullOrEmpty(profile.University)) completedFields++; else missingFields.Add("University");
+            if (!string.IsNullOrEmpty(profile.Major)) completedFields++; else missingFields.Add("Major");
+            if (profile.YearOfStudy.HasValue) completedFields++; else missingFields.Add("Year of Study");
+            if (!string.IsNullOrEmpty(profile.Motivation)) completedFields++; else missingFields.Add("Motivation");
+            if (!string.IsNullOrEmpty(profile.Experience)) completedFields++; else missingFields.Add("Experience");
+            if (!string.IsNullOrEmpty(profile.Availability)) completedFields++; else missingFields.Add("Availability");
+            if (profile.Skills?.Any() == true) completedFields++; else missingFields.Add("Skills");
+            if (!string.IsNullOrEmpty(profile.EmergencyContactName)) completedFields++; else missingFields.Add("Emergency Contact");
+
+            var completionPercentage = (int)Math.Round((double)completedFields / totalFields * 100);
+
+            return new ProfileCompletionDto
+            {
+                CompletionPercentage = completionPercentage,
+                MissingFields = missingFields
+            };
+        }
+
+    }
+
+    public class ProfileCompletionDto
+    {
+        public int CompletionPercentage { get; set; }
+        public List<string> MissingFields { get; set; } = new List<string>();
     }
 }

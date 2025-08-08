@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Users, MapPin, Clock, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { VolunteerCard } from "@/components/public/VolunteerCard";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import type {
   PublicVolunteer,
@@ -98,30 +97,34 @@ export const PublicVolunteersPage = () => {
   }, [searchQuery]);
 
   // Update filters when debounced search changes
-  useMemo(() => {
+  useEffect(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Service adapter for public volunteers
-  const publicVolunteersService = {
-    getAll: async (): Promise<PublicVolunteer[]> => {
-      const result = await publicContentService.getPublicVolunteers(filters);
-      return result.items;
-    },
-  };
+  // State for API data
+  const [volunteers, setVolunteers] = useState<PublicVolunteer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use the new useApi hook
-  const volunteersApi = useApi(publicVolunteersService, { autoLoad: true });
-
-  // Load volunteers when filters change
+  // Load volunteers whenever filters change
   useEffect(() => {
-    volunteersApi.loadAll();
-  }, [filters]);
+    const loadVolunteers = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await publicContentService.getPublicVolunteers(filters);
+        setVolunteers(result.items);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load volunteers"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Extract volunteers from the API response
-  const volunteers = volunteersApi.data || [];
-  const loading = volunteersApi.loading;
-  const error = volunteersApi.error;
+    loadVolunteers();
+  }, [filters]);
 
   // For pagination, we'll use simple client-side pagination for now
   const pagination = {
@@ -130,18 +133,13 @@ export const PublicVolunteersPage = () => {
     totalItems: volunteers.length,
   };
 
-  // Load volunteers when filters change
-  useEffect(() => {
-    volunteersApi.loadAll();
-  }, [filters]);
-
   // Handlers
   const handlePageChange = (page: number) => {
     setFilters((prev) => ({ ...prev, page }));
   };
 
   const handleRetry = () => {
-    volunteersApi.loadAll();
+    setFilters((prev) => ({ ...prev })); // Trigger reload
   };
 
   // Convert volunteers data to card format
@@ -215,12 +213,7 @@ export const PublicVolunteersPage = () => {
 
         return result;
       } catch (error) {
-        console.error(
-          `Error processing volunteer at index ${index}:`,
-          error instanceof Error ? error.message : String(error)
-        );
-        console.error("Volunteer data:", JSON.stringify(volunteer, null, 2));
-        // Return a safe fallback object
+        // Return a safe fallback object for malformed data
         return {
           id: index,
           name: "Unknown Volunteer",

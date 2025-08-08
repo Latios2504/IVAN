@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useApi } from "@/hooks/useApi";
 import { userManagementService } from "@/services/userManagementService";
 import type {
   UserAccountListDto,
@@ -165,12 +164,14 @@ export default function UserManagementPageNew() {
         ];
       } catch (error) {
         // Return mock data if the API endpoint doesn't exist yet
-        const users_data = users.data || [];
+        const users_data = users || [];
         const totalUsers = users_data.length;
-        const activeUsers = users_data.filter((u) => u.isActive).length;
+        const activeUsers = users_data.filter(
+          (u: UserAccountListDto) => u.isActive
+        ).length;
         const inactiveUsers = totalUsers - activeUsers;
         const unverifiedUsers = users_data.filter(
-          (u) => !u.isEmailVerified
+          (u: UserAccountListDto) => !u.isEmailVerified
         ).length;
 
         return [
@@ -190,14 +191,14 @@ export default function UserManagementPageNew() {
     },
   };
 
-  // Use the new useApi hooks
-  const users = useApi(userDataService, {
-    autoLoad: true,
-  });
+  // Use the new state management
+  const [users, setUsers] = useState<UserAccountListDto[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
 
-  const stats = useApi(userStatsService, {
-    autoLoad: true,
-  });
+  const [stats, setStats] = useState<UserStatisticsDto[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   // Local state for UI
   const [filters, setFilters] = useState<ExtendedFilterDto>({
@@ -232,7 +233,33 @@ export default function UserManagementPageNew() {
   }, []);
 
   const loadInitialData = async () => {
-    await Promise.all([users.loadAll(), stats.loadAll()]);
+    // Load users
+    setUsersLoading(true);
+    setUsersError(null);
+    try {
+      const usersResult = await userDataService.getAll();
+      setUsers(usersResult);
+    } catch (err) {
+      setUsersError(
+        err instanceof Error ? err.message : "Failed to load users"
+      );
+    } finally {
+      setUsersLoading(false);
+    }
+
+    // Load stats
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const statsResult = await userStatsService.getAll();
+      setStats(statsResult);
+    } catch (err) {
+      setStatsError(
+        err instanceof Error ? err.message : "Failed to load stats"
+      );
+    } finally {
+      setStatsLoading(false);
+    }
   };
 
   // Check if current user is admin
@@ -271,7 +298,20 @@ export default function UserManagementPageNew() {
         currentUserId,
         newStatus
       );
-      users.loadAll(); // Refresh users list
+
+      // Refresh users list
+      setUsersLoading(true);
+      setUsersError(null);
+      try {
+        const usersResult = await userDataService.getAll();
+        setUsers(usersResult);
+      } catch (err) {
+        setUsersError(
+          err instanceof Error ? err.message : "Failed to load users"
+        );
+      } finally {
+        setUsersLoading(false);
+      }
     } catch (error) {
       console.error("Failed to update user status:", error);
     }
@@ -314,12 +354,12 @@ export default function UserManagementPageNew() {
 
   // Apply filters to users data
   const filteredUsers = React.useMemo(() => {
-    let filtered = users.data;
+    let filtered = users;
     filtered = userSelectors.filterUsersByRole(filtered, filters.role);
     filtered = userSelectors.filterUsersByStatus(filtered, filters.status);
     filtered = userSelectors.searchUsers(filtered, filters.searchTerm);
     return filtered;
-  }, [users.data, filters]);
+  }, [users, filters]);
 
   // Table columns definition
   const columns: TableColumn<UserListItem>[] = [
@@ -410,11 +450,11 @@ export default function UserManagementPageNew() {
   ];
 
   // Determine loading state
-  const isLoading = users.loading && !users.data.length;
+  const isLoading = usersLoading && !users.length;
 
   // Combine errors
-  const hasError = users.error || stats.error;
-  const errorMessage = users.error || stats.error;
+  const hasError = usersError || statsError;
+  const errorMessage = usersError || statsError;
 
   if (isLoading) {
     return <LoadingState loading={true} />;
@@ -453,7 +493,7 @@ export default function UserManagementPageNew() {
       </div>
 
       {/* Statistics Cards */}
-      {stats.data.length > 0 && stats.data[0] && (
+      {stats.length > 0 && stats[0] && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardHeader className="pb-2">
@@ -461,7 +501,7 @@ export default function UserManagementPageNew() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {stats.data[0].totalUsers}
+                {(stats[0] as any).totalUsers}
               </div>
             </CardContent>
           </Card>
@@ -471,7 +511,7 @@ export default function UserManagementPageNew() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {stats.data[0].activeUsers}
+                {(stats[0] as any).activeUsers}
               </div>
             </CardContent>
           </Card>
@@ -481,7 +521,7 @@ export default function UserManagementPageNew() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                {stats.data[0].inactiveUsers}
+                {(stats[0] as any).inactiveUsers}
               </div>
             </CardContent>
           </Card>
@@ -491,7 +531,7 @@ export default function UserManagementPageNew() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                {stats.data[0].unverifiedUsers}
+                {(stats[0] as any).unverifiedUsers}
               </div>
             </CardContent>
           </Card>

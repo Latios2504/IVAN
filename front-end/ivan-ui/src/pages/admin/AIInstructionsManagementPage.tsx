@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useApi } from "@/hooks/useApi";
 import { aiInstructionsService } from "@/services/aiInstructionsService";
 import type {
   AiCustomInstructionDTO,
@@ -50,14 +49,6 @@ import {
 import CustomInstructionBuilder from "@/components/admin/ai-custom-instructions/CustomInstructionBuilder";
 import TestingPlayground from "@/components/admin/ai-custom-instructions/TestingPlayground";
 
-/**
- * NEW: AI Instructions Management Page using useData Hook
- * This is MUCH simpler than the old Context-based approach!
- *
- * COMPARISON:
- * OLD: 551 lines with complex context pattern
- * NEW: ~200 lines with simple useData pattern
- */
 const AIInstructionsManagementPageContent: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -85,10 +76,12 @@ const AIInstructionsManagementPageContent: React.FC = () => {
     },
   };
 
-  // ✅ SIMPLE: Direct useApi usage!
-  const instructions = useApi(aiInstructionsDataService, {
-    autoLoad: true,
-  });
+  // Simple state management
+  const [instructions, setInstructions] = useState<AiCustomInstructionDTO[]>(
+    []
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Local UI state (much simpler than complex context state)
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,29 +91,48 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   const [selectedInstruction, setSelectedInstruction] =
     useState<AiCustomInstructionDTO | null>(null);
 
-  // ✅ SIMPLE: Load data on mount
+  // Load data on mount
   useEffect(() => {
     if (isAdmin) {
-      instructions.loadAll();
+      const loadInstructions = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await aiInstructionsDataService.getAll();
+          setInstructions(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load instructions"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadInstructions();
     }
   }, [isAdmin]);
 
-  // ✅ SIMPLE: Filter data locally (no complex reducer needed)
-  const filteredInstructions = instructions.data.filter((instruction) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      instruction.instructionName.toLowerCase().includes(query) ||
-      instruction.systemPrompt.toLowerCase().includes(query) ||
-      instruction.behaviorInstructions?.toLowerCase().includes(query)
-    );
-  });
+  // Filter data locally
+  const filteredInstructions = instructions.filter(
+    (instruction: AiCustomInstructionDTO) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        instruction.instructionName.toLowerCase().includes(query) ||
+        instruction.systemPrompt.toLowerCase().includes(query) ||
+        instruction.behaviorInstructions?.toLowerCase().includes(query)
+      );
+    }
+  );
 
-  // ✅ SIMPLE: Calculate stats locally
+  // Calculate stats locally
   const stats = {
-    total: instructions.data.length,
-    active: instructions.data.filter((i) => i.isActive).length,
-    inactive: instructions.data.filter((i) => !i.isActive).length,
+    total: instructions.length,
+    active: instructions.filter((i: AiCustomInstructionDTO) => i.isActive)
+      .length,
+    inactive: instructions.filter((i: AiCustomInstructionDTO) => !i.isActive)
+      .length,
   };
 
   // Auth check
@@ -141,7 +153,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   }
 
   // ✅ SIMPLE: Error handling
-  if (instructions.error) {
+  if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -149,10 +161,10 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Đã xảy ra lỗi
           </h2>
-          <p className="text-gray-600 mb-4">{instructions.error}</p>
+          <p className="text-gray-600 mb-4">{error}</p>
           <div className="space-x-2">
-            <Button onClick={instructions.clearError}>Thử lại</Button>
-            <Button variant="outline" onClick={instructions.refetch}>
+            <Button onClick={() => setError(null)}>Thử lại</Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
               Reload
             </Button>
           </div>
@@ -266,7 +278,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
               </div>
 
               {/* Loading State */}
-              {instructions.loading && (
+              {loading && (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mr-2" />
                   Đang tải...
@@ -274,7 +286,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
               )}
 
               {/* Empty State */}
-              {!instructions.loading && instructions.data.length === 0 && (
+              {!loading && instructions.length === 0 && (
                 <div className="text-center py-8">
                   <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -291,7 +303,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
               )}
 
               {/* Instructions Table */}
-              {!instructions.loading && instructions.data.length > 0 && (
+              {!loading && instructions.length > 0 && (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -343,9 +355,23 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                                 Kiểm tra
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() =>
-                                  instructions.remove(instruction.instructionId)
-                                }
+                                onClick={async () => {
+                                  try {
+                                    await aiInstructionsDataService.delete(
+                                      instruction.instructionId
+                                    );
+                                    // Refresh data
+                                    const result =
+                                      await aiInstructionsDataService.getAll();
+                                    setInstructions(result);
+                                  } catch (err) {
+                                    setError(
+                                      err instanceof Error
+                                        ? err.message
+                                        : "Failed to delete instruction"
+                                    );
+                                  }
+                                }}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Xóa
@@ -374,8 +400,19 @@ const AIInstructionsManagementPageContent: React.FC = () => {
             <CardContent>
               <CustomInstructionBuilder
                 onSave={async (data) => {
-                  await instructions.create(data);
-                  setActiveTab("overview");
+                  try {
+                    await aiInstructionsDataService.create(data);
+                    // Refresh data
+                    const result = await aiInstructionsDataService.getAll();
+                    setInstructions(result);
+                    setActiveTab("overview");
+                  } catch (err) {
+                    setError(
+                      err instanceof Error
+                        ? err.message
+                        : "Failed to create instruction"
+                    );
+                  }
                 }}
                 onCancel={() => setActiveTab("overview")}
                 onPreview={() => {}}
@@ -425,10 +462,6 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   );
 };
 
-/**
- * Main AI Instructions Management Page - NEW VERSION
- * No complex Provider needed! Just the component.
- */
 function AIInstructionsManagementPageNew() {
   return <AIInstructionsManagementPageContent />;
 }

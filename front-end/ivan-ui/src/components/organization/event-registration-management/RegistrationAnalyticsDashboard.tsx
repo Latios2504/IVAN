@@ -12,7 +12,6 @@ import {
   Award,
   AlertCircle,
 } from "lucide-react";
-import { useApi } from "@/hooks/useApi";
 import { eventRegistrationService } from "@/services/eventRegistrationService";
 import type { Registration } from "@/types/eventRegistration";
 
@@ -41,18 +40,33 @@ const useInternalRegistrationStats = (eventId: string) => {
     },
   };
 
-  const registrationsApi = useApi(registrationsService, { autoLoad: true });
+  const [registrations, setRegistrations] = React.useState<Registration[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   // Load all registrations for stats when component mounts
   React.useEffect(() => {
     if (eventId) {
-      registrationsApi.loadAll();
+      const loadRegistrations = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await registrationsService.getAll();
+          setRegistrations(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load registrations"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadRegistrations();
     }
   }, [eventId]);
 
   const stats = React.useMemo(() => {
-    const registrations = registrationsApi.data || [];
-
     if (!registrations.length) {
       return {
         total: 0,
@@ -103,9 +117,9 @@ const useInternalRegistrationStats = (eventId: string) => {
       recentApplications,
       weeklyGrowth,
     };
-  }, [registrationsApi.data]);
+  }, [registrations]);
 
-  return { stats, loading: registrationsApi.loading };
+  return { stats, loading };
 };
 
 interface StatCardProps {

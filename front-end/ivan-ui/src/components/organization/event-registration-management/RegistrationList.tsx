@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useApi } from "@/hooks/useApi";
 import { eventRegistrationService } from "@/services/eventRegistrationService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -297,9 +296,9 @@ export default function RegistrationList({
     },
   };
 
-  const registrationsApi = useApi(registrationsService, { autoLoad: true });
-  const registrations = registrationsApi.data || [];
-  const loading = registrationsApi.loading;
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Extract pagination info (simplified for now)
   const pagination = {
@@ -325,8 +324,22 @@ export default function RegistrationList({
   // Load registrations when component mounts or eventId changes
   useEffect(() => {
     if (eventId) {
-      // Simple call without filters for now - external filters can be added later
-      registrationsApi.loadAll();
+      const loadRegistrations = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await registrationsService.getAll();
+          setRegistrations(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load registrations"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadRegistrations();
     }
   }, [eventId]);
 
@@ -334,7 +347,8 @@ export default function RegistrationList({
     if (localSelectedRegistrations.length === (registrations?.length || 0)) {
       setLocalSelectedRegistrations([]);
     } else {
-      const allIds = registrations?.map((r) => r.registrationId) || [];
+      const allIds =
+        registrations?.map((r: Registration) => r.registrationId) || [];
       setLocalSelectedRegistrations(allIds);
     }
   };
@@ -447,7 +461,7 @@ export default function RegistrationList({
           <EmptyRegistrationsState />
         ) : (
           <div>
-            {registrations.map((registration) => (
+            {registrations.map((registration: Registration) => (
               <RegistrationCard
                 key={registration.registrationId}
                 registration={registration}

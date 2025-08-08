@@ -59,20 +59,28 @@ export const useDashboardStats = () => {
         let data;
         switch (user.role) {
           case "organization":
-            data = await dashboardService.getOrganizationStats();
+            data = await dashboardService.getOrganizationStats(
+              user.organizationId
+            );
             break;
           case "volunteer":
-            data = await dashboardService.getVolunteerStats();
+            // For volunteers, we need to get the volunteerId from their profile
+            const volunteerId = (user.profile as any)?.volunteerId || user.id;
+            data = await dashboardService.getVolunteerStats(volunteerId);
             break;
           case "partner":
-            data = await dashboardService.getPartnerStats();
+            // For partners, we need to get the partnerId from their profile
+            const partnerId = (user.profile as any)?.partnerId || user.id;
+            data = await dashboardService.getPartnerStats(partnerId);
             break;
           case "admin":
             data = await dashboardService.getAdminStats();
             break;
           case "coordinator":
             // Coordinators use organization stats
-            data = await dashboardService.getOrganizationStats();
+            data = await dashboardService.getOrganizationStats(
+              user.organizationId
+            );
             break;
           default:
             throw new Error(`Unsupported role: ${user.role}`);

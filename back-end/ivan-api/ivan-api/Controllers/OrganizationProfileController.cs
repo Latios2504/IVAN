@@ -86,6 +86,57 @@ namespace ivan_api.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// GET api/OrganizationProfile/{userId}/completion
+        /// Get organization profile completion percentage and missing fields
+        /// </summary>
+        [HttpGet("{userId}/completion")]
+        public async Task<ActionResult<ProfileCompletionDto>> GetProfileCompletion(int userId)
+        {
+            try
+            {
+                var profile = await _service.GetOrganizationProfileById(userId);
+                if (profile == null)
+                    return NotFound(new { message = $"Organization profile for UserId={userId} not found." });
+
+                var completion = CalculateOrganizationProfileCompletion(profile);
+                return Ok(completion);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error calculating profile completion", error = ex.Message });
+            }
+        }
+
+        private ProfileCompletionDto CalculateOrganizationProfileCompletion(OrganizationProfileViewModel profile)
+        {
+            var totalFields = 12; // Total important fields
+            var completedFields = 0;
+            var missingFields = new List<string>();
+
+            // Check required fields
+            if (!string.IsNullOrEmpty(profile.OrganizationName)) completedFields++; else missingFields.Add("Organization Name");
+            if (!string.IsNullOrEmpty(profile.ShortName)) completedFields++; else missingFields.Add("Short Name");
+            if (profile.TypeId > 0) completedFields++; else missingFields.Add("Organization Type");
+            if (!string.IsNullOrEmpty(profile.Description)) completedFields++; else missingFields.Add("Description");
+            if (!string.IsNullOrEmpty(profile.Mission)) completedFields++; else missingFields.Add("Mission");
+            if (!string.IsNullOrEmpty(profile.Vision)) completedFields++; else missingFields.Add("Vision");
+            if (!string.IsNullOrEmpty(profile.Address)) completedFields++; else missingFields.Add("Address");
+            if (!string.IsNullOrEmpty(profile.Province)) completedFields++; else missingFields.Add("Province");
+            if (!string.IsNullOrEmpty(profile.ContactPersonName)) completedFields++; else missingFields.Add("Contact Person Name");
+            if (!string.IsNullOrEmpty(profile.ContactEmail)) completedFields++; else missingFields.Add("Contact Email");
+            if (!string.IsNullOrEmpty(profile.ContactPhone)) completedFields++; else missingFields.Add("Contact Phone");
+            if (!string.IsNullOrEmpty(profile.Website)) completedFields++; else missingFields.Add("Website");
+
+            var completionPercentage = (int)Math.Round((double)completedFields / totalFields * 100);
+
+            return new ProfileCompletionDto
+            {
+                CompletionPercentage = completionPercentage,
+                MissingFields = missingFields
+            };
+        }
+
         //public async Task<int> getLastId()
         //{
         //    var temp = await _service.GetList(1, 1000);

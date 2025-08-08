@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import type { PublicVolunteer } from "@/types/publicContent";
 import {
@@ -28,24 +27,30 @@ export const PublicVolunteerDetailPage = () => {
     return <Navigate to="/volunteers" replace />;
   }
 
-  // Service adapter for public volunteers
-  const publicVolunteersService = {
-    getById: async (volId: string | number): Promise<PublicVolunteer> => {
-      return await publicContentService.getPublicVolunteer(Number(volId));
-    },
-  };
-
-  // Use the new useApi hook
-  const volunteersApi = useApi(publicVolunteersService, { autoLoad: true });
-
-  // Extract volunteer data
   const [volunteer, setVolunteer] = useState<PublicVolunteer | null>(null);
-  const loading = volunteersApi.loading;
-  const error = volunteersApi.error;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (volunteerId) {
-      volunteersApi.loadById(volunteerId).then(setVolunteer);
+      const loadVolunteer = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await publicContentService.getPublicVolunteer(
+            volunteerId
+          );
+          setVolunteer(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load volunteer"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadVolunteer();
     }
   }, [volunteerId]);
 

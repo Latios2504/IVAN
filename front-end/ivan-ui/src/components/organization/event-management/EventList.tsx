@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import type { EventDto } from "../../../types/event";
-import { useApi } from "../../../hooks/useApi";
 import { eventService } from "../../../services/eventService";
 import { EditEventDialog } from "./EditEventDialog";
 import { EventDetailDialog } from "./EventDetailDialog";
@@ -45,18 +44,33 @@ export const EventList: React.FC<EventListProps> = ({
     },
   };
 
-  const eventsApi = useApi(eventsService);
-  const categoriesApi = useApi(categoriesService);
-  const statusesApi = useApi(statusesService);
+  // State management
+  const [categories, setCategories] = useState<any[]>([]);
+  const [statuses, setStatuses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load categories and statuses on mount
   useEffect(() => {
-    categoriesApi.loadAll();
-    statusesApi.loadAll();
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [categoriesResult, statusesResult] = await Promise.all([
+          categoriesService.getAll(),
+          statusesService.getAll(),
+        ]);
+        setCategories(categoriesResult);
+        setStatuses(statusesResult);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const categories = categoriesApi.data || [];
-  const statuses = statusesApi.data || [];
+    loadData();
+  }, []);
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);

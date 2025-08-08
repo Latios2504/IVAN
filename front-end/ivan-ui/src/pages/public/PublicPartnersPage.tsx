@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Building, HandHeart, Users, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { PartnerCard } from "@/components/public/PartnerCard";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import type {
   PublicPartner,
@@ -52,30 +51,34 @@ export default function PublicPartnersPage() {
   }, [searchQuery]);
 
   // Update filters when debounced search changes
-  useMemo(() => {
+  useEffect(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Service adapter for public partners
-  const publicPartnersService = {
-    getAll: async (): Promise<PublicPartner[]> => {
-      const result = await publicContentService.getPublicPartners(filters);
-      return result.items;
-    },
-  };
+  // State for API data
+  const [partners, setPartners] = useState<PublicPartner[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use the new useApi hook
-  const partnersApi = useApi(publicPartnersService, { autoLoad: true });
-
-  // Load partners when filters change
+  // Load partners whenever filters change
   useEffect(() => {
-    partnersApi.loadAll();
-  }, [filters]);
+    const loadPartners = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await publicContentService.getPublicPartners(filters);
+        setPartners(result.items);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load partners"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Extract partners from the API response
-  const partners = partnersApi.data || [];
-  const loading = partnersApi.loading;
-  const error = partnersApi.error;
+    loadPartners();
+  }, [filters]);
 
   // For pagination, we'll use simple client-side pagination for now
   const pagination = {
@@ -90,7 +93,7 @@ export default function PublicPartnersPage() {
   };
 
   const handleRetry = () => {
-    partnersApi.loadAll();
+    setFilters((prev) => ({ ...prev })); // Trigger reload
   };
 
   // Map backend data to component props

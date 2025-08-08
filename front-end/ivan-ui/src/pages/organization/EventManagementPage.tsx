@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { useApi } from "@/hooks/useApi";
+import React, { useEffect, useState } from "react";
 import { eventService } from "@/services/eventService";
 import type { PagedResultDto } from "@/types/common";
 import type {
@@ -66,7 +65,7 @@ export default function EventManagementPageNew() {
   const eventStatsService = {
     getAll: async (): Promise<EventStatsDto[]> => {
       const result = await eventService.getOrganizationStats();
-      return [result]; // Wrap in array since useApi expects arrays
+      return [result]; // Wrap in array for consistency
     },
   };
 
@@ -82,42 +81,106 @@ export default function EventManagementPageNew() {
     },
   };
 
-  // Use the new useApi hooks
-  const events = useApi(eventDataService, {
-    autoLoad: true,
-  });
-  const stats = useApi(eventStatsService, {
-    autoLoad: true,
-  });
-  const categories = useApi(eventCategoriesService, {
-    autoLoad: true,
-  });
-  const statuses = useApi(eventStatusesService, {
-    autoLoad: true,
-  });
+  // State management
+  const [events, setEvents] = useState<EventDto[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+
+  const [stats, setStats] = useState<EventStatsDto[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  const [categories, setCategories] = useState<EventCategoryDto[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  const [statuses, setStatuses] = useState<EventStatusDto[]>([]);
+  const [statusesLoading, setStatusesLoading] = useState(false);
+  const [statusesError, setStatusesError] = useState<string | null>(null);
 
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
+  // Load all data on mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    // Load events
+    setEventsLoading(true);
+    setEventsError(null);
+    try {
+      const eventsResult = await eventDataService.getAll();
+      setEvents(eventsResult);
+    } catch (err) {
+      setEventsError(
+        err instanceof Error ? err.message : "Failed to load events"
+      );
+    } finally {
+      setEventsLoading(false);
+    }
+
+    // Load stats
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const statsResult = await eventStatsService.getAll();
+      setStats(statsResult);
+    } catch (err) {
+      setStatsError(
+        err instanceof Error ? err.message : "Failed to load stats"
+      );
+    } finally {
+      setStatsLoading(false);
+    }
+
+    // Load categories
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    try {
+      const categoriesResult = await eventCategoriesService.getAll();
+      setCategories(categoriesResult);
+    } catch (err) {
+      setCategoriesError(
+        err instanceof Error ? err.message : "Failed to load categories"
+      );
+    } finally {
+      setCategoriesLoading(false);
+    }
+
+    // Load statuses
+    setStatusesLoading(true);
+    setStatusesError(null);
+    try {
+      const statusesResult = await eventStatusesService.getAll();
+      setStatuses(statusesResult);
+    } catch (err) {
+      setStatusesError(
+        err instanceof Error ? err.message : "Failed to load statuses"
+      );
+    } finally {
+      setStatusesLoading(false);
+    }
+  };
+
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    events.refetch();
-    stats.refetch();
+    loadAllData(); // Refresh all data
   };
 
   const handleEditSuccess = () => {
     // Refresh data after edit
-    events.refetch();
-    stats.refetch();
+    loadAllData(); // Refresh all data
   };
 
   // Determine loading state - loading if any critical data is loading
-  const isLoading = events.loading;
+  const isLoading = eventsLoading;
 
   // Combine errors from all hooks
   const hasError =
-    events.error || stats.error || categories.error || statuses.error;
+    eventsError || statsError || categoriesError || statusesError;
   const errorMessage =
-    events.error || stats.error || categories.error || statuses.error;
+    eventsError || statsError || categoriesError || statusesError;
 
   if (isLoading) {
     return <LoadingState loading={true} />;
@@ -130,7 +193,7 @@ export default function EventManagementPageNew() {
           Error:{" "}
           {typeof errorMessage === "string" ? errorMessage : "Đã xảy ra lỗi"}
         </div>
-        <Button onClick={() => events.refetch()} className="mt-4">
+        <Button onClick={() => loadAllData()} className="mt-4">
           Retry
         </Button>
       </div>
@@ -197,16 +260,14 @@ export default function EventManagementPageNew() {
       </div>
 
       {/* Dashboard */}
-      {stats.data.length > 0 && stats.data[0] && (
-        <EventDashboard stats={stats.data[0]} />
-      )}
+      {stats.length > 0 && stats[0] && <EventDashboard stats={stats[0]} />}
 
       {/* Filters */}
-      <EventFilters categories={categories.data} statuses={statuses.data} />
+      <EventFilters categories={categories} statuses={statuses} />
 
       {/* Event List */}
-      {events.data.length > 0 ? (
-        <EventList events={events.data} onEventUpdated={handleEditSuccess} />
+      {events.length > 0 ? (
+        <EventList events={events} onEventUpdated={handleEditSuccess} />
       ) : (
         <div className="text-center py-12">
           <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -228,7 +289,7 @@ export default function EventManagementPageNew() {
         open={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         onSuccess={handleCreateSuccess}
-        categories={categories.data}
+        categories={categories}
       />
     </div>
   );

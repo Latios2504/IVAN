@@ -13,7 +13,7 @@ class UserManagementService {
     filter: UserAccountFilterDto
   ): Promise<PagedResultDto<UserAccountListDto>> {
     const response = await apiClient.post<PagedResultDto<UserAccountListDto>>(
-      "/useraccount/getListUser",
+      "/UserAccount/getListUser",
       filter
     );
     return response.data;
@@ -24,7 +24,7 @@ class UserManagementService {
     email?: string
   ): Promise<UserAccountDetailDto> {
     const response = await apiClient.post<UserAccountDetailDto>(
-      "/useraccount/getUserInforDetail",
+      "/UserAccount/getUserInforDetail",
       null,
       {
         params: { userId, email },
@@ -39,7 +39,7 @@ class UserManagementService {
     updateData: UserAccountUpdateDto
   ): Promise<UserAccountDetailDto> {
     const response = await apiClient.post<UserAccountDetailDto>(
-      "/useraccount/updateUserAccount",
+      "/UserAccount/updateUserAccount",
       updateData,
       {
         params: { userId, adminUser: adminUserId },
@@ -83,7 +83,7 @@ class UserManagementService {
       inactiveUsers: number;
       unverifiedUsers: number;
       usersByRole: Record<string, number>;
-    }>("/useraccount/statistics");
+    }>("/UserAccount/statistics");
     return response.data;
   }
 

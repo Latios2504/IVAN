@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
-import { useApi } from "@/hooks/useApi";
 import { publicContentService } from "@/services/publicContentService";
 import type { PublicEvent, PublicEventFilters } from "@/types/publicContent";
 import type { StatCard } from "@/components/public/StatsSection";
@@ -82,30 +81,32 @@ export default function PublicEventsPage() {
   }, [searchQuery]);
 
   // Update filters when debounced search changes
-  useMemo(() => {
+  useEffect(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // Service adapter for public events
-  const publicEventsService = {
-    getAll: async (): Promise<PublicEvent[]> => {
-      const result = await publicContentService.getPublicEvents(filters);
-      return result.items;
-    },
-  };
-
-  // Use the new useApi hook
-  const eventsApi = useApi(publicEventsService, { autoLoad: true });
+  // State for API data
+  const [events, setEvents] = useState<PublicEvent[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load events whenever filters change
   useEffect(() => {
-    eventsApi.loadAll();
-  }, [filters]);
+    const loadEvents = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await publicContentService.getPublicEvents(filters);
+        setEvents(result.items);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Extract events from the API response
-  const events = eventsApi.data || [];
-  const loading = eventsApi.loading;
-  const error = eventsApi.error;
+    loadEvents();
+  }, [filters]);
 
   // For pagination, we'll use simple client-side pagination for now
   // TODO: Implement server-side pagination by updating the service
@@ -114,11 +115,6 @@ export default function PublicEventsPage() {
     totalPages: Math.ceil(events.length / (filters.size || 20)),
     totalItems: events.length,
   };
-
-  // Load events when filters change
-  useEffect(() => {
-    eventsApi.loadAll();
-  }, [filters]);
 
   // Map backend data to component props
   const mappedEvents = useMemo(
@@ -142,7 +138,7 @@ export default function PublicEventsPage() {
   };
 
   const handleRetry = () => {
-    eventsApi.loadAll();
+    setFilters((prev) => ({ ...prev })); // Trigger reload
   };
 
   // Filter options (TODO: fetch from backend)

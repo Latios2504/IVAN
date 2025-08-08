@@ -182,7 +182,7 @@ class ExportService {
    */
   async getSupportedFormats(): Promise<ExportFormat[]> {
     try {
-      const response = await apiClient.get<ExportFormat[]>("/export/formats");
+      const response = await apiClient.get<ExportFormat[]>("/Export/formats");
       return response.data || [];
     } catch (error) {
       // Return default formats if API fails
@@ -226,7 +226,7 @@ class ExportService {
   async getExportStatistics(): Promise<ExportStatistics> {
     try {
       const response = await apiClient.get<ExportStatistics>(
-        "/export/statistics"
+        "/Export/statistics"
       );
       return (
         response.data || {

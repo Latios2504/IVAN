@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useApi } from "@/hooks/useApi";
 import { eventRegistrationService } from "@/services/eventRegistrationService";
 import { eventService } from "@/services/eventService";
 import type { PagedResultDto } from "@/types/common";
@@ -69,17 +68,36 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     },
   };
 
-  const events = useApi(eventDataService, { autoLoad: true });
+  const [events, setEvents] = useState<EventDto[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState<string | null>(null);
 
   useEffect(() => {
-    events.loadAll();
+    const loadEvents = async () => {
+      setEventsLoading(true);
+      setEventsError(null);
+      try {
+        const result = await eventDataService.getAll();
+        setEvents(result);
+      } catch (err) {
+        setEventsError(
+          err instanceof Error ? err.message : "Failed to load events"
+        );
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+
+    loadEvents();
   }, []);
 
   const handleEventChange = (eventId: string) => {
     if (eventId === "none") {
       onEventSelect(null);
     } else {
-      const event = events.data.find((e) => e.eventId.toString() === eventId);
+      const event = events.find(
+        (e: EventDto) => e.eventId.toString() === eventId
+      );
       if (event) {
         const eventSummary: EventSummary = {
           eventId: event.eventId,
@@ -109,14 +127,14 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         <Select
           value={selectedEvent?.eventId.toString() || "none"}
           onValueChange={handleEventChange}
-          disabled={events.loading}
+          disabled={eventsLoading}
         >
           <SelectTrigger>
             <SelectValue placeholder="Choose an event to manage registrations" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Select an event...</SelectItem>
-            {events.data?.map((event) => (
+            {events?.map((event: EventDto) => (
               <SelectItem key={event.eventId} value={event.eventId.toString()}>
                 <div className="flex items-center gap-2">
                   <span>{event.eventName}</span>
@@ -198,20 +216,39 @@ const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
     },
   };
 
-  // Initialize the registration hooks with service
-  const registrations = useApi(registrationDataService, {
-    autoLoad: true,
-  });
+  // Initialize the registration state
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [registrationsLoading, setRegistrationsLoading] = useState(false);
+  const [registrationsError, setRegistrationsError] = useState<string | null>(
+    null
+  );
 
   // Load initial data
   useEffect(() => {
-    registrations.loadAll();
+    const loadRegistrations = async () => {
+      setRegistrationsLoading(true);
+      setRegistrationsError(null);
+      try {
+        const result = await registrationDataService.getAll();
+        setRegistrations(result);
+      } catch (err) {
+        setRegistrationsError(
+          err instanceof Error ? err.message : "Failed to load registrations"
+        );
+      } finally {
+        setRegistrationsLoading(false);
+      }
+    };
+
+    loadRegistrations();
   }, [eventId]);
 
   // Create a context-like object to pass down
   const contextValue = {
     eventId,
-    ...registrations,
+    data: registrations,
+    loading: registrationsLoading,
+    error: registrationsError,
   };
 
   // Use React Context or just pass as props to children

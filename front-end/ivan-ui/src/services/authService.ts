@@ -17,7 +17,7 @@ class AuthService {
     credentials: LoginRequest
   ): Promise<{ user: User; token: string; expiresAt: string }> {
     const response = await apiClient.post<LoginResponseDTO>(
-      "/authentication/login",
+      "/Authentication/login",
       credentials
     );
     const { token, expiresAt, user: apiUser } = response.data;
@@ -40,7 +40,7 @@ class AuthService {
     };
 
     const response = await apiClient.post<SuccessResponseDTO>(
-      "/authentication/register",
+      "/Authentication/register",
       registerPayload
     );
     return response.data;
@@ -48,7 +48,7 @@ class AuthService {
 
   async requestPasswordReset(email: string): Promise<{ message: string }> {
     const response = await apiClient.post<SuccessResponseDTO>(
-      "/authentication/forgot-password",
+      "/Authentication/forgot-password",
       { email }
     );
     return response.data;
@@ -56,7 +56,7 @@ class AuthService {
 
   async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
     const response = await apiClient.post<SuccessResponseDTO>(
-      "/authentication/reset-password",
+      "/Authentication/reset-password",
       {
         email: data.email,
         resetCode: data.resetCode,
@@ -71,14 +71,14 @@ class AuthService {
     data: ChangePasswordRequest
   ): Promise<{ message: string }> {
     const response = await apiClient.post<SuccessResponseDTO>(
-      "/authentication/change-password",
+      "/Authentication/change-password",
       data
     );
     return response.data;
   }
 
   async getUserInfo(): Promise<User> {
-    const response = await apiClient.get<ApiUser>("/authentication/me");
+    const response = await apiClient.get<ApiUser>("/Authentication/me");
     return this.mapApiUserToUser(response.data);
   }
 

@@ -1,4 +1,3 @@
-// useProfile Hook for IVAN System
 // Manages profile data state and operations across all user roles
 
 import { useState, useEffect } from "react";

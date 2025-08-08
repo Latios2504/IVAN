@@ -15,42 +15,42 @@ import type {
 class DashboardService {
   async getSystemStats(): Promise<SystemStats> {
     const response = await apiClient.get<SystemStats>(
-      "/dashboard/system/stats"
+      "/Dashboard/system-stats"
     );
     return response.data;
   }
 
   async getAdminStats(): Promise<AdminStats> {
-    const response = await apiClient.get<AdminStats>("/dashboard/admin/stats");
+    const response = await apiClient.get<AdminStats>("/Dashboard/admin-stats");
     return response.data;
   }
 
   async getOrganizationStats(
-    organizationId: number
+    organizationId?: number
   ): Promise<OrganizationStats> {
     const response = await apiClient.get<OrganizationStats>(
-      `/dashboard/organization/${organizationId}/stats`
+      "/Dashboard/organization-stats"
     );
     return response.data;
   }
 
-  async getVolunteerStats(volunteerId: number): Promise<VolunteerStats> {
+  async getVolunteerStats(volunteerId?: number): Promise<VolunteerStats> {
     const response = await apiClient.get<VolunteerStats>(
-      `/dashboard/volunteer/${volunteerId}/stats`
+      "/Dashboard/volunteer-stats"
     );
     return response.data;
   }
 
-  async getPartnerStats(partnerId: number): Promise<PartnerStats> {
+  async getPartnerStats(partnerId?: number): Promise<PartnerStats> {
     const response = await apiClient.get<PartnerStats>(
-      `/dashboard/partner/${partnerId}/stats`
+      "/Dashboard/partner-stats"
     );
     return response.data;
   }
 
   async getCoordinatorStats(coordinatorId: number): Promise<CoordinatorStats> {
     const response = await apiClient.get<CoordinatorStats>(
-      `/dashboard/coordinator/${coordinatorId}/stats`
+      `/Dashboard/coordinator/${coordinatorId}/stats`
     );
     return response.data;
   }
@@ -61,7 +61,7 @@ class DashboardService {
   ): Promise<DashboardChart[]> {
     const params = userId ? { userId } : undefined;
     const response = await apiClient.get<DashboardChart[]>(
-      `/dashboard/${role}/charts`,
+      `/Dashboard/${role}/charts`,
       params
     );
     return response.data;
@@ -75,7 +75,7 @@ class DashboardService {
     const params: Record<string, number | undefined> = { limit };
     if (userId) params.userId = userId;
     const response = await apiClient.get<RecentActivity[]>(
-      `/dashboard/${role}/activities`,
+      `/Dashboard/${role}/activities`,
       params
     );
     return response.data;
@@ -86,7 +86,7 @@ class DashboardService {
     unreadOnly = false
   ): Promise<DashboardNotification[]> {
     const response = await apiClient.get<DashboardNotification[]>(
-      `/dashboard/notifications/${userId}`,
+      `/Dashboard/notifications/${userId}`,
       {
         unreadOnly,
       }
@@ -96,13 +96,13 @@ class DashboardService {
 
   async markNotificationAsRead(notificationId: string): Promise<void> {
     await apiClient.patch<void>(
-      `/dashboard/notifications/${notificationId}/read`
+      `/Dashboard/notifications/${notificationId}/read`
     );
   }
 
   async getQuickActions(role: string): Promise<QuickAction[]> {
     const response = await apiClient.get<QuickAction[]>(
-      `/dashboard/${role}/quick-actions`
+      `/Dashboard/${role}/quick-actions`
     );
     return response.data;
   }
