@@ -57,8 +57,8 @@ const OnSiteTaskManagementPage: React.FC = () => {
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedEvent, setSelectedEvent] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [formData, setFormData] = useState<OnSiteTaskInput>({
@@ -405,7 +405,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
                 <SelectValue placeholder="All Events" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Events</SelectItem>
+                <SelectItem value="all">All Events</SelectItem>
                 {events.map((event) => (
                   <SelectItem
                     key={event.eventId}
@@ -421,7 +421,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="1">Pending</SelectItem>
                 <SelectItem value="2">In Progress</SelectItem>
                 <SelectItem value="3">Completed</SelectItem>

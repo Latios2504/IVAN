@@ -74,6 +74,7 @@ const userSelectors = {
 // Role utilities
 const roleUtils = {
   getRoleDisplayName: (roleName: string) => {
+    if (!roleName) return "Không xác định";
     const roleMap: Record<string, string> = {
       volunteer: "Tình nguyện viên",
       organization: "Tổ chức",
@@ -278,6 +279,10 @@ export default function UserManagementPageNew() {
   }
 
   const handleViewUser = async (user: UserListItem) => {
+    if (!user || user.userId == null) {
+      console.error("Invalid user data for view");
+      return;
+    }
     setSelectedUserId(user.userId);
     try {
       const userDetail = await userDataService.getById(user.userId);
@@ -366,51 +371,83 @@ export default function UserManagementPageNew() {
     {
       key: "fullName",
       header: "Tên người dùng",
-      render: (user) => (
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-blue-600">
-              {(user.fullName || user.email).charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div>
-            <div className="font-medium">
-              {user.fullName || "Chưa cập nhật"}
+      render: (value, user) => {
+        if (!user) {
+          return (
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-600">U</span>
+              </div>
+              <div>
+                <div className="font-medium">Không xác định</div>
+                <div className="text-sm text-gray-500">Không có email</div>
+              </div>
             </div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+          );
+        }
+        return (
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-blue-600">
+                {(user.fullName || user.email || "U")
+                  ?.charAt(0)
+                  ?.toUpperCase() || "U"}
+              </span>
+            </div>
+            <div>
+              <div className="font-medium">
+                {user.fullName || "Chưa cập nhật"}
+              </div>
+              <div className="text-sm text-gray-500">
+                {user.email || "Không có email"}
+              </div>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
-      key: "role",
+      key: "roleName",
       header: "Vai trò",
-      render: (user) => (
-        <Badge variant="outline">
-          {roleUtils.getRoleDisplayName(user.role)}
-        </Badge>
-      ),
+      render: (value, user) => {
+        if (!user) {
+          return <Badge variant="outline">Không xác định</Badge>;
+        }
+        return (
+          <Badge variant="outline">
+            {roleUtils.getRoleDisplayName(user.roleName)}
+          </Badge>
+        );
+      },
     },
     {
       key: "isActive",
       header: "Trạng thái",
-      render: (user) => (
-        <div className="flex items-center space-x-2">
-          <Badge variant={user.isActive ? "default" : "secondary"}>
-            {user.isActive ? "Hoạt động" : "Vô hiệu hóa"}
-          </Badge>
-          {!user.isEmailVerified && (
-            <Badge variant="destructive" className="text-xs">
-              Chưa xác thực email
+      render: (value, user) => {
+        if (!user) {
+          return <Badge variant="secondary">Không xác định</Badge>;
+        }
+        return (
+          <div className="flex items-center space-x-2">
+            <Badge variant={user.isActive ? "default" : "secondary"}>
+              {user.isActive ? "Hoạt động" : "Vô hiệu hóa"}
             </Badge>
-          )}
-        </div>
-      ),
+            {!user.isEmailVerified && (
+              <Badge variant="destructive" className="text-xs">
+                Chưa xác thực email
+              </Badge>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "lastActivity",
       header: "Hoạt động cuối",
-      render: (user) => {
+      render: (value, user) => {
+        if (!user) {
+          return <div className="text-sm text-gray-600">Chưa có</div>;
+        }
         const lastActivity = user.lastLoginAt || user.createdAt;
         return (
           <div className="text-sm text-gray-600">
@@ -424,11 +461,16 @@ export default function UserManagementPageNew() {
     {
       key: "createdAt",
       header: "Ngày tạo",
-      render: (user) => (
-        <div className="text-sm text-gray-600">
-          {new Date(user.createdAt).toLocaleDateString("vi-VN")}
-        </div>
-      ),
+      render: (value, user) => {
+        if (!user || !user.createdAt) {
+          return <div className="text-sm text-gray-600">Chưa có</div>;
+        }
+        return (
+          <div className="text-sm text-gray-600">
+            {new Date(user.createdAt).toLocaleDateString("vi-VN")}
+          </div>
+        );
+      },
     },
   ];
 
@@ -443,8 +485,13 @@ export default function UserManagementPageNew() {
     {
       label: "Thay đổi trạng thái",
       icon: <Edit className="w-4 h-4" />,
-      onClick: (user: UserListItem) =>
-        handleToggleUserStatus(user.userId, !user.isActive),
+      onClick: (user: UserListItem) => {
+        if (!user || user.userId == null) {
+          console.error("Invalid user data for status toggle");
+          return;
+        }
+        handleToggleUserStatus(user.userId, !user.isActive);
+      },
       variant: "outline",
     },
   ];

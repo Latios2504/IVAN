@@ -25,7 +25,6 @@ import {
   BarChart3,
   Settings,
   FileText,
-  Briefcase,
   Bell,
   Shield,
   MessageCircle,
@@ -167,12 +166,6 @@ export default function AdminDashboard() {
               <CardContent className="space-y-3">
                 <ActionButton to="/admin/users" icon={Users}>
                   Quản lý tài khoản
-                </ActionButton>
-                <ActionButton to="/admin/organizations" icon={Building2}>
-                  Quản lý tổ chức
-                </ActionButton>
-                <ActionButton to="/admin/partners" icon={Briefcase}>
-                  Quản lý đối tác
                 </ActionButton>
               </CardContent>
             </Card>

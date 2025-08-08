@@ -27,8 +27,8 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
 }) => {
   const [filters, setFilters] = useState({
     search: "",
-    categoryId: "",
-    statusId: "",
+    categoryId: "all",
+    statusId: "all",
   });
 
   const handleFilterChange = (key: string, value: string) => {
@@ -40,20 +40,22 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
   const resetFilters = () => {
     const emptyFilters = {
       search: "",
-      categoryId: "",
-      statusId: "",
+      categoryId: "all",
+      statusId: "all",
     };
     setFilters(emptyFilters);
     onFiltersChange?.(emptyFilters);
   };
 
   const hasActiveFilters =
-    filters.search || filters.categoryId || filters.statusId;
+    filters.search ||
+    filters.categoryId !== "all" ||
+    filters.statusId !== "all";
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.search) count++;
-    if (filters.categoryId) count++;
-    if (filters.statusId) count++;
+    if (filters.categoryId !== "all") count++;
+    if (filters.statusId !== "all") count++;
     return count;
   };
 
@@ -111,7 +113,7 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem
                     key={category.categoryId}
@@ -135,7 +137,7 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {statuses.map((status) => (
                   <SelectItem
                     key={status.statusId}

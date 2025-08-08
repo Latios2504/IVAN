@@ -278,15 +278,32 @@ class ExportService {
     window.URL.revokeObjectURL(url);
   }
 
+  /**
+   * Helper method to get the correct file extension for the format
+   */
+  private getFileExtension(format: string): string {
+    switch (format.toLowerCase()) {
+      case "excel":
+        return "xlsx";
+      case "csv":
+        return "csv";
+      case "pdf":
+        return "pdf";
+      case "json":
+        return "json";
+      default:
+        return "xlsx";
+    }
+  }
+
   // Method for frontend export that returns blob and filename
   async exportAnalyticsFromFrontend(
     request: any
   ): Promise<{ blob: Blob; filename: string }> {
     const blob = await this.exportAnalytics(request);
     const timestamp = new Date().toISOString().split("T")[0];
-    const filename = `analytics-${timestamp}.${
-      request.format?.toLowerCase() || "xlsx"
-    }`;
+    const extension = this.getFileExtension(request.format || "excel");
+    const filename = `analytics-${timestamp}.${extension}`;
     return { blob, filename };
   }
 

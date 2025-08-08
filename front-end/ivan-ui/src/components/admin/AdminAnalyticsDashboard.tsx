@@ -28,6 +28,7 @@ import { ExportButton, type ExportOptions } from "../common/ExportButton";
 import { dashboardService } from "../../services/dashboardService";
 import { exportService } from "../../services/exportService";
 import { toast } from "sonner";
+import type { UserAnalytics, EventAnalytics } from "../../types/analytics";
 
 // Types for analytics data (matching backend DTOs)
 interface AdminOverviewStats {
@@ -42,71 +43,6 @@ interface AdminOverviewStats {
   monthlyGrowthRate: number;
   newUsersThisMonth: number;
   completedEventsThisMonth: number;
-}
-
-interface UserAnalytics {
-  userStats: {
-    totalUsers: number;
-    activeUsers: number;
-    newUsers: number;
-    verifiedUsers: number;
-    userRetentionRate: number;
-    averageSessionDuration: number;
-    mostActiveRole: number;
-    mostActiveRoleName: string;
-  };
-  userGrowth: {
-    date: string;
-    newUsers: number;
-    totalUsers: number;
-    activeUsers: number;
-  }[];
-  roleDistribution: {
-    roleName: string;
-    userCount: number;
-    percentage: number;
-  }[];
-  geographicDistribution: {
-    province: string;
-    userCount: number;
-    percentage: number;
-  }[];
-}
-
-interface EventAnalytics {
-  eventStats: {
-    totalEvents: number;
-    activeEvents: number;
-    completedEvents: number;
-    cancelledEvents: number;
-    averageRegistrationsPerEvent: number;
-    eventCompletionRate: number;
-    totalRegistrations: number;
-    approvedRegistrations: number;
-    registrationApprovalRate: number;
-  };
-  eventTrends: {
-    date: string;
-    eventsCreated: number;
-    eventsCompleted: number;
-    registrations: number;
-  }[];
-  categoryStats: {
-    categoryName: string;
-    eventCount: number;
-    totalRegistrations: number;
-    averageRating: number;
-    percentage: number;
-  }[];
-  registrationStats: {
-    totalRegistrations: number;
-    approvedRegistrations: number;
-    pendingRegistrations: number;
-    rejectedRegistrations: number;
-    approvalRate: number;
-    averageProcessingTime: number;
-    attendanceRate: number;
-  };
 }
 
 const AdminAnalyticsDashboard: React.FC = () => {

@@ -11,6 +11,7 @@ import type {
   DashboardNotification,
   QuickAction,
 } from "../types/dashboard";
+import type { UserAnalytics, EventAnalytics } from "../types/analytics";
 
 class DashboardService {
   async getSystemStats(): Promise<SystemStats> {
@@ -103,6 +104,30 @@ class DashboardService {
   async getQuickActions(role: string): Promise<QuickAction[]> {
     const response = await apiClient.get<QuickAction[]>(
       `/Dashboard/${role}/quick-actions`
+    );
+    return response.data;
+  }
+
+  async getUserAnalytics(
+    period: string = "Last30Days"
+  ): Promise<UserAnalytics> {
+    const response = await apiClient.get<UserAnalytics>(
+      `/Dashboard/admin-analytics/users`,
+      {
+        period,
+      }
+    );
+    return response.data;
+  }
+
+  async getEventAnalytics(
+    period: string = "Last30Days"
+  ): Promise<EventAnalytics> {
+    const response = await apiClient.get<EventAnalytics>(
+      `/Dashboard/admin-analytics/events`,
+      {
+        period,
+      }
     );
     return response.data;
   }
