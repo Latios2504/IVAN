@@ -1,8 +1,8 @@
 import { apiClient } from "./apiClient";
+import type { PagedResultDto } from "../types/common";
 import type {
   Registration,
   RegistrationFilters,
-  PagedResult,
   ApproveRegistrationRequest,
   RejectRegistrationRequest,
   RegistrationAnalytics,
@@ -14,7 +14,7 @@ class EventRegistrationService {
   async getRegistrations(
     eventId: number,
     filters: RegistrationFilters
-  ): Promise<PagedResult<Registration>> {
+  ): Promise<PagedResultDto<Registration>> {
     const params = new URLSearchParams({
       eventId: eventId.toString(),
       page: filters.page.toString(),
@@ -26,11 +26,11 @@ class EventRegistrationService {
     });
 
     if (filters.dateRange) {
-      params.append("startDate", filters.dateRange.from.toISOString());
-      params.append("endDate", filters.dateRange.to.toISOString());
+      params.append("startDate", filters.dateRange.startDate);
+      params.append("endDate", filters.dateRange.endDate);
     }
 
-    const response = await apiClient.get<PagedResult<Registration>>(
+    const response = await apiClient.get<PagedResultDto<Registration>>(
       `${this.baseUrl}?${params}`
     );
     return response.data;

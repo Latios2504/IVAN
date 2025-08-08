@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import type { PagedResultDto } from "../types/common";
 import type {
   VolunteerCoordinatorDto,
   CreateVolunteerCoordinatorDto,
@@ -8,248 +9,130 @@ import type {
   VolunteerCoordinatorHierarchyDto,
   ManagementLevelDto,
   SpecializationDto,
-  PagedResultDto,
 } from "../types/volunteer-coordinator";
-import type { ApiResponse } from "../types/common";
 
 class VolunteerCoordinatorService {
-  private readonly baseUrl = "/VolunteerCoordinator";
-
-  /**
-   * Validates that organization ID is provided
-   */
-  private validateOrganizationId(organizationId?: number): void {
-    if (!organizationId) {
-      throw new Error(
-        "Organization ID is required. Please ensure user is authenticated with organization context."
-      );
-    }
-  }
-
-  /**
-   * Handles API response with ApiResponse wrapper
-   */
-  private handleApiResponse<T>(response: { data: { data: T } }): T {
-    return response.data.data;
-  }
-
-  /**
-   * Handles API response without ApiResponse wrapper
-   */
-  private handleDirectResponse<T>(response: { data: T }): T {
-    return response.data;
-  }
-
-  /**
-   * Generic error handler for optional endpoints
-   */
-  private async handleOptionalEndpoint<T>(
-    apiCall: () => Promise<{ data: T }>,
-    fallbackValue: T,
-    errorContext: string
-  ): Promise<T> {
-    try {
-      const response = await apiCall();
-      return this.handleDirectResponse(response);
-    } catch (error) {
-      console.error(`Error fetching ${errorContext}:`, error);
-      return fallbackValue;
-    }
-  }
-
-  /**
-   * Helper for PATCH operations that don't return data
-   */
-  private async handlePatchOperation(
-    endpoint: string,
-    data?: unknown
-  ): Promise<void> {
-    await apiClient.patch<ApiResponse<void>>(endpoint, data);
-  }
-
-  /**
-   * Helper for DELETE operations
-   */
-  private async handleDeleteOperation(endpoint: string): Promise<void> {
-    await apiClient.delete<ApiResponse<void>>(endpoint);
-  }
-
-  /**
-   * Helper for PUT operations
-   */
-  private async handlePutOperation(
-    endpoint: string,
-    data: unknown
-  ): Promise<void> {
-    await apiClient.put<ApiResponse<void>>(endpoint, data);
-  }
-
-  // ===== VOLUNTEER COORDINATOR CRUD OPERATIONS =====
   async getOrganizationCoordinators(
     filters: VolunteerCoordinatorFilterDto,
-    organizationId?: number
+    organizationId: number
   ): Promise<PagedResultDto<VolunteerCoordinatorDto>> {
-    // Organization ID should be passed from the context that has access to auth
-    this.validateOrganizationId(organizationId);
-
-    const response = await apiClient.post<
-      ApiResponse<{
-        coordinators: VolunteerCoordinatorDto[];
-        totalCount: number;
-        page: number;
-        size: number;
-        totalPages: number;
-      }>
-    >(
-      `${this.baseUrl}/getCoordinatorsByOrganization/${organizationId}`,
+    const response = await apiClient.post<{
+      coordinators: VolunteerCoordinatorDto[];
+      totalCount: number;
+      page: number;
+      size: number;
+      totalPages: number;
+    }>(
+      `/VolunteerCoordinator/getCoordinatorsByOrganization/${organizationId}`,
       filters
     );
 
-    // The API response structure handling
-    const backendData = this.handleApiResponse(response);
-
-    // Add null safety check
-    if (!backendData || !backendData.coordinators) {
-      console.error("Invalid API response structure:", response.data);
-      console.error("Full response:", response);
-      throw new Error("Invalid response format: coordinators data is missing");
-    }
-
+    const data = response.data;
     return {
-      items: backendData.coordinators,
-      totalCount: backendData.totalCount,
-      pageNumber: backendData.page,
-      pageSize: backendData.size,
-      totalPages: backendData.totalPages,
-      hasPreviousPage: backendData.page > 1,
-      hasNextPage: backendData.page < backendData.totalPages,
+      items: data.coordinators,
+      totalCount: data.totalCount,
+      pageNumber: data.page,
+      pageSize: data.size,
+      totalPages: data.totalPages,
+      hasPreviousPage: data.page > 1,
+      hasNextPage: data.page < data.totalPages,
     };
   }
 
   async getCoordinatorById(
     coordinatorId: number
   ): Promise<VolunteerCoordinatorDto> {
-    const response = await apiClient.get<ApiResponse<VolunteerCoordinatorDto>>(
-      `${this.baseUrl}/${coordinatorId}`
+    const response = await apiClient.get<VolunteerCoordinatorDto>(
+      `/VolunteerCoordinator/${coordinatorId}`
     );
-    return this.handleApiResponse(response);
+    return response.data;
   }
 
   async createCoordinator(
     coordinatorData: CreateVolunteerCoordinatorDto,
-    organizationId?: number
+    organizationId: number
   ): Promise<number> {
-    this.validateOrganizationId(organizationId);
-    const response = await apiClient.post<ApiResponse<number>>(
-      `${this.baseUrl}/${organizationId}`,
+    const response = await apiClient.post<number>(
+      `/VolunteerCoordinator/${organizationId}`,
       coordinatorData
     );
-    return this.handleApiResponse(response);
+    return response.data;
   }
 
   async updateCoordinator(
     coordinatorId: number,
     coordinatorData: UpdateVolunteerCoordinatorDto
-  ): Promise<void> {
-    return this.handlePutOperation(
-      `${this.baseUrl}/${coordinatorId}`,
+  ): Promise<VolunteerCoordinatorDto> {
+    const response = await apiClient.put<VolunteerCoordinatorDto>(
+      `/VolunteerCoordinator/${coordinatorId}`,
       coordinatorData
     );
+    return response.data;
   }
 
   async deleteCoordinator(coordinatorId: number): Promise<void> {
-    return this.handleDeleteOperation(`${this.baseUrl}/${coordinatorId}`);
+    await apiClient.delete<void>(`/VolunteerCoordinator/${coordinatorId}`);
   }
-
-  // ===== STATS & ANALYTICS =====
 
   async getCoordinatorStats(
-    organizationId?: number
+    coordinatorId: number
   ): Promise<VolunteerCoordinatorStatsDto> {
-    this.validateOrganizationId(organizationId);
-    const response = await apiClient.get<
-      ApiResponse<VolunteerCoordinatorStatsDto>
-    >(`${this.baseUrl}/stats/${organizationId}`);
-    return this.handleApiResponse(response);
-  }
-
-  // ===== HIERARCHY MANAGEMENT =====
-
-  async getCoordinatorHierarchy(): Promise<VolunteerCoordinatorHierarchyDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorHierarchyDto[]>(
-      `${this.baseUrl}/hierarchy`
+    const response = await apiClient.get<VolunteerCoordinatorStatsDto>(
+      `/VolunteerCoordinator/${coordinatorId}/stats`
     );
-    return this.handleDirectResponse(response);
+    return response.data;
   }
 
-  // ===== LOOKUP DATA =====
+  async getCoordinatorHierarchy(
+    organizationId: number
+  ): Promise<VolunteerCoordinatorHierarchyDto[]> {
+    const response = await apiClient.get<VolunteerCoordinatorHierarchyDto[]>(
+      `/VolunteerCoordinator/hierarchy/${organizationId}`
+    );
+    return response.data;
+  }
 
   async getManagementLevels(): Promise<ManagementLevelDto[]> {
-    return this.handleOptionalEndpoint(
-      () =>
-        apiClient.get<ManagementLevelDto[]>(
-          `${this.baseUrl}/management-levels`
-        ),
-      [],
-      "management levels"
+    const response = await apiClient.get<ManagementLevelDto[]>(
+      "/VolunteerCoordinator/management-levels"
     );
+    return response.data;
   }
 
   async getSpecializations(): Promise<SpecializationDto[]> {
-    return this.handleOptionalEndpoint(
-      () =>
-        apiClient.get<SpecializationDto[]>(`${this.baseUrl}/specializations`),
-      [],
-      "specializations"
+    const response = await apiClient.get<SpecializationDto[]>(
+      "/VolunteerCoordinator/specializations"
+    );
+    return response.data;
+  }
+
+  async assignCoordinatorToEvent(
+    coordinatorId: number,
+    eventId: number
+  ): Promise<void> {
+    await apiClient.post<void>(
+      `/VolunteerCoordinator/${coordinatorId}/assign-event/${eventId}`
     );
   }
 
-  // ===== UTILITY METHODS =====
-
-  async getAvailableManagers(
-    organizationId?: number
-  ): Promise<VolunteerCoordinatorDto[]> {
-    this.validateOrganizationId(organizationId);
-    const response = await apiClient.get<
-      ApiResponse<VolunteerCoordinatorDto[]>
-    >(`${this.baseUrl}/managers/${organizationId}`);
-    return this.handleApiResponse(response);
-  }
-
-  async getCoordinatorsByLevel(
-    level: string
-  ): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
-      `${this.baseUrl}/by-level/${level}`
-    );
-    return this.handleDirectResponse(response);
-  }
-
-  async getActiveCoordinators(): Promise<VolunteerCoordinatorDto[]> {
-    const response = await apiClient.get<VolunteerCoordinatorDto[]>(
-      `${this.baseUrl}/active`
-    );
-    return this.handleDirectResponse(response);
-  }
-
-  // ===== COORDINATOR MANAGEMENT OPERATIONS =====
-
-  async toggleCoordinatorStatus(coordinatorId: number): Promise<void> {
-    return this.handlePatchOperation(
-      `${this.baseUrl}/${coordinatorId}/toggle-status`
+  async unassignCoordinatorFromEvent(
+    coordinatorId: number,
+    eventId: number
+  ): Promise<void> {
+    await apiClient.delete<void>(
+      `/VolunteerCoordinator/${coordinatorId}/unassign-event/${eventId}`
     );
   }
 
-  async assignManager(coordinatorId: number, managerId: number): Promise<void> {
-    return this.handlePatchOperation(
-      `${this.baseUrl}/${coordinatorId}/assign-manager`,
-      { managerId }
+  async activateCoordinator(coordinatorId: number): Promise<void> {
+    await apiClient.patch<void>(
+      `/VolunteerCoordinator/${coordinatorId}/activate`
     );
   }
 
-  async removeManager(coordinatorId: number): Promise<void> {
-    return this.handlePatchOperation(
-      `${this.baseUrl}/${coordinatorId}/remove-manager`
+  async deactivateCoordinator(coordinatorId: number): Promise<void> {
+    await apiClient.patch<void>(
+      `/VolunteerCoordinator/${coordinatorId}/deactivate`
     );
   }
 }

@@ -1,93 +1,111 @@
-// Replace AuthContext with a custom hook
 import { useState, useEffect, useCallback } from "react";
 import { authService } from "@/services/authService";
-import type { User, LoginRequest, RegisterRequest } from "@/types/auth";
+import type { User, LoginRequest, RegisterRequest, AuthState } from "@/types/auth";
 
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
-// Singleton pattern for auth state
-let authState: AuthState = {
+let globalAuthState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
 };
 
-let listeners: Set<() => void> = new Set();
+let stateListeners: Set<(state: AuthState) => void> = new Set();
 
-const notifyListeners = () => {
-  listeners.forEach((listener) => listener());
+const notifyStateChange = () => {
+  stateListeners.forEach((listener) => listener(globalAuthState));
 };
 
-const updateAuthState = (updates: Partial<AuthState>) => {
-  authState = { ...authState, ...updates };
-  notifyListeners();
+const updateGlobalState = (updates: Partial<AuthState>) => {
+  globalAuthState = { ...globalAuthState, ...updates };
+  notifyStateChange();
 };
+
+const initializeAuth = async () => {
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    try {
+      authService.setToken(token);
+      const user = await authService.getCurrentUser();
+      updateGlobalState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      localStorage.removeItem("authToken");
+      authService.setToken(null);
+      updateGlobalState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      });
+    }
+  } else {
+    updateGlobalState({ isLoading: false });
+  }
+};
+
+initializeAuth();
 
 export const useAuth = () => {
-  const [state, setState] = useState(authState);
+  const [state, setState] = useState(globalAuthState);
 
   useEffect(() => {
-    const listener = () => setState({ ...authState });
-    listeners.add(listener);
-
-    // Initialize auth state
-    const initAuth = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const user = await authService.getCurrentUser();
-          updateAuthState({ user, isAuthenticated: true, isLoading: false });
-        } catch {
-          localStorage.removeItem("token");
-          updateAuthState({ isLoading: false });
-        }
-      } else {
-        updateAuthState({ isLoading: false });
-      }
-    };
-
-    initAuth();
+    const listener = (newState: AuthState) => setState(newState);
+    stateListeners.add(listener);
+    setState(globalAuthState);
 
     return () => {
-      listeners.delete(listener);
+      stateListeners.delete(listener);
     };
   }, []);
 
-  const login = useCallback(
-    async (credentials: LoginRequest): Promise<User> => {
-      try {
-        updateAuthState({ isLoading: true, error: null });
-        const { user } = await authService.login(credentials);
-        updateAuthState({ user, isAuthenticated: true, isLoading: false });
-        return user;
-      } catch (error: any) {
-        updateAuthState({ error: error.message, isLoading: false });
-        throw error;
-      }
-    },
-    []
-  );
+  const login = useCallback(async (credentials: LoginRequest): Promise<User> => {
+    try {
+      updateGlobalState({ isLoading: true, error: null });
+
+      const { user, token } = await authService.login(credentials);
+
+      localStorage.setItem("authToken", token);
+
+      updateGlobalState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+
+      return user;
+    } catch (error: any) {
+      updateGlobalState({
+        error: error.message || "Login failed",
+        isLoading: false,
+      });
+      throw error;
+    }
+  }, []);
 
   const register = useCallback(async (data: RegisterRequest): Promise<void> => {
     try {
-      updateAuthState({ isLoading: true, error: null });
+      updateGlobalState({ isLoading: true, error: null });
       await authService.register(data);
-      updateAuthState({ isLoading: false });
+      updateGlobalState({ isLoading: false, error: null });
     } catch (error: any) {
-      updateAuthState({ error: error.message, isLoading: false });
+      updateGlobalState({
+        error: error.message || "Registration failed",
+        isLoading: false,
+      });
       throw error;
     }
   }, []);
 
   const logout = useCallback(() => {
-    authService.logout();
-    updateAuthState({
+    localStorage.removeItem("authToken");
+    authService.setToken(null);
+
+    updateGlobalState({
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -98,34 +116,34 @@ export const useAuth = () => {
   const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const user = await authService.getCurrentUser();
-      updateAuthState({ user });
+      updateGlobalState({ user, error: null });
     } catch (error: any) {
-      updateAuthState({ error: error.message });
+      updateGlobalState({
+        error: error.message || "Failed to refresh user data",
+      });
       throw error;
     }
   }, []);
 
   const clearError = useCallback(() => {
-    updateAuthState({ error: null });
+    updateGlobalState({ error: null });
   }, []);
 
-  const updateUser = useCallback(
-    async (updates: Partial<User>): Promise<void> => {
-      try {
-        // Update the user locally first
-        if (authState.user) {
-          updateAuthState({ user: { ...authState.user, ...updates } });
-        }
+  const updateUser = useCallback(async (updates: Partial<User>): Promise<void> => {
+    if (globalAuthState.user) {
+      updateGlobalState({
+        user: { ...globalAuthState.user, ...updates },
+      });
 
-        // Optionally refresh from server to get the latest data
+      try {
         await refreshUser();
       } catch (error: any) {
-        updateAuthState({ error: error.message });
-        throw error;
+        updateGlobalState({
+          error: error.message || "Failed to sync user data",
+        });
       }
-    },
-    []
-  );
+    }
+  }, []);
 
   return {
     ...state,

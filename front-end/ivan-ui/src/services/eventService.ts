@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import type { PagedResultDto } from "../types/common";
 import type {
   EventDto,
   CreateEventDto,
@@ -7,7 +8,6 @@ import type {
   EventStatsDto,
   EventCategoryDto,
   EventStatusDto,
-  PagedResultDto,
   UpdateEventStatusDto,
 } from "../types/event";
 

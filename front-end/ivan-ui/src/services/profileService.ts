@@ -1,199 +1,160 @@
-// Profile Service for IVAN System
-// Handles all profile-related API calls for different user roles
-
 import { apiClient } from "./apiClient";
 
 class ProfileService {
-  // Get profile by role and user ID (unified method)
   async getProfileByRole(userId: number, role: string): Promise<any> {
+    switch (role.toLowerCase()) {
+      case "volunteer":
+        const response = await apiClient.get<any>(
+          `/VolunteerProfile/${userId}`
+        );
+        return response.data;
+      case "organization":
+        const response2 = await apiClient.get<any>(
+          `/OrganizationProfile/get/${userId}`
+        );
+        return response2.data;
+      case "partner":
+        const response3 = await apiClient.get<any>(
+          `/PartnerProfile/get/${userId}`
+        );
+        return response3.data;
+      case "coordinator":
+        return {
+          userId: userId,
+          role: "coordinator",
+          displayName: "Coordinator Profile",
+          email: "",
+          personalInfo: {},
+          workInfo: {},
+          organizationInfo: {},
+        };
+      case "admin":
+        return {
+          userId: userId,
+          role: "admin",
+          displayName: "Admin Profile",
+          email: "",
+          personalInfo: {},
+          systemInfo: {},
+          adminLevel: "System Administrator",
+        };
+      default:
+        throw new Error(`Unsupported role: ${role}`);
+    }
+  }
+
+  async updateProfileByRole(
+    userId: number,
+    role: string,
+    profileData: any
+  ): Promise<any> {
+    switch (role.toLowerCase()) {
+      case "volunteer":
+        const response = await apiClient.put<any>(
+          `/VolunteerProfile/${userId}`,
+          profileData
+        );
+        return response.data;
+      case "organization":
+        const response2 = await apiClient.put<any>(
+          `/OrganizationProfile/update/${userId}`,
+          profileData
+        );
+        return response2.data;
+      case "partner":
+        const response3 = await apiClient.put<any>(
+          `/PartnerProfile/update/${userId}`,
+          profileData
+        );
+        return response3.data;
+      default:
+        throw new Error(`Profile update not supported for role: ${role}`);
+    }
+  }
+
+  async uploadProfileImage(
+    userId: number,
+    role: string,
+    imageFile: File,
+    imageType: "avatar" | "banner" | "logo"
+  ): Promise<any> {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    switch (role.toLowerCase()) {
+      case "volunteer":
+        const response = await apiClient.post<any>(
+          `/VolunteerProfile/${userId}/upload-${imageType}`,
+          formData
+        );
+        return response.data;
+      case "organization":
+        const response2 = await apiClient.post<any>(
+          `/OrganizationProfile/${userId}/upload-${imageType}`,
+          formData
+        );
+        return response2.data;
+      case "partner":
+        const response3 = await apiClient.post<any>(
+          `/PartnerProfile/${userId}/upload-${imageType}`,
+          formData
+        );
+        return response3.data;
+      default:
+        throw new Error(`Image upload not supported for role: ${role}`);
+    }
+  }
+
+  async getProfileCompletion(userId: number, role: string): Promise<any> {
     try {
       switch (role.toLowerCase()) {
         case "volunteer":
           const response = await apiClient.get<any>(
-            `/VolunteerProfile/${userId}`
+            `/VolunteerProfile/${userId}/completion`
           );
           return response.data;
         case "organization":
           const response2 = await apiClient.get<any>(
-            `/OrganizationProfile/get/${userId}`
+            `/OrganizationProfile/${userId}/completion`
           );
           return response2.data;
         case "partner":
           const response3 = await apiClient.get<any>(
-            `/PartnerProfile/get/${userId}`
+            `/PartnerProfile/${userId}/completion`
           );
           return response3.data;
-        case "coordinator":
-          // Coordinator profiles not yet implemented in backend
-          return {
-            userId: userId,
-            role: "coordinator",
-            displayName: "Coordinator Profile",
-            email: "",
-            personalInfo: {},
-            workInfo: {},
-            organizationInfo: {},
-          };
-        case "admin":
-          // Admin profiles not yet implemented in backend
-          return {
-            userId: userId,
-            role: "admin",
-            displayName: "Admin Profile",
-            email: "",
-            personalInfo: {},
-            systemInfo: {},
-            adminLevel: "System Administrator",
-          };
         default:
-          throw new Error(`Unsupported role: ${role}`);
-      }
-    } catch (error: any) {
-      // If profile doesn't exist (404), return null instead of throwing
-      // This is intentional business logic, not redundant error handling
-      if (error.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  // Update profile by role (unified method)
-  async updateProfileByRole(
-    userId: number,
-    role: string,
-    data: any
-  ): Promise<any> {
-    try {
-      switch (role.toLowerCase()) {
-        case "volunteer":
-          const response = await apiClient.put<any>(
-            `/VolunteerProfile/${userId}`,
-            data
-          );
-          return response.data;
-        case "organization":
-          const response2 = await apiClient.put<any>(
-            `/OrganizationProfile/update/${userId}`,
-            data
-          );
-          return response2.data;
-        case "partner":
-          const response3 = await apiClient.put<any>(
-            `/PartnerProfile/update/${userId}`,
-            data
-          );
-          return response3.data;
-        case "coordinator":
-          // Coordinator profile updates not yet implemented in backend
-          return data;
-        case "admin":
-          // Admin profile updates not yet implemented in backend
-          return data;
-        default:
-          throw new Error(`Unsupported role: ${role}`);
+          return { completionPercentage: 100, missingFields: [] };
       }
     } catch (error) {
-      console.error(
-        `Error updating ${role} profile for user ${userId}:`,
-        error
-      );
-      throw error;
+      return { completionPercentage: 0, missingFields: [] };
     }
   }
 
-  // Upload profile image
-  async uploadProfileImage(
-    file: File,
-    userId: number,
-    imageType: "avatar" | "banner" | "logo"
-  ): Promise<string> {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("userId", userId.toString());
-      formData.append("imageType", imageType);
-
-      // Use fetch directly for FormData uploads
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        `${
-          process.env.VITE_API_BASE_URL || "http://localhost:5000/api"
-        }/profiles/upload-image`,
-        {
-          method: "POST",
-          headers: {
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const result = await response.json();
-      return result.imageUrl || result.data?.imageUrl || "";
-    } catch (error) {
-      console.error("Error uploading profile image:", error);
-      throw error;
-    }
-  }
-
-  // Get available skills for volunteers
-  async getAvailableSkills(): Promise<any[]> {
+  async getSkills(): Promise<any[]> {
     try {
       const response = await apiClient.get<any[]>("/skills");
       return response.data;
     } catch (error) {
-      console.error("Error fetching skills:", error);
-      throw error;
+      return [];
     }
   }
 
-  // Get organization types
+  async getIndustries(): Promise<any[]> {
+    try {
+      const response = await apiClient.get<any[]>("/industries");
+      return response.data;
+    } catch (error) {
+      return [];
+    }
+  }
+
   async getOrganizationTypes(): Promise<any[]> {
     try {
       const response = await apiClient.get<any[]>("/organization-types");
       return response.data;
     } catch (error) {
-      console.error("Error fetching organization types:", error);
-      throw error;
-    }
-  }
-
-  // Get partner industries
-  async getPartnerIndustries(): Promise<any[]> {
-    try {
-      const response = await apiClient.get<any[]>("/partner-industries");
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching partner industries:", error);
-      throw error;
-    }
-  }
-
-  // Get profile completion status
-  async getProfileCompletion(userId: number, role: string): Promise<any> {
-    try {
-      // Return mock completion data since this endpoint may not exist yet
-      return {
-        totalFields: 10,
-        completedFields: Math.floor(Math.random() * 10),
-        completionPercentage: Math.floor(Math.random() * 100),
-        missingFields: ["phone", "address"],
-        suggestions: ["Complete your contact information", "Add profile photo"],
-      };
-    } catch (error) {
-      console.error("Error fetching profile completion:", error);
-      return {
-        totalFields: 0,
-        completedFields: 0,
-        completionPercentage: 0,
-        missingFields: [],
-        suggestions: [],
-      };
+      return [];
     }
   }
 }

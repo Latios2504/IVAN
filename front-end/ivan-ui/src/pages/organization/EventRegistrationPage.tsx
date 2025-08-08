@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useApi } from "@/hooks/useApi";
 import { eventRegistrationService } from "@/services/eventRegistrationService";
 import { eventService } from "@/services/eventService";
+import type { PagedResultDto } from "@/types/common";
 import type {
   Registration,
   RegistrationFilters as RegistrationFilterType,
-  PagedResult,
   ApproveRegistrationRequest,
   RejectRegistrationRequest,
+  EventSummary,
 } from "@/types/eventRegistration";
 import type { EventDto, CreateEventDto, UpdateEventDto } from "@/types/event";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +34,6 @@ import {
   UserX,
   Clock,
 } from "lucide-react";
-import type { Event } from "@/types/eventRegistration";
 
 // Import the registration management components
 import RegistrationList from "@/components/organization/event-registration-management/RegistrationList";
@@ -47,8 +47,8 @@ const RejectionDialog: React.FC = () => null;
 const BulkActionsDialog: React.FC = () => null;
 
 interface EventSelectorProps {
-  onEventSelect: (event: Event | null) => void;
-  selectedEvent: Event | null;
+  onEventSelect: (event: EventSummary | null) => void;
+  selectedEvent: EventSummary | null;
 }
 
 const EventSelector: React.FC<EventSelectorProps> = ({
@@ -80,7 +80,20 @@ const EventSelector: React.FC<EventSelectorProps> = ({
       onEventSelect(null);
     } else {
       const event = events.data.find((e) => e.eventId.toString() === eventId);
-      onEventSelect(event || null);
+      if (event) {
+        const eventSummary: EventSummary = {
+          eventId: event.eventId,
+          eventName: event.eventName,
+          description: event.description || "",
+          startDate: event.startDate,
+          endDate: event.endDate,
+          location: event.location || "",
+          statusName: event.statusName || "",
+        };
+        onEventSelect(eventSummary);
+      } else {
+        onEventSelect(null);
+      }
     }
   };
 
@@ -218,7 +231,7 @@ const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
 
 // Main Event Registration Management Page
 const EventRegistrationManagement: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
 
   if (!selectedEvent) {
     return (

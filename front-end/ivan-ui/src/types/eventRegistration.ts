@@ -1,3 +1,5 @@
+import type { DateRange } from "./common";
+
 export interface Registration {
   registrationId: number;
   eventId: number;
@@ -47,11 +49,6 @@ export interface RegistrationFilters {
   size: number;
 }
 
-export interface DateRange {
-  from: Date;
-  to: Date;
-}
-
 export interface RegistrationAnalytics {
   totalRegistrations: number;
   pendingCount: number;
@@ -85,7 +82,7 @@ export interface RegistrationLoadingState {
 
 export interface EventRegistrationState {
   registrations: Registration[];
-  selectedEvent: Event | null;
+  selectedEvent: EventSummary | null;
   filters: RegistrationFilters;
   selectedRegistration: Registration | null;
   selectedRegistrations: number[];
@@ -105,7 +102,7 @@ export type EventRegistrationAction =
       type: "SET_REGISTRATIONS";
       payload: { registrations: Registration[]; total: number };
     }
-  | { type: "SET_SELECTED_EVENT"; payload: Event | null }
+  | { type: "SET_SELECTED_EVENT"; payload: EventSummary | null }
   | { type: "SET_FILTERS"; payload: Partial<RegistrationFilters> }
   | { type: "SET_SELECTED_REGISTRATION"; payload: Registration | null }
   | { type: "SET_SELECTED_REGISTRATIONS"; payload: number[] }
@@ -170,16 +167,8 @@ export interface RejectRegistrationRequest {
   reason: string;
 }
 
-export interface PagedResult<T> {
-  items: T[];
-  page: number;
-  size: number;
-  totalItems: number;
-  totalPages: number;
-}
-
 // Event interface (assuming from existing types)
-export interface Event {
+export interface EventSummary {
   eventId: number;
   eventName: string;
   description: string;

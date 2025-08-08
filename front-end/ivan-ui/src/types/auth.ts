@@ -17,7 +17,6 @@ export const UserRole = {
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
-// Roles that can self-register (Guest users can only register as these roles)
 export const PUBLIC_REGISTRATION_ROLES = [
   UserRole.VOLUNTEER,
   UserRole.ORGANIZATION,
@@ -26,64 +25,68 @@ export const PUBLIC_REGISTRATION_ROLES = [
 
 export type PublicRegistrationRole = (typeof PUBLIC_REGISTRATION_ROLES)[number];
 
-// API User type matching backend DTO
+// Backend DTOs matching API responses
 export interface ApiUser {
   userId: number;
   email: string;
   roleName: string;
-  isActive: boolean;
+  roleId: number;
   isEmailVerified: boolean;
   lastLoginAt?: string;
-  createdAt: string;
-  profile?: BaseProfile;
 }
 
-// Frontend User type with computed properties
+export interface LoginResponseDTO {
+  token: string;
+  expiresAt: string;
+  user: ApiUser;
+}
+
+export interface SuccessResponseDTO {
+  message: string;
+}
+
+// Frontend User type
 export interface User extends Omit<ApiUser, "userId" | "roleName"> {
-  id: number; // Mapped from userId for frontend consistency
-  fullName?: string; // Computed from profile data - can be null
-  role: UserRole; // Typed enum instead of string
+  id: number;
+  fullName?: string;
+  role: UserRole;
   profile?:
     | VolunteerProfile
     | OrganizationProfile
     | CoordinatorProfile
-    | PartnerProfile;
-  organizationId?: number; // For coordinators - liên kết với organization
-  updatedAt?: string; // Optional field
+    | PartnerProfile
+    | AdminProfile;
+  organizationId?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error?: string | null;
 }
 
-// Request types matching backend DTOs
+// Request DTOs
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-// Backend register request matching DTO
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  role: UserRole; // Use typed enum instead of string
+  role: UserRole;
 }
 
-// Response types matching backend
-export interface LoginResponse {
-  user: ApiUser;
-  token: string;
-  refreshToken: string;
-  expiresAt: string;
-}
-
-// Simplified register data for forms
-export interface RegisterData extends RegisterRequest {
-  role: PublicRegistrationRole; // Only allow public registration roles
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface ResetPasswordData {
@@ -93,13 +96,22 @@ export interface ResetPasswordData {
   confirmPassword: string;
 }
 
-// Interface for coordinator account creation request (Organization -> Admin)
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+// Form-specific types
+export interface RegisterData extends RegisterRequest {
+  role: PublicRegistrationRole;
+  confirmPassword: string;
+}
+
 export interface CoordinatorCreationRequest {
-  organizationId: number; // Match database INT
+  organizationId: number;
   coordinatorEmail: string;
   coordinatorFirstName: string;
   coordinatorLastName: string;
   coordinatorPhoneNumber?: string;
-  justification: string; // Why this coordinator is needed
+  justification: string;
   expectedResponsibilities: string[];
 }

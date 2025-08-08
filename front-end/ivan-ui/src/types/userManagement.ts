@@ -1,5 +1,4 @@
 // User Management DTOs and Types
-// Moved from userManagementService.ts for better organization
 
 import type {
   OrganizationProfile,
@@ -101,24 +100,4 @@ export interface UserAccountUpdateDto {
   isActive?: boolean;
   isEmailVerified?: boolean;
   // Profile updates can be added here
-}
-
-export interface PagedResultDto<T> {
-  items: T[];
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
-}
-
-export interface CoordinatorCreationRequest {
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  specialization?: string;
-  managementLevel?: string;
-  organizationId?: number; // If creating for specific organization
 }

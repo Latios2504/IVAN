@@ -147,20 +147,12 @@ export interface SpecializationDto {
   description?: string;
 }
 
-// Common types for API responses
-export interface PagedResultDto<T> {
-  items: T[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message: string;
-  data?: T;
-  errors?: string[];
+export interface CoordinatorCreationRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  specialization?: string;
+  managementLevel?: string;
+  organizationId?: number;
 }

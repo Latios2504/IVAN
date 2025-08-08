@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import type { PagedResultDto } from "../types/common";
 import type {
   PublicOrganization,
   PublicEvent,
@@ -8,7 +9,6 @@ import type {
   PublicEventFilters,
   PublicPartnerFilters,
   PublicVolunteerFilters,
-  PagedResult,
 } from "../types/publicContent";
 
 /**
@@ -21,7 +21,7 @@ class PublicContentService {
   // Organizations
   async getPublicOrganizations(
     filters: PublicOrganizationFilters = {}
-  ): Promise<PagedResult<PublicOrganization>> {
+  ): Promise<PagedResultDto<PublicOrganization>> {
     const params = new URLSearchParams();
 
     if (filters.search) params.append("search", filters.search);
@@ -32,7 +32,7 @@ class PublicContentService {
     params.append("page", (filters.page || 1).toString());
     params.append("size", (filters.size || 20).toString());
 
-    const response = await apiClient.get<PagedResult<PublicOrganization>>(
+    const response = await apiClient.get<PagedResultDto<PublicOrganization>>(
       `${this.baseUrl}/organizations?${params.toString()}`
     );
     return response.data;
@@ -48,7 +48,7 @@ class PublicContentService {
   // Events
   async getPublicEvents(
     filters: PublicEventFilters = {}
-  ): Promise<PagedResult<PublicEvent>> {
+  ): Promise<PagedResultDto<PublicEvent>> {
     const params = new URLSearchParams();
 
     if (filters.search) params.append("search", filters.search);
@@ -62,7 +62,7 @@ class PublicContentService {
     params.append("page", (filters.page || 1).toString());
     params.append("size", (filters.size || 20).toString());
 
-    const response = await apiClient.get<PagedResult<PublicEvent>>(
+    const response = await apiClient.get<PagedResultDto<PublicEvent>>(
       `${this.baseUrl}/events?${params.toString()}`
     );
     return response.data;
@@ -78,7 +78,7 @@ class PublicContentService {
   // Partners
   async getPublicPartners(
     filters: PublicPartnerFilters = {}
-  ): Promise<PagedResult<PublicPartner>> {
+  ): Promise<PagedResultDto<PublicPartner>> {
     const params = new URLSearchParams();
 
     if (filters.search) params.append("search", filters.search);
@@ -90,7 +90,7 @@ class PublicContentService {
     params.append("page", (filters.page || 1).toString());
     params.append("size", (filters.size || 20).toString());
 
-    const response = await apiClient.get<PagedResult<PublicPartner>>(
+    const response = await apiClient.get<PagedResultDto<PublicPartner>>(
       `${this.baseUrl}/partners?${params.toString()}`
     );
     return response.data;
@@ -106,7 +106,7 @@ class PublicContentService {
   // Volunteers
   async getPublicVolunteers(
     filters: PublicVolunteerFilters = {}
-  ): Promise<PagedResult<PublicVolunteer>> {
+  ): Promise<PagedResultDto<PublicVolunteer>> {
     const params = new URLSearchParams();
 
     if (filters.search) params.append("search", filters.search);
@@ -118,7 +118,7 @@ class PublicContentService {
     params.append("page", (filters.page || 1).toString());
     params.append("size", (filters.size || 20).toString());
 
-    const response = await apiClient.get<PagedResult<PublicVolunteer>>(
+    const response = await apiClient.get<PagedResultDto<PublicVolunteer>>(
       `${this.baseUrl}/volunteers?${params.toString()}`
     );
     return response.data;
