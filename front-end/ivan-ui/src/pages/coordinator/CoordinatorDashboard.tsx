@@ -11,7 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActionButton } from "@/components/dashboard/ActionButton";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { Users, Calendar, UserCheck, Settings } from "lucide-react";
+import {
+  Users,
+  Calendar,
+  UserCheck,
+  Settings,
+  ClipboardList,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function CoordinatorDashboard() {
@@ -124,9 +130,11 @@ export default function CoordinatorDashboard() {
                 <StatusBadge variant="error">2</StatusBadge>
               </div>
             </div>
-            <ActionButton to="/coordinator/registrations" icon={UserCheck}>
-              Xử lý đăng ký
-            </ActionButton>
+            <div className="text-center py-2">
+              <span className="text-sm text-muted-foreground">
+                Tính năng đang phát triển
+              </span>
+            </div>
           </CardContent>
         </Card>
 
@@ -161,9 +169,11 @@ export default function CoordinatorDashboard() {
                 <Badge variant="outline">Hoạt động</Badge>
               </div>
             </div>
-            <Button variant="outline" className="w-full" asChild>
-              <Link to="/coordinator/volunteers">Xem tất cả</Link>
-            </Button>
+            <div className="text-center py-2">
+              <span className="text-sm text-muted-foreground">
+                Tính năng đang phát triển
+              </span>
+            </div>
           </CardContent>
         </Card>
 
@@ -177,15 +187,15 @@ export default function CoordinatorDashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <ActionButton to="/coordinator/schedule" icon={Calendar}>
-              Cập nhật lịch trình
+              Quản lý lịch trình tình nguyện viên
             </ActionButton>
-            <ActionButton
-              to="/coordinator/registrations"
-              icon={UserCheck}
-              variant="outline"
-            >
-              Duyệt đăng ký mới
+            <ActionButton to="/coordinator/onsite-tasks" icon={ClipboardList}>
+              Quản lý nhiệm vụ tại chỗ
             </ActionButton>
+            <Button variant="outline" className="w-full" disabled>
+              <UserCheck className="w-4 h-4 mr-2" />
+              Duyệt đăng ký mới (Sắp có)
+            </Button>
             <ActionButton to="/profile" icon={Settings} variant="outline">
               Cập nhật thông tin
             </ActionButton>

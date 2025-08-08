@@ -101,6 +101,33 @@ export const API_ENDPOINTS = {
     REMOVE_MANAGER: (id: number) =>
       `/volunteercoordinator/${id}/remove-manager`,
   },
+
+  // Certificate Management
+  CERTIFICATES: {
+    BASE: "/certificate",
+    LIST: "/certificate",
+    BY_ID: (id: number) => `/certificate/get/${id}`,
+    BY_ORGANIZATION: (orgId: number) => `/certificate/by-organization/${orgId}`,
+    CREATE: "/certificate/add",
+    UPDATE: (id: number) => `/certificate/update/${id}`,
+    DELETE: (id: number) => `/certificate/delete/${id}`,
+    DOWNLOAD: (id: number) => `/certificate/download/${id}`,
+    APPROVE: (id: number) => `/certificate/approve/${id}`,
+    REJECT: (id: number) => `/certificate/reject/${id}`,
+    BULK_APPROVE: "/certificate/bulk-approve",
+    BULK_REVOKE: "/certificate/bulk-revoke",
+    FILTER: "/certificate/filter",
+  },
+
+  // Certificate Templates
+  CERTIFICATE_TEMPLATES: {
+    BASE: "/certificatetemplate",
+    LIST: "/certificatetemplate",
+    BY_ID: (id: number) => `/certificatetemplate/get/${id}`,
+    CREATE: "/certificatetemplate/add",
+    UPDATE: (id: number) => `/certificatetemplate/update/${id}`,
+    DELETE: (id: number) => `/certificatetemplate/delete/${id}`,
+  },
 } as const;
 
 // Application constants
@@ -158,6 +185,55 @@ export const REQUEST_HEADERS = {
   ACCEPT: "Accept",
   ACCEPT_LANGUAGE: "Accept-Language",
 } as const;
+
+// API configuration object for easy access
+export const api = {
+  certificate: {
+    list: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.LIST}`,
+    getById: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.BY_ID(id)}`,
+    getByOrganization: (orgId: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.BY_ORGANIZATION(
+        orgId
+      )}`,
+    create: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.CREATE}`,
+    update: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.UPDATE(id)}`,
+    delete: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.DELETE(id)}`,
+    download: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.DOWNLOAD(id)}`,
+    approve: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.APPROVE(id)}`,
+    reject: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.REJECT(id)}`,
+    bulkApprove: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.BULK_APPROVE}`,
+    bulkRevoke: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.BULK_REVOKE}`,
+    filter: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATES.FILTER}`,
+  },
+  certificateTemplate: {
+    list: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATE_TEMPLATES.LIST}`,
+    getById: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATE_TEMPLATES.BY_ID(
+        id
+      )}`,
+    create: `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATE_TEMPLATES.CREATE}`,
+    update: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATE_TEMPLATES.UPDATE(
+        id
+      )}`,
+    delete: (id: number) =>
+      `${environment.API_BASE_URL}${API_ENDPOINTS.CERTIFICATE_TEMPLATES.DELETE(
+        id
+      )}`,
+    preview: (id: number) =>
+      `${environment.API_BASE_URL}/certificatetemplate/preview/${id}`,
+    getByOrganization: (orgId: number) =>
+      `${environment.API_BASE_URL}/certificatetemplate/by-organization/${orgId}`,
+    toggleActive: (id: number) =>
+      `${environment.API_BASE_URL}/certificatetemplate/toggle-active/${id}`,
+  },
+};
 
 // Export environment as default for backward compatibility
 export default environment;

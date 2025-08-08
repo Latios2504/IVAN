@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import {
-  dashboardService,
-  type SystemStats,
-  type OrganizationStats,
-  type VolunteerStats,
-  type PartnerStats,
-  type AdminStats,
-} from "../services/dashboardService";
+import { dashboardService } from "../services/dashboardService";
+import type {
+  SystemStats,
+  OrganizationStats,
+  VolunteerStats,
+  PartnerStats,
+  AdminStats,
+} from "../types/dashboard";
 import { useAuth } from "@/hooks/useAuth";
 
 // Hook for system statistics (used on homepage)

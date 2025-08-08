@@ -40,6 +40,7 @@ using ivan_api.Services.AI;
 using ivan_api.Extensions;
 using ivan_api.Services.VolunteerCoordinatorServ;
 using ivan_api.Repository.VolunteerCoordinatorRepo;
+using ivan_api.Repository.CoordinatorScheduleRepo;
 using ivan_api.Services.CoordinatorScheduleServ;
 
 using ivan_api.Services.DatabaseSchema.Interfaces;
@@ -47,6 +48,8 @@ using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator.Interfaces;
 using ivan_api.Services.AI.SQLGenerator.Services;
 using ivan_api.Services.Analytics;
+using ivan_api.Repository.SupportRequestRepo;
+using ivan_api.Services.SupportRequestServ;
 using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -166,6 +169,7 @@ builder.Services.AddScoped<IVolunteerCoordinatorRepository, VolunteerCoordinator
 builder.Services.AddScoped<IVolunteerCoordinatorService, VolunteerCoordinatorService>();
 
 // Coordinator Schedule DI
+builder.Services.AddScoped<ICoordinatorScheduleRepository, CoordinatorScheduleRepository>();
 builder.Services.AddScoped<ICoordinatorScheduleService, CoordinatorScheduleService>();
 
 builder.Services.AddScoped<IOrganizationProfileRepository, OrganizationProfileRepository>();
@@ -194,6 +198,9 @@ builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaboration
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 
+// Support Request DI
+builder.Services.AddScoped<ISupportRequestRepository, SupportRequestRepository>();
+builder.Services.AddScoped<ISupportRequestService, SupportRequestService>();
 
 // Schema Services DI
 builder.Services.AddScoped<ISchemaService, SchemaService>();

@@ -28,14 +28,106 @@ namespace ivan_api.Repository.Certificates
             return await _context.SaveChangesAsync() > 0;
         }
 
-        //public async Task<bool> UpdateCertificate(Certificate certificate)
-        //{
-        //    _context.ChangeTracker.Clear();//
-        //    _context.Certificates.Attach(certificate);
-        //    _context.Entry(certificate).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+        public async Task<bool> UpdateCertificate(Certificate certificate)
+        {
+            _context.ChangeTracker.Clear();
+            _context.Certificates.Attach(certificate);
+            _context.Entry(certificate).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-        //    return await _context.SaveChangesAsync() > 0;
-        //}
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> DeleteCertificate(int certificateId)
+        {
+            var certificate = await _context.Certificates.FindAsync(certificateId);
+            if (certificate == null)
+                return false;
+
+            _context.Certificates.Remove(certificate);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<PagedResultDto<CertificateViewModel>> GetCertificatesByOrganizationAsync(int organizationId, int PageNumber, int PageSize)
+        {
+            var query = _context.Certificates
+                .Include(x => x.Event)
+                .Include(x => x.IssuedByNavigation)
+                .Include(x => x.Template)
+                .Include(x => x.Volunteer)
+                .Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == organizationId)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<CertificateViewModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResultDto<CertificateViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
+        }
+
+        public async Task<bool> ApproveCertificate(int certificateId, string? approvalNotes, int? approvedBy)
+        {
+            var certificate = await _context.Certificates.FindAsync(certificateId);
+            if (certificate == null)
+                return false;
+
+            certificate.Status = "Approved";
+            if (approvedBy.HasValue)
+                certificate.IssuedBy = approvedBy.Value;
+            certificate.IssueDate = DateTime.Now;
+            if (!string.IsNullOrEmpty(approvalNotes))
+                certificate.Description = approvalNotes;
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> RejectCertificate(int certificateId, string rejectionReason, int? rejectedBy)
+        {
+            var certificate = await _context.Certificates.FindAsync(certificateId);
+            if (certificate == null)
+                return false;
+
+            certificate.Status = "Rejected";
+            if (rejectedBy.HasValue)
+                certificate.IssuedBy = rejectedBy.Value;
+            certificate.Description = rejectionReason; // Using Description field to store rejection reason
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> BulkUpdateCertificateStatus(List<int> certificateIds, string status, string? reason, int? updatedBy)
+        {
+            var certificates = await _context.Certificates
+                .Where(c => certificateIds.Contains(c.CertificateId))
+                .ToListAsync();
+
+            if (!certificates.Any())
+                return false;
+
+            foreach (var certificate in certificates)
+            {
+                certificate.Status = status;
+                if (updatedBy.HasValue)
+                    certificate.IssuedBy = updatedBy.Value;
+                if (status == "Approved")
+                {
+                    certificate.IssueDate = DateTime.Now;
+                }
+                if (!string.IsNullOrEmpty(reason))
+                    certificate.Description = reason;
+            }
+
+            return await _context.SaveChangesAsync() > 0;
+        }
 
         public async Task<IEnumerable<Certificate>> ListCertificate(CertificateFilterModel filter)
         {
@@ -81,64 +173,29 @@ namespace ivan_api.Repository.Certificates
 
         public async Task<Certificate> GetCertificateById(int id)
         {
-            return await _context.Certificates
+            var certificate = await _context.Certificates
                 .Include(x => x.Event)
                 .Include(x => x.IssuedByNavigation)
                 .Include(x => x.Template)
                 .Include(x => x.Volunteer)
                 .SingleOrDefaultAsync(x => x.CertificateId == id);
+            
+            return certificate!; // Using null-forgiving operator since interface expects non-null
         }
 
         public async Task<PdfDocument> DownloadCertificateById(int id)
         {
-            //var cer = await _context.Certificates
-            //    .Include(x => x.Event)
-            //    .Include(x => x.IssuedByNavigation)
-            //    .Include(x => x.Template)
-            //    .Include(x => x.Volunteer)
-            //    .SingleOrDefaultAsync(x => x.CertificateId == id);
-
-            //PdfDocument document = new PdfDocument();
-            //document.Info.Title = "Certificate";
-
-            ////XFont font = new XFont("Times New Roman", 12);//
-            //XFont font = new XFont("Arial", 12, XFontStyleEx.Regular);//
-            //PDFHelper helper = new PDFHelper(document, XUnit.FromCentimeter(2.5), XUnit.FromCentimeter(29.7 - 2.5));
-            //XUnit left = XUnit.FromCentimeter(1.5);
-
-            //XUnit leftBuyer = XUnit.FromCentimeter(2.5);
-
-            //XUnit top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("Certificate Id: " + cer.CertificateId, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("VolunteerId: " + cer.VolunteerId, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("EventId: " + cer.EventId, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("TemplateId: " + cer.TemplateId, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("CertificateNumber: " + cer.CertificateNumber, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("CertificateName: " + cer.CertificateName, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("Description: " + cer.Description, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("HoursCompleted: " + cer.HoursCompleted, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("PerformanceLevel: " + cer.PerformanceLevel, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("IssueDate: " + cer.IssueDate, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-            //top = helper.GetLinePosition(font.Size, font.Size + 2);
-            //helper.Gfx.DrawString("ExpiryDate: " + cer.ExpiryDate, font, XBrushes.Black, left, top, XStringFormat.TopLeft);
-
-            //return document;
-
             var cer = await _context.Certificates
                 .Include(x => x.Event)
                 .Include(x => x.IssuedByNavigation)
                 .Include(x => x.Template)
                 .Include(x => x.Volunteer)
                 .SingleOrDefaultAsync(x => x.CertificateId == id);
+
+            if (cer == null)
+            {
+                throw new ArgumentException($"Certificate with ID {id} not found.");
+            }
 
             PdfDocument document = new PdfDocument();
             document.Info.Title = "Certificate";
@@ -149,49 +206,44 @@ namespace ivan_api.Repository.Certificates
             var labelFont = new XFont("Arial", 12, XFontStyleEx.Bold);
             var valueFont = new XFont("Arial", 12, XFontStyleEx.Regular);
 
-            double labelOffset = XUnit.FromCentimeter(1.5);
-            double valueOffset = XUnit.FromCentimeter(6);
-            double lineSpacing = XUnit.FromMillimeter(10);
+            double labelOffset = XUnit.FromCentimeter(1.5).Point;
+            double valueOffset = XUnit.FromCentimeter(6).Point;
+            double lineSpacing = XUnit.FromMillimeter(10).Point;
 
             // Draw Title
-            var centerRect = new XRect(0, helper.GetLinePosition(lineSpacing), helper.Page.Width, 40);
+            var centerRect = new XRect(0, helper.GetLinePosition(XUnit.FromPoint(lineSpacing)).Point, helper.Page.Width.Point, XUnit.FromPoint(40).Point);
             helper.Gfx.DrawString("Volunteer Certificate", titleFont, XBrushes.DarkBlue, centerRect, XStringFormats.TopCenter);
 
             // Draw label/value pairs
             void DrawField(string label, string value)
             {
-                var y = helper.GetLinePosition(lineSpacing);
-                helper.Gfx.DrawString(label, labelFont, XBrushes.Black, new XPoint(labelOffset, y));
-                helper.Gfx.DrawString(value ?? "N/A", valueFont, XBrushes.Black, new XPoint(valueOffset, y));
+                var y = helper.GetLinePosition(XUnit.FromPoint(lineSpacing));
+                helper.Gfx.DrawString(label, labelFont, XBrushes.Black, new XPoint(labelOffset, y.Point));
+                helper.Gfx.DrawString(value ?? "N/A", valueFont, XBrushes.Black, new XPoint(valueOffset, y.Point));
             }
 
             DrawField("Certificate ID:", cer.CertificateId.ToString());
             DrawField("Volunteer ID:", cer.VolunteerId.ToString());
             DrawField("Event ID:", cer.EventId.ToString());
             DrawField("Template ID:", cer.TemplateId.ToString());
-            DrawField("Certificate Number:", cer.CertificateNumber);
-            DrawField("Certificate Name:", cer.CertificateName);
-            DrawField("Description:", cer.Description != null ? cer.Description : "N/A");
-            DrawField("Hours Completed:", cer.HoursCompleted != null ? cer.HoursCompleted.ToString() : "N/A");
-            DrawField("Performance Level:", cer.PerformanceLevel);
-            DrawField("Issue Date:", cer.IssueDate != null ? cer.IssueDate?.ToString("dd MMM yyyy") : "N/A");
-            DrawField("Expiry Date:", cer.ExpiryDate != null ? cer.ExpiryDate?.ToString("dd MMM yyyy") : "N/A");
+            DrawField("Certificate Number:", cer.CertificateNumber ?? "N/A");
+            DrawField("Certificate Name:", cer.CertificateName ?? "N/A");
+            DrawField("Description:", cer.Description ?? "N/A");
+            DrawField("Hours Completed:", cer.HoursCompleted?.ToString() ?? "N/A");
+            DrawField("Performance Level:", cer.PerformanceLevel ?? "N/A");
+            DrawField("Issue Date:", cer.IssueDate?.ToString("dd MMM yyyy") ?? "N/A");
+            DrawField("Expiry Date:", cer.ExpiryDate?.ToString("dd MMM yyyy") ?? "N/A");
 
             return document;
         }
 
         public async Task<int> GetLastId()
         {
-            var query = _context.Certificates
-                .Include(x => x.Event)
-                .Include(x => x.IssuedByNavigation)
-                .Include(x => x.Template)
-                .Include(x => x.Volunteer)
-                .AsQueryable();
+            var lastCertificate = await _context.Certificates
+                .OrderByDescending(c => c.CertificateId)
+                .FirstOrDefaultAsync();
 
-            if (query == null) return -1;
-
-            return query.ToList().Last().CertificateId;
+            return lastCertificate?.CertificateId ?? -1;
         }
     }
 }

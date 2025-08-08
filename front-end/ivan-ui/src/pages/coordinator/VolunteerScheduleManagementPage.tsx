@@ -1,0 +1,1079 @@
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Calendar,
+  Clock,
+  User,
+  MapPin,
+  Loader2,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+
+import { useModal, useModalWithData } from "@/hooks/useModal";
+import {
+  volunteerScheduleService,
+  type VolunteerScheduleDTO,
+  type VolunteerScheduleFilterDTO,
+  type VolunteerScheduleRequestDTO,
+} from "@/services/volunteerScheduleService";
+import { eventService } from "@/services/eventService";
+import type { EventDto } from "@/types/event";
+
+interface VolunteerOption {
+  volunteerId: number;
+  firstName: string;
+  lastName: string;
+}
+
+interface ScheduleFormData {
+  volunteerId: number | null;
+  eventId: number | null;
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  location: string;
+  scheduleType: string;
+  priority: string;
+  status: string;
+  isAllDay: boolean;
+  reminderMinutes: number;
+  notes: string;
+}
+
+const initialFormData: ScheduleFormData = {
+  volunteerId: null,
+  eventId: null,
+  title: "",
+  description: "",
+  startDateTime: "",
+  endDateTime: "",
+  location: "",
+  scheduleType: "Event",
+  priority: "Medium",
+  status: "Scheduled",
+  isAllDay: false,
+  reminderMinutes: 60,
+  notes: "",
+};
+
+export default function VolunteerScheduleManagementPage() {
+  // State management
+  const [schedules, setSchedules] = useState<VolunteerScheduleDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
+  const [events, setEvents] = useState<EventDto[]>([]);
+  const [volunteers, setVolunteers] = useState<VolunteerOption[]>([]);
+
+  // Filter states
+  const [filters, setFilters] = useState<VolunteerScheduleFilterDTO>({
+    page: 1,
+    size: 20,
+    sortBy: "StartDateTime",
+    sortDirection: "asc",
+  });
+
+  // Modal states
+  const createModal = useModal();
+  const editModal = useModalWithData<VolunteerScheduleDTO>();
+  const deleteModal = useModalWithData<VolunteerScheduleDTO>();
+
+  // Form state
+  const [formData, setFormData] = useState<ScheduleFormData>(initialFormData);
+
+  // Load data on component mount and filter changes
+  useEffect(() => {
+    loadSchedules();
+  }, [filters]);
+
+  useEffect(() => {
+    loadEvents();
+    loadVolunteers();
+  }, []);
+
+  const loadSchedules = async () => {
+    try {
+      setLoading(true);
+      const result =
+        await volunteerScheduleService.getOrganizationVolunteerSchedules(
+          filters
+        );
+      setSchedules(result.items);
+      setTotalItems(result.totalCount);
+    } catch (error) {
+      console.error("Failed to load schedules:", error);
+      toast.error("Failed to load volunteer schedules");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadEvents = async () => {
+    try {
+      const eventsResult = await eventService.getOrganizationEvents({
+        page: 1,
+        size: 100,
+        sortBy: "startDate",
+        sortDirection: "desc",
+      });
+      setEvents(eventsResult.items);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+    }
+  };
+
+  const loadVolunteers = async () => {
+    try {
+      // Mock data for now - replace with actual service call when available
+      const mockVolunteers: VolunteerOption[] = [
+        { volunteerId: 1, firstName: "Nguyễn", lastName: "Văn A" },
+        { volunteerId: 2, firstName: "Trần", lastName: "Thị B" },
+        { volunteerId: 3, firstName: "Lê", lastName: "Văn C" },
+      ];
+      setVolunteers(mockVolunteers);
+    } catch (error) {
+      console.error("Failed to load volunteers:", error);
+    }
+  };
+
+  const handleCreateSchedule = async () => {
+    try {
+      if (
+        !formData.volunteerId ||
+        !formData.title ||
+        !formData.startDateTime ||
+        !formData.endDateTime
+      ) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+
+      const request: VolunteerScheduleRequestDTO = {
+        volunteerId: formData.volunteerId,
+        eventId: formData.eventId || undefined,
+        title: formData.title,
+        description: formData.description,
+        startDateTime: formData.startDateTime,
+        endDateTime: formData.endDateTime,
+        location: formData.location,
+        scheduleType: formData.scheduleType,
+        priority: formData.priority,
+        status: formData.status,
+        isAllDay: formData.isAllDay,
+        reminderMinutes: formData.reminderMinutes,
+        notes: formData.notes,
+      };
+
+      await volunteerScheduleService.createVolunteerSchedule(request);
+      toast.success("Volunteer schedule created successfully!");
+      createModal.close();
+      resetForm();
+      loadSchedules();
+    } catch (error) {
+      console.error("Failed to create schedule:", error);
+      toast.error("Failed to create volunteer schedule");
+    }
+  };
+
+  const handleEditSchedule = async () => {
+    try {
+      const schedule = editModal.data;
+      if (
+        !schedule ||
+        !formData.volunteerId ||
+        !formData.title ||
+        !formData.startDateTime ||
+        !formData.endDateTime
+      ) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+
+      const request: VolunteerScheduleRequestDTO = {
+        volunteerId: formData.volunteerId,
+        eventId: formData.eventId || undefined,
+        title: formData.title,
+        description: formData.description,
+        startDateTime: formData.startDateTime,
+        endDateTime: formData.endDateTime,
+        location: formData.location,
+        scheduleType: formData.scheduleType,
+        priority: formData.priority,
+        status: formData.status,
+        isAllDay: formData.isAllDay,
+        reminderMinutes: formData.reminderMinutes,
+        notes: formData.notes,
+      };
+
+      await volunteerScheduleService.updateVolunteerSchedule(
+        schedule.scheduleId,
+        request
+      );
+      toast.success("Volunteer schedule updated successfully!");
+      editModal.close();
+      resetForm();
+      loadSchedules();
+    } catch (error) {
+      console.error("Failed to update schedule:", error);
+      toast.error("Failed to update volunteer schedule");
+    }
+  };
+
+  const handleDeleteSchedule = async () => {
+    try {
+      const schedule = deleteModal.data;
+      if (!schedule) return;
+
+      await volunteerScheduleService.deleteVolunteerSchedule(
+        schedule.scheduleId
+      );
+      toast.success("Volunteer schedule deleted successfully!");
+      deleteModal.close();
+      loadSchedules();
+    } catch (error) {
+      console.error("Failed to delete schedule:", error);
+      toast.error("Failed to delete volunteer schedule");
+    }
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormData);
+  };
+
+  const openEditModal = (schedule: VolunteerScheduleDTO) => {
+    setFormData({
+      volunteerId: schedule.volunteerId,
+      eventId: schedule.eventId || null,
+      title: schedule.title,
+      description: schedule.description || "",
+      startDateTime: schedule.startDateTime.slice(0, 16), // Format for datetime-local input
+      endDateTime: schedule.endDateTime.slice(0, 16),
+      location: schedule.location || "",
+      scheduleType: schedule.scheduleType || "Event",
+      priority: schedule.priority || "Medium",
+      status: schedule.status || "Scheduled",
+      isAllDay: schedule.isAllDay || false,
+      reminderMinutes: schedule.reminderMinutes || 60,
+      notes: schedule.notes || "",
+    });
+    editModal.openWith(schedule);
+  };
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case "Scheduled":
+        return "blue";
+      case "InProgress":
+        return "yellow";
+      case "Completed":
+        return "green";
+      case "Cancelled":
+        return "red";
+      default:
+        return "gray";
+    }
+  };
+
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case "High":
+        return "red";
+      case "Medium":
+        return "yellow";
+      case "Low":
+        return "green";
+      default:
+        return "gray";
+    }
+  };
+
+  const formatDateTime = (dateTime: string) => {
+    return new Date(dateTime).toLocaleString("vi-VN");
+  };
+
+  const handleFilterChange = (
+    key: keyof VolunteerScheduleFilterDTO,
+    value: any
+  ) => {
+    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setFilters((prev) => ({ ...prev, page: newPage }));
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Quản lý lịch trình tình nguyện viên
+          </h1>
+          <p className="text-gray-600">
+            Phân công và quản lý lịch trình làm việc của tình nguyện viên
+          </p>
+        </div>
+        <Button onClick={createModal.open}>
+          <Plus className="h-4 w-4 mr-2" />
+          Tạo lịch trình
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Bộ lọc</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Sự kiện</Label>
+              <Select
+                value={filters.eventId?.toString() || ""}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    "eventId",
+                    value ? parseInt(value) : undefined
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả sự kiện" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tất cả sự kiện</SelectItem>
+                  {events.map((event) => (
+                    <SelectItem
+                      key={event.eventId}
+                      value={event.eventId.toString()}
+                    >
+                      {event.eventName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trạng thái</Label>
+              <Select
+                value={filters.status || ""}
+                onValueChange={(value) =>
+                  handleFilterChange("status", value || undefined)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
+                  <SelectItem value="InProgress">Đang thực hiện</SelectItem>
+                  <SelectItem value="Completed">Hoàn thành</SelectItem>
+                  <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Loại lịch trình</Label>
+              <Select
+                value={filters.scheduleType || ""}
+                onValueChange={(value) =>
+                  handleFilterChange("scheduleType", value || undefined)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tất cả loại</SelectItem>
+                  <SelectItem value="Event">Sự kiện</SelectItem>
+                  <SelectItem value="Training">Đào tạo</SelectItem>
+                  <SelectItem value="Meeting">Họp</SelectItem>
+                  <SelectItem value="Task">Nhiệm vụ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tìm kiếm</Label>
+              <Input
+                placeholder="Tìm theo tên, tình nguyện viên..."
+                value={filters.search || ""}
+                onChange={(e) =>
+                  handleFilterChange("search", e.target.value || undefined)
+                }
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Schedules Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách lịch trình</CardTitle>
+          <CardDescription>Tổng cộng {totalItems} lịch trình</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="ml-2">Đang tải...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tình nguyện viên</TableHead>
+                  <TableHead>Tiêu đề</TableHead>
+                  <TableHead>Sự kiện</TableHead>
+                  <TableHead>Thời gian</TableHead>
+                  <TableHead>Địa điểm</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Ưu tiên</TableHead>
+                  <TableHead>Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {schedules.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      Không có lịch trình nào
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  schedules.map((schedule) => (
+                    <TableRow key={schedule.scheduleId}>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">
+                              {schedule.volunteerName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {schedule.volunteerEmail}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{schedule.title}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {schedule.description}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {schedule.eventName ? (
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>{schedule.eventName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-sm">
+                              {formatDateTime(schedule.startDateTime)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              đến {formatDateTime(schedule.endDateTime)}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {schedule.location ? (
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{schedule.location}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusColor(schedule.status) as any}>
+                          {schedule.status === "Scheduled" && "Đã lên lịch"}
+                          {schedule.status === "InProgress" && "Đang thực hiện"}
+                          {schedule.status === "Completed" && "Hoàn thành"}
+                          {schedule.status === "Cancelled" && "Đã hủy"}
+                          {![
+                            "Scheduled",
+                            "InProgress",
+                            "Completed",
+                            "Cancelled",
+                          ].includes(schedule.status || "") &&
+                            (schedule.status || "Không xác định")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={getPriorityColor(schedule.priority) as any}
+                        >
+                          {schedule.priority === "High" && "Cao"}
+                          {schedule.priority === "Medium" && "Trung bình"}
+                          {schedule.priority === "Low" && "Thấp"}
+                          {!["High", "Medium", "Low"].includes(
+                            schedule.priority || ""
+                          ) &&
+                            (schedule.priority || "Không xác định")}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditModal(schedule)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteModal.openWith(schedule)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pagination */}
+      {totalItems > (filters.size || 20) && (
+        <div className="flex justify-center mt-6">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={filters.page === 1}
+              onClick={() => handlePageChange((filters.page || 1) - 1)}
+            >
+              Trước
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Trang {filters.page} /{" "}
+              {Math.ceil(totalItems / (filters.size || 20))}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={
+                filters.page === Math.ceil(totalItems / (filters.size || 20))
+              }
+              onClick={() => handlePageChange((filters.page || 1) + 1)}
+            >
+              Sau
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Schedule Modal */}
+      <Dialog open={createModal.isOpen} onOpenChange={createModal.close}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Tạo lịch trình mới</DialogTitle>
+            <DialogDescription>
+              Tạo lịch trình mới cho tình nguyện viên
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tình nguyện viên *</Label>
+              <Select
+                value={formData.volunteerId?.toString() || ""}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, volunteerId: parseInt(value) })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn tình nguyện viên" />
+                </SelectTrigger>
+                <SelectContent>
+                  {volunteers.map((volunteer) => (
+                    <SelectItem
+                      key={volunteer.volunteerId}
+                      value={volunteer.volunteerId.toString()}
+                    >
+                      {volunteer.firstName} {volunteer.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sự kiện</Label>
+              <Select
+                value={formData.eventId?.toString() || ""}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    eventId: value ? parseInt(value) : null,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Không chọn sự kiện</SelectItem>
+                  {events.map((event) => (
+                    <SelectItem
+                      key={event.eventId}
+                      value={event.eventId.toString()}
+                    >
+                      {event.eventName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Tiêu đề *</Label>
+              <Input
+                placeholder="Nhập tiêu đề lịch trình"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Mô tả</Label>
+              <Textarea
+                placeholder="Mô tả chi tiết về lịch trình"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Thời gian bắt đầu *</Label>
+              <Input
+                type="datetime-local"
+                value={formData.startDateTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDateTime: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Thời gian kết thúc *</Label>
+              <Input
+                type="datetime-local"
+                value={formData.endDateTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, endDateTime: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Địa điểm</Label>
+              <Input
+                placeholder="Địa điểm thực hiện"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Loại lịch trình</Label>
+              <Select
+                value={formData.scheduleType}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, scheduleType: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Event">Sự kiện</SelectItem>
+                  <SelectItem value="Training">Đào tạo</SelectItem>
+                  <SelectItem value="Meeting">Họp</SelectItem>
+                  <SelectItem value="Task">Nhiệm vụ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Mức độ ưu tiên</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, priority: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="High">Cao</SelectItem>
+                  <SelectItem value="Medium">Trung bình</SelectItem>
+                  <SelectItem value="Low">Thấp</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trạng thái</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
+                  <SelectItem value="InProgress">Đang thực hiện</SelectItem>
+                  <SelectItem value="Completed">Hoàn thành</SelectItem>
+                  <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nhắc nhở (phút)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={formData.reminderMinutes}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    reminderMinutes: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Ghi chú</Label>
+              <Textarea
+                placeholder="Ghi chú thêm về lịch trình"
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={createModal.close}>
+              Hủy
+            </Button>
+            <Button onClick={handleCreateSchedule}>Tạo lịch trình</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Schedule Modal */}
+      <Dialog open={editModal.isOpen} onOpenChange={editModal.close}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa lịch trình</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin lịch trình tình nguyện viên
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Same form structure as create modal */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tình nguyện viên *</Label>
+              <Select
+                value={formData.volunteerId?.toString() || ""}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, volunteerId: parseInt(value) })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn tình nguyện viên" />
+                </SelectTrigger>
+                <SelectContent>
+                  {volunteers.map((volunteer) => (
+                    <SelectItem
+                      key={volunteer.volunteerId}
+                      value={volunteer.volunteerId.toString()}
+                    >
+                      {volunteer.firstName} {volunteer.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sự kiện</Label>
+              <Select
+                value={formData.eventId?.toString() || ""}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    eventId: value ? parseInt(value) : null,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Không chọn sự kiện</SelectItem>
+                  {events.map((event) => (
+                    <SelectItem
+                      key={event.eventId}
+                      value={event.eventId.toString()}
+                    >
+                      {event.eventName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Tiêu đề *</Label>
+              <Input
+                placeholder="Nhập tiêu đề lịch trình"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Mô tả</Label>
+              <Textarea
+                placeholder="Mô tả chi tiết về lịch trình"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Thời gian bắt đầu *</Label>
+              <Input
+                type="datetime-local"
+                value={formData.startDateTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDateTime: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Thời gian kết thúc *</Label>
+              <Input
+                type="datetime-local"
+                value={formData.endDateTime}
+                onChange={(e) =>
+                  setFormData({ ...formData, endDateTime: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Địa điểm</Label>
+              <Input
+                placeholder="Địa điểm thực hiện"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Loại lịch trình</Label>
+              <Select
+                value={formData.scheduleType}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, scheduleType: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Event">Sự kiện</SelectItem>
+                  <SelectItem value="Training">Đào tạo</SelectItem>
+                  <SelectItem value="Meeting">Họp</SelectItem>
+                  <SelectItem value="Task">Nhiệm vụ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Mức độ ưu tiên</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, priority: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="High">Cao</SelectItem>
+                  <SelectItem value="Medium">Trung bình</SelectItem>
+                  <SelectItem value="Low">Thấp</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Trạng thái</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, status: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
+                  <SelectItem value="InProgress">Đang thực hiện</SelectItem>
+                  <SelectItem value="Completed">Hoàn thành</SelectItem>
+                  <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nhắc nhở (phút)</Label>
+              <Input
+                type="number"
+                min="0"
+                value={formData.reminderMinutes}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    reminderMinutes: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Ghi chú</Label>
+              <Textarea
+                placeholder="Ghi chú thêm về lịch trình"
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={editModal.close}>
+              Hủy
+            </Button>
+            <Button onClick={handleEditSchedule}>Lưu thay đổi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModal.isOpen} onOpenChange={deleteModal.close}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa lịch trình "{deleteModal.data?.title}"?
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={deleteModal.close}>
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteSchedule}>
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

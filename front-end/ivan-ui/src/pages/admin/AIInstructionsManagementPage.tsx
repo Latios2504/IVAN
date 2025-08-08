@@ -45,9 +45,11 @@ import {
   Settings,
   Loader2,
   BarChart3,
+  Eye,
 } from "lucide-react";
 import CustomInstructionBuilder from "@/components/admin/ai-custom-instructions/CustomInstructionBuilder";
 import TestingPlayground from "@/components/admin/ai-custom-instructions/TestingPlayground";
+import InstructionPreview from "@/components/admin/ai-custom-instructions/InstructionPreview";
 
 const AIInstructionsManagementPageContent: React.FC = () => {
   const { user } = useAuth();
@@ -89,6 +91,8 @@ const AIInstructionsManagementPageContent: React.FC = () => {
     "overview" | "builder" | "testing"
   >("overview");
   const [selectedInstruction, setSelectedInstruction] =
+    useState<AiCustomInstructionDTO | null>(null);
+  const [previewInstruction, setPreviewInstruction] =
     useState<AiCustomInstructionDTO | null>(null);
 
   // Load data on mount
@@ -186,7 +190,13 @@ const AIInstructionsManagementPageContent: React.FC = () => {
 
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as any)}
+        onValueChange={(value) => {
+          // Clear selected instruction when switching to create new mode
+          if (value === "builder" && activeTab !== "builder") {
+            setSelectedInstruction(null);
+          }
+          setActiveTab(value as any);
+        }}
       >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center gap-2">
@@ -195,7 +205,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Tạo mới
+            {selectedInstruction ? "Chỉnh sửa" : "Tạo mới"}
           </TabsTrigger>
           <TabsTrigger value="testing" className="flex items-center gap-2">
             <Play className="h-4 w-4" />
@@ -309,6 +319,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                     <TableRow>
                       <TableHead>Tên</TableHead>
                       <TableHead>System Prompt</TableHead>
+                      <TableHead>Hướng dẫn hành vi</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Ngày tạo</TableHead>
                       <TableHead className="w-[100px]">Hành động</TableHead>
@@ -322,6 +333,21 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                         </TableCell>
                         <TableCell className="max-w-xs truncate">
                           {instruction.systemPrompt}
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div
+                            className="truncate"
+                            title={instruction.behaviorInstructions}
+                          >
+                            {instruction.behaviorInstructions
+                              ? instruction.behaviorInstructions
+                                  .replace(/\n/g, " • ")
+                                  .substring(0, 100) +
+                                (instruction.behaviorInstructions.length > 100
+                                  ? "..."
+                                  : "")
+                              : "Không có"}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -346,6 +372,14 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                onClick={() =>
+                                  setPreviewInstruction(instruction)
+                                }
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Xem trước
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => {
                                   setSelectedInstruction(instruction);
                                   setActiveTab("testing");
@@ -353,6 +387,15 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                               >
                                 <Play className="h-4 w-4 mr-2" />
                                 Kiểm tra
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedInstruction(instruction);
+                                  setActiveTab("builder");
+                                }}
+                              >
+                                <Settings className="h-4 w-4 mr-2" />
+                                Chỉnh sửa
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={async () => {
@@ -392,29 +435,53 @@ const AIInstructionsManagementPageContent: React.FC = () => {
         <TabsContent value="builder">
           <Card>
             <CardHeader>
-              <CardTitle>Tạo AI Instruction mới</CardTitle>
+              <CardTitle>
+                {selectedInstruction
+                  ? "Chỉnh sửa AI Instruction"
+                  : "Tạo AI Instruction mới"}
+              </CardTitle>
               <CardDescription>
-                Tạo hướng dẫn tùy chỉnh cho AI Assistant
+                {selectedInstruction
+                  ? "Chỉnh sửa hướng dẫn tùy chỉnh cho AI Assistant"
+                  : "Tạo hướng dẫn tùy chỉnh cho AI Assistant"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <CustomInstructionBuilder
+                editingInstruction={selectedInstruction || undefined}
                 onSave={async (data) => {
                   try {
-                    await aiInstructionsDataService.create(data);
+                    if (selectedInstruction) {
+                      // Update existing instruction
+                      await aiInstructionsDataService.update(
+                        selectedInstruction.instructionId,
+                        data as AiCustomInstructionUpdateDTO
+                      );
+                    } else {
+                      // Create new instruction
+                      await aiInstructionsDataService.create(
+                        data as AiCustomInstructionCreateDTO
+                      );
+                    }
                     // Refresh data
                     const result = await aiInstructionsDataService.getAll();
                     setInstructions(result);
+                    setSelectedInstruction(null);
                     setActiveTab("overview");
                   } catch (err) {
                     setError(
                       err instanceof Error
                         ? err.message
+                        : selectedInstruction
+                        ? "Failed to update instruction"
                         : "Failed to create instruction"
                     );
                   }
                 }}
-                onCancel={() => setActiveTab("overview")}
+                onCancel={() => {
+                  setSelectedInstruction(null);
+                  setActiveTab("overview");
+                }}
                 onPreview={() => {}}
               />
             </CardContent>
@@ -458,6 +525,18 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Preview Modal */}
+      {previewInstruction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <InstructionPreview
+              data={previewInstruction}
+              onClose={() => setPreviewInstruction(null)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

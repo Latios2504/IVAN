@@ -12,11 +12,16 @@ import type {
  */
 class AIInstructionsService {
   /**
-   * Helper function to handle Entity Framework's $values format
+   * Helper function to handle Entity Framework's $values format and API response wrapper
    */
   private normalizeArrayResponse<T>(data: any): T[] {
     if (!data) {
       return [];
+    }
+
+    // Handle backend API response wrapper { success: true, data: ... }
+    if (data.success && data.data !== undefined) {
+      data = data.data;
     }
 
     // Handle Entity Framework's $values format
@@ -38,6 +43,17 @@ class AIInstructionsService {
     return [];
   }
 
+  /**
+   * Helper function to normalize single item response
+   */
+  private normalizeSingleResponse<T>(response: any): T {
+    // Handle backend API response wrapper { success: true, data: ... }
+    if (response.success && response.data !== undefined) {
+      return response.data;
+    }
+    return response;
+  }
+
   private readonly baseEndpoint = "/AiCustomInstruction";
 
   /**
@@ -50,7 +66,7 @@ class AIInstructionsService {
       this.baseEndpoint,
       data
     );
-    return response.data;
+    return this.normalizeSingleResponse(response.data);
   }
 
   /**
@@ -64,7 +80,7 @@ class AIInstructionsService {
       `${this.baseEndpoint}/${instructionId}`,
       data
     );
-    return response.data;
+    return this.normalizeSingleResponse(response.data);
   }
 
   /**
@@ -82,10 +98,10 @@ class AIInstructionsService {
     data: ToggleInstructionStatusDTO
   ): Promise<AiCustomInstructionDTO> {
     const response = await apiClient.patch<AiCustomInstructionDTO>(
-      `${this.baseEndpoint}/${instructionId}/toggle-status`,
+      `${this.baseEndpoint}/${instructionId}/status`,
       data
     );
-    return response.data;
+    return this.normalizeSingleResponse(response.data);
   }
 
   /**
@@ -93,7 +109,7 @@ class AIInstructionsService {
    */
   async getUserInstructions(): Promise<AiCustomInstructionDTO[]> {
     const response = await apiClient.get<AiCustomInstructionDTO[]>(
-      `${this.baseEndpoint}/user`
+      this.baseEndpoint
     );
     return this.normalizeArrayResponse(response.data);
   }
@@ -117,7 +133,7 @@ class AIInstructionsService {
     const response = await apiClient.get<AiCustomInstructionDTO>(
       `${this.baseEndpoint}/${instructionId}`
     );
-    return response.data;
+    return this.normalizeSingleResponse(response.data);
   }
 
   /**
@@ -146,7 +162,7 @@ class AIInstructionsService {
     const response = await apiClient.get<Record<string, any>>(
       `/Ai/configuration`
     );
-    return response.data;
+    return this.normalizeSingleResponse(response.data);
   }
 
   /**

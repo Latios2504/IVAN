@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +18,10 @@ import {
   Plus,
   Eye,
   Filter,
+  ClipboardList,
 } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import type { VolunteerStats } from "@/services/dashboardService";
+import type { VolunteerStats } from "@/types/dashboard";
 
 interface VolunteerActivity {
   id: string;
@@ -270,6 +272,41 @@ export default function VolunteerDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Hành động nhanh</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button asChild className="w-full">
+                <Link
+                  to="/volunteer/schedule"
+                  className="flex items-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Xem lịch trình của tôi
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link
+                  to="/volunteer/my-tasks"
+                  className="flex items-center gap-2"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  Nhiệm vụ của tôi
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full">
+                <Eye className="w-4 h-4 mr-2" />
+                Tìm kiếm hoạt động mới
+              </Button>
+              <Button variant="outline" className="w-full">
+                <Filter className="w-4 h-4 mr-2" />
+                Lọc hoạt động phù hợp
+              </Button>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

@@ -1,46 +1,51 @@
+using AutoMapper;
 using ivan_api.DTOs.CoordinatorSchedule;
 using ivan_api.DTOs.Common;
-using ivan_api.DTOs.Authentication;
 using ivan_api.Models;
-using Microsoft.EntityFrameworkCore;
+using ivan_api.Repository.CoordinatorScheduleRepo;
 
 namespace ivan_api.Services.CoordinatorScheduleServ
 {
     public class CoordinatorScheduleService : ICoordinatorScheduleService
     {
-        private readonly VolunteerManagementSystemContext _context;
+        private readonly ICoordinatorScheduleRepository _repository;
+        private readonly IMapper _mapper;
 
-        public CoordinatorScheduleService(VolunteerManagementSystemContext context)
+        public CoordinatorScheduleService(ICoordinatorScheduleRepository repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<CoordinatorScheduleDto>> GetScheduleByIdAsync(int organizationId, int scheduleId)
         {
             try
             {
-                var schedule = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                        .ThenInclude(c => c.User)
-                            .ThenInclude(u => u.UserProfiles)
-                    .Include(s => s.Event)
-                    .Include(s => s.CreatedByNavigation)
-                        .ThenInclude(cb => cb.UserProfiles)
-                    .Where(s => s.ScheduleId == scheduleId && s.Coordinator.OrganizationId == organizationId)
-                    .FirstOrDefaultAsync();
-
+                var schedule = await _repository.GetByIdAsync(scheduleId);
+                
                 if (schedule == null)
                 {
                     return new ApiResponseDTO<CoordinatorScheduleDto>
                     {
                         Success = false,
                         Message = "Schedule not found",
-                        Errors = new List<string> { "The specified schedule does not exist or does not belong to your organization." }
+                        Errors = new List<string> { "Schedule not found" }
                     };
                 }
 
-                var scheduleDto = MapToDto(schedule);
+                // Verify the schedule belongs to the organization
+                if (schedule.Coordinator?.OrganizationId != organizationId)
+                {
+                    return new ApiResponseDTO<CoordinatorScheduleDto>
+                    {
+                        Success = false,
+                        Message = "Unauthorized access to schedule",
+                        Errors = new List<string> { "Schedule not found" }
+                    };
+                }
 
+                var scheduleDto = _mapper.Map<CoordinatorScheduleDto>(schedule);
+                
                 return new ApiResponseDTO<CoordinatorScheduleDto>
                 {
                     Success = true,
@@ -64,118 +69,22 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var query = _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                        .ThenInclude(c => c.User)
-                            .ThenInclude(u => u.UserProfiles)
-                    .Include(s => s.Event)
-                    .Include(s => s.CreatedByNavigation)
-                        .ThenInclude(cb => cb.UserProfiles)
-                    .Where(s => s.Coordinator.OrganizationId == organizationId);
+                var schedules = await _repository.GetOrganizationSchedulesAsync(organizationId, filter);
+                var scheduleDtos = _mapper.Map<List<CoordinatorScheduleDto>>(schedules.Items);
 
-                // Apply filters
-                if (filter.CoordinatorId.HasValue)
-                {
-                    query = query.Where(s => s.CoordinatorId == filter.CoordinatorId.Value);
-                }
-
-                if (filter.EventId.HasValue)
-                {
-                    query = query.Where(s => s.EventId == filter.EventId.Value);
-                }
-
-                if (filter.StartDateFrom.HasValue)
-                {
-                    query = query.Where(s => s.StartDateTime >= filter.StartDateFrom.Value);
-                }
-
-                if (filter.StartDateTo.HasValue)
-                {
-                    query = query.Where(s => s.StartDateTime <= filter.StartDateTo.Value);
-                }
-
-                if (filter.EndDateFrom.HasValue)
-                {
-                    query = query.Where(s => s.EndDateTime >= filter.EndDateFrom.Value);
-                }
-
-                if (filter.EndDateTo.HasValue)
-                {
-                    query = query.Where(s => s.EndDateTime <= filter.EndDateTo.Value);
-                }
-
-                if (!string.IsNullOrEmpty(filter.ScheduleType))
-                {
-                    query = query.Where(s => s.ScheduleType == filter.ScheduleType);
-                }
-
-                if (!string.IsNullOrEmpty(filter.Priority))
-                {
-                    query = query.Where(s => s.Priority == filter.Priority);
-                }
-
-                if (!string.IsNullOrEmpty(filter.Status))
-                {
-                    query = query.Where(s => s.Status == filter.Status);
-                }
-
-                if (!string.IsNullOrEmpty(filter.Search))
-                {
-                    query = query.Where(s => 
-                        s.Title.Contains(filter.Search) ||
-                        s.Description!.Contains(filter.Search) ||
-                        s.Coordinator.User.UserProfiles.Any(up => up.FullName.Contains(filter.Search))
-                    );
-                }
-
-                // Apply sorting
-                query = filter.SortBy?.ToLower() switch
-                {
-                    "title" => filter.SortDirection?.ToLower() == "desc" 
-                        ? query.OrderByDescending(s => s.Title)
-                        : query.OrderBy(s => s.Title),
-                    "coordinatorname" => filter.SortDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(s => s.Coordinator.User.UserProfiles.FirstOrDefault()!.FullName)
-                        : query.OrderBy(s => s.Coordinator.User.UserProfiles.FirstOrDefault()!.FullName),
-                    "eventname" => filter.SortDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(s => s.Event!.EventName)
-                        : query.OrderBy(s => s.Event!.EventName),
-                    "status" => filter.SortDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(s => s.Status)
-                        : query.OrderBy(s => s.Status),
-                    "priority" => filter.SortDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(s => s.Priority)
-                        : query.OrderBy(s => s.Priority),
-                    "enddatetime" => filter.SortDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(s => s.EndDateTime)
-                        : query.OrderBy(s => s.EndDateTime),
-                    _ => filter.SortDirection?.ToLower() == "desc"
-                        ? query.OrderByDescending(s => s.StartDateTime)
-                        : query.OrderBy(s => s.StartDateTime)
-                };
-
-                var totalCount = await query.CountAsync();
-
-                var schedules = await query
-                    .Skip((filter.Page - 1) * filter.Size)
-                    .Take(filter.Size)
-                    .ToListAsync();
-
-                var scheduleDtos = schedules.Select(MapToDto).ToList();
-
-                var result = new PagedResultDto<CoordinatorScheduleDto>
+                var pagedResult = new PagedResultDto<CoordinatorScheduleDto>
                 {
                     Items = scheduleDtos,
-                    PageNumber = filter.Page,
-                    PageSize = filter.Size,
-                    TotalCount = totalCount
+                    TotalCount = schedules.TotalCount,
+                    PageNumber = schedules.PageNumber,
+                    PageSize = schedules.PageSize
                 };
 
                 return new ApiResponseDTO<PagedResultDto<CoordinatorScheduleDto>>
                 {
                     Success = true,
                     Message = "Schedules retrieved successfully",
-                    Data = result
+                    Data = pagedResult
                 };
             }
             catch (Exception ex)
@@ -194,76 +103,45 @@ namespace ivan_api.Services.CoordinatorScheduleServ
             try
             {
                 // Verify coordinator belongs to organization
-                var coordinator = await _context.VolunteerCoordinators
-                    .FirstOrDefaultAsync(c => c.CoordinatorId == createDto.CoordinatorId && c.OrganizationId == organizationId);
-
-                if (coordinator == null)
+                var coordinator = await _repository.GetCoordinatorByIdAsync(createDto.CoordinatorId);
+                if (coordinator?.OrganizationId != organizationId)
                 {
                     return new ApiResponseDTO<int>
                     {
                         Success = false,
-                        Message = "Coordinator not found",
-                        Errors = new List<string> { "The specified coordinator does not belong to your organization." }
+                        Message = "Coordinator not found or doesn't belong to organization",
+                        Errors = new List<string> { "Invalid coordinator" }
                     };
                 }
 
-                // Verify event belongs to organization if specified
-                if (createDto.EventId.HasValue)
-                {
-                    var eventExists = await _context.Events
-                        .AnyAsync(e => e.EventId == createDto.EventId.Value && e.OrganizationId == organizationId);
+                // Check for conflicts
+                var conflicts = await _repository.CheckConflictsAsync(
+                    createDto.CoordinatorId, 
+                    createDto.StartDateTime, 
+                    createDto.EndDateTime);
 
-                    if (!eventExists)
-                    {
-                        return new ApiResponseDTO<int>
-                        {
-                            Success = false,
-                            Message = "Event not found",
-                            Errors = new List<string> { "The specified event does not belong to your organization." }
-                        };
-                    }
-                }
-
-                // Check for schedule conflicts
-                var conflictCheck = await CheckScheduleConflictsAsync(createDto.CoordinatorId, createDto.StartDateTime, createDto.EndDateTime);
-                if (conflictCheck.Success && conflictCheck.Data!.Any())
+                if (conflicts.Any())
                 {
                     return new ApiResponseDTO<int>
                     {
                         Success = false,
-                        Message = "Schedule conflict detected",
-                        Errors = new List<string> { $"The coordinator already has {conflictCheck.Data.Count} conflicting schedule(s) during this time." }
+                        Message = "Schedule conflicts detected",
+                        Errors = new List<string> { "The coordinator has conflicting schedules during this time" }
                     };
                 }
 
-                var schedule = new CoordinatorSchedule
-                {
-                    CoordinatorId = createDto.CoordinatorId,
-                    EventId = createDto.EventId,
-                    Title = createDto.Title,
-                    Description = createDto.Description,
-                    StartDateTime = createDto.StartDateTime,
-                    EndDateTime = createDto.EndDateTime,
-                    Location = createDto.Location,
-                    ScheduleType = createDto.ScheduleType,
-                    Priority = createDto.Priority,
-                    Status = createDto.Status,
-                    IsAllDay = createDto.IsAllDay,
-                    ReminderMinutes = createDto.ReminderMinutes,
-                    Notes = createDto.Notes,
-                    CreatedBy = createdBy,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                var schedule = _mapper.Map<CoordinatorSchedule>(createDto);
+                schedule.CreatedBy = createdBy;
+                schedule.CreatedAt = DateTime.UtcNow;
+                schedule.UpdatedAt = DateTime.UtcNow;
 
-                _context.CoordinatorSchedules.Add(schedule);
-                await _context.SaveChangesAsync();
+                var scheduleId = await _repository.CreateAsync(schedule);
 
                 return new ApiResponseDTO<int>
                 {
                     Success = true,
                     Message = "Schedule created successfully",
-                    Data = schedule.ScheduleId
+                    Data = scheduleId
                 };
             }
             catch (Exception ex)
@@ -281,71 +159,51 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var schedule = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                    .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Coordinator.OrganizationId == organizationId);
-
-                if (schedule == null)
+                var existingSchedule = await _repository.GetByIdAsync(scheduleId);
+                
+                if (existingSchedule == null || existingSchedule.Coordinator?.OrganizationId != organizationId)
                 {
                     return new ApiResponseDTO<bool>
                     {
                         Success = false,
                         Message = "Schedule not found",
-                        Errors = new List<string> { "The specified schedule does not exist or does not belong to your organization." }
+                        Errors = new List<string> { "Schedule not found" }
                     };
                 }
 
                 // Check for conflicts if time is being changed
                 if (updateDto.StartDateTime.HasValue || updateDto.EndDateTime.HasValue)
                 {
-                    var newStartTime = updateDto.StartDateTime ?? schedule.StartDateTime;
-                    var newEndTime = updateDto.EndDateTime ?? schedule.EndDateTime;
+                    var startTime = updateDto.StartDateTime ?? existingSchedule.StartDateTime;
+                    var endTime = updateDto.EndDateTime ?? existingSchedule.EndDateTime;
 
-                    var conflictCheck = await CheckScheduleConflictsAsync(schedule.CoordinatorId, newStartTime, newEndTime, scheduleId);
-                    if (conflictCheck.Success && conflictCheck.Data!.Any())
+                    var conflicts = await _repository.CheckConflictsAsync(
+                        existingSchedule.CoordinatorId, 
+                        startTime, 
+                        endTime, 
+                        scheduleId);
+
+                    if (conflicts.Any())
                     {
                         return new ApiResponseDTO<bool>
                         {
                             Success = false,
-                            Message = "Schedule conflict detected",
-                            Errors = new List<string> { $"The coordinator already has {conflictCheck.Data.Count} conflicting schedule(s) during this time." }
+                            Message = "Schedule conflicts detected",
+                            Errors = new List<string> { "The coordinator has conflicting schedules during this time" }
                         };
                     }
                 }
 
-                // Update fields
-                if (!string.IsNullOrEmpty(updateDto.Title))
-                    schedule.Title = updateDto.Title;
-                if (updateDto.Description != null)
-                    schedule.Description = updateDto.Description;
-                if (updateDto.StartDateTime.HasValue)
-                    schedule.StartDateTime = updateDto.StartDateTime.Value;
-                if (updateDto.EndDateTime.HasValue)
-                    schedule.EndDateTime = updateDto.EndDateTime.Value;
-                if (updateDto.Location != null)
-                    schedule.Location = updateDto.Location;
-                if (!string.IsNullOrEmpty(updateDto.ScheduleType))
-                    schedule.ScheduleType = updateDto.ScheduleType;
-                if (!string.IsNullOrEmpty(updateDto.Priority))
-                    schedule.Priority = updateDto.Priority;
-                if (!string.IsNullOrEmpty(updateDto.Status))
-                    schedule.Status = updateDto.Status;
-                if (updateDto.IsAllDay.HasValue)
-                    schedule.IsAllDay = updateDto.IsAllDay.Value;
-                if (updateDto.ReminderMinutes.HasValue)
-                    schedule.ReminderMinutes = updateDto.ReminderMinutes.Value;
-                if (updateDto.Notes != null)
-                    schedule.Notes = updateDto.Notes;
+                _mapper.Map(updateDto, existingSchedule);
+                existingSchedule.UpdatedAt = DateTime.UtcNow;
 
-                schedule.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
+                var success = await _repository.UpdateAsync(existingSchedule);
 
                 return new ApiResponseDTO<bool>
                 {
-                    Success = true,
-                    Message = "Schedule updated successfully",
-                    Data = true
+                    Success = success,
+                    Message = success ? "Schedule updated successfully" : "Failed to update schedule",
+                    Data = success
                 };
             }
             catch (Exception ex)
@@ -363,28 +221,25 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var schedule = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                    .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Coordinator.OrganizationId == organizationId);
-
-                if (schedule == null)
+                var schedule = await _repository.GetByIdAsync(scheduleId);
+                
+                if (schedule == null || schedule.Coordinator?.OrganizationId != organizationId)
                 {
                     return new ApiResponseDTO<bool>
                     {
                         Success = false,
                         Message = "Schedule not found",
-                        Errors = new List<string> { "The specified schedule does not exist or does not belong to your organization." }
+                        Errors = new List<string> { "Schedule not found" }
                     };
                 }
 
-                _context.CoordinatorSchedules.Remove(schedule);
-                await _context.SaveChangesAsync();
+                var success = await _repository.DeleteAsync(scheduleId);
 
                 return new ApiResponseDTO<bool>
                 {
-                    Success = true,
-                    Message = "Schedule deleted successfully",
-                    Data = true
+                    Success = success,
+                    Message = success ? "Schedule deleted successfully" : "Failed to delete schedule",
+                    Data = success
                 };
             }
             catch (Exception ex)
@@ -403,25 +258,23 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                // Find the coordinator record
-                var coordinator = await _context.VolunteerCoordinators
-                    .FirstOrDefaultAsync(c => c.UserId == coordinatorUserId);
+                var schedules = await _repository.GetPersonalSchedulesAsync(coordinatorUserId, filter);
+                var scheduleDtos = _mapper.Map<List<CoordinatorScheduleDto>>(schedules.Items);
 
-                if (coordinator == null)
+                var pagedResult = new PagedResultDto<CoordinatorScheduleDto>
                 {
-                    return new ApiResponseDTO<PagedResultDto<CoordinatorScheduleDto>>
-                    {
-                        Success = false,
-                        Message = "Coordinator profile not found",
-                        Errors = new List<string> { "No coordinator profile found for this user." }
-                    };
-                }
+                    Items = scheduleDtos,
+                    TotalCount = schedules.TotalCount,
+                    PageNumber = schedules.PageNumber,
+                    PageSize = schedules.PageSize
+                };
 
-                // Set filter to current coordinator
-                filter.CoordinatorId = coordinator.CoordinatorId;
-
-                // Use the organization schedules method but filtered to this coordinator
-                return await GetOrganizationSchedulesAsync(coordinator.OrganizationId, filter);
+                return new ApiResponseDTO<PagedResultDto<CoordinatorScheduleDto>>
+                {
+                    Success = true,
+                    Message = "Personal schedules retrieved successfully",
+                    Data = pagedResult
+                };
             }
             catch (Exception ex)
             {
@@ -438,62 +291,12 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var schedules = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                        .ThenInclude(c => c.User)
-                            .ThenInclude(u => u.UserProfiles)
-                    .Where(s => s.Coordinator.OrganizationId == organizationId)
-                    .ToListAsync();
-
-                var today = DateTime.Today;
-                var weekStart = today.AddDays(-(int)today.DayOfWeek);
-                var monthStart = new DateTime(today.Year, today.Month, 1);
-
-                var stats = new CoordinatorScheduleStatsDto
-                {
-                    TotalSchedules = schedules.Count,
-                    ScheduledCount = schedules.Count(s => s.Status == "Scheduled"),
-                    InProgressCount = schedules.Count(s => s.Status == "In Progress"),
-                    CompletedCount = schedules.Count(s => s.Status == "Completed"),
-                    CancelledCount = schedules.Count(s => s.Status == "Cancelled"),
-                    TodaySchedules = schedules.Count(s => s.StartDateTime.Date == today),
-                    ThisWeekSchedules = schedules.Count(s => s.StartDateTime.Date >= weekStart && s.StartDateTime.Date < weekStart.AddDays(7)),
-                    ThisMonthSchedules = schedules.Count(s => s.StartDateTime.Year == today.Year && s.StartDateTime.Month == today.Month),
-                    UpcomingSchedules = schedules.Count(s => s.StartDateTime > DateTime.Now && s.Status == "Scheduled"),
-                    OverdueSchedules = schedules.Count(s => s.EndDateTime < DateTime.Now && s.Status != "Completed" && s.Status != "Cancelled")
-                };
-
-                // Group by type
-                stats.SchedulesByType = schedules
-                    .Where(s => !string.IsNullOrEmpty(s.ScheduleType))
-                    .GroupBy(s => s.ScheduleType!)
-                    .ToDictionary(g => g.Key, g => g.Count());
-
-                // Group by priority
-                stats.SchedulesByPriority = schedules
-                    .Where(s => !string.IsNullOrEmpty(s.Priority))
-                    .GroupBy(s => s.Priority!)
-                    .ToDictionary(g => g.Key, g => g.Count());
-
-                // Top coordinators
-                stats.TopCoordinators = schedules
-                    .GroupBy(s => new { s.CoordinatorId, CoordinatorName = s.Coordinator.User.UserProfiles.FirstOrDefault()!.FullName })
-                    .Select(g => new CoordinatorScheduleStatsItem
-                    {
-                        CoordinatorId = g.Key.CoordinatorId,
-                        CoordinatorName = g.Key.CoordinatorName,
-                        ScheduleCount = g.Count(),
-                        CompletedCount = g.Count(s => s.Status == "Completed"),
-                        CompletionRate = g.Count() > 0 ? (double)g.Count(s => s.Status == "Completed") / g.Count() * 100 : 0
-                    })
-                    .OrderByDescending(x => x.ScheduleCount)
-                    .Take(10)
-                    .ToList();
+                var stats = await _repository.GetScheduleStatsAsync(organizationId);
 
                 return new ApiResponseDTO<CoordinatorScheduleStatsDto>
                 {
                     Success = true,
-                    Message = "Schedule statistics retrieved successfully",
+                    Message = "Statistics retrieved successfully",
                     Data = stats
                 };
             }
@@ -502,7 +305,7 @@ namespace ivan_api.Services.CoordinatorScheduleServ
                 return new ApiResponseDTO<CoordinatorScheduleStatsDto>
                 {
                     Success = false,
-                    Message = "An error occurred while retrieving schedule statistics",
+                    Message = "An error occurred while retrieving statistics",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -513,43 +316,14 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var query = _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                        .ThenInclude(c => c.User)
-                            .ThenInclude(u => u.UserProfiles)
-                    .Include(s => s.Event)
-                    .Where(s => s.Coordinator.OrganizationId == organizationId &&
-                               s.StartDateTime >= startDate &&
-                               s.StartDateTime <= endDate);
-
-                if (coordinatorId.HasValue)
-                {
-                    query = query.Where(s => s.CoordinatorId == coordinatorId.Value);
-                }
-
-                var schedules = await query
-                    .OrderBy(s => s.StartDateTime)
-                    .ToListAsync();
-
-                var summaries = schedules.Select(s => new CoordinatorScheduleSummaryDto
-                {
-                    ScheduleId = s.ScheduleId,
-                    Title = s.Title,
-                    StartDateTime = s.StartDateTime,
-                    EndDateTime = s.EndDateTime,
-                    ScheduleType = s.ScheduleType,
-                    Priority = s.Priority,
-                    Status = s.Status,
-                    IsAllDay = s.IsAllDay,
-                    CoordinatorName = s.Coordinator.User.UserProfiles.FirstOrDefault()?.FullName,
-                    EventName = s.Event?.EventName
-                }).ToList();
+                var schedules = await _repository.GetCalendarViewAsync(organizationId, startDate, endDate, coordinatorId);
+                var summaryDtos = _mapper.Map<List<CoordinatorScheduleSummaryDto>>(schedules);
 
                 return new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
                 {
                     Success = true,
                     Message = "Calendar view retrieved successfully",
-                    Data = summaries
+                    Data = summaryDtos
                 };
             }
             catch (Exception ex)
@@ -567,30 +341,28 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var schedule = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                    .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Coordinator.OrganizationId == organizationId);
-
-                if (schedule == null)
+                var schedule = await _repository.GetByIdAsync(scheduleId);
+                
+                if (schedule == null || schedule.Coordinator?.OrganizationId != organizationId)
                 {
                     return new ApiResponseDTO<bool>
                     {
                         Success = false,
                         Message = "Schedule not found",
-                        Errors = new List<string> { "The specified schedule does not exist or does not belong to your organization." }
+                        Errors = new List<string> { "Schedule not found" }
                     };
                 }
 
                 schedule.Status = status;
                 schedule.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                var success = await _repository.UpdateAsync(schedule);
 
                 return new ApiResponseDTO<bool>
                 {
-                    Success = true,
-                    Message = "Schedule status updated successfully",
-                    Data = true
+                    Success = success,
+                    Message = success ? "Schedule status updated successfully" : "Failed to update schedule status",
+                    Data = success
                 };
             }
             catch (Exception ex)
@@ -608,34 +380,13 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var schedules = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                    .Where(s => scheduleIds.Contains(s.ScheduleId) && s.Coordinator.OrganizationId == organizationId)
-                    .ToListAsync();
-
-                if (!schedules.Any())
-                {
-                    return new ApiResponseDTO<bool>
-                    {
-                        Success = false,
-                        Message = "No schedules found",
-                        Errors = new List<string> { "None of the specified schedules exist or belong to your organization." }
-                    };
-                }
-
-                foreach (var schedule in schedules)
-                {
-                    schedule.Status = status;
-                    schedule.UpdatedAt = DateTime.UtcNow;
-                }
-
-                await _context.SaveChangesAsync();
+                var success = await _repository.BulkUpdateStatusAsync(organizationId, scheduleIds, status, updatedBy);
 
                 return new ApiResponseDTO<bool>
                 {
-                    Success = true,
-                    Message = $"Successfully updated {schedules.Count} schedule(s)",
-                    Data = true
+                    Success = success,
+                    Message = success ? "Schedules updated successfully" : "Failed to update schedules",
+                    Data = success
                 };
             }
             catch (Exception ex)
@@ -643,7 +394,7 @@ namespace ivan_api.Services.CoordinatorScheduleServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = false,
-                    Message = "An error occurred while updating schedule statuses",
+                    Message = "An error occurred while updating schedules",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -653,29 +404,13 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var schedules = await _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                    .Where(s => scheduleIds.Contains(s.ScheduleId) && s.Coordinator.OrganizationId == organizationId)
-                    .ToListAsync();
-
-                if (!schedules.Any())
-                {
-                    return new ApiResponseDTO<bool>
-                    {
-                        Success = false,
-                        Message = "No schedules found",
-                        Errors = new List<string> { "None of the specified schedules exist or belong to your organization." }
-                    };
-                }
-
-                _context.CoordinatorSchedules.RemoveRange(schedules);
-                await _context.SaveChangesAsync();
+                var success = await _repository.BulkDeleteAsync(organizationId, scheduleIds);
 
                 return new ApiResponseDTO<bool>
                 {
-                    Success = true,
-                    Message = $"Successfully deleted {schedules.Count} schedule(s)",
-                    Data = true
+                    Success = success,
+                    Message = success ? "Schedules deleted successfully" : "Failed to delete schedules",
+                    Data = success
                 };
             }
             catch (Exception ex)
@@ -694,28 +429,13 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         {
             try
             {
-                var query = _context.CoordinatorSchedules
-                    .Include(s => s.Coordinator)
-                        .ThenInclude(c => c.User)
-                            .ThenInclude(u => u.UserProfiles)
-                    .Include(s => s.Event)
-                    .Where(s => s.CoordinatorId == coordinatorId &&
-                               ((s.StartDateTime < endDateTime && s.EndDateTime > startDateTime) ||
-                                (startDateTime < s.EndDateTime && endDateTime > s.StartDateTime)) &&
-                               s.Status != "Cancelled");
-
-                if (excludeScheduleId.HasValue)
-                {
-                    query = query.Where(s => s.ScheduleId != excludeScheduleId.Value);
-                }
-
-                var conflicts = await query.ToListAsync();
-                var conflictDtos = conflicts.Select(MapToDto).ToList();
+                var conflicts = await _repository.CheckConflictsAsync(coordinatorId, startDateTime, endDateTime, excludeScheduleId);
+                var conflictDtos = _mapper.Map<List<CoordinatorScheduleDto>>(conflicts);
 
                 return new ApiResponseDTO<List<CoordinatorScheduleDto>>
                 {
                     Success = true,
-                    Message = "Conflict check completed",
+                    Message = conflicts.Any() ? "Conflicts found" : "No conflicts found",
                     Data = conflictDtos
                 };
             }
@@ -724,42 +444,10 @@ namespace ivan_api.Services.CoordinatorScheduleServ
                 return new ApiResponseDTO<List<CoordinatorScheduleDto>>
                 {
                     Success = false,
-                    Message = "An error occurred while checking for conflicts",
+                    Message = "An error occurred while checking conflicts",
                     Errors = new List<string> { ex.Message }
                 };
             }
-        }
-
-        private CoordinatorScheduleDto MapToDto(CoordinatorSchedule schedule)
-        {
-            var userProfile = schedule.Coordinator.User.UserProfiles.FirstOrDefault();
-            var createdByProfile = schedule.CreatedByNavigation?.UserProfiles.FirstOrDefault();
-
-            return new CoordinatorScheduleDto
-            {
-                ScheduleId = schedule.ScheduleId,
-                CoordinatorId = schedule.CoordinatorId,
-                CoordinatorName = userProfile?.FullName ?? "Unknown",
-                CoordinatorEmail = schedule.Coordinator.User.Email,
-                CoordinatorPosition = schedule.Coordinator.Position,
-                EventId = schedule.EventId,
-                EventName = schedule.Event?.EventName,
-                EventLocation = schedule.Event?.Location,
-                Title = schedule.Title,
-                Description = schedule.Description,
-                StartDateTime = schedule.StartDateTime,
-                EndDateTime = schedule.EndDateTime,
-                Location = schedule.Location,
-                ScheduleType = schedule.ScheduleType,
-                Priority = schedule.Priority,
-                Status = schedule.Status,
-                IsAllDay = schedule.IsAllDay,
-                ReminderMinutes = schedule.ReminderMinutes,
-                Notes = schedule.Notes,
-                CreatedByName = createdByProfile?.FullName,
-                CreatedAt = schedule.CreatedAt,
-                UpdatedAt = schedule.UpdatedAt
-            };
         }
     }
 }

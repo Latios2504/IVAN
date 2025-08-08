@@ -65,20 +65,30 @@ export default function CustomInstructionBuilder({
 
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Helper function to convert \n characters to actual newlines
+  const normalizeNewlines = (text: string | undefined): string => {
+    if (!text) return "";
+    return text.replace(/\\n/g, "\n");
+  };
+
   // Initialize form data
   useEffect(() => {
     if (editingInstruction) {
       setFormData({
         instructionName: editingInstruction.instructionName,
-        systemPrompt: editingInstruction.systemPrompt,
-        behaviorInstructions: editingInstruction.behaviorInstructions || "",
+        systemPrompt: normalizeNewlines(editingInstruction.systemPrompt),
+        behaviorInstructions: normalizeNewlines(
+          editingInstruction.behaviorInstructions
+        ),
         isActive: editingInstruction.isActive,
       });
     } else if (initialData) {
       setFormData({
         instructionName: initialData.instructionName,
-        systemPrompt: initialData.systemPrompt,
-        behaviorInstructions: initialData.behaviorInstructions || "",
+        systemPrompt: normalizeNewlines(initialData.systemPrompt),
+        behaviorInstructions: normalizeNewlines(
+          initialData.behaviorInstructions
+        ),
         isActive: true,
       });
     }

@@ -73,6 +73,12 @@ const OrganizationAnalyticsPage = lazy(
 const CoordinatorSchedulePage = lazy(
   () => import("@/pages/organization/CoordinatorSchedulePage")
 );
+const VolunteerScheduleManagementPage = lazy(
+  () => import("@/pages/coordinator/VolunteerScheduleManagementPage")
+);
+const VolunteerSchedulePage = lazy(
+  () => import("@/pages/volunteer/VolunteerSchedulePage")
+);
 const CoordinatorTaskManagementPage = lazy(
   () => import("@/pages/organization/CoordinatorTaskManagementPage")
 );
@@ -93,6 +99,12 @@ const EventRegistrationPage = lazy(
 );
 const VolunteerCoordinatorManagementPage = lazy(
   () => import("@/pages/organization/VolunteerCoordinatorManagementPage")
+);
+const OnSiteTaskManagementPage = lazy(
+  () => import("@/pages/coordinator/OnSiteTaskManagementPage")
+);
+const MyOnSiteTasksPage = lazy(
+  () => import("@/pages/volunteer/MyOnSiteTasksPage")
 );
 
 // Profile pages
@@ -190,6 +202,38 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
               <CoordinatorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/coordinator/schedule"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
+              <VolunteerScheduleManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/coordinator/onsite-tasks"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
+              <OnSiteTaskManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer/schedule"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <VolunteerSchedulePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer/my-tasks"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <MyOnSiteTasksPage />
             </ProtectedRoute>
           }
         />
