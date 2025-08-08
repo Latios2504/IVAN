@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { eventRegistrationService } from "@/services/eventRegistrationService";
 import { eventService } from "@/services/eventService";
 import type { PagedResultDto } from "@/types/common";
@@ -38,12 +38,6 @@ import {
 import RegistrationList from "@/components/organization/event-registration-management/RegistrationList";
 import RegistrationAnalyticsDashboard from "@/components/organization/event-registration-management/RegistrationAnalyticsDashboard";
 import RegistrationFilters from "@/components/organization/event-registration-management/RegistrationFilters";
-
-// Temporary placeholder modal components (will be implemented next)
-const RegistrationDetailDialog: React.FC = () => null;
-const ApprovalDialog: React.FC = () => null;
-const RejectionDialog: React.FC = () => null;
-const BulkActionsDialog: React.FC = () => null;
 
 interface EventSelectorProps {
   onEventSelect: (event: EventSummary | null) => void;
@@ -269,6 +263,23 @@ const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
 // Main Event Registration Management Page
 const EventRegistrationManagement: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
+  const [filters, setFilters] = useState<RegistrationFilterType>({
+    page: 1,
+    size: 20,
+    sortBy: "applicationDate",
+    sortOrder: "desc",
+  });
+
+  const handleFiltersChange = useCallback(
+    (newFilters: Partial<RegistrationFilterType>) => {
+      setFilters((prev) => ({
+        ...prev,
+        ...newFilters,
+        page: newFilters.page || 1, // Reset to page 1 when filters change (except page itself)
+      }));
+    },
+    []
+  );
 
   if (!selectedEvent) {
     return (
@@ -331,32 +342,26 @@ const EventRegistrationManagement: React.FC = () => {
 
       {/* Registration Management */}
       <div className="space-y-6">
-        {/* TODO: Pass selectedEvent.eventId to these components after migration */}
         {/* Analytics Dashboard */}
-        {/* <RegistrationAnalyticsDashboard /> */}
+        <RegistrationAnalyticsDashboard
+          eventId={selectedEvent.eventId.toString()}
+        />
 
         <Separator />
 
         {/* Filters */}
-        {/* <RegistrationFilters /> */}
+        <RegistrationFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+        />
 
         {/* Registration List */}
-        {/* <RegistrationList /> */}
-
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-center text-muted-foreground">
-              Registration management components will be migrated next...
-            </p>
-          </CardContent>
-        </Card>
+        <RegistrationList
+          eventId={selectedEvent.eventId}
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+        />
       </div>
-
-      {/* Modal Dialogs */}
-      <RegistrationDetailDialog />
-      <ApprovalDialog />
-      <RejectionDialog />
-      <BulkActionsDialog />
     </div>
   );
 };

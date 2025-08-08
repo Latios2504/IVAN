@@ -1,5 +1,18 @@
 import type { DateRange } from "./common";
 
+// Simple registration type that matches backend RegistrationDTO
+export interface SimpleRegistration {
+  registrationId: number;
+  eventId: number;
+  volunteerId: number;
+  statusName: string;
+  applicationDate: string;
+  fullName: string | null;
+  additionalInfo?: string;
+  motivationLetter?: string;
+}
+
+// Extended registration type for detailed views (when we have more data)
 export interface Registration {
   registrationId: number;
   eventId: number;
@@ -10,11 +23,12 @@ export interface Registration {
   approvedDate?: string;
   rejectedDate?: string;
   rejectionReason?: string;
-  motivationLetter: string;
+  motivationLetter?: string;
   additionalInfo?: string;
+  fullName?: string;
 
-  // Volunteer Information
-  volunteer: {
+  // Optional extended volunteer information (for detailed views)
+  volunteer?: {
     fullName: string;
     email: string;
     phoneNumber?: string;

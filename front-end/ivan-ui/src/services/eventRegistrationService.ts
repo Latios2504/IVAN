@@ -2,6 +2,7 @@ import { apiClient } from "./apiClient";
 import type { PagedResultDto } from "../types/common";
 import type {
   Registration,
+  SimpleRegistration,
   RegistrationFilters,
   ApproveRegistrationRequest,
   RejectRegistrationRequest,
@@ -10,6 +11,25 @@ import type {
 
 class EventRegistrationService {
   private readonly baseUrl = "/EventRegistrations";
+
+  // Helper function to convert SimpleRegistration to Registration with default values
+  private mapToRegistration(simple: SimpleRegistration): Registration {
+    return {
+      ...simple,
+      fullName: simple.fullName || "Unknown",
+      volunteer: {
+        fullName: simple.fullName || "Unknown",
+        email: "email@example.com", // Default - we don't have this from backend
+        phoneNumber: undefined,
+        profileImage: undefined,
+        skills: [],
+        experience: "",
+        rating: undefined,
+        totalEventsJoined: 0,
+        totalHoursVolunteered: 0,
+      },
+    };
+  }
 
   async getRegistrations(
     eventId: number,
@@ -20,30 +40,93 @@ class EventRegistrationService {
       page: filters.page.toString(),
       size: filters.size.toString(),
       ...(filters.status && { status: filters.status }),
-      ...(filters.search && { search: filters.search }),
-      ...(filters.sortBy && { sortBy: filters.sortBy }),
-      ...(filters.sortOrder && { sortOrder: filters.sortOrder }),
     });
 
-    if (filters.dateRange) {
-      params.append("startDate", filters.dateRange.startDate);
-      params.append("endDate", filters.dateRange.endDate);
-    }
+    // Note: Backend doesn't support search, sortBy, sortOrder, or dateRange yet
+    // These will be handled client-side for now
 
-    const response = await apiClient.get<PagedResultDto<Registration>>(
+    const response = await apiClient.get<PagedResultDto<SimpleRegistration>>(
       `${this.baseUrl}?${params}`
     );
-    return response.data;
+
+    // Convert SimpleRegistration to Registration
+    let filteredItems = response.data.items.map((item) =>
+      this.mapToRegistration(item)
+    );
+
+    // Apply client-side filtering and sorting since backend doesn't support it yet
+
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filteredItems = filteredItems.filter(
+        (registration) =>
+          registration.fullName?.toLowerCase().includes(searchLower) ||
+          registration.volunteer?.email?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply date range filter
+    if (filters.dateRange?.startDate || filters.dateRange?.endDate) {
+      filteredItems = filteredItems.filter((registration) => {
+        const appDate = new Date(registration.applicationDate);
+        const startDate = filters.dateRange?.startDate
+          ? new Date(filters.dateRange.startDate)
+          : null;
+        const endDate = filters.dateRange?.endDate
+          ? new Date(filters.dateRange.endDate)
+          : null;
+
+        if (startDate && appDate < startDate) return false;
+        if (endDate && appDate > endDate) return false;
+        return true;
+      });
+    }
+
+    // Apply sorting
+    if (filters.sortBy) {
+      filteredItems.sort((a, b) => {
+        let aValue: any, bValue: any;
+
+        switch (filters.sortBy) {
+          case "applicationDate":
+            aValue = new Date(a.applicationDate);
+            bValue = new Date(b.applicationDate);
+            break;
+          case "volunteerName":
+            aValue = a.fullName || "";
+            bValue = b.fullName || "";
+            break;
+          case "status":
+            aValue = a.statusName || "";
+            bValue = b.statusName || "";
+            break;
+          default:
+            aValue = new Date(a.applicationDate);
+            bValue = new Date(b.applicationDate);
+        }
+
+        if (aValue < bValue) return filters.sortOrder === "asc" ? -1 : 1;
+        if (aValue > bValue) return filters.sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return {
+      ...response.data,
+      items: filteredItems,
+      totalCount: filteredItems.length, // Update count after filtering
+    };
   }
 
   async getRegistration(
     eventId: number,
     registrationId: number
   ): Promise<Registration> {
-    const response = await apiClient.get<Registration>(
+    const response = await apiClient.get<SimpleRegistration>(
       `${this.baseUrl}/${registrationId}?eventId=${eventId}`
     );
-    return response.data;
+    return this.mapToRegistration(response.data);
   }
 
   async approveRegistration(

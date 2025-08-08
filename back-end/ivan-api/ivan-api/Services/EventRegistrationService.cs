@@ -338,8 +338,8 @@ namespace ivan_api.Services
                 var query = _context.EventRegistrations
                     .Include(r => r.Status)
                     .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                    .ThenInclude(u => u.UserProfiles)
+                        .ThenInclude(v => v.User)
+                        .ThenInclude(u => u.UserProfiles)
                     .Where(r => r.EventId == eventId);
 
                 if (!string.IsNullOrEmpty(status))
@@ -351,20 +351,25 @@ namespace ivan_api.Services
                 var registrations = await query
                     .Skip((page - 1) * size)
                     .Take(size)
-                    .Select(r => new RegistrationDTO
-                    {
-                        RegistrationId = r.RegistrationId,
-                        EventId = r.EventId,
-                        VolunteerId = r.VolunteerId,
-                        StatusName = r.Status.StatusName,
-                        ApplicationDate = r.ApplicationDate,
-                        FullName = r.Volunteer.User.UserProfiles.FirstOrDefault().FullName
-                    })
                     .ToListAsync();
+
+                var registrationDTOs = registrations.Select(r => new RegistrationDTO
+                {
+                    RegistrationId = r.RegistrationId,
+                    EventId = r.EventId,
+                    VolunteerId = r.VolunteerId,
+                    StatusName = r.Status?.StatusName ?? "Unknown",
+                    ApplicationDate = r.ApplicationDate,
+                    FullName = r.Volunteer?.User?.UserProfiles != null && r.Volunteer.User.UserProfiles.Any() 
+                        ? r.Volunteer.User.UserProfiles.FirstOrDefault()?.FullName ?? "Unknown User"
+                        : "Unknown User",
+                    AdditionalInfo = r.AdditionalInfo,
+                    MotivationLetter = r.MotivationLetter
+                }).ToList();
 
                 var result = new PagedResultDTO<RegistrationDTO>
                 {
-                    Items = registrations,
+                    Items = registrationDTOs,
                     Page = page,
                     Size = size,
                     TotalItems = totalItems,
@@ -384,7 +389,11 @@ namespace ivan_api.Services
                 {
                     Success = false,
                     Message = "Đã xảy ra lỗi khi lấy danh sách đăng ký",
-                    Errors = new List<string> { ex.Message }
+                    Errors = new List<string> { 
+                        ex.Message, 
+                        ex.InnerException?.Message ?? "",
+                        ex.StackTrace ?? ""
+                    }.Where(e => !string.IsNullOrEmpty(e)).ToList()
                 };
             }
         }
@@ -450,9 +459,11 @@ namespace ivan_api.Services
                     RegistrationId = registration.RegistrationId,
                     EventId = registration.EventId,
                     VolunteerId = registration.VolunteerId,
-                    StatusName = registration.Status.StatusName,
+                    StatusName = registration.Status?.StatusName ?? "Unknown",
                     ApplicationDate = registration.ApplicationDate,
-                    FullName = registration.Volunteer.User.UserProfiles.FirstOrDefault().FullName,
+                    FullName = registration.Volunteer?.User?.UserProfiles != null && registration.Volunteer.User.UserProfiles.Any()
+                        ? registration.Volunteer.User.UserProfiles.FirstOrDefault()?.FullName ?? "Unknown User"
+                        : "Unknown User",
                     AdditionalInfo = registration.AdditionalInfo,
                     MotivationLetter = registration.MotivationLetter
                 };
