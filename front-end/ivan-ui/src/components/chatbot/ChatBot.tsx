@@ -26,6 +26,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [conversationId, setConversationId] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Simple toast function
@@ -47,9 +48,32 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Khởi tạo conversation với tin nhắn chào mừng
+  // Load existing chat from localStorage or create welcome message
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
+    if (!isOpen) return;
+
+    const storedId = localStorage.getItem("ivan_chat_conversation_id");
+    const storedMsgs = localStorage.getItem("ivan_chat_messages");
+    const storedSummary = localStorage.getItem("ivan_chat_summary") || "";
+
+    if (storedId) setConversationId(storedId);
+    if (storedSummary) setSummary(storedSummary);
+
+    if (storedMsgs) {
+      try {
+        const parsed: any[] = JSON.parse(storedMsgs);
+        const restored: ChatMessage[] = parsed.map((m) => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        }));
+        if (restored.length > 0) {
+          setMessages(restored);
+          return;
+        }
+      } catch {}
+    }
+
+    if (messages.length === 0) {
       const welcomeMessage: ChatMessage = {
         id: "welcome",
         message: "",
@@ -61,7 +85,55 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       };
       setMessages([welcomeMessage]);
     }
-  }, [isOpen, messages.length]);
+  }, [isOpen]);
+
+  // Persist messages and summary to localStorage
+  useEffect(() => {
+    if (!isOpen) return;
+    const toStore = messages.map((m) => ({
+      ...m,
+      timestamp: m.timestamp.toISOString(),
+    }));
+    localStorage.setItem("ivan_chat_messages", JSON.stringify(toStore));
+    localStorage.setItem("ivan_chat_conversation_id", conversationId || "");
+    localStorage.setItem("ivan_chat_summary", summary || "");
+  }, [isOpen, messages, conversationId, summary]);
+
+  const generateConversationId = () => {
+    return (
+      "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+        const r = (Math.random() * 16) | 0,
+          v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }) + ""
+    );
+  };
+
+  // Keep a small rolling window and lightweight summary
+  const buildClientMemory = (allMessages: ChatMessage[]) => {
+    const pairs = allMessages.filter(
+      (m) => m.isUser || (!m.isUser && m.response)
+    );
+    const recent = pairs.slice(-8); // last 8 turns/items
+    const clientMessages = recent.map((m) => ({
+      role: m.isUser ? ("user" as const) : ("assistant" as const),
+      content: m.isUser ? m.message : m.response || "",
+      timestamp: m.timestamp.toISOString(),
+    }));
+
+    // Extremely naive summarization: keep first and last user questions, plus count
+    const userTexts = pairs.filter((m) => m.isUser).map((m) => m.message);
+    const first = userTexts[0] || "";
+    const last = userTexts[userTexts.length - 1] || "";
+    const sum = `Tóm tắt ngắn: ${
+      userTexts.length
+    } lượt trao đổi. Chủ đề ban đầu: "${first.slice(
+      0,
+      120
+    )}". Gần đây: "${last.slice(0, 120)}".`;
+
+    return { clientMessages, clientSummary: sum };
+  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -74,14 +146,22 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       conversationId,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    // Prepare new state for memory computation
+    const nextMessages = [...messages, userMessage];
+    const { clientMessages, clientSummary } = buildClientMemory(nextMessages);
+    setMessages(nextMessages);
     setInputMessage("");
     setIsLoading(true);
 
     try {
       const response = await chatBotService.sendMessage({
         message: inputMessage,
-        conversationId: conversationId || undefined,
+        conversationId:
+          conversationId && conversationId.length > 0
+            ? conversationId
+            : generateConversationId(),
+        clientMessages,
+        clientSummary,
       });
 
       const botMessage: ChatMessage = {
@@ -93,8 +173,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         conversationId: response.conversationId,
       };
 
-      setMessages((prev) => [...prev, botMessage]);
+      const updated = [...nextMessages, botMessage];
+      setMessages(updated);
       setConversationId(response.conversationId);
+      // update summary with the latest
+      const mem2 = buildClientMemory(updated);
+      setSummary(mem2.clientSummary);
     } catch (error: any) {
       console.error("Error sending message:", error);
       showToast(
@@ -127,6 +211,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   const clearChat = () => {
     setMessages([]);
     setConversationId("");
+    setSummary("");
+    localStorage.removeItem("ivan_chat_messages");
+    localStorage.removeItem("ivan_chat_conversation_id");
+    localStorage.removeItem("ivan_chat_summary");
     // Thêm lại tin nhắn chào mừng
     const welcomeMessage: ChatMessage = {
       id: "welcome-new",

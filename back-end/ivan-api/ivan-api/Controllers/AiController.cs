@@ -167,13 +167,23 @@ DATABASE SCHEMA INFORMATION:
 
 {customInstruction.BehaviorInstructions}
 
+{(string.IsNullOrEmpty(BuildClientMemoryContext()) ? string.Empty : BuildClientMemoryContext() + "\n\n")}
+
 User Query: {request.Query}
 
 BƯỚC 1: Tạo câu SQL chính xác để truy vấn dữ liệu. Chỉ trả về SQL trong code block, không cần giải thích gì thêm.";
         }
         else
         {
-            sqlGenerationPrompt = $"Tạo câu SQL để trả lời câu hỏi: {request.Query}";
+            var memoryForSql = BuildClientMemoryContext();
+            if (!string.IsNullOrEmpty(memoryForSql))
+            {
+                sqlGenerationPrompt = $"Dựa trên bối cảnh sau đây, hãy tạo câu SQL để trả lời câu hỏi. Chỉ trả về SQL trong code block.\n\n{memoryForSql}\n\nCâu hỏi: {request.Query}";
+            }
+            else
+            {
+                sqlGenerationPrompt = $"Tạo câu SQL để trả lời câu hỏi: {request.Query}";
+            }
         }
 
         var sqlResult = await provider.SendPromptAsync(sqlGenerationPrompt, request.PreferredModel);
@@ -214,12 +224,49 @@ BƯỚC 1: Tạo câu SQL chính xác để truy vấn dữ liệu. Chỉ trả 
 
         // Step 2: Generate natural language response
         string finalResponsePrompt;
+
+        // Build optional client-provided memory context into the prompt
+        string BuildClientMemoryContext()
+        {
+            try
+            {
+                if ((request.ClientMessages == null || request.ClientMessages.Count == 0) && string.IsNullOrWhiteSpace(request.ClientSummary))
+                {
+                    return string.Empty;
+                }
+
+                var contextParts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(request.ClientSummary))
+                {
+                    contextParts.Add($"Conversation summary (client-provided): {request.ClientSummary}");
+                }
+
+                if (request.ClientMessages != null && request.ClientMessages.Count > 0)
+                {
+                    // Keep a compact representation
+                    var lines = request.ClientMessages
+                        .TakeLast(10)
+                        .Select(m => $"{(m.Role?.ToLowerInvariant()=="assistant"?"Assistant":"User")}: {m.Content}");
+                    contextParts.Add("Recent messages:\n" + string.Join("\n", lines));
+                }
+
+                return string.Join("\n\n", contextParts);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        var clientMemoryContext = BuildClientMemoryContext();
+
         if (customInstruction != null && sqlData != null)
         {
             var dataJson = System.Text.Json.JsonSerializer.Serialize(sqlData);
             finalResponsePrompt = $@"{customInstruction.SystemPrompt}
 
 {customInstruction.BehaviorInstructions}
+
+{(string.IsNullOrEmpty(clientMemoryContext) ? string.Empty : clientMemoryContext + "\n\n")}
 
 User Query: {request.Query}
 
@@ -235,13 +282,15 @@ Hãy trả lời một cách thân thiện và dễ hiểu.";
 
 {customInstruction.BehaviorInstructions}
 
+{(string.IsNullOrEmpty(clientMemoryContext) ? string.Empty : clientMemoryContext + "\n\n")}
+
 User Query: {request.Query}
 
 Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời: 'Không thể truy xuất dữ liệu lúc này, xin vui lòng thử lại sau.'";
         }
         else
         {
-            finalResponsePrompt = $"Bạn là trợ lý AI của hệ thống quản lý tình nguyện viên IVAN. Hãy trả lời câu hỏi sau bằng tiếng Việt: {request.Query}";
+            finalResponsePrompt = $"Bạn là trợ lý AI của hệ thống quản lý tình nguyện viên IVAN. {(string.IsNullOrEmpty(clientMemoryContext) ? string.Empty : "Dưới đây là bối cảnh cuộc trò chuyện trước đó: " + clientMemoryContext + " ")}Hãy trả lời câu hỏi sau bằng tiếng Việt: {request.Query}";
         }
 
         var finalResult = await provider.SendPromptAsync(finalResponsePrompt, request.PreferredModel);

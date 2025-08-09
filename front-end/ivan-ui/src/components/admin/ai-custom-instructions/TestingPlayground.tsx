@@ -76,6 +76,9 @@ export default function TestingPlayground({
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [currentConfig, setCurrentConfig] = useState<any>(null);
+  // Client-side memory (per instruction)
+  const [conversationId, setConversationId] = useState<string>("");
+  const [summary, setSummary] = useState<string>("");
 
   // Load available models
   useEffect(() => {
@@ -95,6 +98,72 @@ export default function TestingPlayground({
     loadModels();
   }, []);
 
+  // Load memory from localStorage per instruction
+  useEffect(() => {
+    const keyPrefix = `ivan_playground_${instruction.instructionId}_`;
+    const storedId = localStorage.getItem(keyPrefix + "conversation_id");
+    const storedSummary = localStorage.getItem(keyPrefix + "summary");
+    const storedResults = localStorage.getItem(keyPrefix + "results");
+    if (storedId) setConversationId(storedId);
+    if (storedSummary) setSummary(storedSummary);
+    if (storedResults) {
+      try {
+        const parsed: any[] = JSON.parse(storedResults);
+        const restored: TestResult[] = parsed.map((r) => ({
+          ...r,
+          timestamp: new Date(r.timestamp),
+        }));
+        setTestResults(restored);
+      } catch {}
+    }
+  }, [instruction.instructionId]);
+
+  // Persist memory
+  useEffect(() => {
+    const keyPrefix = `ivan_playground_${instruction.instructionId}_`;
+    localStorage.setItem(keyPrefix + "conversation_id", conversationId || "");
+    localStorage.setItem(keyPrefix + "summary", summary || "");
+    const toStore = testResults.map((r) => ({
+      ...r,
+      timestamp: r.timestamp.toISOString(),
+    }));
+    localStorage.setItem(keyPrefix + "results", JSON.stringify(toStore));
+  }, [instruction.instructionId, conversationId, summary, testResults]);
+
+  const generateConversationId = () =>
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0,
+        v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+
+  // Build memory from testResults as recent turns
+  const buildClientMemory = () => {
+    // From results, construct alternating user/assistant turns
+    const recent = testResults.slice(0, 8).reverse();
+    const messages = recent.flatMap((r) => [
+      {
+        role: "user" as const,
+        content: r.query,
+        timestamp: r.timestamp.toISOString(),
+      },
+      {
+        role: "assistant" as const,
+        content: r.response,
+        timestamp: r.timestamp.toISOString(),
+      },
+    ]);
+    const clientMessages = messages.slice(-8);
+    const first = testResults[testResults.length - 1]?.query || "";
+    const last = testResults[0]?.query || "";
+    const sum = `Tóm tắt ngắn (Playground): ${
+      testResults.length
+    } lượt test. Chủ đề ban đầu: "${first?.slice(0, 120) || ""}". Gần đây: "${
+      last?.slice(0, 120) || ""
+    }".`;
+    return { clientMessages, clientSummary: sum };
+  };
+
   const handleTest = async () => {
     if (!currentQuery.trim() || !selectedModel) return;
 
@@ -106,12 +175,17 @@ export default function TestingPlayground({
         "Sending query to main AI service with automatic SQL detection..."
       );
 
-      // Use the main AI service which has automatic SQL detection built-in
+      const convoId = conversationId || generateConversationId();
+      const { clientMessages, clientSummary } = buildClientMemory();
+      // Use the main AI service with client-side memory
       const result = await aiService.sendQuery({
         query: currentQuery,
         customInstructionId: instruction.instructionId,
         preferredModel: selectedModel,
         includeContext: true,
+        conversationId: convoId,
+        clientMessages,
+        clientSummary,
       });
 
       // Handle the response from the main AI service
@@ -127,7 +201,11 @@ export default function TestingPlayground({
         sqlData: result.sqlData,
       };
 
-      setTestResults((prev) => [newResult, ...prev]);
+      const updated = [newResult, ...testResults];
+      setTestResults(updated);
+      setConversationId(convoId);
+      const mem2 = buildClientMemory();
+      setSummary(mem2.clientSummary);
 
       if (result.success) {
         setCurrentQuery("");
@@ -157,6 +235,12 @@ export default function TestingPlayground({
 
   const handleClearHistory = () => {
     setTestResults([]);
+    setConversationId("");
+    setSummary("");
+    const keyPrefix = `ivan_playground_${instruction.instructionId}_`;
+    localStorage.removeItem(keyPrefix + "conversation_id");
+    localStorage.removeItem(keyPrefix + "summary");
+    localStorage.removeItem(keyPrefix + "results");
   };
 
   const handleCopyResponse = (response: string) => {

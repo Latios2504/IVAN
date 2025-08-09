@@ -16,12 +16,22 @@ class AiService {
     customInstructionId?: number;
     preferredModel?: string;
     includeContext?: boolean;
+    conversationId?: string;
+    clientMessages?: Array<{
+      role: "user" | "assistant";
+      content: string;
+      timestamp?: string;
+    }>;
+    clientSummary?: string;
   }): Promise<AiQueryResponse> {
     const aiRequest: AiQueryRequest = {
       query: request.query,
       customInstructionId: request.customInstructionId,
       preferredModel: request.preferredModel,
       includeContext: request.includeContext ?? true,
+      conversationId: request.conversationId,
+      clientMessages: request.clientMessages,
+      clientSummary: request.clientSummary,
     };
 
     const response = await apiClient.post<AiQueryResponse>(

@@ -5,6 +5,14 @@ export interface AiQueryRequest {
   customInstructionId?: number;
   preferredModel?: string;
   includeContext?: boolean;
+  // Optional client-side memory (no server persistence)
+  conversationId?: string;
+  clientMessages?: Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp?: string;
+  }>;
+  clientSummary?: string;
 }
 
 // SQL Data structure
