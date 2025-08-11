@@ -111,9 +111,6 @@ export default function OrganizationDashboard() {
             >
               Quản lý đăng ký sự kiện
             </ActionButton>
-            <ActionButton to="/organization/volunteers" icon={Users}>
-              Quản lý tình nguyện viên
-            </ActionButton>
             <ActionButton
               to="/organization/volunteer-coordinators"
               icon={UserPlus}
@@ -240,9 +237,6 @@ export default function OrganizationDashboard() {
                 </StatusBadge>
               </div>
             </div>
-            <Button variant="outline" className="w-full" asChild>
-              <Link to="/organization/volunteers">Quản lý chi tiết</Link>
-            </Button>
           </CardContent>
         </Card>
       </div>

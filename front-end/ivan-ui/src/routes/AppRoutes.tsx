@@ -52,9 +52,6 @@ const PublicVolunteerDetailPage = lazy(
 const EventManagementPage = lazy(
   () => import("@/pages/organization/EventManagementPage")
 );
-const VolunteerManagementPage = lazy(
-  () => import("@/pages/organization/VolunteerManagementPage")
-);
 const CertificateManagementPage = lazy(
   () => import("@/pages/organization/CertificateManagementPage")
 );
@@ -63,12 +60,6 @@ const OrganizationReportsPage = lazy(
 );
 const OrganizationCoordinatorRequestPage = lazy(
   () => import("@/pages/organization/OrganizationCoordinatorRequestPage")
-);
-const OrganizationResourcesPage = lazy(
-  () => import("@/pages/organization/OrganizationResourcesPage")
-);
-const OrganizationAnalyticsPage = lazy(
-  () => import("@/pages/organization/OrganizationAnalyticsPage")
 );
 const CoordinatorSchedulePage = lazy(
   () => import("@/pages/organization/CoordinatorSchedulePage")
@@ -84,9 +75,6 @@ const CoordinatorTaskManagementPage = lazy(
 );
 const PartnerCollaborationPage = lazy(
   () => import("@/pages/organization/PartnerCollaborationPage")
-);
-const NotificationManagementPage = lazy(
-  () => import("@/pages/organization/NotificationManagementPage")
 );
 const UserManagementPage = lazy(
   () => import("@/pages/admin/UserManagementPage")
@@ -259,16 +247,6 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/organization/volunteers"
-          element={
-            <ProtectedRoute
-              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
-            >
-              <VolunteerManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/organization/certificates"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
@@ -311,22 +289,6 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/organization/resources"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <OrganizationResourcesPage />
-            </ProtectedRoute>
-          }
-        />{" "}
-        <Route
-          path="/organization/analytics"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <OrganizationAnalyticsPage />
-            </ProtectedRoute>
-          }
-        />{" "}
-        <Route
           path="/organization/coordinator-schedule"
           element={
             <ProtectedRoute
@@ -360,14 +322,6 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />{" "}
-        <Route
-          path="/organization/notifications"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <NotificationManagementPage />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/admin/users"
           element={
