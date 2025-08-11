@@ -13,7 +13,7 @@ import {
   User,
 } from "lucide-react";
 import { chatBotService } from "@/services/chatBotService";
-import type { ChatMessage } from "@/types/chatbot";
+import type { ChatMessage } from "@/types/ai";
 
 interface ChatBotProps {
   isOpen: boolean;

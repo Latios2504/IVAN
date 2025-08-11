@@ -1,17 +1,12 @@
 import { apiClient, ApiError } from "./apiClient";
-import type { AiQueryRequest, AiResponse } from "../types/ai";
-import type { ChatMessageRequest, ChatMessageResponse } from "../types/chatbot";
+import type {
+  AiQueryRequest,
+  AiResponse,
+  ChatMessageRequest,
+  ChatMessageResponse,
+} from "../types/ai";
 
-/**
- * Unified AI Service for all AI operations
- * Handles both general queries and chatbot interactions
- * Uses the main AI endpoint that has automatic SQL detection built-in
- */
 class AiService {
-  /**
-   * Send a query to AI with automatic SQL detection
-   * The backend will automatically detect if it's a data query and use SQL generation
-   */
   async sendQuery(request: {
     query: string;
     customInstructionId?: number;
@@ -39,10 +34,6 @@ class AiService {
     return response.data;
   }
 
-  /**
-   * Send a chatbot message - simplified interface for chat interactions
-   * This is a wrapper around sendQuery for chatbot-specific use cases
-   */
   async sendChatMessage(
     request: ChatMessageRequest & {
       clientMessages?: Array<{
@@ -56,7 +47,7 @@ class AiService {
     // Use the AI query endpoint with chatbot-optimized parameters
     const aiRequest: AiQueryRequest = {
       query: request.message,
-      customInstructionId: undefined, // Chatbot uses default instructions
+      customInstructionId: undefined, // Public chatbot uses default instructions only
       preferredModel: undefined, // Use default model
       includeContext: true,
       conversationId: request.conversationId,
@@ -79,5 +70,4 @@ class AiService {
   }
 }
 
-// Export singleton instance
 export const aiService = new AiService();
