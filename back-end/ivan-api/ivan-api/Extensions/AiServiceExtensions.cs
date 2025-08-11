@@ -2,8 +2,7 @@ using ivan_api.Configuration;
 using ivan_api.Services.AI;
 using ivan_api.Services.AI.Interfaces;
 using ivan_api.Services.AI.Providers;
-using ivan_api.Services.AI.SQLGenerator.Interfaces;
-using ivan_api.Services.AI.SQLGenerator.Services;
+using ivan_api.Services.AI.SQLGenerator;
 
 namespace ivan_api.Extensions;
 

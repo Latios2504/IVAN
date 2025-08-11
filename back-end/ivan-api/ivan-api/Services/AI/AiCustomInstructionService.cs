@@ -2,7 +2,6 @@ using ivan_api.DTOs.AI;
 using ivan_api.Models;
 using ivan_api.Services.AI.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace ivan_api.Services.AI;
 
@@ -12,16 +11,13 @@ namespace ivan_api.Services.AI;
 public class AiCustomInstructionService : IAiCustomInstructionService
 {
     private readonly VolunteerManagementSystemContext _context;
-    private readonly IAiProviderFactory _providerFactory;
     private readonly ILogger<AiCustomInstructionService> _logger;
 
     public AiCustomInstructionService(
         VolunteerManagementSystemContext context,
-        IAiProviderFactory providerFactory,
         ILogger<AiCustomInstructionService> logger)
     {
         _context = context;
-        _providerFactory = providerFactory;
         _logger = logger;
     }
 

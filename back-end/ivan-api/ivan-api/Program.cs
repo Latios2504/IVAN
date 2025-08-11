@@ -12,14 +12,12 @@ using ivan_api.Repository.EventRepo;
 using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
-using System.Text.Json.Serialization;
 using ivan_api.Repository.Certificates;
 using ivan_api.Repository.CertificateTemplates;
 using ivan_api.Repository.OnSiteTasks;
 using ivan_api.Repository.OrganizationProfiles;
 using ivan_api.Repository.PartnerProfiles;
 using ivan_api.Repository.Reports;
-using ivan_api.Mapping;
 using PdfSharp.Fonts;
 using ivan_api.Services.CertificateTemplates;
 using ivan_api.Services.PartnerProfiles;
@@ -36,7 +34,6 @@ using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
 using ivan_api.Services.AuthenticationSer;
-using ivan_api.Services.AI;
 using ivan_api.Extensions;
 using ivan_api.Services.VolunteerCoordinatorServ;
 using ivan_api.Repository.VolunteerCoordinatorRepo;
@@ -47,12 +44,10 @@ using ivan_api.Services.VolunteerScheduleServ;
 
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
-using ivan_api.Services.AI.SQLGenerator.Interfaces;
-using ivan_api.Services.AI.SQLGenerator.Services;
+using ivan_api.Services.AI.SQLGenerator;
 using ivan_api.Services.Analytics;
 using ivan_api.Repository.SupportRequestRepo;
 using ivan_api.Services.SupportRequestServ;
-using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 

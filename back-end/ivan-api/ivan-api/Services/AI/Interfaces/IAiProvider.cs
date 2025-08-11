@@ -1,7 +1,21 @@
 using ivan_api.Configuration;
-using ivan_api.DTOs.AI;
 
 namespace ivan_api.Services.AI.Interfaces;
+
+/// <summary>
+/// Result of an AI test/prompt request - Used internally by providers
+/// </summary>
+public class AiTestResult
+{
+    public string ProviderName { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+    public string Prompt { get; set; } = string.Empty;
+    public string Response { get; set; } = string.Empty;
+    public bool Success { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int ResponseTimeMs { get; set; }
+    public int TokensUsed { get; set; }
+}
 
 /// <summary>
 /// Interface for AI providers supporting different models (Gemini, OpenRouter, etc.)

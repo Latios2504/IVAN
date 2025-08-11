@@ -1,21 +1,10 @@
-export interface ChatMessage {
-  id: string;
-  message: string;
-  response?: string;
-  timestamp: Date;
-  isUser: boolean;
-  conversationId?: string;
-}
+// =============================================================================
+// CHATBOT TYPES - Consolidated into ai.ts
+// =============================================================================
+// Re-export chatbot types from ai.ts for backward compatibility
 
-export interface ChatMessageRequest {
-  message: string;
-  conversationId?: string;
-}
-
-export interface ChatMessageResponse {
-  response: string;
-  conversationId: string;
-  timestamp: string;
-  modelUsed?: string;
-  customInstructionUsed?: string;
-}
+export type {
+  ChatMessage,
+  ChatMessageRequest,
+  ChatMessageResponse,
+} from "./ai";

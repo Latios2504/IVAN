@@ -1,27 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.Services.AI.Interfaces;
-using ivan_api.Configuration;
-using Microsoft.Extensions.Options;
 using ivan_api.DTOs.AI;
-using ivan_api.Services.AI;
 using ivan_api.Services.DatabaseSchema.Interfaces;
-using ivan_api.Services.AI.SQLGenerator.Interfaces;
-using ivan_api.Services.AI.SQLGenerator.Services;
+using ivan_api.Services.AI.SQLGenerator;
 using ivan_api.Models;
-using ivan_api.Repository.VolunteerProfileRepo;
-using ivan_api.Services.VolunteerProfileServ;
-using ivan_api.Repository.EventRepo;
-using ivan_api.Services.EventServ;
-using ivan_api.Repository.CoordinatorTaskRepo;
-using ivan_api.Services.CoordinatorTaskServ;
-using System.Text.Json.Serialization;
-using ivan_api.Services.PartnerCollaborationServ;
-using ivan_api.Repository.PartnerCollaborationRepo;
-using ivan_api.Services.PublicContentServ;
-using ivan_api.Services.PasswordHashingSer;
-using ivan_api.Services.JwtTokenSer;
-using ivan_api.Services.EmailSer;
 
 namespace ivan_api.Controllers;
 
@@ -354,7 +337,4 @@ Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời
         return string.Empty;
     }
 
-    // TODO: Phase 2 - Implement simplified SQL execution logic based on Custom Instructions
-    // TODO: Phase 2 - Implement keyword matching and database schema retrieval
-    // TODO: Phase 2 - Implement natural language response generation
 }

@@ -26,20 +26,6 @@ public class AiQueryRequest
 }
 
 /// <summary>
-/// DTO for AI query response
-/// </summary>
-public class AiQueryResponse 
-{
-    public bool Success { get; set; }
-    public string Response { get; set; } = string.Empty;
-    public string ModelUsed { get; set; } = string.Empty;
-    public long ExecutionTimeMs { get; set; }
-    public string? ErrorMessage { get; set; }
-    public string GeneratedAt { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
-    public string? CustomInstructionUsed { get; set; }
-} 
-
-/// <summary>
 /// Minimal chat message payload provided by the client to enable stateless memory
 /// </summary>
 public class ChatMessageDto
