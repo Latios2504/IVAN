@@ -47,7 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/context/ToastContext";
+import { toast } from "sonner";
 import { useModal, useModalWithData } from "@/hooks/useModal";
 import { DataTable } from "@/components/common/DataTable";
 import type { TableColumn, TableAction } from "@/components/common/DataTable";
@@ -121,7 +121,7 @@ const mockCoordinatorRequests: CoordinatorRequest[] = [
 ];
 
 export default function OrganizationCoordinatorRequestPage() {
-  const { showNotification } = useToast();
+  // Modal hooks for managing dialog states
   const createDialog = useModal();
   const viewModal = useModalWithData<CoordinatorRequest>();
 
@@ -170,8 +170,10 @@ export default function OrganizationCoordinatorRequestPage() {
   });
 
   const handleCreateRequest = () => {
-    console.log("Tạo yêu cầu coordinator:", formData);
-    setIsCreateDialogOpen(false);
+    // TODO: Implement API call to create coordinator request
+    toast.success("Yêu cầu Coordinator đã được gửi thành công!");
+
+    createDialog.close();
     // Reset form
     setFormData({
       coordinatorFirstName: "",
@@ -184,8 +186,7 @@ export default function OrganizationCoordinatorRequestPage() {
   };
 
   const handleViewRequest = (request: CoordinatorRequest) => {
-    setSelectedRequest(request);
-    setIsViewDialogOpen(true);
+    viewModal.openWith(request);
   };
 
   const handleInputChange =
@@ -239,7 +240,7 @@ export default function OrganizationCoordinatorRequestPage() {
               Quản lý yêu cầu tạo tài khoản Coordinator cho tổ chức
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={createDialog.open}>
             <Plus className="mr-2 h-4 w-4" />
             Yêu cầu Coordinator mới
           </Button>
@@ -327,9 +328,6 @@ export default function OrganizationCoordinatorRequestPage() {
                   columns={tableColumns}
                   data={filteredRequests}
                   actions={tableActions}
-                  pagination
-                  search
-                  rowClassName="cursor-pointer"
                 />
               </CardContent>
             </Card>
@@ -337,7 +335,7 @@ export default function OrganizationCoordinatorRequestPage() {
         </Tabs>
 
         {/* Create Request Dialog */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Yêu cầu Coordinator mới</DialogTitle>
@@ -409,10 +407,7 @@ export default function OrganizationCoordinatorRequestPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={createDialog.close}>
                 Hủy
               </Button>
               <Button onClick={handleCreateRequest}>
@@ -424,7 +419,7 @@ export default function OrganizationCoordinatorRequestPage() {
         </Dialog>
 
         {/* View Request Dialog */}
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Chi tiết yêu cầu Coordinator</DialogTitle>
@@ -432,7 +427,7 @@ export default function OrganizationCoordinatorRequestPage() {
                 Thông tin chi tiết về yêu cầu tạo Coordinator
               </DialogDescription>
             </DialogHeader>
-            {selectedRequest && (
+            {viewModal.data && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -440,32 +435,32 @@ export default function OrganizationCoordinatorRequestPage() {
                       Tên Coordinator
                     </Label>
                     <p className="text-sm text-gray-600">
-                      {selectedRequest.coordinatorName}
+                      {viewModal.data.coordinatorName}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Email</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedRequest.coordinatorEmail}
+                      {viewModal.data.coordinatorEmail}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Số điện thoại</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedRequest.phoneNumber || "Không có"}
+                      {viewModal.data.phoneNumber || "Không có"}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Trạng thái</Label>
                     <div className="mt-1">
-                      {getStatusBadge(selectedRequest.status)}
+                      {getStatusBadge(viewModal.data.status)}
                     </div>
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Lý do yêu cầu</Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedRequest.justification}
+                    {viewModal.data.justification}
                   </p>
                 </div>
                 <div>
@@ -473,8 +468,8 @@ export default function OrganizationCoordinatorRequestPage() {
                     Trách nhiệm dự kiến
                   </Label>
                   <ul className="text-sm text-gray-600 mt-1 list-disc list-inside">
-                    {selectedRequest.expectedResponsibilities.map(
-                      (responsibility, index) => (
+                    {viewModal.data.expectedResponsibilities.map(
+                      (responsibility: string, index: number) => (
                         <li key={index}>{responsibility}</li>
                       )
                     )}
@@ -484,36 +479,33 @@ export default function OrganizationCoordinatorRequestPage() {
                   <div>
                     <Label className="text-sm font-medium">Ngày yêu cầu</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedRequest.requestDate}
+                      {viewModal.data.requestDate}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Ngày phản hồi</Label>
                     <p className="text-sm text-gray-600">
-                      {selectedRequest.responseDate || "Chưa có"}
+                      {viewModal.data.responseDate || "Chưa có"}
                     </p>
                   </div>
                 </div>
-                {selectedRequest.adminNotes && (
+                {viewModal.data.adminNotes && (
                   <div>
                     <Label className="text-sm font-medium">
                       Ghi chú từ Admin
                     </Label>
                     <p className="text-sm text-gray-600 mt-1">
-                      {selectedRequest.adminNotes}
+                      {viewModal.data.adminNotes}
                     </p>
                   </div>
                 )}
               </div>
             )}
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsViewDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={viewModal.close}>
                 Đóng
               </Button>
-              {selectedRequest?.status === "pending" && (
+              {viewModal.data?.status === "pending" && (
                 <Button>
                   <MessageSquare className="mr-2 h-4 w-4" />
                   Liên hệ Admin

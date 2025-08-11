@@ -199,6 +199,49 @@ export default function VolunteerManagementPage() {
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Quản lý Coordinators
+            </CardTitle>
+            <CardDescription>
+              Quản lý và phân công điều phối viên tình nguyện
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/organization/volunteer-coordinators">
+              <Button variant="outline" className="w-full">
+                <Users className="w-4 h-4 mr-2" />
+                Quản lý Coordinators
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Calendar className="w-5 h-5 mr-2" />
+              Đăng ký sự kiện
+            </CardTitle>
+            <CardDescription>
+              Xem và quản lý đăng ký tình nguyện viên cho sự kiện
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/organization/event-registrations">
+              <Button variant="outline" className="w-full">
+                <Calendar className="w-4 h-4 mr-2" />
+                Xem đăng ký sự kiện
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>

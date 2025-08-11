@@ -11,8 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { authService } from "@/services/api/authService";
-import { ApiError } from "@/services/utils/errorHandler";
+import { authService } from "@/services/authService";
+import { ApiError } from "@/services/apiClient";
 
 export default function PasswordResetPage() {
   const [searchParams] = useSearchParams();
@@ -72,11 +72,12 @@ export default function PasswordResetPage() {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword(
-        formData.email,
-        formData.resetCode,
-        formData.password
-      );
+      await authService.resetPassword({
+        email: formData.email,
+        resetCode: formData.resetCode,
+        newPassword: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
 
       // Redirect to login with success message
       navigate("/login", {

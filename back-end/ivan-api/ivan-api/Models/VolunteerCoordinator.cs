@@ -39,6 +39,8 @@ public partial class VolunteerCoordinator
 
     public DateTime? UpdatedAt { get; set; }
 
+    public virtual ICollection<CoordinatorSchedule> CoordinatorSchedules { get; set; } = new List<CoordinatorSchedule>();
+
     public virtual User CreatedByNavigation { get; set; } = null!;
 
     public virtual User? Manager { get; set; }

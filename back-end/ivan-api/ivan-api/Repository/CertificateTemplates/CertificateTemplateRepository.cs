@@ -1,0 +1,92 @@
+﻿using Microsoft.EntityFrameworkCore;
+using ivan_api.Models;
+using ivan_api.DTOs.CertificateTemplates;
+using ivan_api.DTOs.Common;
+using AutoMapper.QueryableExtensions;
+using ivan_api.DTOs.Certificates;
+using AutoMapper;
+
+namespace ivan_api.Repository.CertificateTemplates
+{
+    public class CertificateTemplateRepository : ICertificateTemplateRepository
+    {
+        private readonly VolunteerManagementSystemContext _context;
+        private readonly IMapper _mapper;
+
+        public CertificateTemplateRepository(VolunteerManagementSystemContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
+
+        public async Task<bool> AddCertificateTemplate(CertificateTemplate certificateTemplate)
+        {
+            await _context.CertificateTemplates.AddAsync(certificateTemplate);
+            return await _context.SaveChangesAsync() > 0;
+        }
+        //public async Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate)
+        //{
+        //    _context.ChangeTracker.Clear();//
+        //    _context.CertificateTemplates.Attach(certificateTemplate);
+        //    _context.Entry(certificateTemplate).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
+        //    return await _context.SaveChangesAsync() > 0;
+        //}
+        public async Task<IEnumerable<CertificateTemplate>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
+        {
+            var query = _context.CertificateTemplates
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Organization)
+                .AsQueryable();
+
+            //return query.ToList();
+            return await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+        }
+
+        public async Task<PagedResultDto<CertificateTemplateViewModel>> GetCertificateTemplatesAsync(int PageNumber, int PageSize)
+        {
+            var query = _context.CertificateTemplates
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Organization)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<CertificateTemplateViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<CertificateTemplateViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
+        }
+        public async Task<CertificateTemplate> GetCertificateTemplateById(int id)
+        {
+            return await _context.CertificateTemplates
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Organization)
+                .SingleOrDefaultAsync(x => x.TemplateId == id);
+        }
+
+        public async Task<int> GetLastId()
+        {
+            var query = _context.CertificateTemplates
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Organization)
+                .AsQueryable();
+
+            if (query == null) return -1;
+
+            return query.ToList().Last().TemplateId;
+        }
+    }
+}

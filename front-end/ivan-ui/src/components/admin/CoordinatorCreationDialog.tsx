@@ -20,7 +20,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
-import type { CoordinatorProfile } from "@/types/profile";
 
 interface CoordinatorCreationDialogProps {
   isOpen: boolean;
@@ -166,17 +165,22 @@ export function CoordinatorCreationDialog({
       onSuccess(formData);
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create coordinator");
+      setError(
+        err instanceof Error ? err.message : "Failed to create coordinator"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResponsibilityChange = (responsibility: string, checked: boolean) => {
+  const handleResponsibilityChange = (
+    responsibility: string,
+    checked: boolean
+  ) => {
     const updated = checked
       ? [...formData.responsibilities, responsibility]
       : formData.responsibilities.filter((r) => r !== responsibility);
-    
+
     setFormData({ ...formData, responsibilities: updated });
   };
 
@@ -184,7 +188,7 @@ export function CoordinatorCreationDialog({
     const updated = checked
       ? [...formData.departments, department]
       : formData.departments.filter((d) => d !== department);
-    
+
     setFormData({ ...formData, departments: updated });
   };
 
@@ -281,12 +285,18 @@ export function CoordinatorCreationDialog({
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {AVAILABLE_RESPONSIBILITIES.map((responsibility) => (
-                <div key={responsibility} className="flex items-center space-x-2">
+                <div
+                  key={responsibility}
+                  className="flex items-center space-x-2"
+                >
                   <Checkbox
                     id={responsibility}
                     checked={formData.responsibilities.includes(responsibility)}
                     onCheckedChange={(checked) =>
-                      handleResponsibilityChange(responsibility, checked as boolean)
+                      handleResponsibilityChange(
+                        responsibility,
+                        checked as boolean
+                      )
                     }
                   />
                   <Label htmlFor={responsibility} className="text-sm">
@@ -329,7 +339,10 @@ export function CoordinatorCreationDialog({
                   id="canCreateEvents"
                   checked={formData.permissions.canCreateEvents}
                   onCheckedChange={(checked) =>
-                    handlePermissionChange("canCreateEvents", checked as boolean)
+                    handlePermissionChange(
+                      "canCreateEvents",
+                      checked as boolean
+                    )
                   }
                 />
                 <Label htmlFor="canCreateEvents">Can Create Events</Label>
@@ -339,10 +352,15 @@ export function CoordinatorCreationDialog({
                   id="canManageVolunteers"
                   checked={formData.permissions.canManageVolunteers}
                   onCheckedChange={(checked) =>
-                    handlePermissionChange("canManageVolunteers", checked as boolean)
+                    handlePermissionChange(
+                      "canManageVolunteers",
+                      checked as boolean
+                    )
                   }
                 />
-                <Label htmlFor="canManageVolunteers">Can Manage Volunteers</Label>
+                <Label htmlFor="canManageVolunteers">
+                  Can Manage Volunteers
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -359,7 +377,10 @@ export function CoordinatorCreationDialog({
                   id="canManagePartners"
                   checked={formData.permissions.canManagePartners}
                   onCheckedChange={(checked) =>
-                    handlePermissionChange("canManagePartners", checked as boolean)
+                    handlePermissionChange(
+                      "canManagePartners",
+                      checked as boolean
+                    )
                   }
                 />
                 <Label htmlFor="canManagePartners">Can Manage Partners</Label>
@@ -372,11 +393,7 @@ export function CoordinatorCreationDialog({
           <Button type="button" variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={isLoading}
-          >
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

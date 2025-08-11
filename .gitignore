@@ -422,7 +422,4 @@ obj/
 =======
 .github/
 memory-bank/
-ivan_database.sql
-ivan_requirements.md
-ivan_screen.md
->>>>>>> feature/fe-register
+/back-end/ivan-api/NUnitTestProject

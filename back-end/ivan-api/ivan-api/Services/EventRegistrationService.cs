@@ -1,5 +1,8 @@
 ﻿using ivan_api.DTOs;
+using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
+using ivan_api.Services.EmailSer;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services
@@ -296,18 +299,32 @@ namespace ivan_api.Services
         {
             try
             {
+                // Check if user is a coordinator
                 var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                if (coordinator == null)
+                
+                // Check if user is an organization
+                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
+                
+                int? organizationId = null;
+                if (coordinator != null)
+                {
+                    organizationId = coordinator.OrganizationId;
+                }
+                else if (organization != null)
+                {
+                    organizationId = organization.OrganizationId;
+                }
+                else
                 {
                     return new ApiResponseDTO<PagedResultDTO<RegistrationDTO>>
                     {
                         Success = false,
-                        Message = "Điều phối viên không tồn tại",
-                        Errors = new List<string> { "Coordinator not found" }
+                        Message = "Không có quyền truy cập",
+                        Errors = new List<string> { "User is not a coordinator or organization owner" }
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == coordinator.OrganizationId);
+                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<PagedResultDTO<RegistrationDTO>>
@@ -321,8 +338,8 @@ namespace ivan_api.Services
                 var query = _context.EventRegistrations
                     .Include(r => r.Status)
                     .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                    .ThenInclude(u => u.UserProfiles)
+                        .ThenInclude(v => v.User)
+                        .ThenInclude(u => u.UserProfiles)
                     .Where(r => r.EventId == eventId);
 
                 if (!string.IsNullOrEmpty(status))
@@ -334,20 +351,25 @@ namespace ivan_api.Services
                 var registrations = await query
                     .Skip((page - 1) * size)
                     .Take(size)
-                    .Select(r => new RegistrationDTO
-                    {
-                        RegistrationId = r.RegistrationId,
-                        EventId = r.EventId,
-                        VolunteerId = r.VolunteerId,
-                        StatusName = r.Status.StatusName,
-                        ApplicationDate = r.ApplicationDate,
-                        FullName = r.Volunteer.User.UserProfiles.FirstOrDefault().FullName
-                    })
                     .ToListAsync();
+
+                var registrationDTOs = registrations.Select(r => new RegistrationDTO
+                {
+                    RegistrationId = r.RegistrationId,
+                    EventId = r.EventId,
+                    VolunteerId = r.VolunteerId,
+                    StatusName = r.Status?.StatusName ?? "Unknown",
+                    ApplicationDate = r.ApplicationDate,
+                    FullName = r.Volunteer?.User?.UserProfiles != null && r.Volunteer.User.UserProfiles.Any() 
+                        ? r.Volunteer.User.UserProfiles.FirstOrDefault()?.FullName ?? "Unknown User"
+                        : "Unknown User",
+                    AdditionalInfo = r.AdditionalInfo,
+                    MotivationLetter = r.MotivationLetter
+                }).ToList();
 
                 var result = new PagedResultDTO<RegistrationDTO>
                 {
-                    Items = registrations,
+                    Items = registrationDTOs,
                     Page = page,
                     Size = size,
                     TotalItems = totalItems,
@@ -367,7 +389,11 @@ namespace ivan_api.Services
                 {
                     Success = false,
                     Message = "Đã xảy ra lỗi khi lấy danh sách đăng ký",
-                    Errors = new List<string> { ex.Message }
+                    Errors = new List<string> { 
+                        ex.Message, 
+                        ex.InnerException?.Message ?? "",
+                        ex.StackTrace ?? ""
+                    }.Where(e => !string.IsNullOrEmpty(e)).ToList()
                 };
             }
         }
@@ -376,14 +402,28 @@ namespace ivan_api.Services
         {
             try
             {
+                // Check if user is a coordinator
                 var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                if (coordinator == null)
+                
+                // Check if user is an organization
+                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
+                
+                int? organizationId = null;
+                if (coordinator != null)
+                {
+                    organizationId = coordinator.OrganizationId;
+                }
+                else if (organization != null)
+                {
+                    organizationId = organization.OrganizationId;
+                }
+                else
                 {
                     return new ApiResponseDTO<RegistrationDTO>
                     {
                         Success = false,
-                        Message = "Điều phối viên không tồn tại",
-                        Errors = new List<string> { "Coordinator not found" }
+                        Message = "Không có quyền truy cập",
+                        Errors = new List<string> { "User is not a coordinator or organization owner" }
                     };
                 }
 
@@ -403,7 +443,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == coordinator.OrganizationId);
+                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -419,9 +459,11 @@ namespace ivan_api.Services
                     RegistrationId = registration.RegistrationId,
                     EventId = registration.EventId,
                     VolunteerId = registration.VolunteerId,
-                    StatusName = registration.Status.StatusName,
+                    StatusName = registration.Status?.StatusName ?? "Unknown",
                     ApplicationDate = registration.ApplicationDate,
-                    FullName = registration.Volunteer.User.UserProfiles.FirstOrDefault().FullName,
+                    FullName = registration.Volunteer?.User?.UserProfiles != null && registration.Volunteer.User.UserProfiles.Any()
+                        ? registration.Volunteer.User.UserProfiles.FirstOrDefault()?.FullName ?? "Unknown User"
+                        : "Unknown User",
                     AdditionalInfo = registration.AdditionalInfo,
                     MotivationLetter = registration.MotivationLetter
                 };
@@ -448,14 +490,28 @@ namespace ivan_api.Services
         {
             try
             {
+                // Check if user is a coordinator
                 var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                if (coordinator == null)
+                
+                // Check if user is an organization
+                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
+                
+                int? organizationId = null;
+                if (coordinator != null)
+                {
+                    organizationId = coordinator.OrganizationId;
+                }
+                else if (organization != null)
+                {
+                    organizationId = organization.OrganizationId;
+                }
+                else
                 {
                     return new ApiResponseDTO<RegistrationDTO>
                     {
                         Success = false,
-                        Message = "Điều phối viên không tồn tại",
-                        Errors = new List<string> { "Coordinator not found" }
+                        Message = "Không có quyền truy cập",
+                        Errors = new List<string> { "User is not a coordinator or organization owner" }
                     };
                 }
 
@@ -474,7 +530,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == coordinator.OrganizationId);//true ,(false or null)
+                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);//true ,(false or null)
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -549,14 +605,28 @@ namespace ivan_api.Services
         {
             try
             {
+                // Check if user is a coordinator
                 var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                if (coordinator == null)
+                
+                // Check if user is an organization
+                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
+                
+                int? organizationId = null;
+                if (coordinator != null)
+                {
+                    organizationId = coordinator.OrganizationId;
+                }
+                else if (organization != null)
+                {
+                    organizationId = organization.OrganizationId;
+                }
+                else
                 {
                     return new ApiResponseDTO<RegistrationDTO>
                     {
                         Success = false,
-                        Message = "Điều phối viên không tồn tại",
-                        Errors = new List<string> { "Coordinator not found" }
+                        Message = "Không có quyền truy cập",
+                        Errors = new List<string> { "User is not a coordinator or organization owner" }
                     };
                 }
 
@@ -575,7 +645,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == coordinator.OrganizationId);
+                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>

@@ -39,7 +39,7 @@ public partial class CoordinatorSchedule
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual User Coordinator { get; set; } = null!;
+    public virtual VolunteerCoordinator Coordinator { get; set; } = null!;
 
     public virtual User? CreatedByNavigation { get; set; }
 

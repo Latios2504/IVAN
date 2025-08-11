@@ -44,13 +44,44 @@ namespace ivan_api.Services.VolunteerProfileServ
             return _mapper.Map<VolunteerProfileDetailDto>(entity);
         }
 
-        public async Task<bool> UpdateAsync(int id, VolunteerProfileUpdateDto dto)
+        public async Task<VolunteerProfileDetailDto?> UpdateAsync(int id, VolunteerProfileUpdateDto dto)
         {
             var existing = await _repo.GetByIdAsync(id);
-            if (existing == null) return false;
+            if (existing == null) return null;
+
+            // Update VolunteerProfile fields
             _mapper.Map(dto, existing);
+
+            // Update UserProfile fields if UserProfile exists
+            var userProfile = existing.User?.UserProfiles?.FirstOrDefault();
+            if (userProfile != null)
+            {
+                // Map UserProfile-specific fields from DTO
+                if (!string.IsNullOrEmpty(dto.FirstName)) userProfile.FirstName = dto.FirstName;
+                if (!string.IsNullOrEmpty(dto.LastName)) userProfile.LastName = dto.LastName;
+                if (!string.IsNullOrEmpty(dto.PhoneNumber)) userProfile.PhoneNumber = dto.PhoneNumber;
+                if (dto.DateOfBirth.HasValue) userProfile.DateOfBirth = DateOnly.FromDateTime(dto.DateOfBirth.Value);
+                if (!string.IsNullOrEmpty(dto.Gender)) userProfile.Gender = dto.Gender;
+                if (!string.IsNullOrEmpty(dto.Address)) userProfile.Address = dto.Address;
+                if (!string.IsNullOrEmpty(dto.WardCommune)) userProfile.WardCommune = dto.WardCommune;
+                if (!string.IsNullOrEmpty(dto.District)) userProfile.District = dto.District;
+                if (!string.IsNullOrEmpty(dto.Province)) userProfile.Province = dto.Province;
+                if (!string.IsNullOrEmpty(dto.PostalCode)) userProfile.PostalCode = dto.PostalCode;
+                if (!string.IsNullOrEmpty(dto.EmergencyContactName)) userProfile.EmergencyContactName = dto.EmergencyContactName;
+                if (!string.IsNullOrEmpty(dto.EmergencyContactPhone)) userProfile.EmergencyContactPhone = dto.EmergencyContactPhone;
+                if (!string.IsNullOrEmpty(dto.Avatar)) userProfile.Avatar = dto.Avatar;
+                
+                userProfile.UpdatedAt = DateTime.UtcNow;
+            }
+
             _repo.Update(existing);
-            return await _repo.SaveChangesAsync();
+            var success = await _repo.SaveChangesAsync();
+            
+            if (!success) return null;
+
+            // Return updated profile data
+            var updatedEntity = await _repo.GetByIdAsync(id);
+            return _mapper.Map<VolunteerProfileDetailDto>(updatedEntity);
         }
     }
 }

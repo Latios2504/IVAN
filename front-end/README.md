@@ -1,3 +1,0 @@
-# IVAN
-
-Front-End Folder

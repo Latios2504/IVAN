@@ -12,23 +12,14 @@ export interface ApiError {
   statusCode: number;
 }
 
-export interface PaginatedResponse<T> {
-  success: boolean;
-  data: T[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    pageSize: number;
-    totalItems: number;
-  };
-}
-
-// Legacy pagination interface for backward compatibility
-export interface PaginationData {
-  page: number;
-  limit: number;
-  total: number;
+export interface PagedResultDto<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
   totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 }
 
 export interface SearchFilters {

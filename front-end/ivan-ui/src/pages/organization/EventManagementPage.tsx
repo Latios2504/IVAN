@@ -1,4 +1,20 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { eventService } from "@/services/eventService";
+import type { PagedResultDto } from "@/types/common";
+import type {
+  EventDto,
+  CreateEventDto,
+  UpdateEventDto,
+  EventStatsDto,
+  EventCategoryDto,
+  EventStatusDto,
+} from "@/types/event";
+import { EventDashboard } from "@/components/organization/event-management/EventDashboard";
+import { EventList } from "@/components/organization/event-management/EventList";
+import { EventFilters } from "@/components/organization/event-management/EventFilters";
+import { CreateEventDialog } from "@/components/organization/event-management/CreateEventDialog";
+import { LoadingState } from "@/components/common/LoadingState";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,344 +22,275 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Clock,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Filter,
-} from "lucide-react";
+import { Plus, Users, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Mock data for events
-const mockEvents = [
-  {
-    id: "event_001",
-    title: "Chương trình giáo dục trẻ em vùng cao",
-    description: "Tổ chức hoạt động giáo dục và tặng quà cho trẻ em vùng cao",
-    date: "2024-06-20",
-    time: "08:00 - 17:00",
-    location: "Sapa, Lào Cai",
-    status: "upcoming",
-    volunteers: {
-      registered: 25,
-      confirmed: 20,
-      max: 30,
+export default function EventManagementPageNew() {
+  // Service adapters
+  const eventDataService = {
+    getAll: async (): Promise<EventDto[]> => {
+      const filters = {
+        page: 1,
+        size: 100,
+        sortBy: "startDate",
+        sortDirection: "desc" as const,
+      };
+      const result = await eventService.getOrganizationEvents(filters);
+      return result.items;
     },
-    coordinator: "Nguyễn Văn A",
-    category: "Giáo dục",
-    createdDate: "2024-05-15",
-  },
-  {
-    id: "event_002",
-    title: "Khám sức khỏe miễn phí cộng đồng",
-    description: "Khám sức khỏe và tư vấn y tế miễn phí cho người dân",
-    date: "2024-06-25",
-    time: "07:00 - 14:00",
-    location: "Trung tâm Y tế Quận 1, TP.HCM",
-    status: "in_progress",
-    volunteers: {
-      registered: 40,
-      confirmed: 35,
-      max: 45,
+    getById: async (id: number | string): Promise<EventDto> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await eventService.getOrganizationEvent(numericId);
     },
-    coordinator: "Lê Thị B",
-    category: "Y tế",
-    createdDate: "2024-05-20",
-  },
-  {
-    id: "event_003",
-    title: "Tặng quà Tết cho gia đình khó khăn",
-    description:
-      "Tổ chức tặng quà Tết và thăm hỏi các gia đình có hoàn cảnh khó khăn",
-    date: "2024-02-05",
-    time: "09:00 - 16:00",
-    location: "Huyện Đông Anh, Hà Nội",
-    status: "completed",
-    volunteers: {
-      registered: 60,
-      confirmed: 55,
-      max: 60,
+    create: async (data: CreateEventDto): Promise<EventDto> => {
+      const eventId = await eventService.createEvent(data);
+      // Return the created event by fetching it
+      return await eventService.getOrganizationEvent(eventId);
     },
-    coordinator: "Trần Văn C",
-    category: "Cộng đồng",
-    createdDate: "2024-01-10",
-  },
-  {
-    id: "event_004",
-    title: "Dọn dẹp môi trường bờ biển",
-    description: "Hoạt động thu gom rác thải và bảo vệ môi trường biển",
-    date: "2024-07-10",
-    time: "06:00 - 11:00",
-    location: "Bãi biển Cửa Lò, Nghệ An",
-    status: "planning",
-    volunteers: {
-      registered: 8,
-      confirmed: 5,
-      max: 25,
+    update: async (
+      id: number | string,
+      data: UpdateEventDto
+    ): Promise<EventDto> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      await eventService.updateEvent(numericId, data);
+      // Return the updated event by fetching it
+      return await eventService.getOrganizationEvent(numericId);
     },
-    coordinator: "Phạm Thị D",
-    category: "Môi trường",
-    createdDate: "2024-06-01",
-  },
-];
-
-const statusConfig = {
-  planning: {
-    label: "Đang lên kế hoạch",
-    variant: "outline" as const,
-    color: "text-gray-600",
-  },
-  upcoming: {
-    label: "Sắp diễn ra",
-    variant: "default" as const,
-    color: "text-blue-600",
-  },
-  in_progress: {
-    label: "Đang diễn ra",
-    variant: "default" as const,
-    color: "text-green-600",
-  },
-  completed: {
-    label: "Đã hoàn thành",
-    variant: "secondary" as const,
-    color: "text-green-700",
-  },
-  cancelled: {
-    label: "Đã hủy",
-    variant: "destructive" as const,
-    color: "text-red-600",
-  },
-};
-
-export default function EventManagementPage() {
-  const [selectedTab, setSelectedTab] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-
-  const filteredEvents = mockEvents.filter((event) => {
-    if (selectedTab === "all") return true;
-    return event.status === selectedTab;
-  });
-
-  const getEventStats = () => {
-    const total = mockEvents.length;
-    const upcoming = mockEvents.filter((e) => e.status === "upcoming").length;
-    const inProgress = mockEvents.filter(
-      (e) => e.status === "in_progress"
-    ).length;
-    const completed = mockEvents.filter((e) => e.status === "completed").length;
-
-    return { total, upcoming, inProgress, completed };
+    delete: async (id: number | string): Promise<void> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await eventService.deleteEvent(numericId);
+    },
   };
 
-  const stats = getEventStats();
+  const eventStatsService = {
+    getAll: async (): Promise<EventStatsDto[]> => {
+      const result = await eventService.getOrganizationStats();
+      return [result]; // Wrap in array for consistency
+    },
+  };
+
+  const eventCategoriesService = {
+    getAll: async (): Promise<EventCategoryDto[]> => {
+      return await eventService.getEventCategories();
+    },
+  };
+
+  const eventStatusesService = {
+    getAll: async (): Promise<EventStatusDto[]> => {
+      return await eventService.getEventStatuses();
+    },
+  };
+
+  // State management
+  const [events, setEvents] = useState<EventDto[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+
+  const [stats, setStats] = useState<EventStatsDto[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  const [categories, setCategories] = useState<EventCategoryDto[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  const [statuses, setStatuses] = useState<EventStatusDto[]>([]);
+  const [statusesLoading, setStatusesLoading] = useState(false);
+  const [statusesError, setStatusesError] = useState<string | null>(null);
+
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+
+  // Load all data on mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    // Load events
+    setEventsLoading(true);
+    setEventsError(null);
+    try {
+      const eventsResult = await eventDataService.getAll();
+      setEvents(eventsResult);
+    } catch (err) {
+      setEventsError(
+        err instanceof Error ? err.message : "Failed to load events"
+      );
+    } finally {
+      setEventsLoading(false);
+    }
+
+    // Load stats
+    setStatsLoading(true);
+    setStatsError(null);
+    try {
+      const statsResult = await eventStatsService.getAll();
+      setStats(statsResult);
+    } catch (err) {
+      setStatsError(
+        err instanceof Error ? err.message : "Failed to load stats"
+      );
+    } finally {
+      setStatsLoading(false);
+    }
+
+    // Load categories
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    try {
+      const categoriesResult = await eventCategoriesService.getAll();
+      setCategories(categoriesResult);
+    } catch (err) {
+      setCategoriesError(
+        err instanceof Error ? err.message : "Failed to load categories"
+      );
+    } finally {
+      setCategoriesLoading(false);
+    }
+
+    // Load statuses
+    setStatusesLoading(true);
+    setStatusesError(null);
+    try {
+      const statusesResult = await eventStatusesService.getAll();
+      setStatuses(statusesResult);
+    } catch (err) {
+      setStatusesError(
+        err instanceof Error ? err.message : "Failed to load statuses"
+      );
+    } finally {
+      setStatusesLoading(false);
+    }
+  };
+
+  const handleCreateSuccess = () => {
+    setShowCreateDialog(false);
+    loadAllData(); // Refresh all data
+  };
+
+  const handleEditSuccess = () => {
+    // Refresh data after edit
+    loadAllData(); // Refresh all data
+  };
+
+  // Determine loading state - loading if any critical data is loading
+  const isLoading = eventsLoading;
+
+  // Combine errors from all hooks
+  const hasError =
+    eventsError || statsError || categoriesError || statusesError;
+  const errorMessage =
+    eventsError || statsError || categoriesError || statusesError;
+
+  if (isLoading) {
+    return <LoadingState loading={true} />;
+  }
+
+  if (hasError) {
+    return (
+      <div className="p-6">
+        <div className="text-red-600">
+          Error:{" "}
+          {typeof errorMessage === "string" ? errorMessage : "Đã xảy ra lỗi"}
+        </div>
+        <Button onClick={() => loadAllData()} className="mt-4">
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Quản lý Sự kiện
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Event Management</h1>
           <p className="text-gray-600">
-            Tạo, chỉnh sửa và quản lý các sự kiện tình nguyện
+            Manage your organization's volunteer events
           </p>
         </div>
-        <Button className="mt-4 md:mt-0" asChild>
-          <Link to="/organization/events/create">
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo sự kiện mới
-          </Link>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Event
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng sự kiện</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Quản lý đăng ký sự kiện
+            </CardTitle>
+            <CardDescription>
+              Xem và quản lý đăng ký tình nguyện viên cho các sự kiện
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Tất cả sự kiện</p>
+            <Link to="/organization/event-registrations">
+              <Button variant="outline" className="w-full">
+                <FileText className="w-4 h-4 mr-2" />
+                Xem đăng ký sự kiện
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sắp diễn ra</CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Quản lý Coordinators
+            </CardTitle>
+            <CardDescription>
+              Quản lý điều phối viên tình nguyện trong tổ chức
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.upcoming}
-            </div>
-            <p className="text-xs text-muted-foreground">Sự kiện sắp tới</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đang diễn ra</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.inProgress}
-            </div>
-            <p className="text-xs text-muted-foreground">Đang hoạt động</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đã hoàn thành</CardTitle>
-            <Calendar className="h-4 w-4 text-gray-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-600">
-              {stats.completed}
-            </div>
-            <p className="text-xs text-muted-foreground">Hoàn thành</p>
+            <Link to="/organization/volunteer-coordinators">
+              <Button variant="outline" className="w-full">
+                <Users className="w-4 h-4 mr-2" />
+                Quản lý Coordinators
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
 
-      {/* Events Tabs */}
-      <Tabs
-        value={selectedTab}
-        onValueChange={setSelectedTab}
-        className="space-y-6"
-      >
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="planning">Lên kế hoạch</TabsTrigger>
-          <TabsTrigger value="upcoming">Sắp diễn ra</TabsTrigger>
-          <TabsTrigger value="in_progress">Đang diễn ra</TabsTrigger>
-          <TabsTrigger value="completed">Đã hoàn thành</TabsTrigger>
-        </TabsList>
+      {/* Dashboard */}
+      {stats.length > 0 && stats[0] && <EventDashboard stats={stats[0]} />}
 
-        <TabsContent value={selectedTab} className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    {selectedTab === "all"
-                      ? "Tất cả sự kiện"
-                      : statusConfig[selectedTab as keyof typeof statusConfig]
-                          ?.label}
-                  </CardTitle>
-                  <CardDescription>
-                    Quản lý và theo dõi các sự kiện tình nguyện
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Lọc
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="border rounded-lg p-6 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-lg font-semibold mb-1">
-                              {event.title}
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                              {event.description}
-                            </p>
-                          </div>
-                          <Badge
-                            variant={
-                              statusConfig[
-                                event.status as keyof typeof statusConfig
-                              ].variant
-                            }
-                          >
-                            {
-                              statusConfig[
-                                event.status as keyof typeof statusConfig
-                              ].label
-                            }
-                          </Badge>
-                        </div>
+      {/* Filters */}
+      <EventFilters categories={categories} statuses={statuses} />
 
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            {new Date(event.date).toLocaleDateString("vi-VN")}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            {event.time}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            {event.location}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            {event.volunteers.confirmed}/{event.volunteers.max}{" "}
-                            tình nguyện viên
-                          </div>
-                        </div>
+      {/* Event List */}
+      {events.length > 0 ? (
+        <EventList events={events} onEventUpdated={handleEditSuccess} />
+      ) : (
+        <div className="text-center py-12">
+          <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No events found
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Create your first event to get started
+          </p>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Event
+          </Button>
+        </div>
+      )}
 
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="secondary">{event.category}</Badge>
-                          <Badge variant="outline">
-                            Coordinator: {event.coordinator}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col lg:flex-row gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/organization/events/${event.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Xem chi tiết
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/organization/events/${event.id}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Chỉnh sửa
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Create Event Dialog */}
+      <CreateEventDialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSuccess={handleCreateSuccess}
+        categories={categories}
+      />
     </div>
   );
 }

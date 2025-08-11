@@ -1,4 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { aiInstructionsService } from "@/services/aiInstructionsService";
+import type {
+  AiCustomInstructionDTO,
+  AiCustomInstructionCreateDTO,
+  AiCustomInstructionUpdateDTO,
+} from "@/types/ai";
+import { UserRole } from "@/types/auth";
 import {
   Card,
   CardContent,
@@ -11,18 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -37,603 +36,513 @@ import {
   Bot,
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
-  Edit,
   Trash2,
-  Eye,
   Play,
-  Power,
-  PowerOff,
-  BarChart3,
-  Zap,
   CheckCircle,
   XCircle,
-  Clock,
   TrendingUp,
-  Users,
   Settings,
+  Loader2,
+  BarChart3,
+  Eye,
 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import InstructionTemplates from "@/components/ai/InstructionTemplates";
-import CustomInstructionBuilder from "@/components/ai/CustomInstructionBuilder";
-import InstructionPreview from "@/components/ai/InstructionPreview";
-import TestingPlayground from "@/components/ai/TestingPlayground";
-import type {
-  AiCustomInstructionDTO,
-  AiCustomInstructionCreateDTO,
-  AiCustomInstructionUpdateDTO,
-  InstructionTemplate,
-  InstructionFormData,
-  InstructionFilters,
-} from "@/types/ai-instructions";
-import { aiInstructionsService } from "@/services/api/aiInstructionsService";
+import CustomInstructionBuilder from "@/components/admin/ai-custom-instructions/CustomInstructionBuilder";
+import TestingPlayground from "@/components/admin/ai-custom-instructions/TestingPlayground";
+import InstructionPreview from "@/components/admin/ai-custom-instructions/InstructionPreview";
 
-type ViewMode = "overview" | "templates" | "builder" | "preview" | "testing";
-
-export default function AIInstructionsManagementPage() {
+const AIInstructionsManagementPageContent: React.FC = () => {
   const { user } = useAuth();
-  const [viewMode, setViewMode] = useState<ViewMode>("overview");
+  const isAdmin = user?.role === UserRole.ADMIN;
+
+  // Service adapter for AI Instructions
+  const aiInstructionsDataService = {
+    getAll: async (): Promise<AiCustomInstructionDTO[]> => {
+      return await aiInstructionsService.getAllInstructions();
+    },
+    create: async (
+      data: AiCustomInstructionCreateDTO
+    ): Promise<AiCustomInstructionDTO> => {
+      return await aiInstructionsService.createInstruction(data);
+    },
+    update: async (
+      id: number | string,
+      data: AiCustomInstructionUpdateDTO
+    ): Promise<AiCustomInstructionDTO> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await aiInstructionsService.updateInstruction(numericId, data);
+    },
+    delete: async (id: number | string): Promise<void> => {
+      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
+      return await aiInstructionsService.deleteInstruction(numericId);
+    },
+  };
+
+  // Simple state management
   const [instructions, setInstructions] = useState<AiCustomInstructionDTO[]>(
     []
   );
-  const [filteredInstructions, setFilteredInstructions] = useState<
-    AiCustomInstructionDTO[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<InstructionFilters>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Local UI state (much simpler than complex context state)
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Modal states
-  const [previewData, setPreviewData] = useState<
-    InstructionTemplate | InstructionFormData | AiCustomInstructionDTO | null
-  >(null);
-  const [editingInstruction, setEditingInstruction] =
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "builder" | "testing"
+  >("overview");
+  const [selectedInstruction, setSelectedInstruction] =
     useState<AiCustomInstructionDTO | null>(null);
-  const [testingInstruction, setTestingInstruction] =
+  const [previewInstruction, setPreviewInstruction] =
     useState<AiCustomInstructionDTO | null>(null);
-  const [builderData, setBuilderData] =
-    useState<AiCustomInstructionCreateDTO | null>(null);
 
-  // Stats
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    templates: 0,
-    avgQuality: 0,
-    totalQueries: 0,
-  });
-
-  // Load instructions on component mount
+  // Load data on mount
   useEffect(() => {
-    loadInstructions();
-  }, []);
-
-  // Filter instructions when search or filters change
-  useEffect(() => {
-    let filtered = instructions;
-
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (instruction) =>
-          instruction.instructionName.toLowerCase().includes(query) ||
-          instruction.systemPrompt.toLowerCase().includes(query) ||
-          instruction.behaviorInstructions?.toLowerCase().includes(query)
-      );
-    }
-
-    // Status filter
-    if (filters.isActive !== undefined) {
-      filtered = filtered.filter(
-        (instruction) => instruction.isActive === filters.isActive
-      );
-    }
-
-    // Default filter
-    if (filters.isDefault !== undefined) {
-      filtered = filtered.filter(
-        (instruction) => instruction.isDefault === filters.isDefault
-      );
-    }
-
-    setFilteredInstructions(filtered);
-  }, [instructions, searchQuery, filters]);
-
-  const loadInstructions = async () => {
-    try {
-      setLoading(true);
-      const data = await aiInstructionsService.getAllInstructions();
-      setInstructions(data);
-
-      // Calculate stats
-      const activeCount = data.filter((i) => i.isActive).length;
-      const templateCount = data.filter((i) => i.isDefault).length;
-
-      setStats({
-        total: data.length,
-        active: activeCount,
-        templates: templateCount,
-        avgQuality: 4.2, // Mock data
-        totalQueries: 1247, // Mock data
-      });
-    } catch (error) {
-      console.error("Failed to load instructions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateInstruction = async (
-    data: AiCustomInstructionCreateDTO
-  ) => {
-    try {
-      await aiInstructionsService.createInstruction(data);
-      await loadInstructions();
-      setViewMode("overview");
-      setBuilderData(null);
-    } catch (error) {
-      console.error("Failed to create instruction:", error);
-      throw error;
-    }
-  };
-
-  const handleUpdateInstruction = async (
-    data: AiCustomInstructionUpdateDTO
-  ) => {
-    if (!editingInstruction) return;
-
-    try {
-      await aiInstructionsService.updateInstruction(
-        editingInstruction.instructionId,
-        data
-      );
-      await loadInstructions();
-      setViewMode("overview");
-      setEditingInstruction(null);
-    } catch (error) {
-      console.error("Failed to update instruction:", error);
-      throw error;
-    }
-  };
-
-  const handleSaveInstruction = async (
-    data: AiCustomInstructionCreateDTO | AiCustomInstructionUpdateDTO
-  ) => {
-    if (editingInstruction) {
-      // It's an update - add isActive field
-      const updateData: AiCustomInstructionUpdateDTO = {
-        ...data,
-        isActive: "isActive" in data ? data.isActive : true,
+    if (isAdmin) {
+      const loadInstructions = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const result = await aiInstructionsDataService.getAll();
+          setInstructions(result);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load instructions"
+          );
+        } finally {
+          setLoading(false);
+        }
       };
-      await handleUpdateInstruction(updateData);
-    } else {
-      // It's a create
-      await handleCreateInstruction(data as AiCustomInstructionCreateDTO);
+
+      loadInstructions();
     }
-  };
+  }, [isAdmin]);
 
-  const handleDeleteInstruction = async (instructionId: number) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa hướng dẫn AI này?")) return;
-
-    try {
-      await aiInstructionsService.adminDeleteInstruction(instructionId);
-      await loadInstructions();
-    } catch (error) {
-      console.error("Failed to delete instruction:", error);
-    }
-  };
-
-  const handleToggleStatus = async (instruction: AiCustomInstructionDTO) => {
-    try {
-      await aiInstructionsService.toggleInstructionStatus(
-        instruction.instructionId,
-        !instruction.isActive
-      );
-      await loadInstructions();
-    } catch (error) {
-      console.error("Failed to toggle instruction status:", error);
-    }
-  };
-
-  const handleSelectTemplate = (template: AiCustomInstructionCreateDTO) => {
-    setBuilderData(template);
-    setViewMode("builder");
-  };
-
-  const handlePreviewTemplate = (template: InstructionTemplate) => {
-    setPreviewData(template);
-  };
-
-  const handlePreviewFormData = (formData: InstructionFormData) => {
-    setPreviewData(formData);
-  };
-
-  const handleEditInstruction = (instruction: AiCustomInstructionDTO) => {
-    setEditingInstruction(instruction);
-    setViewMode("builder");
-  };
-
-  const handleTestInstruction = (instruction: AiCustomInstructionDTO) => {
-    setTestingInstruction(instruction);
-  };
-
-  const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return "N/A";
-
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "Invalid Date";
-
-      return date.toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "Invalid Date";
-    }
-  };
-
-  const getStatusBadge = (instruction: AiCustomInstructionDTO) => {
-    if (instruction.isDefault) {
+  // Filter data locally
+  const filteredInstructions = instructions.filter(
+    (instruction: AiCustomInstructionDTO) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
       return (
-        <Badge
-          variant="outline"
-          className="bg-purple-50 text-purple-700 border-purple-200"
-        >
-          Template
-        </Badge>
+        instruction.instructionName.toLowerCase().includes(query) ||
+        instruction.systemPrompt.toLowerCase().includes(query) ||
+        instruction.behaviorInstructions?.toLowerCase().includes(query)
       );
     }
-    if (instruction.isActive) {
-      return (
-        <Badge
-          variant="default"
-          className="bg-green-50 text-green-700 border-green-200"
-        >
-          Hoạt động
-        </Badge>
-      );
-    }
-    return <Badge variant="secondary">Tạm dừng</Badge>;
-  };
-
-  const renderOverview = () => (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Bot className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Tổng hướng dẫn
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.total}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Đang hoạt động
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.active}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Zap className="h-5 w-5 text-purple-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">Templates</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.templates}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Chất lượng TB
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.avgQuality}/5
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-cyan-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Tổng queries
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalQueries}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Tìm kiếm hướng dẫn AI..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <Select
-              onValueChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  isActive: value === "all" ? undefined : value === "active",
-                }))
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="active">Hoạt động</SelectItem>
-                <SelectItem value="inactive">Tạm dừng</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              onValueChange={(value) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  isDefault:
-                    value === "all" ? undefined : value === "templates",
-                }))
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Loại" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="templates">Templates</SelectItem>
-                <SelectItem value="custom">Tùy chỉnh</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Instructions Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Danh sách Hướng dẫn AI</CardTitle>
-            <Button onClick={() => setViewMode("templates")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo mới
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tên hướng dẫn</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead>Cập nhật</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInstructions.map((instruction) => (
-                  <TableRow key={instruction.instructionId}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {instruction.instructionName}
-                        </p>
-                        <p className="text-sm text-gray-500 line-clamp-1">
-                          {instruction.systemPrompt.substring(0, 100)}...
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(instruction)}</TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {formatDate(instruction.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {formatDate(instruction.updatedAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => setPreviewData(instruction)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Xem chi tiết
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleTestInstruction(instruction)}
-                          >
-                            <Play className="h-4 w-4 mr-2" />
-                            Test hướng dẫn
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleEditInstruction(instruction)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Chỉnh sửa
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleToggleStatus(instruction)}
-                          >
-                            {instruction.isActive ? (
-                              <>
-                                <PowerOff className="h-4 w-4 mr-2" />
-                                Tạm dừng
-                              </>
-                            ) : (
-                              <>
-                                <Power className="h-4 w-4 mr-2" />
-                                Kích hoạt
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() =>
-                              handleDeleteInstruction(instruction.instructionId)
-                            }
-                            disabled={instruction.isDefault}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Xóa
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
   );
 
-  return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Quản lý Hướng dẫn AI
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Tùy chỉnh hành vi và chuyên môn của AI assistant
+  // Calculate stats locally
+  const stats = {
+    total: instructions.length,
+    active: instructions.filter((i: AiCustomInstructionDTO) => i.isActive)
+      .length,
+    inactive: instructions.filter((i: AiCustomInstructionDTO) => !i.isActive)
+      .length,
+  };
+
+  // Auth check
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <Bot className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Truy cập bị từ chối
+          </h2>
+          <p className="text-gray-600">
+            Bạn cần quyền admin để truy cập trang quản lý AI Instructions.
           </p>
         </div>
+      </div>
+    );
+  }
 
-        {viewMode !== "overview" && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              setViewMode("overview");
-              setBuilderData(null);
-              setEditingInstruction(null);
-            }}
-          >
-            ← Quay về danh sách
-          </Button>
-        )}
+  // ✅ SIMPLE: Error handling
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Đã xảy ra lỗi
+          </h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="space-x-2">
+            <Button onClick={() => setError(null)}>Thử lại</Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Reload
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          🤖 Quản lý AI Instructions
+        </h1>
+        <p className="text-gray-600">
+          Quản lý các hướng dẫn tùy chỉnh cho AI Assistant
+        </p>
       </div>
 
-      {/* Content based on view mode */}
-      {viewMode === "overview" && renderOverview()}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          // Clear selected instruction when switching to create new mode
+          if (value === "builder" && activeTab !== "builder") {
+            setSelectedInstruction(null);
+          }
+          setActiveTab(value as any);
+        }}
+      >
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Tổng quan
+          </TabsTrigger>
+          <TabsTrigger value="builder" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            {selectedInstruction ? "Chỉnh sửa" : "Tạo mới"}
+          </TabsTrigger>
+          <TabsTrigger value="testing" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Kiểm tra
+          </TabsTrigger>
+        </TabsList>
 
-      {viewMode === "templates" && (
-        <InstructionTemplates
-          onSelectTemplate={handleSelectTemplate}
-          onPreviewTemplate={handlePreviewTemplate}
-        />
-      )}
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">
+                  Tổng Instructions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="text-2xl font-bold">{stats.total}</div>
+                  <TrendingUp className="h-4 w-4 text-green-500 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">
+                  Đang hoạt động
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.active}
+                  </div>
+                  <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">
+                  Không hoạt động
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="text-2xl font-bold text-gray-500">
+                    {stats.inactive}
+                  </div>
+                  <XCircle className="h-4 w-4 text-gray-400 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-      {viewMode === "builder" && (
-        <CustomInstructionBuilder
-          initialData={builderData || undefined}
-          editingInstruction={editingInstruction || undefined}
-          onSave={handleSaveInstruction}
-          onPreview={handlePreviewFormData}
-          onCancel={() => {
-            setViewMode("overview");
-            setBuilderData(null);
-            setEditingInstruction(null);
-          }}
-        />
-      )}
+          {/* Search and Controls */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Danh sách Instructions</CardTitle>
+                <Button onClick={() => setActiveTab("builder")}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo mới
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Search */}
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                  <Input
+                    placeholder="Tìm kiếm instructions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
 
-      {/* Modals */}
-      {previewData && (
-        <InstructionPreview
-          data={previewData}
-          onClose={() => setPreviewData(null)}
-          onUse={() => {
-            if ("category" in previewData) {
-              // It's a template
-              const template = previewData as InstructionTemplate;
-              handleSelectTemplate({
-                instructionName: template.name,
-                systemPrompt: template.systemPrompt,
-                behaviorInstructions: template.behaviorInstructions || "",
-                dataAccessRules: template.dataAccessRules || "",
-              });
-            }
-            setPreviewData(null);
-          }}
-          showUseButton={"category" in previewData}
-        />
-      )}
+              {/* Loading State */}
+              {loading && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  Đang tải...
+                </div>
+              )}
 
-      {testingInstruction && (
-        <TestingPlayground
-          instruction={testingInstruction}
-          onClose={() => setTestingInstruction(null)}
-        />
+              {/* Empty State */}
+              {!loading && instructions.length === 0 && (
+                <div className="text-center py-8">
+                  <Bot className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Chưa có instructions nào
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Tạo instruction đầu tiên để bắt đầu
+                  </p>
+                  <Button onClick={() => setActiveTab("builder")}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Tạo instruction đầu tiên
+                  </Button>
+                </div>
+              )}
+
+              {/* Instructions Table */}
+              {!loading && instructions.length > 0 && (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tên</TableHead>
+                      <TableHead>System Prompt</TableHead>
+                      <TableHead>Hướng dẫn hành vi</TableHead>
+                      <TableHead>Trạng thái</TableHead>
+                      <TableHead>Ngày tạo</TableHead>
+                      <TableHead className="w-[100px]">Hành động</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInstructions.map((instruction) => (
+                      <TableRow key={instruction.instructionId}>
+                        <TableCell className="font-medium">
+                          {instruction.instructionName}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {instruction.systemPrompt}
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div
+                            className="truncate"
+                            title={instruction.behaviorInstructions}
+                          >
+                            {instruction.behaviorInstructions
+                              ? instruction.behaviorInstructions
+                                  .replace(/\n/g, " • ")
+                                  .substring(0, 100) +
+                                (instruction.behaviorInstructions.length > 100
+                                  ? "..."
+                                  : "")
+                              : "Không có"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              instruction.isActive ? "default" : "secondary"
+                            }
+                          >
+                            {instruction.isActive ? "Hoạt động" : "Tạm dừng"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(instruction.createdAt).toLocaleDateString(
+                            "vi-VN"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setPreviewInstruction(instruction)
+                                }
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Xem trước
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedInstruction(instruction);
+                                  setActiveTab("testing");
+                                }}
+                              >
+                                <Play className="h-4 w-4 mr-2" />
+                                Kiểm tra
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedInstruction(instruction);
+                                  setActiveTab("builder");
+                                }}
+                              >
+                                <Settings className="h-4 w-4 mr-2" />
+                                Chỉnh sửa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={async () => {
+                                  try {
+                                    await aiInstructionsDataService.delete(
+                                      instruction.instructionId
+                                    );
+                                    // Refresh data
+                                    const result =
+                                      await aiInstructionsDataService.getAll();
+                                    setInstructions(result);
+                                  } catch (err) {
+                                    setError(
+                                      err instanceof Error
+                                        ? err.message
+                                        : "Failed to delete instruction"
+                                    );
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Xóa
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Builder Tab */}
+        <TabsContent value="builder">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {selectedInstruction
+                  ? "Chỉnh sửa AI Instruction"
+                  : "Tạo AI Instruction mới"}
+              </CardTitle>
+              <CardDescription>
+                {selectedInstruction
+                  ? "Chỉnh sửa hướng dẫn tùy chỉnh cho AI Assistant"
+                  : "Tạo hướng dẫn tùy chỉnh cho AI Assistant"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CustomInstructionBuilder
+                editingInstruction={selectedInstruction || undefined}
+                onSave={async (data) => {
+                  try {
+                    if (selectedInstruction) {
+                      // Update existing instruction
+                      await aiInstructionsDataService.update(
+                        selectedInstruction.instructionId,
+                        data as AiCustomInstructionUpdateDTO
+                      );
+                    } else {
+                      // Create new instruction
+                      await aiInstructionsDataService.create(
+                        data as AiCustomInstructionCreateDTO
+                      );
+                    }
+                    // Refresh data
+                    const result = await aiInstructionsDataService.getAll();
+                    setInstructions(result);
+                    setSelectedInstruction(null);
+                    setActiveTab("overview");
+                  } catch (err) {
+                    setError(
+                      err instanceof Error
+                        ? err.message
+                        : selectedInstruction
+                        ? "Failed to update instruction"
+                        : "Failed to create instruction"
+                    );
+                  }
+                }}
+                onCancel={() => {
+                  setSelectedInstruction(null);
+                  setActiveTab("overview");
+                }}
+                onPreview={() => {}}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Testing Tab */}
+        <TabsContent value="testing">
+          <Card>
+            <CardHeader>
+              <CardTitle>Kiểm tra AI Instruction</CardTitle>
+              <CardDescription>
+                Test instruction với các query mẫu
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {selectedInstruction ? (
+                <TestingPlayground
+                  instruction={selectedInstruction}
+                  onClose={() => {
+                    setSelectedInstruction(null);
+                    setActiveTab("overview");
+                  }}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <Play className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    Chọn instruction để kiểm tra
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Quay lại tab Tổng quan và chọn một instruction để kiểm tra
+                    hoạt động
+                  </p>
+                  <Button onClick={() => setActiveTab("overview")}>
+                    Về trang tổng quan
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Preview Modal */}
+      {previewInstruction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <InstructionPreview
+              data={previewInstruction}
+              onClose={() => setPreviewInstruction(null)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
+};
+
+function AIInstructionsManagementPageNew() {
+  return <AIInstructionsManagementPageContent />;
 }
+
+export default AIInstructionsManagementPageNew;

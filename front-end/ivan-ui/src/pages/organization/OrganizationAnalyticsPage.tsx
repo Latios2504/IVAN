@@ -230,7 +230,7 @@ export default function OrganizationAnalyticsPage() {
   };
 
   const handleExportReport = () => {
-    console.log("Xuất báo cáo analytics");
+    
     // Simulate export
   };
 

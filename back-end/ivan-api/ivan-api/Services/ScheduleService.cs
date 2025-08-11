@@ -1,6 +1,8 @@
 ﻿using ivan_api.Constants;
 using ivan_api.DTOs;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
+using ivan_api.Services.EmailSer;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services
@@ -31,9 +33,10 @@ namespace ivan_api.Services
 
                 var query = _context.CoordinatorSchedules
                     .Include(s => s.Coordinator)
-                    .ThenInclude(c => c.UserProfiles)
+                        .ThenInclude(c => c.User)
+                            .ThenInclude(u => u.UserProfiles)
                     .Include(s => s.Event)
-                    .Where(s => s.Coordinator.VolunteerCoordinatorUsers.Any(vc => vc.OrganizationId == organization.OrganizationId));
+                    .Where(s => s.Coordinator.OrganizationId == organization.OrganizationId);
 
                 if (coordinatorId.HasValue)
                 {
@@ -53,7 +56,7 @@ namespace ivan_api.Services
                     {
                         ScheduleId = s.ScheduleId,
                         CoordinatorId = s.CoordinatorId,
-                        CoordinatorName = s.Coordinator.UserProfiles.FirstOrDefault().FullName, // assuming UserProfiles has FullName, needs to be adjusted based on actual UserProfile properties
+                        CoordinatorName = s.Coordinator.User.UserProfiles.FirstOrDefault().FullName, // assuming UserProfiles has FullName, needs to be adjusted based on actual UserProfile properties
                         EventId = s.EventId,
                         EventName = s.Event != null ? s.Event.EventName : null,
                         Title = s.Title,
@@ -116,10 +119,11 @@ namespace ivan_api.Services
 
                 var schedule = await _context.CoordinatorSchedules
                     .Include(s => s.Coordinator)
-                    .ThenInclude(c => c.UserProfiles)
+                        .ThenInclude(c => c.User)
+                            .ThenInclude(u => u.UserProfiles)
                     .Include(s => s.Event)
                     .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
-                if (schedule == null || !schedule.Coordinator.VolunteerCoordinatorUsers.Any(vc => vc.OrganizationId == organization.OrganizationId))
+                if (schedule == null || schedule.Coordinator.OrganizationId != organization.OrganizationId)
                 {
                     return new ApiResponseDTO<ScheduleDTO>
                     {
@@ -133,7 +137,7 @@ namespace ivan_api.Services
                 {
                     ScheduleId = schedule.ScheduleId,
                     CoordinatorId = schedule.CoordinatorId,
-                    CoordinatorName = schedule.Coordinator.UserProfiles.FirstOrDefault().FullName,
+                    CoordinatorName = schedule.Coordinator.User.UserProfiles.FirstOrDefault()?.FullName ?? "",
                     EventId = schedule.EventId,
                     EventName = schedule.Event != null ? schedule.Event.EventName : null,
                     Title = schedule.Title,
@@ -289,7 +293,7 @@ namespace ivan_api.Services
                 {
                     ScheduleId = schedule.ScheduleId,
                     CoordinatorId = schedule.CoordinatorId,
-                    CoordinatorName = coordinator.UserProfiles.FirstOrDefault().FullName,
+                    CoordinatorName = coordinator.UserProfiles.FirstOrDefault()?.FullName ?? "",
                     EventId = schedule.EventId,
                     EventName = eventName,
                     Title = schedule.Title,
@@ -342,10 +346,11 @@ namespace ivan_api.Services
 
                 var schedule = await _context.CoordinatorSchedules
                     .Include(s => s.Coordinator)
-                    .ThenInclude(c => c.UserProfiles)
+                        .ThenInclude(c => c.User)
+                            .ThenInclude(u => u.UserProfiles)
                     .Include(s => s.Event)
                     .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
-                if (schedule == null || !schedule.Coordinator.VolunteerCoordinatorUsers.Any(vc => vc.OrganizationId == organization.OrganizationId))
+                if (schedule == null || schedule.Coordinator.OrganizationId != organization.OrganizationId)
                 {
                     return new ApiResponseDTO<ScheduleDTO>
                     {
@@ -455,7 +460,7 @@ namespace ivan_api.Services
                 {
                     ScheduleId = schedule.ScheduleId,
                     CoordinatorId = schedule.CoordinatorId,
-                    CoordinatorName = coordinator.UserProfiles.FirstOrDefault().FullName,
+                    CoordinatorName = coordinator.UserProfiles.FirstOrDefault()?.FullName ?? "",
                     EventId = schedule.EventId,
                     EventName = eventName,
                     Title = schedule.Title,
@@ -511,7 +516,8 @@ namespace ivan_api.Services
                 var query = _context.CoordinatorSchedules
                     .Include(s => s.Event)
                     .Include(s => s.Coordinator)
-                    .ThenInclude(c => c.UserProfiles)
+                        .ThenInclude(c => c.User)
+                            .ThenInclude(u => u.UserProfiles)
                     .Where(s => s.CoordinatorId == userId);
 
                 if (eventId.HasValue)
@@ -537,7 +543,7 @@ namespace ivan_api.Services
                     {
                         ScheduleId = s.ScheduleId,
                         CoordinatorId = s.CoordinatorId,
-                        CoordinatorName = s.Coordinator.UserProfiles.FirstOrDefault().FullName,
+                        CoordinatorName = s.Coordinator.User.UserProfiles.FirstOrDefault().FullName,
                         EventId = s.EventId,
                         EventName = s.Event != null ? s.Event.EventName : null,
                         Title = s.Title,

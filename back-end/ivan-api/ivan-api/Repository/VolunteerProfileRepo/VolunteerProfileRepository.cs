@@ -23,13 +23,13 @@ namespace ivan_api.Repository.VolunteerProfileRepo
                 .ToListAsync();
         }
 
-        public async Task<VolunteerProfile?> GetByIdAsync(int id)
+        public async Task<VolunteerProfile?> GetByIdAsync(int userId)
         {
             return await _context.VolunteerProfiles
                 .Include(v => v.User)
                     .ThenInclude(u => u.UserProfiles)
                 .Include(v => v.VolunteerSkills)
-                .FirstOrDefaultAsync(v => v.VolunteerId == id);
+                .FirstOrDefaultAsync(v => v.UserId == userId);
         }
 
         public void Remove(VolunteerProfile entity)
@@ -46,7 +46,6 @@ namespace ivan_api.Repository.VolunteerProfileRepo
         public void Update(VolunteerProfile entity)
         {
             _context.VolunteerProfiles.Update(entity);
-            _context.SaveChangesAsync();
         }
     }
 }
