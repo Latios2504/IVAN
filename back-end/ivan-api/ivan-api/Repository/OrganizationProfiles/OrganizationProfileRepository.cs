@@ -89,11 +89,12 @@ namespace ivan_api.Repository.OrganizationProfiles
 
         public async Task<Organization> GetOrganizationProfileById(int userId)
         {
-            return await _context.Organizations
+            var org = await _context.Organizations
                 .Include(x => x.User)
                 .Include(x => x.VerifiedByNavigation)
                 .Include(x => x.Type)
                 .SingleOrDefaultAsync(x => x.UserId == userId);
+            return org;
         }
 
         public async Task<int> GetLastId()

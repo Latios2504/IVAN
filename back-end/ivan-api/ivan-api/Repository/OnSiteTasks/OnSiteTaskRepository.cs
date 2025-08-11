@@ -81,7 +81,7 @@ namespace ivan_api.Repository.OnSiteTasks
 
         public async Task<OnSiteTask> GetOnSiteTaskById(int id)
         {
-            return await _context.OnSiteTasks
+            var task = await _context.OnSiteTasks
                 .Include(x => x.Category)
                 .Include(x => x.CompletedByNavigation)
                 .Include(x => x.CreatedByNavigation)
@@ -89,6 +89,7 @@ namespace ivan_api.Repository.OnSiteTasks
                 .Include(x => x.Status)
                 .Include(x => x.VerifiedByNavigation)
                 .SingleOrDefaultAsync(x => x.TaskId == id);
+            return task;
         }
 
         public async Task<int> GetLastId()

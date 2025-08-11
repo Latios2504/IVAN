@@ -21,8 +21,15 @@ namespace ivan_api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("by-organization/{organizationId}")]

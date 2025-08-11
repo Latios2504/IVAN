@@ -24,6 +24,7 @@ namespace ivan_api.Repository.Certificates
 
         public async Task<bool> AddCertificate(Certificate certificate)
         {
+            certificate.CreatedAt = DateTime.Now;
             await _context.Certificates.AddAsync(certificate);
             return await _context.SaveChangesAsync() > 0;
         }
@@ -49,12 +50,15 @@ namespace ivan_api.Repository.Certificates
 
         public async Task<PagedResultDto<CertificateViewModel>> GetCertificatesByOrganizationAsync(int organizationId, int PageNumber, int PageSize)
         {
+            var org = _context.Organizations.Find(organizationId);
+
             var query = _context.Certificates
                 .Include(x => x.Event)
                 .Include(x => x.IssuedByNavigation)
                 .Include(x => x.Template)
                 .Include(x => x.Volunteer)
-                .Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == organizationId)
+                //.Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == organizationId)////////
+                .Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == 2/*organization role id*/ && org != null && c.IssuedBy == org.UserId)
                 .AsQueryable();
 
             var totalCount = await query.CountAsync();
@@ -233,6 +237,21 @@ namespace ivan_api.Repository.Certificates
             DrawField("Performance Level:", cer.PerformanceLevel ?? "N/A");
             DrawField("Issue Date:", cer.IssueDate?.ToString("dd MMM yyyy") ?? "N/A");
             DrawField("Expiry Date:", cer.ExpiryDate?.ToString("dd MMM yyyy") ?? "N/A");
+
+            var update = await GetCertificateById(id);
+
+            if(update.DownloadCount == 0 || update.DownloadCount == null)
+            {
+                update.DownloadCount = 0;
+            }
+            else
+            {
+                update.DownloadCount += 1;
+            }
+
+            update.LastDownloadDate = DateTime.Now;
+
+            await UpdateCertificate(update);//add dl count and new date
 
             return document;
         }

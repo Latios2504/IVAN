@@ -1,7 +1,8 @@
-﻿using ivan_api.Services.Reports;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using ivan_api.DTOs.Reports;
+using ivan_api.Services.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ivan_api.DTOs.Reports;
 
 namespace ivan_api.Controllers
 {
@@ -40,43 +41,85 @@ namespace ivan_api.Controllers
         [HttpGet("listEventReport")]
         public async Task<IActionResult> GetEventReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetEventReportList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetEventReportList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("listOrganizationReport")]
         public async Task<IActionResult> GetOrganizationReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetOrganizationReportList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetOrganizationReportList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("listSystemReport")]
         public async Task<IActionResult> GetSystemReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetSystemReportList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetSystemReportList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("getEventReport/{id}")]
         public async Task<IActionResult> GetEventReport(int id)
         {
-            var result = await _service.GetEventReportById(id);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetEventReportById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpGet("getOrganizationReport/{id}")]
         public async Task<IActionResult> GetOrganizationReport(int id)
         {
-            var result = await _service.GetOrganizationReportById(id);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetOrganizationReportById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpGet("getSystemReport/{id}")]
         public async Task<IActionResult> GetSystemReport(int id)
         {
-            var result = await _service.GetSystemReportById(id);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetSystemReportById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpPost("addEventReport")]
@@ -93,20 +136,27 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.AddEventReport(input);
-
-            if (!result)//if false
+            try
             {
-                return BadRequest(null);
+                var result = await _service.AddEventReport(input);
+
+                if (!result)//if false
+                {
+                    return BadRequest(null);
+                }
+
+                var listDto = await _service.GetEventReportList(1, 100);
+
+                var list = listDto.Items.ToList();
+
+                var postAdd = await _service.GetEventReportById(list.Last().ReportId);
+
+                return Ok(postAdd);
             }
-
-            var listDto = await _service.GetEventReportList(1, 100);
-
-            var list = listDto.Items.ToList();
-
-            var postAdd = await _service.GetEventReportById(list.Last().ReportId);
-
-            return Ok(postAdd);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("addOrganizationReport")]
@@ -123,21 +173,28 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.AddOrganizationReport(input);
-
-
-            if (!result)//if false
+            try
             {
-                return BadRequest(null);
+                var result = await _service.AddOrganizationReport(input);
+
+
+                if (!result)//if false
+                {
+                    return BadRequest(null);
+                }
+
+                var listDto = await _service.GetOrganizationReportList(1, 100);
+
+                var list = listDto.Items.ToList();
+
+                var postAdd = await _service.GetOrganizationReportById(list.Last().ReportId);
+
+                return Ok(postAdd);
             }
-
-            var listDto = await _service.GetOrganizationReportList(1, 100);
-
-            var list = listDto.Items.ToList();
-
-            var postAdd = await _service.GetOrganizationReportById(list.Last().ReportId);
-
-            return Ok(postAdd);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("downloadEventReport/{id}")]
@@ -150,16 +207,23 @@ namespace ivan_api.Controllers
                 return NotFound();
             }
 
-            var result = await _service.DownloadEventReportById(id);
+            try
+            {
+                var result = await _service.DownloadEventReportById(id);
 
-            var stream = new MemoryStream();
+                var stream = new MemoryStream();
 
-            result.Save(stream);
+                result.Save(stream);
 
-            stream.Position = 0;
-            string fileName = $"EventReport.pdf";
+                stream.Position = 0;
+                string fileName = $"EventReport.pdf";
 
-            return File(stream, "application/pdf", fileName);
+                return File(stream, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("downloadOrganizationReport/{id}")]
@@ -172,16 +236,23 @@ namespace ivan_api.Controllers
                 return NotFound();
             }
 
-            var result = await _service.DownloadOrganizationReportById(id);
+            try
+            {
+                var result = await _service.DownloadOrganizationReportById(id);
 
-            var stream = new MemoryStream();
+                var stream = new MemoryStream();
 
-            result.Save(stream);
+                result.Save(stream);
 
-            stream.Position = 0;
-            string fileName = $"OrganizationReport.pdf";
+                stream.Position = 0;
+                string fileName = $"OrganizationReport.pdf";
 
-            return File(stream, "application/pdf", fileName);
+                return File(stream, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("downloadSystemReport/{id}")]
@@ -194,16 +265,23 @@ namespace ivan_api.Controllers
                 return NotFound();
             }
 
-            var result = await _service.DownloadSystemReportById(id);
+            try
+            {
+                var result = await _service.DownloadSystemReportById(id);
 
-            var stream = new MemoryStream();
+                var stream = new MemoryStream();
 
-            result.Save(stream);
+                result.Save(stream);
 
-            stream.Position = 0;
-            string fileName = $"SystemReport.pdf";
+                stream.Position = 0;
+                string fileName = $"SystemReport.pdf";
 
-            return File(stream, "application/pdf", fileName);
+                return File(stream, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         //public async Task<int> getLastIdEvent()

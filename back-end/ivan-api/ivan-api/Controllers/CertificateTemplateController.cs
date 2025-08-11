@@ -26,15 +26,29 @@ namespace ivan_api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("get/{id}")]
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _service.GetCertificateTemplateById(id);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetCertificateTemplateById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpPost("add")]
@@ -51,20 +65,27 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.AddCertificateTemplate(input);
-
-            if (!result)//if false
+            try
             {
-                return BadRequest(null);
+                var result = await _service.AddCertificateTemplate(input);
+
+                if (!result)//if false
+                {
+                    return BadRequest(null);
+                }
+
+                var listDto = await _service.GetList(1, 100);
+
+                var list = listDto.Items.ToList();
+
+                var postAdd = await _service.GetCertificateTemplateById(list.Last().TemplateId);
+
+                return Ok(postAdd);
             }
-
-            var listDto = await _service.GetList(1, 100);
-
-            var list = listDto.Items.ToList();
-
-            var postAdd = await _service.GetCertificateTemplateById(list.Last().TemplateId);
-
-            return Ok(postAdd);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         //public async Task<int> getLastId()

@@ -21,6 +21,7 @@ namespace ivan_api.Repository.CertificateTemplates
 
         public async Task<bool> AddCertificateTemplate(CertificateTemplate certificateTemplate)
         {
+            certificateTemplate.CreatedAt = DateTime.Now;
             await _context.CertificateTemplates.AddAsync(certificateTemplate);
             return await _context.SaveChangesAsync() > 0;
         }
@@ -71,10 +72,12 @@ namespace ivan_api.Repository.CertificateTemplates
         }
         public async Task<CertificateTemplate> GetCertificateTemplateById(int id)
         {
-            return await _context.CertificateTemplates
+            var template = await _context.CertificateTemplates
                 .Include(x => x.CreatedByNavigation)
                 .Include(x => x.Organization)
                 .SingleOrDefaultAsync(x => x.TemplateId == id);
+
+            return template;
         }
 
         public async Task<int> GetLastId()

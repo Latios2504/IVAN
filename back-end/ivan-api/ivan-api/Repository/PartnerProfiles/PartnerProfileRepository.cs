@@ -89,11 +89,12 @@ namespace ivan_api.Repository.PartnerProfiles
 
         public async Task<Partner> GetPartnerProfileById(int userId)
         {
-            return await _context.Partners
+            var par = await _context.Partners
                 .Include(x => x.User)
                 .Include(x => x.VerifiedByNavigation)
                 .Include(x => x.Industry)
                 .SingleOrDefaultAsync(x => x.UserId == userId);
+            return par;
         }
 
         public async Task<int> GetLastId()

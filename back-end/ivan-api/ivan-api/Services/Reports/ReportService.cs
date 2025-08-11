@@ -20,15 +20,17 @@ namespace ivan_api.Services.Reports
 
         public async Task<bool> AddEventReport(ReportInputModel reportInputModel)
         {
-            var cer = _mapper.Map<Report>(reportInputModel);
-            cer.CreatedAt = DateTime.Now;
+            var report = _mapper.Map<Report>(reportInputModel);
+            report.CreatedAt = DateTime.Now;
+            report.GeneratedDate = DateTime.Now;
 
-            return await _repository.AddEventReport(cer);
+            return await _repository.AddEventReport(report);
         }
         public async Task<bool> AddOrganizationReport(ReportInputModel reportInputModel)
         {
             var report = _mapper.Map<Report>(reportInputModel);
             report.CreatedAt = DateTime.Now;
+            report.GeneratedDate = DateTime.Now;
 
             return await _repository.AddOrganizationReport(report);
         }

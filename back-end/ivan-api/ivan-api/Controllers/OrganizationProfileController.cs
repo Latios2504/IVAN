@@ -26,15 +26,29 @@ namespace ivan_api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("get/{userId}")]
         public async Task<IActionResult> Details(int userId)
         {
-            var result = await _service.GetOrganizationProfileById(userId);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetOrganizationProfileById(userId);
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpPost("add")]
@@ -51,20 +65,27 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.AddOrganizationProfile(input);
-
-            if (!result)//if false
+            try
             {
-                return BadRequest("Failed to add organization profile");
+                var result = await _service.AddOrganizationProfile(input);
+
+                if (!result)//if false
+                {
+                    return BadRequest("Failed to add organization profile");
+                }
+
+                var listDto = await _service.GetList(1, 100);
+
+                var list = listDto.Items.ToList();
+
+                var postAdd = await _service.GetOrganizationProfileById(list.Last().OrganizationId);
+
+                return Ok(postAdd);
             }
-
-            var listDto = await _service.GetList(1, 100);
-
-            var list = listDto.Items.ToList();
-
-            var postAdd = await _service.GetOrganizationProfileById(list.Last().OrganizationId);
-
-            return Ok(postAdd);
+            catch(Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("update/{id}")]
@@ -81,9 +102,23 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.UpdateOrganizationProfile(input, id);
+            try
+            {
+                var result = await _service.UpdateOrganizationProfile(input, id);
 
-            return Ok(result);
+                var postUpate = await _service.GetOrganizationProfileById(id);
+
+                if (!result)//if false
+                {
+                    return BadRequest(postUpate);
+                }
+
+                return Ok(postUpate);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>

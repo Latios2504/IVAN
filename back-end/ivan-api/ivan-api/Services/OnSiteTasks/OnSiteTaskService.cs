@@ -23,6 +23,16 @@ namespace ivan_api.Services.OnSiteTasks
             task.CreatedAt = DateTime.Now;
             task.UpdatedAt = DateTime.Now;
 
+            if (onSiteTaskInputModel.StartTime.HasValue && onSiteTaskInputModel.EndTime.HasValue)
+            {
+                task.EstimatedHours =
+                    (decimal)(onSiteTaskInputModel.EndTime.Value - onSiteTaskInputModel.StartTime.Value).TotalHours;
+            }
+            else
+            {
+                task.EstimatedHours = null;
+            }
+
             return await _repository.AddOnSiteTask(task);
         }
 
@@ -36,6 +46,17 @@ namespace ivan_api.Services.OnSiteTasks
 
             _mapper.Map(OnSiteTaskUpdateModel, existingTask);
             existingTask.UpdatedAt = DateTime.Now;
+
+            if (OnSiteTaskUpdateModel.StartTime.HasValue && OnSiteTaskUpdateModel.EndTime.HasValue)
+            {
+                existingTask.EstimatedHours =
+                    (decimal)(OnSiteTaskUpdateModel.EndTime.Value - OnSiteTaskUpdateModel.StartTime.Value).TotalHours;
+            }
+            else
+            {
+                existingTask.EstimatedHours = null;
+            }
+
             return await _repository.UpdateOnSiteTask(existingTask);
         }
 

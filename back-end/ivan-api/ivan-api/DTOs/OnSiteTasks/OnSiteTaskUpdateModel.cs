@@ -18,13 +18,13 @@
 
         //public decimal? EstimatedHours { get; set; }
 
-        //public decimal? ActualHours { get; set; }
+        public decimal? ActualHours { get; set; }
 
         public string? Location { get; set; }
 
-        //public int? RequiredVolunteers { get; set; }
+        public int? RequiredVolunteers { get; set; }
 
-        //public int? AssignedVolunteers { get; set; }
+        public int? AssignedVolunteers { get; set; }
 
         public string? RequiredSkills { get; set; }
 

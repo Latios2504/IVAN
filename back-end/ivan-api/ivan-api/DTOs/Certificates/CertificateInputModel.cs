@@ -14,7 +14,7 @@
 
         public string? Description { get; set; }
 
-        //public decimal? HoursCompleted { get; set; }
+        public decimal? HoursCompleted { get; set; }
 
         public string? PerformanceLevel { get; set; }
 

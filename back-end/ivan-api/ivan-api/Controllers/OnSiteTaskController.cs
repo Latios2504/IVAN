@@ -35,8 +35,15 @@ namespace ivan_api.Controllers
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _service.GetList(pageNumber, pageSize);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetList(pageNumber, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -46,8 +53,15 @@ namespace ivan_api.Controllers
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<IActionResult> Details(int id)
         {
-            var result = await _service.GetOnSiteTaskById(id);
-            return Ok(result);
+            try
+            {
+                var result = await _service.GetOnSiteTaskById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -68,20 +82,27 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.AddOnSiteTask(input);
-
-            if (!result)//if false
+            try
             {
-                return BadRequest("Failed to add task");
+                var result = await _service.AddOnSiteTask(input);
+
+                if (!result)//if false
+                {
+                    return BadRequest("Failed to add task");
+                }
+
+                var listDto = await _service.GetList(1, 100);
+
+                var list = listDto.Items.ToList();
+
+                var postAdd = await _service.GetOnSiteTaskById(list.Last().TaskId);
+
+                return Ok(postAdd);
             }
-
-            var listDto = await _service.GetList(1, 100);
-
-            var list = listDto.Items.ToList();
-
-            var postAdd = await _service.GetOnSiteTaskById(list.Last().TaskId);
-
-            return Ok(postAdd);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -102,16 +123,23 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _service.UpdateOnSiteTask(input, id);
-
-            var postUpate = await _service.GetOnSiteTaskById(id);
-
-            if (!result)//if false
+            try
             {
-                return BadRequest(postUpate);
-            }
+                var result = await _service.UpdateOnSiteTask(input, id);
 
-            return Ok(postUpate);
+                var postUpate = await _service.GetOnSiteTaskById(id);
+
+                if (!result)//if false
+                {
+                    return BadRequest(postUpate);
+                }
+
+                return Ok(postUpate);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         private int GetUserId()
