@@ -143,10 +143,27 @@ class SupportRequestService {
     }
   }
 
-  async addComment(
+  async uploadAttachment(file: File): Promise<string> {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await apiClient.post<ApiResponse<{ fileUrl: string }>>(
+        `/Upload/support-request-attachment`,
+        formData
+      );
+      return response.data.data.fileUrl;
+    } catch (error) {
+      console.error("Error uploading attachment:", error);
+      throw error;
+    }
+  }
+
+  async addCommentWithAttachment(
     id: number,
     comment: string,
-    isInternal: boolean = false
+    isInternal: boolean = false,
+    attachmentUrls?: string[]
   ): Promise<boolean> {
     try {
       const response = await apiClient.post<ApiResponse<boolean>>(
@@ -154,6 +171,7 @@ class SupportRequestService {
         {
           comment,
           isInternal,
+          attachmentUrls,
         }
       );
       return response.data.data;
@@ -161,6 +179,14 @@ class SupportRequestService {
       console.error("Error adding comment:", error);
       throw error;
     }
+  }
+
+  async addComment(
+    id: number,
+    comment: string,
+    isInternal: boolean = false
+  ): Promise<boolean> {
+    return this.addCommentWithAttachment(id, comment, isInternal);
   }
 
   async getCategories(): Promise<SupportCategory[]> {

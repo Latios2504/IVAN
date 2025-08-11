@@ -127,10 +127,102 @@ namespace ivan_api.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Upload support request attachment
+        /// </summary>
+        /// <param name="file">File to upload</param>
+        /// <returns>URL of uploaded file</returns>
+        [HttpPost("support-request-attachment")]
+        public async Task<ActionResult<ApiResponseDTO<FileUploadResponseDto>>> UploadSupportRequestAttachment(IFormFile file)
+        {
+            try
+            {
+                // Validate file
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new ApiResponseDTO<FileUploadResponseDto>
+                    {
+                        Success = false,
+                        Message = "No file provided",
+                        Errors = new List<string> { "File is required" }
+                    });
+                }
+
+                // Validate file type
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".pdf", ".doc", ".docx", ".txt" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLower();
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return BadRequest(new ApiResponseDTO<FileUploadResponseDto>
+                    {
+                        Success = false,
+                        Message = "Invalid file type. Allowed types: JPG, JPEG, PNG, GIF, PDF, DOC, DOCX, TXT",
+                        Errors = new List<string> { "Invalid file type" }
+                    });
+                }
+
+                // Validate file size (10MB limit)
+                const long maxFileSize = 10 * 1024 * 1024; // 10MB
+                if (file.Length > maxFileSize)
+                {
+                    return BadRequest(new ApiResponseDTO<FileUploadResponseDto>
+                    {
+                        Success = false,
+                        Message = "File size exceeds 10MB limit",
+                        Errors = new List<string> { "File too large" }
+                    });
+                }
+
+                // Create uploads directory structure
+                var uploadsPath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads", "support-requests");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                // Generate unique filename
+                var fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Generate URL
+                var fileUrl = $"/uploads/support-requests/{fileName}";
+
+                _logger.LogInformation($"Support request attachment uploaded successfully: {fileUrl}");
+
+                return Ok(new ApiResponseDTO<FileUploadResponseDto>
+                {
+                    Success = true,
+                    Data = new FileUploadResponseDto { FileUrl = fileUrl },
+                    Message = "File uploaded successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading support request attachment");
+                return StatusCode(500, new ApiResponseDTO<FileUploadResponseDto>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to upload file" }
+                });
+            }
+        }
     }
 
     public class ImageUploadResponseDto
     {
         public string ImageUrl { get; set; } = null!;
+    }
+
+    public class FileUploadResponseDto
+    {
+        public string FileUrl { get; set; } = null!;
     }
 }

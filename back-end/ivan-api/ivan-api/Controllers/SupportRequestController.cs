@@ -18,11 +18,19 @@ namespace ivan_api.Controllers
             _service = service;
         }
 
-        // GET: api/supportrequest - Admin only
+        // GET: api/supportrequest - Admin sees all, Organization sees only approved
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Organization")]
         public async Task<IActionResult> GetAllRequests([FromQuery] string? status = null, [FromQuery] int? categoryId = null)
         {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            
+            // Organizations can only see approved requests
+            if (userRole == "Organization")
+            {
+                status = "Approved";
+            }
+            
             var result = await _service.GetAllRequestsAsync(status, categoryId);
             
             if (!result.Success)
@@ -66,8 +74,8 @@ namespace ivan_api.Controllers
             if (!result.Success)
                 return NotFound(result);
 
-            // Check authorization - user can only see their own requests unless they're admin
-            if (userRole != "Admin" && result.Data?.UserId != userId)
+            // Check authorization - user can only see their own requests unless they're admin or organization
+            if (userRole != "Admin" && userRole != "Organization" && result.Data?.UserId != userId)
             {
                 return Forbid("You can only view your own support requests");
             }
@@ -75,8 +83,9 @@ namespace ivan_api.Controllers
             return Ok(result);
         }
 
-        // POST: api/supportrequest
+        // POST: api/supportrequest - Allow anonymous and authenticated users
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateRequest([FromBody] SupportRequestCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -84,10 +93,12 @@ namespace ivan_api.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Get user ID if authenticated, otherwise null for anonymous requests
+            int? userId = null;
             var userIdClaim = User.FindFirst("UserId")?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int parsedUserId))
             {
-                return Unauthorized("Invalid user token");
+                userId = parsedUserId;
             }
 
             var result = await _service.CreateRequestAsync(userId, dto);
@@ -134,10 +145,10 @@ namespace ivan_api.Controllers
                 return Unauthorized("Invalid user token");
             }
 
-            // Only admins can add internal comments
-            bool isInternal = request.IsInternal && userRole == "Admin";
+            // Only admins and organizations can add internal comments
+            bool isInternal = request.IsInternal && (userRole == "Admin" || userRole == "Organization");
 
-            var result = await _service.AddCommentAsync(id, request.Comment, userId, isInternal);
+            var result = await _service.AddCommentWithAttachmentAsync(id, request.Comment, userId, isInternal, request.AttachmentUrls);
             
             if (!result.Success)
                 return BadRequest(result);
@@ -162,5 +173,6 @@ namespace ivan_api.Controllers
     {
         public string Comment { get; set; } = null!;
         public bool IsInternal { get; set; } = false;
+        public List<string>? AttachmentUrls { get; set; }
     }
 }

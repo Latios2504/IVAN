@@ -101,17 +101,20 @@ namespace ivan_api.Services.SupportRequestServ
             }
         }
 
-        public async Task<ApiResponseDTO<SupportRequestResponseDTO>> CreateRequestAsync(int userId, SupportRequestCreateDTO dto)
+        public async Task<ApiResponseDTO<SupportRequestResponseDTO>> CreateRequestAsync(int? userId, SupportRequestCreateDTO dto)
         {
             try
             {
                 var request = new SupportRequest
                 {
-                    UserId = userId,
+                    // TODO: Consider creating a special "Anonymous" user account or making UserId nullable
+                    // For now, using 0 for anonymous requests - ensure database handles this properly
+                    UserId = userId ?? 0, 
                     CategoryId = dto.CategoryId,
                     Subject = dto.Subject,
                     Description = dto.Description,
                     Priority = dto.Priority,
+                    Status = "Pending", // Set initial status to Pending for approval workflow
                     AttachmentUrls = dto.AttachmentUrls != null && dto.AttachmentUrls.Any() 
                         ? string.Join(",", dto.AttachmentUrls) 
                         : null
@@ -269,20 +272,65 @@ namespace ivan_api.Services.SupportRequestServ
             }
         }
 
+        public async Task<ApiResponseDTO<bool>> AddCommentWithAttachmentAsync(int requestId, string comment, int userId, bool isInternal = false, List<string>? attachmentUrls = null)
+        {
+            try
+            {
+                var requestExists = await _repository.GetByIdAsync(requestId);
+                if (requestExists == null)
+                {
+                    return new ApiResponseDTO<bool>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy yêu cầu hỗ trợ"
+                    };
+                }
+
+                var commentEntity = new SupportRequestComment
+                {
+                    RequestId = requestId,
+                    UserId = userId,
+                    Comment = comment,
+                    IsInternal = isInternal,
+                    AttachmentUrls = attachmentUrls != null && attachmentUrls.Any() 
+                        ? string.Join(",", attachmentUrls) 
+                        : null
+                };
+
+                var success = await _repository.AddCommentAsync(commentEntity);
+                
+                return new ApiResponseDTO<bool>
+                {
+                    Success = success,
+                    Message = success ? "Thêm bình luận thành công" : "Thêm bình luận thất bại",
+                    Data = success
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponseDTO<bool>
+                {
+                    Success = false,
+                    Message = "Lỗi khi thêm bình luận",
+                    Errors = new List<string> { ex.Message }
+                };
+            }
+        }
+
         private SupportRequestResponseDTO MapToResponseDTO(SupportRequest request)
         {
             return new SupportRequestResponseDTO
             {
                 RequestId = request.RequestId,
                 UserId = request.UserId,
-                UserName = request.User?.UserProfiles?.FirstOrDefault()?.FullName ?? request.User?.Email ?? "",
+                UserName = request.User?.UserProfiles?.FirstOrDefault()?.FullName ?? request.User?.Email ?? "Người dùng ẩn danh",
                 UserEmail = request.User?.Email ?? "",
                 CategoryId = request.CategoryId,
                 CategoryName = request.Category?.CategoryName ?? "",
                 Subject = request.Subject,
                 Description = request.Description,
                 Priority = request.Priority ?? "Medium",
-                Status = request.Status ?? "Open",
+                Status = request.Status ?? "Pending",
                 AssignedTo = request.AssignedTo,
                 AssignedToName = request.AssignedToNavigation?.UserProfiles?.FirstOrDefault()?.FullName ?? 
                                request.AssignedToNavigation?.Email,
@@ -303,7 +351,7 @@ namespace ivan_api.Services.SupportRequestServ
                 {
                     CommentId = c.CommentId,
                     UserId = c.UserId,
-                    UserName = c.User?.UserProfiles?.FirstOrDefault()?.FullName ?? c.User?.Email ?? "",
+                    UserName = c.User?.UserProfiles?.FirstOrDefault()?.FullName ?? c.User?.Email ?? "Người dùng ẩn danh",
                     Comment = c.Comment,
                     IsInternal = c.IsInternal ?? false,
                     AttachmentUrls = !string.IsNullOrEmpty(c.AttachmentUrls) 
