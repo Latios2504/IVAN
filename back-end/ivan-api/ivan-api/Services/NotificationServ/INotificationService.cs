@@ -1,4 +1,5 @@
 ﻿using ivan_api.DTOs;
+using ivan_api.DTOs.Common;
 using ivan_api.DTOs.NotificationServ;
 
 namespace ivan_api.Services.NotificationServ

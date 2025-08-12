@@ -43,7 +43,7 @@ namespace ivan_api.Controllers
         [HttpGet("my")]
         public async Task<IActionResult> GetMyRequests()
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
                 return Unauthorized("Invalid user token");
@@ -61,9 +61,9 @@ namespace ivan_api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRequestById(int id)
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            
+
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
                 return Unauthorized("Invalid user token");
@@ -95,7 +95,7 @@ namespace ivan_api.Controllers
 
             // Get user ID if authenticated, otherwise null for anonymous requests
             int? userId = null;
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int parsedUserId))
             {
                 userId = parsedUserId;
@@ -114,7 +114,7 @@ namespace ivan_api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateRequest(int id, [FromBody] SupportRequestUpdateDTO dto)
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int adminUserId))
             {
                 return Unauthorized("Invalid user token");
@@ -137,7 +137,7 @@ namespace ivan_api.Controllers
                 return BadRequest("Comment cannot be empty");
             }
 
-            var userIdClaim = User.FindFirst("UserId")?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))

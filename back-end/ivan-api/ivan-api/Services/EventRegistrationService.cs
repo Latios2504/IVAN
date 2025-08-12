@@ -33,7 +33,9 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
+                var eventEntity = await _context.Events
+    .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null));
+
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -66,7 +68,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var status = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Đang chờ duyệt");
+                var status = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Chờ duyệt");
                 if (status == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using ivan_api.Configuration;
+using ivan_api.Services.EmailSer;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.NotificationServ
 {
