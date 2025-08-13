@@ -109,7 +109,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
             try
             {
                 // Verify volunteer exists
-                var volunteer = await _volunteerRepository.GetByIdAsync(request.VolunteerId);
+                var volunteer = await _volunteerRepository.GetVolunteerProfileById(request.VolunteerId);
                 if (volunteer == null)
                 {
                     return new ApiResponseDTO<VolunteerScheduleDTO>
@@ -287,8 +287,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
             try
             {
                 // Find volunteer by user ID
-                var volunteers = await _volunteerRepository.GetAllAsync();
-                var volunteer = volunteers.FirstOrDefault(v => v.UserId == userId);
+                var volunteer = await _volunteerRepository.GetVolunteerProfileById(userId);
                 
                 if (volunteer == null)
                 {
@@ -332,8 +331,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
             try
             {
                 // Find volunteer by user ID
-                var volunteers = await _volunteerRepository.GetAllAsync();
-                var volunteer = volunteers.FirstOrDefault(v => v.UserId == userId);
+                var volunteer = await _volunteerRepository.GetVolunteerProfileById(userId);
                 
                 if (volunteer == null)
                 {

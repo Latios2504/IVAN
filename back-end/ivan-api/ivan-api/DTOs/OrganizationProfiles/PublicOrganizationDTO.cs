@@ -1,4 +1,4 @@
-namespace ivan_api.DTOs.Public
+namespace ivan_api.DTOs.OrganizationProfiles
 {
     /// <summary>
     /// Public view of organization data - excludes sensitive business information
@@ -8,11 +8,13 @@ namespace ivan_api.DTOs.Public
         public int OrganizationId { get; set; }
         public string OrganizationName { get; set; } = string.Empty;
         public string? ShortName { get; set; }
-        public string TypeName { get; set; } = string.Empty; // From OrganizationTypes join
+        public string TypeName { get; set; } = string.Empty; 
         public int? EstablishedYear { get; set; }
         public string? Website { get; set; }
         public string? FacebookPage { get; set; }
         public string? LinkedInPage { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
         public string? Description { get; set; }
         public string? Mission { get; set; }
         public string? Vision { get; set; }

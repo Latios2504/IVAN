@@ -1,6 +1,6 @@
 ﻿namespace ivan_api.DTOs.OrganizationProfiles
 {
-    public class OrganizationProfileUpdateModel
+    public class OrganizationProfileUpdateDto
     {
         public int UserId { get; set; }
 

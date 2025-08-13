@@ -1,6 +1,6 @@
 ﻿namespace ivan_api.DTOs.PartnerProfiles
 {
-    public class PartnerProfileInputModel
+    public class PartnerProfileCreateDto
     {
         public int UserId { get; set; }
 

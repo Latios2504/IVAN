@@ -1,4 +1,4 @@
-namespace ivan_api.DTOs.Public
+namespace ivan_api.DTOs.VolunteerProfile
 {
     /// <summary>
     /// Public view of volunteer data - excludes sensitive personal information
@@ -6,20 +6,20 @@ namespace ivan_api.DTOs.Public
     public class PublicVolunteerDTO
     {
         public int VolunteerId { get; set; }
-        public int UserId { get; set; }
+        // UserId removed for security
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string? PhoneNumber { get; set; }
-        public DateTime? DateOfBirth { get; set; }
+        // Email removed - sensitive personal data
+        // PhoneNumber removed - sensitive personal data
+        // DateOfBirth removed - sensitive personal data
         public string? Gender { get; set; }
         public string? Avatar { get; set; }
-        public string? Address { get; set; }
-        public string? WardCommune { get; set; }
-        public string? District { get; set; }
-        public string? Province { get; set; }
-        public string? StudentId { get; set; }
+        // Address removed - sensitive location data
+        // WardCommune removed - sensitive location data
+        // District removed - sensitive location data
+        public string? Province { get; set; } // Keep province for general location filtering
+        // StudentId removed - sensitive identity data
         public string? University { get; set; }
         public string? Major { get; set; }
         public int? YearOfStudy { get; set; }
@@ -30,14 +30,13 @@ namespace ivan_api.DTOs.Public
         public decimal Rating { get; set; }
         public int RatingCount { get; set; }
         public bool IsVerified { get; set; }
-        public DateTime? VerifiedAt { get; set; }
-        public DateTime? LastActiveDate { get; set; }
+        // VerifiedAt removed - internal admin data
+        // LastActiveDate removed - internal tracking data
         public int TotalHoursVolunteered { get; set; }
         public string? Skills { get; set; }
         public List<PublicVolunteerSkillDTO> SkillsList { get; set; } = new();
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        // IsActive removed - internal status
+        // CreatedAt/UpdatedAt removed - internal timestamps
     }
 
     /// <summary>

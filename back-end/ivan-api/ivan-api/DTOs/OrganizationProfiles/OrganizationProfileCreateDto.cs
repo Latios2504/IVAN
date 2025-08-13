@@ -1,6 +1,6 @@
 ﻿namespace ivan_api.DTOs.OrganizationProfiles
 {
-    public class OrganizationProfileInputModel
+    public class OrganizationProfileCreateDto
     {
         public int UserId { get; set; }
 

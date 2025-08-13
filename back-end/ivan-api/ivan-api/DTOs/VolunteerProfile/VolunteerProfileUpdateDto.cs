@@ -27,6 +27,6 @@
         public string? Motivation { get; set; }
         public string? Experience { get; set; }
         public string? Availability { get; set; }
-        public List<VolunteerSkillUpdateDto> Skills { get; set; } = new();
+        public List<VolunteerSkillDto> Skills { get; set; } = new();
     }
 }

@@ -1,4 +1,4 @@
-namespace ivan_api.DTOs.Public
+namespace ivan_api.DTOs.PartnerProfiles
 {
     /// <summary>
     /// Public view of partner data - excludes sensitive business information
@@ -9,6 +9,9 @@ namespace ivan_api.DTOs.Public
         public string CompanyName { get; set; } = string.Empty;
         public string IndustryName { get; set; } = string.Empty; // From PartnerIndustries join
         public string? Website { get; set; }
+        // Business contact info - partners WANT to be contacted for collaborations
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
         public string? Description { get; set; }
         public string? Address { get; set; }
         public string? WardCommune { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace ivan_api.DTOs.PartnerProfiles
 {
-    public class PartnerProfileUpdateModel
+    public class PartnerProfileUpdateDto
     {
         public int UserId { get; set; }
 

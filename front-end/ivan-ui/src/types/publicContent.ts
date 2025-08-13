@@ -215,6 +215,8 @@ export interface PublicEventFilters {
   province?: string;
   startDate?: string;
   endDate?: string;
+  isFeatured?: boolean;
+  isUrgent?: boolean;
   page?: number;
   size?: number;
 }

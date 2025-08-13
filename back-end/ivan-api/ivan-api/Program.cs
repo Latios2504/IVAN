@@ -27,7 +27,6 @@ using ivan_api.Services.OnSiteTasks;
 using ivan_api.Services.OrganizationProfiles;
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
-using ivan_api.Services.PublicContentServ;
 using ivan_api.Services.UserAccountServ;
 using ivan_api.Repository.UserAccountRepo;
 using ivan_api.Services.PasswordHashingSer;
@@ -144,7 +143,6 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
-builder.Services.AddScoped<IPublicContentService, PublicContentService>();
 
 // AutoMapper Configuration - Minimal configuration to avoid MaxFloat issue
 builder.Services.AddAutoMapper(cfg =>

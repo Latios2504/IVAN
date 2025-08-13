@@ -1,7 +1,11 @@
 ﻿using ivan_api.Services.PartnerProfiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ivan_api.DTOs.PartnerProfiles;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs;
+using System.Security.Claims;
 
 namespace ivan_api.Controllers
 {
@@ -10,20 +14,135 @@ namespace ivan_api.Controllers
     public class PartnerProfileController : ControllerBase
     {
         private readonly IPartnerProfileService _service;
+        private readonly ILogger<PartnerProfileController> _logger;
 
-        public PartnerProfileController(IPartnerProfileService service)
+        public PartnerProfileController(
+            IPartnerProfileService service,
+            ILogger<PartnerProfileController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
-        //[HttpPost("list")]
-        //public async Task<IActionResult> List([FromBody] PartnerProfileFilterModel filter)
-        //{
-        //    var result = await _service.ListPartnerProfile(filter);
-        //    return Ok(result);
-        //}
+        #region Public Endpoints
 
+        // Get all public partners with filtering and pagination
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>>> GetPublicPartners(
+            [FromQuery] string? search,
+            [FromQuery] int? industryId,
+            [FromQuery] string? province,
+            [FromQuery] bool? isVerified,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            try
+            {
+                var filters = new PublicPartnerFiltersDTO
+                {
+                    Search = search,
+                    IndustryId = industryId,
+                    Province = province,
+                    IsVerified = isVerified,
+                    Page = page,
+                    Size = size
+                };
+
+                var result = await _service.GetPublicPartnersAsync(filters);
+                
+                return Ok(new ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Partners retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public partners");
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partners" }
+                });
+            }
+        }
+
+        // Get specific partner's public information
+        [HttpGet("public/{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<PublicPartnerDTO>>> GetPublicPartner(int id)
+        {
+            try
+            {
+                var partner = await _service.GetPublicPartnerAsync(id);
+                
+                if (partner == null)
+                {
+                    return NotFound(new ApiResponseDTO<PublicPartnerDTO>
+                    {
+                        Success = false,
+                        Message = "Partner not found",
+                        Errors = new List<string> { $"Partner with ID {id} does not exist or is not active" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<PublicPartnerDTO>
+                {
+                    Success = true,
+                    Data = partner,
+                    Message = "Partner retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public partner with ID {PartnerId}", id);
+                return StatusCode(500, new ApiResponseDTO<PublicPartnerDTO>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partner" }
+                });
+            }
+        }
+
+        // Get all partner industries
+        [HttpGet("public/partner-industries")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<List<PartnerIndustryDto>>>> GetPartnerIndustries()
+        {
+            try
+            {
+                var industries = await _service.GetAllPartnerIndustriesAsync();
+
+                return Ok(new ApiResponseDTO<List<PartnerIndustryDto>>
+                {
+                    Success = true,
+                    Data = industries.ToList(),
+                    Message = "Partner industries retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving partner industries");
+                return StatusCode(500, new ApiResponseDTO<List<PartnerIndustryDto>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partner industries" }
+                });
+            }
+        }
+
+        #endregion
+
+        #region Partner Management Endpoints
+
+        // Get partner profiles list (Admin only)
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -37,11 +156,23 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Get partner profile by user ID
         [HttpGet("get/{userId}")]
+        [Authorize(Roles = "Partner,Admin")]
         public async Task<IActionResult> Details(int userId)
         {
             try
             {
+                // Check authorization for own profile access
+                if (User.IsInRole("Partner"))
+                {
+                    var currentUserId = GetUserIdFromClaims();
+                    if (currentUserId != userId)
+                    {
+                        return Forbid("You can only access your own partner profile");
+                    }
+                }
+
                 var result = await _service.GetPartnerProfileById(userId);
                 return Ok(result);
             }
@@ -51,12 +182,14 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Create new partner profile (Admin only)
         [HttpPost("add")]
-        public async Task<IActionResult> Add([FromBody] PartnerProfileInputModel input)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Add([FromBody] PartnerProfileCreateDto input)
         {
             if (input == null)
             {
-                input = new PartnerProfileInputModel();
+                input = new PartnerProfileCreateDto();
                 TryValidateModel(input);
             }
 
@@ -69,7 +202,7 @@ namespace ivan_api.Controllers
             {
                 var result = await _service.AddPartnerProfile(input);
 
-                if (!result)//if false
+                if (!result)
                 {
                     return BadRequest("Failed to add partner profile");
                 }
@@ -88,12 +221,14 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Update partner profile
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update([FromBody] PartnerProfileUpdateModel input, int id)
+        [Authorize(Roles = "Partner,Admin")]
+        public async Task<IActionResult> Update([FromBody] PartnerProfileUpdateDto input, int id)
         {
             if (input == null)
             {
-                input = new PartnerProfileUpdateModel();
+                input = new PartnerProfileUpdateDto();
                 TryValidateModel(input);
             }
 
@@ -104,11 +239,21 @@ namespace ivan_api.Controllers
 
             try
             {
+                // Check authorization for own profile updates
+                if (User.IsInRole("Partner"))
+                {
+                    var currentUserId = GetUserIdFromClaims();
+                    if (currentUserId != id)
+                    {
+                        return Forbid("You can only update your own partner profile");
+                    }
+                }
+
                 var result = await _service.UpdatePartnerProfile(input, id);
 
                 var postUpate = await _service.GetPartnerProfileById(id);
 
-                if (!result)//if false
+                if (!result)
                 {
                     return BadRequest(postUpate);
                 }
@@ -121,15 +266,23 @@ namespace ivan_api.Controllers
             }
         }
 
-        /// <summary>
-        /// GET api/PartnerProfile/{userId}/completion
-        /// Get partner profile completion percentage and missing fields
-        /// </summary>
+        // Get partner profile completion percentage and missing fields
         [HttpGet("{userId}/completion")]
+        [Authorize(Roles = "Partner,Admin")]
         public async Task<ActionResult<ProfileCompletionDto>> GetProfileCompletion(int userId)
         {
             try
             {
+                // Check authorization for own profile completion access
+                if (User.IsInRole("Partner"))
+                {
+                    var currentUserId = GetUserIdFromClaims();
+                    if (currentUserId != userId)
+                    {
+                        return Forbid("You can only access your own partner profile completion");
+                    }
+                }
+
                 var profile = await _service.GetPartnerProfileById(userId);
                 if (profile == null)
                     return NotFound(new { message = $"Partner profile for UserId={userId} not found." });
@@ -143,9 +296,23 @@ namespace ivan_api.Controllers
             }
         }
 
+        #endregion
+
+        #region Private Helper Methods
+
+        private int GetUserIdFromClaims()
+        {
+            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                throw new UnauthorizedAccessException("User ID not found in token claims");
+            }
+            return userId;
+        }
+
         private ProfileCompletionDto CalculatePartnerProfileCompletion(PartnerProfileViewModel profile)
         {
-            var totalFields = 10; // Total important fields
+            var totalFields = 10;
             var completedFields = 0;
             var missingFields = new List<string>();
 
@@ -170,14 +337,7 @@ namespace ivan_api.Controllers
             };
         }
 
-        //public async Task<int> getLastId()
-        //{
-        //    var temp = await _service.GetList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().PartnerId;
+        #endregion
 
-        //    return last == null ? -1 : last;
-        //}
     }
 }

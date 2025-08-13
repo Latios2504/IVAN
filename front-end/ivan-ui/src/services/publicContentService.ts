@@ -33,14 +33,14 @@ class PublicContentService {
     params.append("size", (filters.size || 20).toString());
 
     const response = await apiClient.get<PagedResultDto<PublicOrganization>>(
-      `${this.baseUrl}/organizations?${params.toString()}`
+      `/OrganizationProfile/public?${params.toString()}`
     );
     return response.data;
   }
 
   async getPublicOrganization(id: number): Promise<PublicOrganization> {
     const response = await apiClient.get<PublicOrganization>(
-      `${this.baseUrl}/organizations/${id}`
+      `/OrganizationProfile/public/${id}`
     );
     return response.data;
   }
@@ -59,19 +59,21 @@ class PublicContentService {
     if (filters.province) params.append("province", filters.province);
     if (filters.startDate) params.append("startDate", filters.startDate);
     if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.isFeatured !== undefined)
+      params.append("isFeatured", filters.isFeatured.toString());
+    if (filters.isUrgent !== undefined)
+      params.append("isUrgent", filters.isUrgent.toString());
     params.append("page", (filters.page || 1).toString());
     params.append("size", (filters.size || 20).toString());
 
     const response = await apiClient.get<PagedResultDto<PublicEvent>>(
-      `${this.baseUrl}/events?${params.toString()}`
+      `/Events/public?${params.toString()}`
     );
     return response.data;
   }
 
   async getPublicEvent(id: number): Promise<PublicEvent> {
-    const response = await apiClient.get<PublicEvent>(
-      `${this.baseUrl}/events/${id}`
-    );
+    const response = await apiClient.get<PublicEvent>(`/Events/public/${id}`);
     return response.data;
   }
 
@@ -91,14 +93,14 @@ class PublicContentService {
     params.append("size", (filters.size || 20).toString());
 
     const response = await apiClient.get<PagedResultDto<PublicPartner>>(
-      `${this.baseUrl}/partners?${params.toString()}`
+      `/PartnerProfile/public?${params.toString()}`
     );
     return response.data;
   }
 
   async getPublicPartner(id: number): Promise<PublicPartner> {
     const response = await apiClient.get<PublicPartner>(
-      `${this.baseUrl}/partners/${id}`
+      `/PartnerProfile/public/${id}`
     );
     return response.data;
   }
@@ -119,14 +121,14 @@ class PublicContentService {
     params.append("size", (filters.size || 20).toString());
 
     const response = await apiClient.get<PagedResultDto<PublicVolunteer>>(
-      `${this.baseUrl}/volunteers?${params.toString()}`
+      `/VolunteerProfile/public?${params.toString()}`
     );
     return response.data;
   }
 
   async getPublicVolunteer(id: number): Promise<PublicVolunteer> {
     const response = await apiClient.get<PublicVolunteer>(
-      `${this.baseUrl}/volunteers/${id}`
+      `/VolunteerProfile/public/${id}`
     );
     return response.data;
   }

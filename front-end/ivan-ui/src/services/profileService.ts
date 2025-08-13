@@ -120,7 +120,9 @@ class ProfileService {
 
   async getAvailableSkills(): Promise<any[]> {
     try {
-      const response = await apiClient.get<any[]>("/public/skills");
+      const response = await apiClient.get<any[]>(
+        "/VolunteerProfile/public/skills"
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching skills:", error);
@@ -130,7 +132,9 @@ class ProfileService {
 
   async getPartnerIndustries(): Promise<any[]> {
     try {
-      const response = await apiClient.get<any[]>("/public/partner-industries");
+      const response = await apiClient.get<any[]>(
+        "/PartnerProfile/public/partner-industries"
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching partner industries:", error);
@@ -148,7 +152,9 @@ class ProfileService {
 
   async getOrganizationTypes(): Promise<any[]> {
     try {
-      const response = await apiClient.get<any[]>("/public/organization-types");
+      const response = await apiClient.get<any[]>(
+        "/OrganizationProfile/public/organization-types"
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching organization types:", error);

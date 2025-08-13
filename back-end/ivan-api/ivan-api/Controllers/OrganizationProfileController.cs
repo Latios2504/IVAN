@@ -1,7 +1,11 @@
 ﻿using ivan_api.Services.OrganizationProfiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ivan_api.DTOs.OrganizationProfiles;
+using ivan_api.DTOs;
+using ivan_api.DTOs.Common;
+using System.Security.Claims;
 
 namespace ivan_api.Controllers
 {
@@ -10,20 +14,135 @@ namespace ivan_api.Controllers
     public class OrganizationProfileController : ControllerBase
     {
         private readonly IOrganizationProfileService _service;
+        private readonly ILogger<OrganizationProfileController> _logger;
 
-        public OrganizationProfileController(IOrganizationProfileService service)
+        public OrganizationProfileController(
+            IOrganizationProfileService service,
+            ILogger<OrganizationProfileController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
-        //[HttpPost("list")]
-        //public async Task<IActionResult> List([FromBody] OrganizationProfileFilterModel filter)
-        //{
-        //    var result = await _service.ListOrganizationProfile(filter);
-        //    return Ok(result);
-        //}
+        #region Public Endpoints
 
+        // Get all public organizations with filtering and pagination
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>>> GetPublicOrganizations(
+            [FromQuery] string? search,
+            [FromQuery] int? typeId,
+            [FromQuery] string? province,
+            [FromQuery] bool? isVerified,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            try
+            {
+                var filters = new PublicOrganizationFiltersDTO
+                {
+                    Search = search,
+                    TypeId = typeId,
+                    Province = province,
+                    IsVerified = isVerified,
+                    Page = page,
+                    Size = size
+                };
+
+                var result = await _service.GetPublicOrganizationsAsync(filters);
+                
+                return Ok(new ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Organizations retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public organizations");
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve organizations" }
+                });
+            }
+        }
+
+        // Get specific organization's public information
+        [HttpGet("public/{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<PublicOrganizationDTO>>> GetPublicOrganization(int id)
+        {
+            try
+            {
+                var organization = await _service.GetPublicOrganizationAsync(id);
+                
+                if (organization == null)
+                {
+                    return NotFound(new ApiResponseDTO<PublicOrganizationDTO>
+                    {
+                        Success = false,
+                        Message = "Organization not found",
+                        Errors = new List<string> { $"Organization with ID {id} does not exist or is not active" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<PublicOrganizationDTO>
+                {
+                    Success = true,
+                    Data = organization,
+                    Message = "Organization retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public organization with ID {OrganizationId}", id);
+                return StatusCode(500, new ApiResponseDTO<PublicOrganizationDTO>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve organization" }
+                });
+            }
+        }
+
+        // Get all organization types
+        [HttpGet("public/organization-types")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<List<OrganizationTypeDto>>>> GetOrganizationTypes()
+        {
+            try
+            {
+                var organizationTypes = await _service.GetAllOrganizationTypesAsync();
+
+                return Ok(new ApiResponseDTO<List<OrganizationTypeDto>>
+                {
+                    Success = true,
+                    Data = organizationTypes.ToList(),
+                    Message = "Organization types retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving organization types");
+                return StatusCode(500, new ApiResponseDTO<List<OrganizationTypeDto>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve organization types" }
+                });
+            }
+        }
+
+        #endregion
+
+        #region Organization Management Endpoints
+
+        // Get organization profiles list (Admin only)
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -37,11 +156,23 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Get organization profile by user ID
         [HttpGet("get/{userId}")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> Details(int userId)
         {
             try
             {
+                // Check authorization for own profile access
+                if (User.IsInRole("Organization"))
+                {
+                    var currentUserId = GetUserIdFromClaims();
+                    if (currentUserId != userId)
+                    {
+                        return Forbid("You can only access your own organization profile");
+                    }
+                }
+
                 var result = await _service.GetOrganizationProfileById(userId);
                 return Ok(result);
             }
@@ -51,12 +182,14 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Create new organization profile (Admin only)
         [HttpPost("add")]
-        public async Task<IActionResult> Add([FromBody] OrganizationProfileInputModel input)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Add([FromBody] OrganizationProfileCreateDto input)
         {
             if (input == null)
             {
-                input = new OrganizationProfileInputModel();
+                input = new OrganizationProfileCreateDto();
                 TryValidateModel(input);
             }
 
@@ -69,7 +202,7 @@ namespace ivan_api.Controllers
             {
                 var result = await _service.AddOrganizationProfile(input);
 
-                if (!result)//if false
+                if (!result)
                 {
                     return BadRequest("Failed to add organization profile");
                 }
@@ -88,12 +221,14 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Update organization profile
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update([FromBody] OrganizationProfileUpdateModel input, int id)
+        [Authorize(Roles = "Organization,Admin")]
+        public async Task<IActionResult> Update([FromBody] OrganizationProfileUpdateDto input, int id)
         {
             if (input == null)
             {
-                input = new OrganizationProfileUpdateModel();
+                input = new OrganizationProfileUpdateDto();
                 TryValidateModel(input);
             }
 
@@ -104,11 +239,21 @@ namespace ivan_api.Controllers
 
             try
             {
+                // Check authorization for own profile updates
+                if (User.IsInRole("Organization"))
+                {
+                    var currentUserId = GetUserIdFromClaims();
+                    if (currentUserId != id)
+                    {
+                        return Forbid("You can only update your own organization profile");
+                    }
+                }
+
                 var result = await _service.UpdateOrganizationProfile(input, id);
 
                 var postUpate = await _service.GetOrganizationProfileById(id);
 
-                if (!result)//if false
+                if (!result)
                 {
                     return BadRequest(postUpate);
                 }
@@ -121,15 +266,23 @@ namespace ivan_api.Controllers
             }
         }
 
-        /// <summary>
-        /// GET api/OrganizationProfile/{userId}/completion
-        /// Get organization profile completion percentage and missing fields
-        /// </summary>
+        // Get organization profile completion percentage and missing fields
         [HttpGet("{userId}/completion")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<ActionResult<ProfileCompletionDto>> GetProfileCompletion(int userId)
         {
             try
             {
+                // Check authorization for own profile completion access
+                if (User.IsInRole("Organization"))
+                {
+                    var currentUserId = GetUserIdFromClaims();
+                    if (currentUserId != userId)
+                    {
+                        return Forbid("You can only access your own organization profile completion");
+                    }
+                }
+
                 var profile = await _service.GetOrganizationProfileById(userId);
                 if (profile == null)
                     return NotFound(new { message = $"Organization profile for UserId={userId} not found." });
@@ -143,9 +296,23 @@ namespace ivan_api.Controllers
             }
         }
 
+        #endregion
+
+        #region Private Helper Methods
+
+        private int GetUserIdFromClaims()
+        {
+            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                throw new UnauthorizedAccessException("User ID not found in token claims");
+            }
+            return userId;
+        }
+
         private ProfileCompletionDto CalculateOrganizationProfileCompletion(OrganizationProfileViewModel profile)
         {
-            var totalFields = 12; // Total important fields
+            var totalFields = 12;
             var completedFields = 0;
             var missingFields = new List<string>();
 
@@ -172,14 +339,7 @@ namespace ivan_api.Controllers
             };
         }
 
-        //public async Task<int> getLastId()
-        //{
-        //    var temp = await _service.GetList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().OrganizationId;
+        #endregion
 
-        //    return last == null ? -1 : last;
-        //}
     }
 }

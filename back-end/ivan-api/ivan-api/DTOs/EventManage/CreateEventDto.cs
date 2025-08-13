@@ -42,9 +42,6 @@ namespace ivan_api.DTOs.EventManage
         [StringLength(100)]
         public string? District { get; set; }
 
-        [StringLength(100)]
-        public string? WardCommune { get; set; }
-
         public int? MaxVolunteers { get; set; }
         public int MinVolunteers { get; set; } = 1;
 
@@ -79,14 +76,5 @@ namespace ivan_api.DTOs.EventManage
 
         public bool IsFeatured { get; set; } = false;
         public bool IsUrgent { get; set; } = false;
-        public int Priority { get; set; } = 0;
-
-        [StringLength(100)]
-        public string? EventType { get; set; }
-
-        public decimal? Budget { get; set; }
-
-        [StringLength(3)]
-        public string Currency { get; set; } = "VND";
     }
 }
