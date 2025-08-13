@@ -1,14 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Calendar, Users, MapPin, Building, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { EventCard } from "@/components/public/EventCard";
-import { publicContentService } from "@/services/publicContentService";
-import type { PublicEvent, PublicEventFilters } from "@/types/publicContent";
+import { eventsService } from "@/services/eventsService";
+import type { EventDto, EventFilterDto } from "@/types/events";
 import type { StatCard } from "@/components/public/StatsSection";
 
-// Data mapper with proper TypeScript typing
-const mapPublicEventToCard = (event: PublicEvent) => {
-  // Map backend status to EventCard expected status
+const mapEventToCard = (event: EventDto) => {
   const mapStatus = (statusName: string): "open" | "full" | "closed" => {
     const status = statusName?.toLowerCase() || "";
     if (
@@ -26,7 +24,7 @@ const mapPublicEventToCard = (event: PublicEvent) => {
     ) {
       return "closed";
     }
-    return "open"; // Default to open
+    return "open";
   };
 
   return {
@@ -41,63 +39,77 @@ const mapPublicEventToCard = (event: PublicEvent) => {
       ? new Date(event.startDate).toLocaleTimeString("vi-VN")
       : "",
     location:
-      [event.wardCommune, event.district, event.province]
+      [event.detailedAddress, event.district, event.province]
         .filter(Boolean)
         .join(", ") || "Chưa xác định",
     volunteersNeeded: event.maxVolunteers || 0,
-    volunteersRegistered: event.currentVolunteers || 0,
+    volunteersRegistered: 0,
     status: mapStatus(event.statusName || ""),
     category: event.categoryName || "Khác",
     image: event.bannerImageUrl || undefined,
     isUrgent: event.isUrgent || false,
-    isFeatured: false, // This would need to come from backend
-    viewCount: 0, // This would need to come from backend
+    isFeatured: event.isFeatured || false,
+    viewCount: 0,
   };
 };
 
 export default function PublicEventsPage() {
-  // Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<PublicEventFilters>({
+  const [filters, setFilters] = useState<EventFilterDto>({
     search: "",
-    categoryId: undefined,
-    organizationId: undefined,
+    categoryIds: [],
+    statusIds: [],
+    startDateFrom: "",
+    startDateTo: "",
+    endDateFrom: "",
+    endDateTo: "",
     province: "",
-    startDate: "",
-    endDate: "",
+    district: "",
+    isFeatured: undefined,
+    isUrgent: undefined,
+    isActive: undefined,
+    minVolunteers: undefined,
+    maxVolunteers: undefined,
+    page: 1,
+    size: 20,
+    sortBy: "startDate",
+    sortDirection: "asc",
   });
 
-  // Inline debounce implementation
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
     }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Update filters when debounced search changes
   useEffect(() => {
     setFilters((prev) => ({ ...prev, search: debouncedSearch }));
   }, [debouncedSearch]);
 
-  // State for API data
-  const [events, setEvents] = useState<PublicEvent[]>([]);
+  const [events, setEvents] = useState<EventDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 0,
+    totalItems: 0,
+  });
 
-  // Load events whenever filters change
   useEffect(() => {
     const loadEvents = async () => {
       setLoading(true);
       setError(null);
       try {
-        const result = await publicContentService.getPublicEvents(filters);
+        const result = await eventsService.getEvents(filters);
         setEvents(result.items);
+        setPagination({
+          page: result.pageNumber,
+          totalPages: result.totalPages,
+          totalItems: result.totalCount,
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load events");
       } finally {
@@ -108,29 +120,15 @@ export default function PublicEventsPage() {
     loadEvents();
   }, [filters]);
 
-  // For pagination, we'll use simple client-side pagination for now
-  // TODO: Implement server-side pagination by updating the service
-  const pagination = {
-    page: filters.page || 1,
-    totalPages: Math.ceil(events.length / (filters.size || 20)),
-    totalItems: events.length,
-  };
+  const mappedEvents = useMemo(() => events.map(mapEventToCard), [events]);
 
-  // Map backend data to component props
-  const mappedEvents = useMemo(
-    () => (events || []).map(mapPublicEventToCard),
-    [events]
-  );
-
-  // Filter change handlers
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // The actual API call will be triggered by the debounced value
   };
 
   const handleFilterChange = (category: string) => {
-    const categoryId = category === "all" ? undefined : parseInt(category);
-    setFilters((prev) => ({ ...prev, categoryId }));
+    const categoryIds = category === "all" ? [] : [parseInt(category)];
+    setFilters((prev) => ({ ...prev, categoryIds }));
   };
 
   const handlePageChange = (page: number) => {
@@ -138,10 +136,9 @@ export default function PublicEventsPage() {
   };
 
   const handleRetry = () => {
-    setFilters((prev) => ({ ...prev })); // Trigger reload
+    setFilters((prev) => ({ ...prev }));
   };
 
-  // Filter options (TODO: fetch from backend)
   const filterOptions = [
     { value: "all", label: "Tất cả" },
     { value: "1", label: "Giáo dục" },
@@ -151,21 +148,17 @@ export default function PublicEventsPage() {
     { value: "5", label: "Cộng đồng" },
   ];
 
-  // Stats calculations
   const statsCards: StatCard[] = [
     {
       title: "Tổng sự kiện",
-      value: pagination?.totalItems?.toString() || "0",
+      value: pagination.totalItems.toString(),
       subtitle: "Sự kiện đang mở",
       icon: Calendar,
     },
     {
       title: "Người tham gia",
       value: mappedEvents
-        .reduce(
-          (total: number, event) => total + (event.volunteersRegistered || 0),
-          0
-        )
+        .reduce((total, event) => total + event.volunteersRegistered, 0)
         .toLocaleString(),
       subtitle: "Đã đăng ký",
       icon: Users,
@@ -187,20 +180,11 @@ export default function PublicEventsPage() {
       searchValue={filters.search || ""}
       onSearchChange={handleSearch}
       searchPlaceholder="Tìm kiếm sự kiện..."
-      filters={[
-        {
-          id: "category",
-          label: "Loại sự kiện",
-          value: filters.categoryId?.toString() || "all",
-          options: filterOptions,
-          onChange: handleFilterChange,
-          icon: <Building className="h-4 w-4" />,
-        },
-      ]}
-      resultCount={pagination?.totalItems || 0}
+      filters={[]}
+      resultCount={pagination.totalItems}
       stats={statsCards}
       loading={loading}
-      error={error || null}
+      error={error}
       onRetry={handleRetry}
       isEmpty={mappedEvents.length === 0}
       gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -208,12 +192,12 @@ export default function PublicEventsPage() {
       emptyTitle="Không tìm thấy sự kiện"
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
-        page: pagination?.page || 1,
-        size: 6, // Default size since it's not in context pagination
-        totalPages: pagination?.totalPages || 0,
-        totalItems: pagination?.totalItems || 0,
-        hasNextPage: (pagination?.page || 1) < (pagination?.totalPages || 0),
-        hasPreviousPage: (pagination?.page || 1) > 1,
+        page: pagination.page,
+        size: filters.size,
+        totalPages: pagination.totalPages,
+        totalItems: pagination.totalItems,
+        hasNextPage: pagination.page < pagination.totalPages,
+        hasPreviousPage: pagination.page > 1,
       }}
       onPageChange={handlePageChange}
       itemName="sự kiện"

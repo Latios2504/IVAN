@@ -68,6 +68,41 @@ namespace ivan_api.Mapping
 
             // VolunteerSkillDto → VolunteerSkill
             CreateMap<VolunteerSkillDto, VolunteerSkill>();
+
+            // VolunteerProfile → PublicVolunteerDTO (for public API)
+            CreateMap<VolunteerProfile, PublicVolunteerDTO>()
+                .ForMember(dest => dest.VolunteerId, opt => opt.MapFrom(src => src.VolunteerId))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.UserProfiles.Select(p => p.FirstName).FirstOrDefault() ?? string.Empty))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.User.UserProfiles.Select(p => p.LastName).FirstOrDefault() ?? string.Empty))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => 
+                    src.User.UserProfiles
+                        .Select(p => p.FirstName + " " + p.LastName)
+                        .FirstOrDefault() ?? string.Empty))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.User.UserProfiles.Select(p => p.Gender).FirstOrDefault()))
+                .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.User.UserProfiles.Select(p => p.Avatar).FirstOrDefault()))
+                .ForMember(dest => dest.Province, opt => opt.MapFrom(src => src.User.UserProfiles.Select(p => p.Province).FirstOrDefault()))
+                .ForMember(dest => dest.University, opt => opt.MapFrom(src => src.University))
+                .ForMember(dest => dest.Major, opt => opt.MapFrom(src => src.Major))
+                .ForMember(dest => dest.YearOfStudy, opt => opt.MapFrom(src => src.YearOfStudy))
+                .ForMember(dest => dest.Motivation, opt => opt.MapFrom(src => src.Motivation))
+                .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.Experience))
+                .ForMember(dest => dest.Availability, opt => opt.MapFrom(src => src.Availability))
+                .ForMember(dest => dest.VolunteerHours, opt => opt.MapFrom(src => src.VolunteerHours ?? 0))
+                .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating ?? 0))
+                .ForMember(dest => dest.RatingCount, opt => opt.MapFrom(src => src.RatingCount ?? 0))
+                .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => src.IsVerified ?? false))
+                .ForMember(dest => dest.TotalHoursVolunteered, opt => opt.MapFrom(src => src.TotalHoursVolunteered ?? 0))
+                .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.Skills))
+                .ForMember(dest => dest.SkillsList, opt => opt.MapFrom(src => src.VolunteerSkills));
+
+            // VolunteerSkill → PublicVolunteerSkillDTO (for public API)
+            CreateMap<VolunteerSkill, PublicVolunteerSkillDTO>()
+                .ForMember(dest => dest.SkillId, opt => opt.MapFrom(src => src.SkillId))
+                .ForMember(dest => dest.SkillName, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.SkillName : string.Empty))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Skill != null ? src.Skill.Category : null))
+                .ForMember(dest => dest.ProficiencyLevel, opt => opt.MapFrom(src => src.ProficiencyLevel ?? string.Empty))
+                .ForMember(dest => dest.YearsOfExperience, opt => opt.MapFrom(src => src.YearsOfExperience ?? 0))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
         }
 
         // Helper methods for safe navigation

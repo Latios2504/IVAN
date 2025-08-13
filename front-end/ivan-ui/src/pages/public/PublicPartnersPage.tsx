@@ -2,15 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { Building, HandHeart, Users, Search } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { PartnerCard } from "@/components/public/PartnerCard";
-import { publicContentService } from "@/services/publicContentService";
+import { partnerProfileService } from "@/services/partnerProfileService";
 import type {
-  PublicPartner,
-  PublicPartnerFilters,
-} from "@/types/publicContent";
+  PublicPartnerDto,
+  PublicPartnerFiltersDto,
+} from "@/types/partnerProfile";
 import type { StatCard } from "@/components/public/StatsSection";
 
-// Data mapper with proper TypeScript typing
-const mapPublicPartnerToCard = (partner: PublicPartner) => ({
+const mapPartnerToCard = (partner: PublicPartnerDto) => ({
   id: partner.partnerId?.toString() || "0",
   name: partner.companyName || "Tên đối tác không xác định",
   description: partner.description || "Không có mô tả",
@@ -20,34 +19,31 @@ const mapPublicPartnerToCard = (partner: PublicPartner) => ({
     "Chưa xác định",
   website: partner.website || "",
   logo: partner.logoUrl || "",
-  isVerified: partner.isActive || false,
-  rating: 0, // This would need to come from backend if available
-  ratingCount: 0, // This would need to come from backend if available
-  totalCollaborations: 0, // This would need to come from backend if available
-  partnershipType: "Đối tác chính thức", // This would need to come from backend
+  isVerified: partner.isVerified || false,
+  rating: partner.rating || 0,
+  ratingCount: partner.ratingCount || 0,
+  totalCollaborations: partner.totalCollaborations || 0,
+  partnershipType: "Đối tác chính thức",
 });
 
 export default function PublicPartnersPage() {
-  // Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<PublicPartnerFilters>({
+  const [filters, setFilters] = useState<PublicPartnerFiltersDto>({
     search: "",
     industryId: undefined,
     province: "",
     isVerified: undefined,
+    page: 1,
+    size: 20,
   });
 
-  // Inline debounce implementation
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
     }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchQuery]);
 
   // Update filters when debounced search changes
@@ -56,9 +52,10 @@ export default function PublicPartnersPage() {
   }, [debouncedSearch]);
 
   // State for API data
-  const [partners, setPartners] = useState<PublicPartner[]>([]);
+  const [partners, setPartners] = useState<PublicPartnerDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalPartners, setTotalPartners] = useState(0);
 
   // Load partners whenever filters change
   useEffect(() => {
@@ -66,8 +63,9 @@ export default function PublicPartnersPage() {
       setLoading(true);
       setError(null);
       try {
-        const result = await publicContentService.getPublicPartners(filters);
-        setPartners(result.items);
+        const result = await partnerProfileService.getPublicPartners(filters);
+        setPartners(result.items || []);
+        setTotalPartners(result.totalCount || 0);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load partners"
@@ -80,11 +78,11 @@ export default function PublicPartnersPage() {
     loadPartners();
   }, [filters]);
 
-  // For pagination, we'll use simple client-side pagination for now
+  // Server-side pagination
   const pagination = {
     page: filters.page || 1,
-    totalPages: Math.ceil(partners.length / (filters.size || 20)),
-    totalItems: partners.length,
+    totalPages: Math.ceil(totalPartners / (filters.size || 20)),
+    totalItems: totalPartners,
   };
 
   // Handlers
@@ -98,7 +96,7 @@ export default function PublicPartnersPage() {
 
   // Map backend data to component props
   const mappedPartners = useMemo(
-    () => (partners || []).map(mapPublicPartnerToCard),
+    () => (partners || []).map(mapPartnerToCard),
     [partners]
   );
 
@@ -127,7 +125,7 @@ export default function PublicPartnersPage() {
   const statsCards: StatCard[] = [
     {
       title: "Tổng đối tác",
-      value: pagination.totalItems.toString(),
+      value: totalPartners.toString(),
       subtitle: "Đối tác đang hoạt động",
       icon: Building,
     },
@@ -145,7 +143,7 @@ export default function PublicPartnersPage() {
     },
     {
       title: "Người được hỗ trợ",
-      value: "0", // This would need to be calculated from backend if available
+      value: "0",
       subtitle: "Người đã được hỗ trợ",
       icon: Users,
     },
@@ -158,16 +156,7 @@ export default function PublicPartnersPage() {
       searchValue={filters.search || ""}
       onSearchChange={handleSearch}
       searchPlaceholder="Tìm kiếm đối tác..."
-      filters={[
-        {
-          id: "type",
-          label: "Loại đối tác",
-          value: filters.industryId?.toString() || "all",
-          options: filterOptions,
-          onChange: handleFilterChange,
-          icon: <Building className="h-4 w-4" />,
-        },
-      ]}
+      filters={[]}
       resultCount={pagination.totalItems}
       stats={statsCards}
       loading={loading}
@@ -180,9 +169,9 @@ export default function PublicPartnersPage() {
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
         page: pagination.page,
-        size: 12,
+        size: filters.size || 20,
         totalPages: pagination.totalPages,
-        totalItems: pagination.totalItems,
+        totalItems: totalPartners,
         hasNextPage: pagination.page < pagination.totalPages,
         hasPreviousPage: pagination.page > 1,
       }}

@@ -44,6 +44,25 @@ namespace ivan_api.Mapping
 
             // PartnerIndustry → PartnerIndustryDto
             CreateMap<PartnerIndustry, PartnerIndustryDto>();
+
+            // Partner → PublicPartnerDTO (for public API)
+            CreateMap<Partner, PublicPartnerDTO>()
+                .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.PartnerId))
+                .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.CompanyName))
+                .ForMember(dest => dest.IndustryName, opt => opt.MapFrom(src => src.Industry.IndustryName ?? string.Empty))
+                .ForMember(dest => dest.Website, opt => opt.MapFrom(src => src.Website))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.ContactEmail))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.ContactPhone))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.WardCommune, opt => opt.MapFrom(src => src.WardCommune))
+                .ForMember(dest => dest.District, opt => opt.MapFrom(src => src.District))
+                .ForMember(dest => dest.Province, opt => opt.MapFrom(src => src.Province))
+                .ForMember(dest => dest.LogoUrl, opt => opt.MapFrom(src => src.LogoUrl))
+                .ForMember(dest => dest.IsVerified, opt => opt.MapFrom(src => src.IsVerified ?? false))
+                .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating ?? 0))
+                .ForMember(dest => dest.RatingCount, opt => opt.MapFrom(src => src.RatingCount ?? 0))
+                .ForMember(dest => dest.TotalCollaborations, opt => opt.MapFrom(src => src.TotalCollaborations ?? 0));
         }
     }
 }

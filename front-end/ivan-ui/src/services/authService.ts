@@ -20,6 +20,11 @@ class AuthService {
       "/Authentication/login",
       credentials
     );
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Login failed");
+    }
+
     const { token, expiresAt, user: apiUser } = response.data;
 
     apiClient.setToken(token);
@@ -43,6 +48,11 @@ class AuthService {
       "/Authentication/register",
       registerPayload
     );
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Registration failed");
+    }
+
     return response.data;
   }
 
@@ -51,6 +61,11 @@ class AuthService {
       "/Authentication/forgot-password",
       { email }
     );
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Password reset request failed");
+    }
+
     return response.data;
   }
 
@@ -64,6 +79,11 @@ class AuthService {
         confirmPassword: data.confirmPassword,
       }
     );
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Password reset failed");
+    }
+
     return response.data;
   }
 
@@ -74,11 +94,21 @@ class AuthService {
       "/Authentication/change-password",
       data
     );
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Password change failed");
+    }
+
     return response.data;
   }
 
   async getUserInfo(): Promise<User> {
     const response = await apiClient.get<ApiUser>("/Authentication/me");
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Failed to get user information");
+    }
+
     return this.mapApiUserToUser(response.data);
   }
 
@@ -118,7 +148,6 @@ class AuthService {
   }
 
   private mapRoleNameToEnum(roleName: string): UserRole {
-    console.log("DEBUG: Mapping role name:", roleName);
     const roleMap: Record<string, UserRole> = {
       volunteer: "volunteer",
       organization: "organization",
@@ -127,7 +156,6 @@ class AuthService {
       admin: "admin",
     };
     const mappedRole = roleMap[roleName.toLowerCase()] || "volunteer";
-    console.log("DEBUG: Mapped role:", mappedRole);
     return mappedRole;
   }
 }

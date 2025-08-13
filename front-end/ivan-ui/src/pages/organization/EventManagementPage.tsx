@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { eventService } from "@/services/eventService";
+import { eventsService } from "@/services/eventsService";
 import type { PagedResultDto } from "@/types/common";
 import type {
   EventDto,
@@ -8,7 +8,7 @@ import type {
   EventStatsDto,
   EventCategoryDto,
   EventStatusDto,
-} from "@/types/event";
+} from "@/types/events";
 import { EventDashboard } from "@/components/organization/event-management/EventDashboard";
 import { EventList } from "@/components/organization/event-management/EventList";
 import { EventFilters } from "@/components/organization/event-management/EventFilters";

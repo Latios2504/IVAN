@@ -18,9 +18,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Enhanced API Client with improved error handling and logging
- */
 class ApiClient {
   private baseURL: string;
   private token: string | null = null;
@@ -35,11 +32,6 @@ class ApiClient {
   }
 
   public setToken(token: string | null): void {
-    console.log(
-      "DEBUG: ApiClient.setToken called with:",
-      token ? token.substring(0, 20) + "..." : "null"
-    );
-    console.log("DEBUG: Call stack:", new Error().stack);
     this.token = token;
     if (token) {
       localStorage.setItem("authToken", token);
@@ -60,6 +52,32 @@ class ApiClient {
     return headers;
   }
 
+  private buildURL(endpoint: string, params?: Record<string, any>): string {
+    const url = new URL(`${this.baseURL}${endpoint}`);
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          // Handle arrays by adding multiple query parameters with the same key
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              if (item !== undefined && item !== null) {
+                url.searchParams.append(key, String(item));
+              }
+            });
+          } else {
+            // Handle empty strings - skip them to avoid sending empty parameters
+            if (value !== "") {
+              url.searchParams.append(key, String(value));
+            }
+          }
+        }
+      });
+    }
+
+    return url.toString();
+  }
+
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     const contentType = response.headers.get("content-type");
     const isJson = contentType?.includes("application/json");
@@ -67,132 +85,54 @@ class ApiClient {
     if (!response.ok) {
       const errorData = isJson
         ? await response.json()
-        : { message: response.statusText };
+        : { message: response.statusText, errors: [] };
 
       // Handle authentication errors
       if (response.status === 401) {
-        // 401 Unauthorized - token is invalid/expired, logout user
-        console.log(
-          "DEBUG: Got 401 unauthorized, clearing token and redirecting"
-        );
-        console.log("DEBUG: Failed request URL:", response.url);
-        console.log(
-          "DEBUG: Current token:",
-          this.token ? this.token.substring(0, 20) + "..." : "null"
-        );
-
-        if (environment.ENABLE_LOGGING) {
-          console.warn(
-            `🔐 Authentication error (401): Token invalid/expired, clearing token and redirecting to login`
-          );
-        }
-
-        // Clear the token
         this.setToken(null);
-
-        // Redirect to login page if not already there
         if (!window.location.pathname.includes("/login")) {
-          console.log("DEBUG: Redirecting to login page");
-          // Use pushState instead of hard redirect to avoid losing debug context
-          window.history.pushState({}, "", "/login");
-          window.location.reload();
-        }
-      } else if (response.status === 403) {
-        // 403 Forbidden - user is authenticated but lacks permission
-        // Only logout if it's explicitly a token-related error
-        const errorMessage = errorData.message || "";
-        const isTokenError =
-          errorMessage.toLowerCase().includes("token") ||
-          errorMessage.toLowerCase().includes("expired") ||
-          errorMessage.toLowerCase().includes("invalid token");
-
-        if (isTokenError) {
-          if (environment.ENABLE_LOGGING) {
-            console.warn(
-              `🔐 Authentication error (403): Token-related error, clearing token and redirecting to login`
-            );
-          }
-
-          // Clear the token and redirect
-          this.setToken(null);
-          if (!window.location.pathname.includes("/login")) {
-            window.location.href = "/login";
-          }
-        } else {
-          if (environment.ENABLE_LOGGING) {
-            console.warn(
-              `🚫 Access denied (403): User lacks permission for this resource`
-            );
-          }
-          // Don't logout - just let the error propagate
+          window.location.href = "/login";
         }
       }
 
-      const apiError = new ApiError(
+      throw new ApiError(
         errorData.message || `HTTP ${response.status}: ${response.statusText}`,
         response.status,
         errorData.code || `HTTP_${response.status}`,
         errorData
       );
-
-      if (environment.ENABLE_LOGGING) {
-        console.error(`❌ API Error:`, apiError);
-      }
-
-      throw apiError;
     }
 
+    // Handle 204 No Content
     if (response.status === 204) {
-      return { success: true } as ApiResponse<T>;
+      return {
+        success: true,
+        message: "Success",
+        data: null,
+        errors: [],
+      } as ApiResponse<T>;
     }
 
+    // All endpoints return ApiResponse<T> format
     const result = isJson
       ? await response.json()
-      : ({ success: true, data: response } as ApiResponse<T>);
-
-    // Handle direct DTO responses (when backend returns DTO directly instead of wrapped ApiResponse)
-    if (
-      result &&
-      typeof result === "object" &&
-      !result.hasOwnProperty("success") &&
-      !result.hasOwnProperty("data")
-    ) {
-      // This is a direct DTO response, wrap it in ApiResponse format
-      const wrappedResult = {
-        success: true,
-        data: result as T,
-        message: "Success",
-      } as ApiResponse<T>;
-
-      if (environment.ENABLE_LOGGING) {
-        // Debug logging disabled for production
-      }
-
-      return wrappedResult;
-    }
-
-    if (environment.ENABLE_LOGGING && result.data) {
-      // Debug logging disabled for production
-    }
+      : {
+          success: true,
+          message: "Success",
+          data: null,
+          errors: [],
+        };
 
     return result;
   }
 
   async get<T>(
     endpoint: string,
-    params?: Record<string, string | number | boolean | undefined | null>
+    params?: Record<string, any>
   ): Promise<ApiResponse<T>> {
-    const url = new URL(`${this.baseURL}${endpoint}`);
+    const url = this.buildURL(endpoint, params);
 
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          url.searchParams.append(key, String(value));
-        }
-      });
-    }
-
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: "GET",
       headers: this.getHeaders(),
     });
@@ -203,21 +143,11 @@ class ApiClient {
   async post<T>(
     endpoint: string,
     data?: unknown,
-    options?: {
-      params?: Record<string, string | number | boolean | undefined | null>;
-    }
+    params?: Record<string, any>
   ): Promise<ApiResponse<T>> {
-    const url = new URL(`${this.baseURL}${endpoint}`);
+    const url = this.buildURL(endpoint, params);
 
-    if (options?.params) {
-      Object.entries(options.params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          url.searchParams.append(key, String(value));
-        }
-      });
-    }
-
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: "POST",
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
@@ -227,7 +157,9 @@ class ApiClient {
   }
 
   async put<T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const url = this.buildURL(endpoint);
+
+    const response = await fetch(url, {
       method: "PUT",
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
@@ -237,7 +169,9 @@ class ApiClient {
   }
 
   async patch<T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const url = this.buildURL(endpoint);
+
+    const response = await fetch(url, {
       method: "PATCH",
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
@@ -247,9 +181,9 @@ class ApiClient {
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    const fullUrl = `${this.baseURL}${endpoint}`;
+    const url = this.buildURL(endpoint);
 
-    const response = await fetch(fullUrl, {
+    const response = await fetch(url, {
       method: "DELETE",
       headers: this.getHeaders(),
     });
@@ -276,7 +210,7 @@ class ApiClient {
       headers.Authorization = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await fetch(this.buildURL(endpoint), {
       method: "POST",
       headers,
       body: formData,

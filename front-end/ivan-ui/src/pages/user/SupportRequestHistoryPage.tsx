@@ -53,7 +53,7 @@ export default function SupportRequestHistoryPage() {
   const [requests, setRequests] = useState<SupportRequestResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] =
     useState<SupportRequestResponse | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -218,9 +218,10 @@ export default function SupportRequestHistoryPage() {
       request.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const statusFilteredRequests = statusFilter
-    ? filteredRequests.filter((request) => request.status === statusFilter)
-    : filteredRequests;
+  const statusFilteredRequests =
+    statusFilter && statusFilter !== "all"
+      ? filteredRequests.filter((request) => request.status === statusFilter)
+      : filteredRequests;
 
   return (
     <div className="container mx-auto py-6">
@@ -258,7 +259,7 @@ export default function SupportRequestHistoryPage() {
                 <SelectValue placeholder="Lọc theo trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả trạng thái</SelectItem>
+                <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value="Open">Mở</SelectItem>
                 <SelectItem value="In Progress">Đang xử lý</SelectItem>
                 <SelectItem value="Resolved">Đã giải quyết</SelectItem>

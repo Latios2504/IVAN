@@ -4,7 +4,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, GraduationCap, Star, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import type { VolunteerCardData } from "@/types/publicContent";
+
+export interface VolunteerCardData {
+  id: string;
+  fullName: string;
+  avatar?: string;
+  university?: string;
+  location?: string;
+  rating: number;
+  ratingCount: number;
+  totalHoursVolunteered?: number;
+  isVerified: boolean;
+  skills: string[];
+  description?: string;
+}
 
 interface VolunteerCardProps {
   volunteer: VolunteerCardData;

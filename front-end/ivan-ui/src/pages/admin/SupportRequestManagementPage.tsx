@@ -56,7 +56,7 @@ export default function SupportRequestManagementPage() {
   const [categories, setCategories] = useState<SupportCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] =
     useState<SupportRequestResponse | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -64,7 +64,9 @@ export default function SupportRequestManagementPage() {
   const [resolution, setResolution] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [attachments, setAttachments] = useState<{ name: string; url: string }[]>([]);
+  const [attachments, setAttachments] = useState<
+    { name: string; url: string }[]
+  >([]);
 
   useEffect(() => {
     fetchRequests();
@@ -75,7 +77,7 @@ export default function SupportRequestManagementPage() {
     try {
       setLoading(true);
       const data = await supportRequestService.getAll(
-        statusFilter || undefined
+        statusFilter === "all" ? undefined : statusFilter
       );
       setRequests(data);
     } catch (error) {
@@ -112,7 +114,10 @@ export default function SupportRequestManagementPage() {
       setIsUpdating(true);
       await supportRequestService.update(selectedRequest.requestId, {
         status,
-        resolution: status === "Approved" || status === "Rejected" ? resolution : undefined,
+        resolution:
+          status === "Approved" || status === "Rejected"
+            ? resolution
+            : undefined,
       });
 
       // Refresh the list
@@ -137,14 +142,14 @@ export default function SupportRequestManagementPage() {
 
     setIsUpdating(true);
     try {
-      const attachmentUrls = attachments.map(att => att.url);
+      const attachmentUrls = attachments.map((att) => att.url);
       await supportRequestService.addCommentWithAttachment(
         selectedRequest.requestId,
         comment,
         true, // Internal comment for admin
         attachmentUrls.length > 0 ? attachmentUrls : undefined
       );
-      
+
       // Refresh the request details
       await handleViewDetails(selectedRequest.requestId);
       setComment("");
@@ -158,7 +163,9 @@ export default function SupportRequestManagementPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -173,12 +180,16 @@ export default function SupportRequestManagementPage() {
 
         // Validate file type
         const allowedTypes = [
-          'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
-          'application/pdf', 'application/msword', 
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'text/plain'
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/gif",
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "text/plain",
         ];
-        
+
         if (!allowedTypes.includes(file.type)) {
           toast.error(`Định dạng tệp ${file.name} không được hỗ trợ`);
           return null;
@@ -194,10 +205,13 @@ export default function SupportRequestManagementPage() {
       });
 
       const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter(result => result !== null) as { name: string; url: string }[];
-      
-      setAttachments(prev => [...prev, ...successfulUploads]);
-      
+      const successfulUploads = results.filter((result) => result !== null) as {
+        name: string;
+        url: string;
+      }[];
+
+      setAttachments((prev) => [...prev, ...successfulUploads]);
+
       if (successfulUploads.length > 0) {
         toast.success(`Đã tải lên ${successfulUploads.length} tệp thành công`);
       }
@@ -208,13 +222,13 @@ export default function SupportRequestManagementPage() {
       setUploadingFiles(false);
       // Reset file input
       if (event.target) {
-        event.target.value = '';
+        event.target.value = "";
       }
     }
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const getStatusBadge = (status: string) => {
@@ -278,7 +292,7 @@ export default function SupportRequestManagementPage() {
                 <SelectValue placeholder="Lọc theo trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả trạng thái</SelectItem>
+                <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value="Pending">Chờ duyệt</SelectItem>
                 <SelectItem value="Approved">Đã phê duyệt</SelectItem>
                 <SelectItem value="Rejected">Đã từ chối</SelectItem>
@@ -348,7 +362,9 @@ export default function SupportRequestManagementPage() {
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Chi tiết Yêu cầu Từ thiện</DialogTitle>
-            <DialogDescription>Xem và phê duyệt yêu cầu từ thiện</DialogDescription>
+            <DialogDescription>
+              Xem và phê duyệt yêu cầu từ thiện
+            </DialogDescription>
           </DialogHeader>
 
           {selectedRequest && (
@@ -443,23 +459,26 @@ export default function SupportRequestManagementPage() {
                           </div>
                           <p className="text-sm">{comment.comment}</p>
                           {/* Comment Attachments */}
-                          {comment.attachmentUrls && comment.attachmentUrls.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              <p className="text-xs text-gray-500">Tệp đính kèm:</p>
-                              {comment.attachmentUrls.map((url, idx) => (
-                                <a
-                                  key={idx}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
-                                >
-                                  <FileText className="h-3 w-3" />
-                                  {url.split('/').pop() || 'Tệp đính kèm'}
-                                </a>
-                              ))}
-                            </div>
-                          )}
+                          {comment.attachmentUrls &&
+                            comment.attachmentUrls.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                <p className="text-xs text-gray-500">
+                                  Tệp đính kèm:
+                                </p>
+                                {comment.attachmentUrls.map((url, idx) => (
+                                  <a
+                                    key={idx}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                                  >
+                                    <FileText className="h-3 w-3" />
+                                    {url.split("/").pop() || "Tệp đính kèm"}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
                         </div>
                       ))}
                     </div>
@@ -479,18 +498,23 @@ export default function SupportRequestManagementPage() {
                     placeholder="Nhập bình luận nội bộ..."
                     rows={2}
                   />
-                  
+
                   {/* File Upload */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="file-upload-admin" className="text-sm font-medium">
+                      <Label
+                        htmlFor="file-upload-admin"
+                        className="text-sm font-medium"
+                      >
                         Đính kèm tệp:
                       </Label>
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={uploadingFiles}
-                        onClick={() => document.getElementById('file-upload-admin')?.click()}
+                        onClick={() =>
+                          document.getElementById("file-upload-admin")?.click()
+                        }
                       >
                         <Upload className="h-4 w-4 mr-1" />
                         {uploadingFiles ? "Đang tải lên..." : "Chọn tệp"}
@@ -504,15 +528,20 @@ export default function SupportRequestManagementPage() {
                         className="hidden"
                       />
                     </div>
-                    
+
                     {/* Attachment List */}
                     {attachments.length > 0 && (
                       <div className="space-y-1">
                         {attachments.map((attachment, index) => (
-                          <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                          >
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm text-gray-700">{attachment.name}</span>
+                              <span className="text-sm text-gray-700">
+                                {attachment.name}
+                              </span>
                             </div>
                             <Button
                               variant="ghost"
@@ -526,7 +555,7 @@ export default function SupportRequestManagementPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <Button
                     onClick={handleAddComment}
                     disabled={!comment.trim() || isUpdating}

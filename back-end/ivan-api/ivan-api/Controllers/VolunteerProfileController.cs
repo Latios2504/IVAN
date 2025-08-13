@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs;
 using System.Security.Claims;
+using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers
 {
@@ -15,13 +16,16 @@ namespace ivan_api.Controllers
     {
         private readonly IVolunteerProfileService _service;
         private readonly ILogger<VolunteerProfileController> _logger;
+        private readonly IAuthenticationService _authenticationService;
 
         public VolunteerProfileController(
             IVolunteerProfileService service,
-            ILogger<VolunteerProfileController> logger)
+            ILogger<VolunteerProfileController> logger,
+            IAuthenticationService authenticationService)
         {
             _service = service;
             _logger = logger;
+            _authenticationService = authenticationService;
         }
 
         #region Public Endpoints
@@ -200,7 +204,7 @@ namespace ivan_api.Controllers
                 // Check authorization for own profile access
                 if (User.IsInRole("Volunteer"))
                 {
-                    var currentUserId = GetUserIdFromClaims();
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
                     {
                         return Forbid("You can only access your own volunteer profile");
@@ -290,7 +294,7 @@ namespace ivan_api.Controllers
                 // Check authorization for own profile updates
                 if (User.IsInRole("Volunteer"))
                 {
-                    var currentUserId = GetUserIdFromClaims();
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
                     {
                         return Forbid("You can only update your own volunteer profile");
@@ -338,7 +342,7 @@ namespace ivan_api.Controllers
                 // Check authorization for own profile completion access
                 if (User.IsInRole("Volunteer"))
                 {
-                    var currentUserId = GetUserIdFromClaims();
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
                     {
                         return Forbid("You can only access your own volunteer profile completion");
@@ -377,16 +381,6 @@ namespace ivan_api.Controllers
         #endregion
 
         #region Private Helper Methods
-
-        private int GetUserIdFromClaims()
-        {
-            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                throw new UnauthorizedAccessException("User ID not found in token claims");
-            }
-            return userId;
-        }
 
         private ProfileCompletionDto CalculateVolunteerProfileCompletion(VolunteerProfileViewModel profile)
         {

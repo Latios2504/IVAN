@@ -1,100 +1,61 @@
 import { useState, useEffect, useMemo } from "react";
-import { Users, MapPin, Clock, Search } from "lucide-react";
+import {
+  Users,
+  Star,
+  MapPin,
+  GraduationCap,
+  Search,
+  Award,
+} from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
-import { VolunteerCard } from "@/components/public/VolunteerCard";
-import { publicContentService } from "@/services/publicContentService";
+import {
+  VolunteerCard,
+  type VolunteerCardData,
+} from "@/components/public/VolunteerCard";
+import { volunteerProfileService } from "@/services/volunteerProfileService";
 import type {
-  PublicVolunteer,
-  PublicVolunteerFilters,
-  VolunteerCardData,
-} from "@/types/publicContent";
+  PublicVolunteerDto,
+  PublicVolunteerFiltersDto,
+  SkillDto,
+} from "@/types/volunteerProfile";
 import type { StatCard } from "@/components/public/StatsSection";
 
-const PROVINCES = [
-  "An Giang",
-  "Bà Rịa - Vũng Tàu",
-  "Bắc Giang",
-  "Bắc Kạn",
-  "Bạc Liêu",
-  "Bắc Ninh",
-  "Bến Tre",
-  "Bình Định",
-  "Bình Dương",
-  "Bình Phước",
-  "Bình Thuận",
-  "Cà Mau",
-  "Cao Bằng",
-  "Đắk Lắk",
-  "Đắk Nông",
-  "Điện Biên",
-  "Đồng Nai",
-  "Đồng Tháp",
-  "Gia Lai",
-  "Hà Giang",
-  "Hà Nam",
-  "Hà Tĩnh",
-  "Hải Dương",
-  "Hậu Giang",
-  "Hòa Bình",
-  "Hưng Yên",
-  "Khánh Hòa",
-  "Kiên Giang",
-  "Kon Tum",
-  "Lai Châu",
-  "Lâm Đồng",
-  "Lạng Sơn",
-  "Lào Cai",
-  "Long An",
-  "Nam Định",
-  "Nghệ An",
-  "Ninh Bình",
-  "Ninh Thuận",
-  "Phú Thọ",
-  "Quảng Bình",
-  "Quảng Nam",
-  "Quảng Ngãi",
-  "Quảng Ninh",
-  "Quảng Trị",
-  "Sóc Trăng",
-  "Sơn La",
-  "Tây Ninh",
-  "Thái Bình",
-  "Thái Nguyên",
-  "Thanh Hóa",
-  "Thừa Thiên Huế",
-  "Tiền Giang",
-  "Trà Vinh",
-  "Tuyên Quang",
-  "Vĩnh Long",
-  "Vĩnh Phúc",
-  "Yên Bái",
-  "Phú Yên",
-  "Cần Thơ",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Hà Nội",
-  "TP Hồ Chí Minh",
-];
+const mapVolunteerToCard = (
+  volunteer: PublicVolunteerDto
+): VolunteerCardData => ({
+  id: volunteer.volunteerId?.toString() || "0",
+  fullName: volunteer.fullName || "Tên không xác định",
+  avatar: volunteer.avatar || "",
+  location: volunteer.province || "Chưa xác định",
+  university: volunteer.university || "Chưa xác định",
+  rating: volunteer.rating || 0,
+  ratingCount: volunteer.ratingCount || 0,
+  totalHoursVolunteered: volunteer.totalHoursVolunteered || 0,
+  isVerified: volunteer.isVerified || false,
+  skills: volunteer.skillsList?.map((skill) => skill.skillName) || [],
+  description: volunteer.motivation || volunteer.experience || "",
+});
 
-export const PublicVolunteersPage = () => {
+export default function PublicVolunteersPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<PublicVolunteerFilters>({
-    page: 1,
-    size: 6,
-  });
-
-  // Inline debounce implementation
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    }, 500);
+    return () => clearTimeout(handler);
   }, [searchQuery]);
+
+  const [filters, setFilters] = useState<PublicVolunteerFiltersDto>({
+    search: "",
+    skillId: undefined,
+    university: "",
+    province: "",
+    isVerified: undefined,
+    page: 1,
+    size: 20,
+  });
 
   // Update filters when debounced search changes
   useEffect(() => {
@@ -102,9 +63,28 @@ export const PublicVolunteersPage = () => {
   }, [debouncedSearch]);
 
   // State for API data
-  const [volunteers, setVolunteers] = useState<PublicVolunteer[]>([]);
+  const [volunteers, setVolunteers] = useState<PublicVolunteerDto[]>([]);
+  const [skills, setSkills] = useState<SkillDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 0,
+    totalItems: 0,
+  });
+
+  // Load skills for filter dropdown
+  useEffect(() => {
+    const loadSkills = async () => {
+      try {
+        const skillsResult = await volunteerProfileService.getSkills();
+        setSkills(skillsResult);
+      } catch (err) {
+        console.error("Failed to load skills:", err);
+      }
+    };
+    loadSkills();
+  }, []);
 
   // Load volunteers whenever filters change
   useEffect(() => {
@@ -112,8 +92,15 @@ export const PublicVolunteersPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const result = await publicContentService.getPublicVolunteers(filters);
+        const result = await volunteerProfileService.getPublicVolunteers(
+          filters
+        );
         setVolunteers(result.items);
+        setPagination({
+          page: result.pageNumber,
+          totalPages: result.totalPages,
+          totalItems: result.totalCount,
+        });
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load volunteers"
@@ -126,196 +113,181 @@ export const PublicVolunteersPage = () => {
     loadVolunteers();
   }, [filters]);
 
-  // For pagination, we'll use simple client-side pagination for now
-  const pagination = {
-    page: filters.page || 1,
-    totalPages: Math.ceil(volunteers.length / (filters.size || 20)),
-    totalItems: volunteers.length,
-  };
-
-  // Handlers
-  const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
-  };
-
-  const handleRetry = () => {
-    setFilters((prev) => ({ ...prev })); // Trigger reload
-  };
-
-  // Convert volunteers data to card format
-  const convertToCardData = (volunteers: any[]): VolunteerCardData[] => {
-    if (!volunteers || !Array.isArray(volunteers)) {
-      console.warn("Invalid volunteers data - not an array");
-      return [];
-    }
-
-    return volunteers.map((volunteer, index) => {
-      try {
-        // Safely extract skills
-        let skills: string[] = [];
-
-        // Try skillsList first (the new format)
-        if (volunteer.skillsList && Array.isArray(volunteer.skillsList)) {
-          skills = volunteer.skillsList
-            .filter(
-              (skill: any) =>
-                skill && typeof skill === "object" && skill.skillName
-            )
-            .map((skill: any) => String(skill.skillName));
-        }
-        // Fallback to skills array if it exists
-        else if (volunteer.skills && Array.isArray(volunteer.skills)) {
-          skills = volunteer.skills
-            .filter(
-              (skill: any) =>
-                skill && typeof skill === "object" && skill.skillName
-            )
-            .map((skill: any) => String(skill.skillName));
-        }
-        // Handle comma-separated string format
-        else if (volunteer.skills && typeof volunteer.skills === "string") {
-          skills = volunteer.skills
-            .split(",")
-            .map((s: string) => s.trim())
-            .filter(Boolean);
-        }
-
-        const result: VolunteerCardData = {
-          id: Number(volunteer.volunteerId) || 0,
-          name: String(volunteer.fullName || "Unknown"),
-          fullName: String(volunteer.fullName || "Unknown"),
-          description: String(
-            volunteer.motivation ||
-              volunteer.experience ||
-              "Dedicated volunteer ready to make a difference"
-          ),
-          university: volunteer.university
-            ? String(volunteer.university)
-            : undefined,
-          major: volunteer.major ? String(volunteer.major) : undefined,
-          yearOfStudy: volunteer.yearOfStudy
-            ? Number(volunteer.yearOfStudy)
-            : undefined,
-          location: String(volunteer.province || "Not specified"),
-          avatar: volunteer.avatar ? String(volunteer.avatar) : undefined,
-          isVerified: Boolean(volunteer.isVerified),
-          rating: Number(volunteer.rating) || 0,
-          ratingCount: Number(volunteer.ratingCount) || 0,
-          totalHoursVolunteered: Number(volunteer.totalHoursVolunteered) || 0,
-          skills,
-          availability: volunteer.availability
-            ? String(volunteer.availability)
-            : undefined,
-          lastActiveDate: volunteer.lastActiveDate
-            ? String(volunteer.lastActiveDate)
-            : undefined,
-        };
-
-        return result;
-      } catch (error) {
-        // Return a safe fallback object for malformed data
-        return {
-          id: index,
-          name: "Unknown Volunteer",
-          fullName: "Unknown Volunteer",
-          description: "Volunteer information unavailable",
-          location: "Not specified",
-          isVerified: false,
-          rating: 0,
-          ratingCount: 0,
-          totalHoursVolunteered: 0,
-          skills: [],
-        };
-      }
-    });
-  };
-
   // Map backend data to component props
   const mappedVolunteers = useMemo(
-    () => convertToCardData(volunteers || []),
+    () => volunteers.map(mapVolunteerToCard),
     [volunteers]
   );
 
   // Filter change handlers
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // The actual API call will be triggered by the debounced value
+    setFilters((prev) => ({ ...prev, page: 1 }));
   };
 
-  const handleProvinceChange = (province: string) => {
-    const selectedProvince = province === "all" ? undefined : province;
-    setFilters((prev) => ({ ...prev, province: selectedProvince }));
+  const handleSkillFilter = (skillId: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      skillId: skillId ? parseInt(skillId, 10) : undefined,
+      page: 1,
+    }));
   };
 
-  const handleVerifiedChange = (checked: boolean) => {
-    setFilters((prev) => ({ ...prev, isVerified: checked ? true : undefined }));
+  const handleUniversityFilter = (university: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      university: university || "",
+      page: 1,
+    }));
   };
 
-  // Stats calculations
-  const statsCards: StatCard[] = [
+  const handleProvinceFilter = (province: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      province: province || "",
+      page: 1,
+    }));
+  };
+
+  const handleVerificationFilter = (isVerified: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      isVerified:
+        isVerified === "true"
+          ? true
+          : isVerified === "false"
+          ? false
+          : undefined,
+      page: 1,
+    }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  // Get unique universities and provinces for filter options
+  const uniqueUniversities = useMemo(() => {
+    const universities = volunteers
+      .map((v) => v.university)
+      .filter((uni) => uni && uni.trim() !== "") // Filter out null, undefined, and empty strings
+      .filter((value, index, self) => self.indexOf(value) === index);
+    return universities.map((uni) => ({ value: uni!, label: uni! }));
+  }, [volunteers]);
+
+  const uniqueProvinces = useMemo(() => {
+    const provinces = volunteers
+      .map((v) => v.province)
+      .filter((province) => province && province.trim() !== "") // Filter out null, undefined, and empty strings
+      .filter((value, index, self) => self.indexOf(value) === index);
+    return provinces.map((province) => ({
+      value: province!,
+      label: province!,
+    }));
+  }, [volunteers]);
+
+  // Generate stats
+  const stats: StatCard[] = [
     {
       title: "Tổng tình nguyện viên",
-      value: pagination.totalItems.toString(),
-      subtitle: "Tình nguyện viên đang hoạt động",
+      value: pagination.totalItems.toLocaleString(),
+      subtitle: "Tình nguyện viên đã đăng ký",
       icon: Users,
     },
     {
-      title: "Tổng giờ tình nguyện",
-      value: mappedVolunteers
-        .reduce(
-          (total: number, volunteer) =>
-            total + (volunteer.totalHoursVolunteered || 0),
-          0
-        )
-        .toLocaleString(),
-      subtitle: "Giờ đã đóng góp",
-      icon: Clock,
+      title: "Đã xác thực",
+      value: volunteers.filter((v) => v.isVerified).length.toLocaleString(),
+      subtitle: "Tình nguyện viên đã xác thực",
+      icon: Award,
     },
     {
-      title: "Địa điểm",
-      value: new Set(
-        mappedVolunteers.map((volunteer) => volunteer.location)
-      ).size.toString(),
-      subtitle: "Tỉnh thành",
-      icon: MapPin,
+      title: "Tổng giờ tình nguyện",
+      value: volunteers
+        .reduce((total, v) => total + (v.totalHoursVolunteered || 0), 0)
+        .toLocaleString(),
+      subtitle: "Giờ đóng góp cho cộng đồng",
+      icon: Star,
+    },
+    {
+      title: "Trường đại học",
+      value: uniqueUniversities.length.toLocaleString(),
+      subtitle: "Trường tham gia",
+      icon: GraduationCap,
+    },
+  ];
+
+  const filterOptions = [
+    {
+      id: "skill",
+      label: "Kỹ năng",
+      value: filters.skillId?.toString() || "",
+      options: [
+        { value: "", label: "Tất cả kỹ năng" },
+        ...skills
+          .filter((skill) => skill.skillName && skill.skillName.trim() !== "") // Filter out empty skill names
+          .map((skill) => ({
+            value: skill.skillId.toString(),
+            label: skill.skillName,
+          })),
+      ],
+      onChange: handleSkillFilter,
+      icon: <Award className="h-4 w-4" />,
+    },
+    {
+      id: "university",
+      label: "Trường đại học",
+      value: filters.university || "",
+      options: [{ value: "", label: "Tất cả trường" }, ...uniqueUniversities],
+      onChange: handleUniversityFilter,
+      icon: <GraduationCap className="h-4 w-4" />,
+    },
+    {
+      id: "province",
+      label: "Tỉnh/Thành phố",
+      value: filters.province || "",
+      options: [{ value: "", label: "Tất cả tỉnh/thành" }, ...uniqueProvinces],
+      onChange: handleProvinceFilter,
+      icon: <MapPin className="h-4 w-4" />,
+    },
+    {
+      id: "verified",
+      label: "Trạng thái xác thực",
+      value:
+        filters.isVerified === true
+          ? "true"
+          : filters.isVerified === false
+          ? "false"
+          : "",
+      options: [
+        { value: "", label: "Tất cả" },
+        { value: "true", label: "Đã xác thực" },
+        { value: "false", label: "Chưa xác thực" },
+      ],
+      onChange: handleVerificationFilter,
+      icon: <Award className="h-4 w-4" />,
     },
   ];
 
   return (
     <PublicPageLayout
-      title="Volunteers"
-      description="Connect with skilled volunteers ready to make a difference in your community"
-      searchValue={filters.search || ""}
+      title="Tình nguyện viên"
+      description="Khám phá cộng đồng tình nguyện viên tài năng và nhiệt huyết, sẵn sàng đóng góp cho các hoạt động xã hội ý nghĩa."
+      searchValue={searchQuery}
       onSearchChange={handleSearch}
-      searchPlaceholder="Search by name, skills, or university..."
-      filters={[
-        {
-          id: "province",
-          label: "Province",
-          value: filters.province || "all",
-          options: [
-            { value: "all", label: "All provinces" },
-            ...PROVINCES.map((province) => ({
-              value: province,
-              label: province,
-            })),
-          ],
-          onChange: handleProvinceChange,
-        },
-      ]}
+      searchPlaceholder="Tìm kiếm tình nguyện viên..."
+      filters={[]}
       resultCount={pagination.totalItems}
-      stats={statsCards}
+      stats={stats}
       loading={loading}
-      error={error || null}
-      onRetry={handleRetry}
-      isEmpty={!volunteers || volunteers.length === 0}
-      gridClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      emptyIcon={Search}
+      error={error}
+      onRetry={() => window.location.reload()}
+      isEmpty={mappedVolunteers.length === 0}
+      emptyIcon={Users}
       emptyTitle="Không tìm thấy tình nguyện viên"
-      emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
+      emptyDescription="Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm để có kết quả tốt hơn."
       pagination={{
         page: pagination.page,
-        size: 12, // Default page size
+        size: filters.size,
         totalPages: pagination.totalPages,
         totalItems: pagination.totalItems,
         hasNextPage: pagination.page < pagination.totalPages,
@@ -323,12 +295,11 @@ export const PublicVolunteersPage = () => {
       }}
       onPageChange={handlePageChange}
       itemName="tình nguyện viên"
+      gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
     >
       {mappedVolunteers.map((volunteer) => (
         <VolunteerCard key={volunteer.id} volunteer={volunteer} />
       ))}
     </PublicPageLayout>
   );
-};
-
-export default PublicVolunteersPage;
+}

@@ -6,6 +6,7 @@ using ivan_api.DTOs.OrganizationProfiles;
 using ivan_api.DTOs;
 using ivan_api.DTOs.Common;
 using System.Security.Claims;
+using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers
 {
@@ -15,13 +16,16 @@ namespace ivan_api.Controllers
     {
         private readonly IOrganizationProfileService _service;
         private readonly ILogger<OrganizationProfileController> _logger;
+        private readonly IAuthenticationService _authenticationService;
 
         public OrganizationProfileController(
             IOrganizationProfileService service,
-            ILogger<OrganizationProfileController> logger)
+            ILogger<OrganizationProfileController> logger,
+            IAuthenticationService authenticationService)
         {
             _service = service;
             _logger = logger;
+            _authenticationService = authenticationService;
         }
 
         #region Public Endpoints
@@ -143,30 +147,41 @@ namespace ivan_api.Controllers
         // Get organization profiles list (Admin only)
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<OrganizationProfileViewModel>>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _service.GetList(pageNumber, pageSize);
-                return Ok(result);
+                return Ok(new ApiResponseDTO<PagedResultDto<OrganizationProfileViewModel>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Organization profiles retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error retrieving organization profiles");
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<OrganizationProfileViewModel>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve organization profiles" }
+                });
             }
         }
 
         // Get organization profile by user ID
         [HttpGet("get/{userId}")]
         [Authorize(Roles = "Organization,Admin")]
-        public async Task<IActionResult> Details(int userId)
+        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Details(int userId)
         {
             try
             {
                 // Check authorization for own profile access
                 if (User.IsInRole("Organization"))
                 {
-                    var currentUserId = GetUserIdFromClaims();
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
                     {
                         return Forbid("You can only access your own organization profile");
@@ -174,28 +189,63 @@ namespace ivan_api.Controllers
                 }
 
                 var result = await _service.GetOrganizationProfileById(userId);
-                return Ok(result);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<OrganizationProfileViewModel>
+                    {
+                        Success = false,
+                        Message = $"Organization profile for UserId={userId} not found.",
+                        Errors = new List<string> { $"Organization with ID {userId} does not exist" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Organization profile retrieved successfully"
+                });
             }
             catch(Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                _logger.LogError(ex, "Error retrieving organization profile for UserId: {UserId}", userId);
+                return StatusCode(500, new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve organization profile" }
+                });
             }
         }
 
         // Create new organization profile (Admin only)
         [HttpPost("add")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Add([FromBody] OrganizationProfileCreateDto input)
+        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Add([FromBody] OrganizationProfileCreateDto input)
         {
             if (input == null)
             {
-                input = new OrganizationProfileCreateDto();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
@@ -204,37 +254,69 @@ namespace ivan_api.Controllers
 
                 if (!result)
                 {
-                    return BadRequest("Failed to add organization profile");
+                    return BadRequest(new ApiResponseDTO<OrganizationProfileViewModel>
+                    {
+                        Success = false,
+                        Message = "Failed to create organization profile",
+                        Errors = new List<string> { "Unable to create organization profile" }
+                    });
                 }
 
-                var listDto = await _service.GetList(1, 100);
+                // Get the newly created profile
+                var lastId = await _service.GetLastId();
+                var created = await _service.GetOrganizationProfileById(lastId);
 
-                var list = listDto.Items.ToList();
-
-                var postAdd = await _service.GetOrganizationProfileById(list.Last().OrganizationId);
-
-                return Ok(postAdd);
+                return CreatedAtAction(
+                    nameof(Details),
+                    new { userId = created.UserId },
+                    new ApiResponseDTO<OrganizationProfileViewModel>
+                    {
+                        Success = true,
+                        Data = created,
+                        Message = "Organization profile created successfully"
+                    }
+                );
             }
             catch(Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error creating organization profile");
+                return StatusCode(500, new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to create organization profile" }
+                });
             }
         }
 
         // Update organization profile
         [HttpPut("update/{id}")]
         [Authorize(Roles = "Organization,Admin")]
-        public async Task<IActionResult> Update([FromBody] OrganizationProfileUpdateDto input, int id)
+        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Update([FromBody] OrganizationProfileUpdateDto input, int id)
         {
             if (input == null)
             {
-                input = new OrganizationProfileUpdateDto();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
@@ -242,7 +324,7 @@ namespace ivan_api.Controllers
                 // Check authorization for own profile updates
                 if (User.IsInRole("Organization"))
                 {
-                    var currentUserId = GetUserIdFromClaims();
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != id)
                     {
                         return Forbid("You can only update your own organization profile");
@@ -250,33 +332,47 @@ namespace ivan_api.Controllers
                 }
 
                 var result = await _service.UpdateOrganizationProfile(input, id);
-
-                var postUpate = await _service.GetOrganizationProfileById(id);
-
                 if (!result)
                 {
-                    return BadRequest(postUpate);
+                    return NotFound(new ApiResponseDTO<OrganizationProfileViewModel>
+                    {
+                        Success = false,
+                        Message = $"Organization profile with UserId={id} not found.",
+                        Errors = new List<string> { $"Organization with ID {id} does not exist" }
+                    });
                 }
 
-                return Ok(postUpate);
+                var updated = await _service.GetOrganizationProfileById(id);
+                return Ok(new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = true,
+                    Data = updated,
+                    Message = "Organization profile updated successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error updating organization profile for UserId: {UserId}", id);
+                return StatusCode(500, new ApiResponseDTO<OrganizationProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to update organization profile" }
+                });
             }
         }
 
         // Get organization profile completion percentage and missing fields
         [HttpGet("{userId}/completion")]
         [Authorize(Roles = "Organization,Admin")]
-        public async Task<ActionResult<ProfileCompletionDto>> GetProfileCompletion(int userId)
+        public async Task<ActionResult<ApiResponseDTO<ProfileCompletionDto>>> GetProfileCompletion(int userId)
         {
             try
             {
                 // Check authorization for own profile completion access
                 if (User.IsInRole("Organization"))
                 {
-                    var currentUserId = GetUserIdFromClaims();
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
                     {
                         return Forbid("You can only access your own organization profile completion");
@@ -285,30 +381,36 @@ namespace ivan_api.Controllers
 
                 var profile = await _service.GetOrganizationProfileById(userId);
                 if (profile == null)
-                    return NotFound(new { message = $"Organization profile for UserId={userId} not found." });
+                    return NotFound(new ApiResponseDTO<ProfileCompletionDto>
+                    {
+                        Success = false,
+                        Message = $"Organization profile for UserId={userId} not found.",
+                        Errors = new List<string> { $"Organization with ID {userId} does not exist" }
+                    });
 
                 var completion = CalculateOrganizationProfileCompletion(profile);
-                return Ok(completion);
+                return Ok(new ApiResponseDTO<ProfileCompletionDto>
+                {
+                    Success = true,
+                    Data = completion,
+                    Message = "Profile completion calculated successfully"
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error calculating profile completion", error = ex.Message });
+                _logger.LogError(ex, "Error calculating profile completion for UserId: {UserId}", userId);
+                return StatusCode(500, new ApiResponseDTO<ProfileCompletionDto>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to calculate profile completion" }
+                });
             }
         }
 
         #endregion
 
         #region Private Helper Methods
-
-        private int GetUserIdFromClaims()
-        {
-            var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                throw new UnauthorizedAccessException("User ID not found in token claims");
-            }
-            return userId;
-        }
 
         private ProfileCompletionDto CalculateOrganizationProfileCompletion(OrganizationProfileViewModel profile)
         {

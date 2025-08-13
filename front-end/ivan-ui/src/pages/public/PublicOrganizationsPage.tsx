@@ -1,16 +1,15 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Building, Users, MapPin, Target, Search, Award } from "lucide-react";
 import { PublicPageLayout } from "@/components/public/PublicPageLayout";
 import { OrganizationCard } from "@/components/public/OrganizationCard";
-import { publicContentService } from "@/services/publicContentService";
+import { organizationProfileService } from "@/services/organizationProfileService";
 import type {
-  PublicOrganization,
-  PublicOrganizationFilters,
-} from "@/types/publicContent";
+  PublicOrganizationDto,
+  PublicOrganizationFiltersDto,
+} from "@/types/organizationProfile";
 import type { StatCard } from "@/components/public/StatsSection";
 
-// Data mapper with proper TypeScript typing
-const mapPublicOrganizationToCard = (org: PublicOrganization) => ({
+const mapOrganizationToCard = (org: PublicOrganizationDto) => ({
   id: org.organizationId?.toString() || "0",
   name: org.organizationName || "Tên không xác định",
   description: org.description || "Không có mô tả",
@@ -24,32 +23,27 @@ const mapPublicOrganizationToCard = (org: PublicOrganization) => ({
   ratingCount: org.ratingCount || 0,
   totalEvents: org.totalEvents || 0,
   totalVolunteers: org.totalVolunteers || 0,
-  focusAreas: [], // This would need to come from a separate API call or be included in the response
+  focusAreas: [],
 });
 
 export default function PublicOrganizationsPage() {
-  // Local search state (not debounced for immediate UI feedback)
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Inline debounce implementation
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
     }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Filter state
-  const [filters, setFilters] = useState<PublicOrganizationFilters>({
+  const [filters, setFilters] = useState<PublicOrganizationFiltersDto>({
     search: "",
     typeId: undefined,
     province: "",
     isVerified: undefined,
+    page: 1,
+    size: 20,
   });
 
   // Update filters when debounced search changes
@@ -58,9 +52,16 @@ export default function PublicOrganizationsPage() {
   }, [debouncedSearch]);
 
   // State for API data
-  const [organizations, setOrganizations] = useState<PublicOrganization[]>([]);
+  const [organizations, setOrganizations] = useState<PublicOrganizationDto[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 0,
+    totalItems: 0,
+  });
 
   // Load organizations whenever filters change
   useEffect(() => {
@@ -68,10 +69,15 @@ export default function PublicOrganizationsPage() {
       setLoading(true);
       setError(null);
       try {
-        const result = await publicContentService.getPublicOrganizations(
+        const result = await organizationProfileService.getPublicOrganizations(
           filters
         );
         setOrganizations(result.items);
+        setPagination({
+          page: result.pageNumber,
+          totalPages: result.totalPages,
+          totalItems: result.totalCount,
+        });
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load organizations"
@@ -84,16 +90,9 @@ export default function PublicOrganizationsPage() {
     loadOrganizations();
   }, [filters]);
 
-  // For pagination, we'll use simple client-side pagination for now
-  const pagination = {
-    page: filters.page || 1,
-    totalPages: Math.ceil(organizations.length / (filters.size || 20)),
-    totalItems: organizations.length,
-  };
-
   // Map backend data to component props
   const mappedOrganizations = useMemo(
-    () => (organizations || []).map(mapPublicOrganizationToCard),
+    () => organizations.map(mapOrganizationToCard),
     [organizations]
   );
 
@@ -173,24 +172,7 @@ export default function PublicOrganizationsPage() {
       searchValue={searchQuery}
       onSearchChange={handleSearch}
       searchPlaceholder="Tìm kiếm tổ chức..."
-      filters={[
-        {
-          id: "industry",
-          label: "Lĩnh vực",
-          value: filters.typeId?.toString() || "all",
-          options: industryOptions,
-          onChange: handleIndustryFilterChange,
-          icon: <Award className="h-4 w-4" />,
-        },
-        {
-          id: "location",
-          label: "Địa điểm",
-          value: filters.province || "all",
-          options: locationOptions,
-          onChange: handleLocationFilterChange,
-          icon: <MapPin className="h-4 w-4" />,
-        },
-      ]}
+      filters={[]}
       resultCount={pagination.totalItems}
       stats={statsCards}
       loading={loading}
@@ -203,7 +185,7 @@ export default function PublicOrganizationsPage() {
       emptyDescription="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
       pagination={{
         page: pagination.page,
-        size: 6, // Default size since it's not in context pagination
+        size: filters.size,
         totalPages: pagination.totalPages,
         totalItems: pagination.totalItems,
         hasNextPage: pagination.page < pagination.totalPages,

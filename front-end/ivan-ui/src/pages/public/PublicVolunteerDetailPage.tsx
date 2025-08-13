@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
-import { publicContentService } from "@/services/publicContentService";
-import type { PublicVolunteer } from "@/types/publicContent";
+import { volunteerProfileService } from "@/services/volunteerProfileService";
+import type { PublicVolunteerDto } from "@/types/volunteerProfile";
 import {
   MapPin,
   GraduationCap,
@@ -27,7 +27,7 @@ export const PublicVolunteerDetailPage = () => {
     return <Navigate to="/volunteers" replace />;
   }
 
-  const [volunteer, setVolunteer] = useState<PublicVolunteer | null>(null);
+  const [volunteer, setVolunteer] = useState<PublicVolunteerDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +37,7 @@ export const PublicVolunteerDetailPage = () => {
         setLoading(true);
         setError(null);
         try {
-          const result = await publicContentService.getPublicVolunteer(
+          const result = await volunteerProfileService.getPublicVolunteer(
             volunteerId
           );
           setVolunteer(result);
@@ -116,7 +116,12 @@ export const PublicVolunteerDetailPage = () => {
                   {volunteer?.university && (
                     <div className="flex items-center gap-2 text-muted-foreground mb-2">
                       <GraduationCap className="h-4 w-4" />
-                      <span>{volunteer.university}</span>
+                      <span>
+                        {volunteer.university}
+                        {volunteer.major && ` - ${volunteer.major}`}
+                        {volunteer.yearOfStudy &&
+                          ` (Năm ${volunteer.yearOfStudy})`}
+                      </span>
                     </div>
                   )}
 
@@ -144,15 +149,40 @@ export const PublicVolunteerDetailPage = () => {
           </Card>
 
           {/* Bio/Motivation */}
-          {(volunteer?.motivation || volunteer?.experience) && (
+          {(volunteer?.motivation ||
+            volunteer?.experience ||
+            volunteer?.availability) && (
             <Card>
               <CardHeader>
-                <CardTitle>About</CardTitle>
+                <CardTitle>Giới thiệu bản thân</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
-                  {volunteer.motivation || volunteer.experience}
-                </p>
+              <CardContent className="space-y-4">
+                {volunteer?.motivation && (
+                  <div>
+                    <h4 className="font-medium mb-2">Động lực tham gia:</h4>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {volunteer.motivation}
+                    </p>
+                  </div>
+                )}
+                {volunteer?.experience && (
+                  <div>
+                    <h4 className="font-medium mb-2">Kinh nghiệm:</h4>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {volunteer.experience}
+                    </p>
+                  </div>
+                )}
+                {volunteer?.availability && (
+                  <div>
+                    <h4 className="font-medium mb-2">
+                      Thời gian có thể tham gia:
+                    </h4>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {volunteer.availability}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -163,38 +193,42 @@ export const PublicVolunteerDetailPage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Award className="h-5 w-5" />
-                  Skills & Expertise
+                  Kỹ năng & Chuyên môn
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid gap-4">
                   {volunteer.skillsList.map((skill) => (
-                    <Badge
-                      key={skill.skillId}
-                      variant="secondary"
-                      className="text-sm"
-                    >
-                      {skill.skillName}
-                    </Badge>
+                    <div key={skill.skillId} className="p-3 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">{skill.skillName}</h4>
+                        <Badge variant="outline">
+                          {skill.proficiencyLevel}
+                        </Badge>
+                      </div>
+                      {skill.category && (
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Lĩnh vực: {skill.category}
+                        </p>
+                      )}
+                      {skill.yearsOfExperience > 0 && (
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Kinh nghiệm: {skill.yearsOfExperience} năm
+                        </p>
+                      )}
+                      {skill.description && (
+                        <p className="text-sm text-muted-foreground">
+                          {skill.description}
+                        </p>
+                      )}
+                    </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Experience */}
-          {volunteer?.experience && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Experience</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
-                  {volunteer.experience}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Experience - Remove since it's already shown in Bio section */}
         </div>
 
         {/* Sidebar */}
@@ -205,28 +239,13 @@ export const PublicVolunteerDetailPage = () => {
               <CardTitle>Contact Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {volunteer?.email && (
+              <div className="space-y-1">
+                <span className="text-sm text-muted-foreground">Liên hệ</span>
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{volunteer.email}</span>
+                  <span className="text-sm">Liên hệ qua hệ thống</span>
                 </div>
-              )}
-
-              {volunteer?.phoneNumber && (
-                <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{volunteer.phoneNumber}</span>
-                </div>
-              )}
-
-              {volunteer?.dateOfBirth && (
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Born {formatDate(volunteer.dateOfBirth)}
-                  </span>
-                </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
@@ -235,44 +254,54 @@ export const PublicVolunteerDetailPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Volunteer Stats
+                Thống kê hoạt động
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Rating</span>
-                <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">
-                    {volunteer?.rating?.toFixed(1) || "N/A"}
-                  </span>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Reviews</span>
+                <span className="text-sm text-muted-foreground">
+                  Tổng giờ tình nguyện
+                </span>
                 <span className="text-sm font-medium">
-                  {volunteer?.ratingCount || 0}
+                  {volunteer?.totalHoursVolunteered || 0} giờ
                 </span>
               </div>
 
               <Separator />
 
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Verified</span>
+                <span className="text-sm text-muted-foreground">
+                  Trạng thái
+                </span>
                 <div className="flex items-center gap-1">
                   {volunteer?.isVerified ? (
                     <>
                       <CheckCircle className="h-3 w-3 text-green-500" />
-                      <span className="text-sm text-green-600">Yes</span>
+                      <span className="text-sm text-green-600">
+                        Đã xác minh
+                      </span>
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">No</span>
+                    <span className="text-sm text-muted-foreground">
+                      Chưa xác minh
+                    </span>
                   )}
                 </div>
               </div>
+
+              {volunteer?.gender && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">
+                      Giới tính
+                    </span>
+                    <span className="text-sm font-medium">
+                      {volunteer.gender}
+                    </span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

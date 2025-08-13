@@ -1,11 +1,11 @@
 import { useParams, Link } from "react-router-dom";
-import { publicContentService } from "@/services/publicContentService";
+import { partnerProfileService } from "@/services/partnerProfileService";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { PublicPartner } from "@/types/publicContent";
+import type { PublicPartnerDto } from "@/types/partnerProfile";
 import {
   MapPin,
   Globe,
@@ -16,12 +16,13 @@ import {
   Building2,
   Mail,
   Target,
+  Phone,
 } from "lucide-react";
 
 export default function PublicPartnerDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const [partner, setPartner] = useState<PublicPartner | null>(null);
+  const [partner, setPartner] = useState<PublicPartnerDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +32,7 @@ export default function PublicPartnerDetailPage() {
         setLoading(true);
         setError(null);
         try {
-          const result = await publicContentService.getPublicPartner(
+          const result = await partnerProfileService.getPublicPartner(
             Number(id)
           );
           setPartner(result);
@@ -54,7 +55,7 @@ export default function PublicPartnerDetailPage() {
         setLoading(true);
         setError(null);
         try {
-          const result = await publicContentService.getPublicPartner(
+          const result = await partnerProfileService.getPublicPartner(
             Number(id)
           );
           setPartner(result);
@@ -221,6 +222,38 @@ export default function PublicPartnerDetailPage() {
                 </div>
               )}
 
+              {partner?.email && (
+                <div className="space-y-1">
+                  <span className="text-sm text-muted-foreground">Email</span>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <a
+                      href={`mailto:${partner.email}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      {partner.email}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {partner?.phoneNumber && (
+                <div className="space-y-1">
+                  <span className="text-sm text-muted-foreground">
+                    Điện thoại
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <a
+                      href={`tel:${partner.phoneNumber}`}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      {partner.phoneNumber}
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {partner?.website && (
                 <div className="space-y-1">
                   <span className="text-sm text-muted-foreground">Website</span>
@@ -298,21 +331,8 @@ export default function PublicPartnerDetailPage() {
                 <span className="text-sm text-muted-foreground">
                   Trạng thái
                 </span>
-                <Badge variant={partner?.isActive ? "default" : "secondary"}>
-                  {partner?.isActive ? "Hoạt động" : "Tạm dừng"}
-                </Badge>
+                <Badge variant="default">Hoạt động</Badge>
               </div>
-
-              {partner?.createdAt && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    Ngày tham gia
-                  </span>
-                  <span className="text-sm">
-                    {new Date(partner.createdAt).toLocaleDateString("vi-VN")}
-                  </span>
-                </div>
-              )}
             </CardContent>
           </Card>
 

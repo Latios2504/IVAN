@@ -29,26 +29,17 @@ let authInitialized = false;
 
 const initializeAuth = async () => {
   if (authInitialized) {
-    console.log("DEBUG: Auth already initialized, skipping");
     return;
   }
 
-  console.log("DEBUG: Starting auth initialization");
   authInitialized = true;
 
   const token = localStorage.getItem("authToken");
-  console.log("DEBUG: Initializing auth, token exists:", !!token);
-  console.log(
-    "DEBUG: Token value:",
-    token ? token.substring(0, 20) + "..." : "null"
-  );
-  console.log("DEBUG: Current URL:", window.location.href);
 
   if (token) {
     try {
       authService.setToken(token);
       const user = await authService.getCurrentUser();
-      console.log("DEBUG: Successfully got current user:", user);
       updateGlobalState({
         user,
         isAuthenticated: true,
@@ -56,7 +47,6 @@ const initializeAuth = async () => {
         error: null,
       });
     } catch (error) {
-      console.log("DEBUG: Failed to get current user:", error);
       localStorage.removeItem("authToken");
       authService.setToken(null);
       updateGlobalState({
@@ -67,7 +57,6 @@ const initializeAuth = async () => {
       });
     }
   } else {
-    console.log("DEBUG: No token found, setting loading to false");
     updateGlobalState({
       user: null,
       isAuthenticated: false,
@@ -82,7 +71,6 @@ export const useAuth = () => {
 
   useEffect(() => {
     const listener = (newState: AuthState) => {
-      console.log("DEBUG: Auth state updated:", newState);
       setState(newState);
     };
     stateListeners.add(listener);

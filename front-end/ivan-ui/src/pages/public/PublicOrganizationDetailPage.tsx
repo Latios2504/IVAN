@@ -1,12 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { publicContentService } from "@/services/publicContentService";
+import { organizationProfileService } from "@/services/organizationProfileService";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { PublicOrganization } from "@/types/publicContent";
+import type { PublicOrganizationDto } from "@/types/organizationProfile";
 import {
   MapPin,
   Globe,
@@ -27,9 +27,8 @@ import {
 export default function PublicOrganizationDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const [organization, setOrganization] = useState<PublicOrganization | null>(
-    null
-  );
+  const [organization, setOrganization] =
+    useState<PublicOrganizationDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +38,7 @@ export default function PublicOrganizationDetailPage() {
         setLoading(true);
         setError(null);
         try {
-          const result = await publicContentService.getPublicOrganization(
+          const result = await organizationProfileService.getPublicOrganization(
             Number(id)
           );
           setOrganization(result);
@@ -62,7 +61,7 @@ export default function PublicOrganizationDetailPage() {
         setLoading(true);
         setError(null);
         try {
-          const result = await publicContentService.getPublicOrganization(
+          const result = await organizationProfileService.getPublicOrganization(
             Number(id)
           );
           setOrganization(result);
@@ -160,6 +159,23 @@ export default function PublicOrganizationDetailPage() {
             </CardHeader>
           </Card>
 
+          {/* Banner Image */}
+          {organization?.bannerUrl && (
+            <Card>
+              <CardContent className="p-0">
+                <img
+                  src={organization.bannerUrl}
+                  alt={`${organization.organizationName} banner`}
+                  className="w-full h-64 object-cover rounded-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           {/* Description */}
           {organization?.description && (
             <Card>
@@ -241,6 +257,30 @@ export default function PublicOrganizationDetailPage() {
                       .filter(Boolean)
                       .join(", ")}
                   </span>
+                </div>
+              )}
+
+              {organization?.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <a
+                    href={`mailto:${organization.email}`}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    {organization.email}
+                  </a>
+                </div>
+              )}
+
+              {organization?.phoneNumber && (
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <a
+                    href={`tel:${organization.phoneNumber}`}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    {organization.phoneNumber}
+                  </a>
                 </div>
               )}
 

@@ -62,7 +62,7 @@ export const API_ENDPOINTS = {
   // Public content
   PUBLIC: {
     ORGANIZATIONS: "/OrganizationProfile/public",
-    EVENTS: "/public/events",
+    EVENTS: "/Events",
     PARTNERS: "/PartnerProfile/public",
     VOLUNTEERS: "/VolunteerProfile/public",
   },

@@ -1,5 +1,6 @@
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
+using System.Security.Claims;
 
 namespace ivan_api.Services.AuthenticationSer;
 
@@ -10,4 +11,5 @@ public interface IAuthenticationService
     Task<ApiResponseDTO<SuccessResponseDTO>> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest);
     Task<ApiResponseDTO<SuccessResponseDTO>> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest);
     Task<ApiResponseDTO<SuccessResponseDTO>> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest);
+    int GetUserIdFromClaims(ClaimsPrincipal user);
 }

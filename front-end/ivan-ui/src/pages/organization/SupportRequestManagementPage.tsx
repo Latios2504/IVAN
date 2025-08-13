@@ -56,7 +56,7 @@ export default function SupportRequestManagementPage() {
   const [categories, setCategories] = useState<SupportCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] =
     useState<SupportRequestResponse | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -231,7 +231,9 @@ export default function SupportRequestManagementPage() {
       request.categoryName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      !categoryFilter || request.categoryId.toString() === categoryFilter;
+      !categoryFilter ||
+      categoryFilter === "all" ||
+      request.categoryId.toString() === categoryFilter;
 
     return matchesSearch && matchesCategory;
   });
@@ -264,7 +266,7 @@ export default function SupportRequestManagementPage() {
                 <SelectValue placeholder="Lọc theo danh mục" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả danh mục</SelectItem>
+                <SelectItem value="all">Tất cả danh mục</SelectItem>
                 {categories.map((category) => (
                   <SelectItem
                     key={category.categoryId}

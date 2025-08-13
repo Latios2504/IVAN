@@ -5,6 +5,7 @@ using ivan_api.DTOs.Common;
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
+using System.Security.Claims;
 
 namespace ivan_api.Services.AuthenticationSer;
 
@@ -452,5 +453,15 @@ public class AuthenticationService : IAuthenticationService
         // Generate a 6-digit numeric code
         var random = new Random();
         return random.Next(100000, 999999).ToString();
+    }
+
+    public int GetUserIdFromClaims(ClaimsPrincipal user)
+    {
+        var userIdClaim = user.FindFirst("UserId") ?? user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            throw new UnauthorizedAccessException("User ID not found in token claims");
+        }
+        return userId;
     }
 }
