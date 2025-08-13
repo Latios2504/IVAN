@@ -33,7 +33,9 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
+                var eventEntity = await _context.Events
+    .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null));
+
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -66,7 +68,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var status = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Đang chờ duyệt");
+                var status = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Chờ duyệt");
                 if (status == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -156,9 +158,22 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
-                if (eventEntity == null || DateTime.UtcNow > eventEntity.RegistrationEndDate)
+                var eventEntity = await _context.Events
+    .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null));
+                if(eventEntity == null)
                 {
+                    
+                    return new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Sự kiện không tồn tại hoặc không hoạt động",
+                        Errors = new List<string> { "Event not found or not active" }
+                    };
+                }
+
+                if (DateTime.UtcNow > eventEntity.RegistrationEndDate)
+                {
+                    
                     return new ApiResponseDTO<RegistrationDTO>
                     {
                         Success = false,
@@ -167,7 +182,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                if (registration.Status.StatusName != "Đang chờ duyệt")
+                if (registration.StatusId !=1)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
                     {
@@ -238,9 +253,22 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
-                if (eventEntity == null || DateTime.UtcNow > eventEntity.RegistrationEndDate)
+                var eventEntity = await _context.Events
+    .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null));
+                if (eventEntity == null)
                 {
+                    
+                    return new ApiResponseDTO<SuccessResponseDTO>
+                    {
+                        Success = false,
+                        Message = "Sự kiện không tồn tại hoặc không hoạt động",
+                        Errors = new List<string> { "Event not found or not active" }
+                    };
+                }
+
+                if (DateTime.UtcNow > eventEntity.RegistrationEndDate)
+                {
+                    
                     return new ApiResponseDTO<SuccessResponseDTO>
                     {
                         Success = false,
@@ -249,7 +277,8 @@ namespace ivan_api.Services
                     };
                 }
 
-                if (registration.Status.StatusName != "Đang chờ duyệt")
+                // Registration status: Chờ duyệt (StatusId: 1)
+                if (registration.StatusId != 1)
                 {
                     return new ApiResponseDTO<SuccessResponseDTO>
                     {
@@ -259,7 +288,8 @@ namespace ivan_api.Services
                     };
                 }
 
-                var cancelledStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Đã hủy");
+                // Registration status: Đã hủy (StatusId: 4)
+                var cancelledStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusId == 4);
                 if (cancelledStatus == null)
                 {
                     return new ApiResponseDTO<SuccessResponseDTO>
@@ -324,7 +354,8 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
+                var eventEntity = await _context.Events
+    .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null) && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<PagedResultDTO<RegistrationDTO>>
@@ -344,6 +375,7 @@ namespace ivan_api.Services
 
                 if (!string.IsNullOrEmpty(status))
                 {
+                    // Filter by RegistrationStatus.StatusName if status is provided
                     query = query.Where(r => r.Status.StatusName == status);
                 }
 
@@ -443,7 +475,8 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
+                var eventEntity = await _context.Events
+    .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null) && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -530,7 +563,8 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);//true ,(false or null)
+                var eventEntity = await _context.Events
+   .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null) && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -541,7 +575,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                if (registration.Status.StatusName != "Đang chờ duyệt")
+                if (registration.StatusId !=1)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
                     {
@@ -551,7 +585,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var approvedStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Đã duyệt");
+                var approvedStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusId == 2);
                 if (approvedStatus == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -645,7 +679,8 @@ namespace ivan_api.Services
                     };
                 }
 
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
+                var eventEntity = await _context.Events
+   .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == true || e.IsActive == null) && e.OrganizationId == organizationId);
                 if (eventEntity == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
@@ -656,7 +691,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                if (registration.Status.StatusName != "Đang chờ duyệt")
+                if (registration.StatusId != 1)
                 {
                     return new ApiResponseDTO<RegistrationDTO>
                     {
@@ -666,7 +701,7 @@ namespace ivan_api.Services
                     };
                 }
 
-                var rejectedStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Đã từ chối");
+                var rejectedStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusId == 3);
                 if (rejectedStatus == null)
                 {
                     return new ApiResponseDTO<RegistrationDTO>

@@ -12,6 +12,9 @@ using ivan_api.Repository.EventRepo;
 using ivan_api.Services.EventServ;
 using ivan_api.Repository.CoordinatorTaskRepo;
 using ivan_api.Services.CoordinatorTaskServ;
+using System.Text.Json.Serialization;
+using ivan_api.Services.ModerationEventServ;
+using ivan_api.Services.NotificationServ;
 using ivan_api.Repository.Certificates;
 using ivan_api.Repository.CertificateTemplates;
 using ivan_api.Repository.OnSiteTasks;
@@ -48,6 +51,8 @@ using ivan_api.Services.AI.SQLGenerator;
 using ivan_api.Services.Analytics;
 using ivan_api.Repository.SupportRequestRepo;
 using ivan_api.Services.SupportRequestServ;
+using AutoMapper;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,29 +99,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //Swagger Configuration
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Volunteer Management API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Volunteer Management API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Please enter a valid token",
+        In = ParameterLocation.Header,
+        Description = "Please enter JWT token with the format: Bearer {token}",
         Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
+        Type = SecuritySchemeType.Http, // Sử dụng Http thay vì ApiKey
+        Scheme = "bearer", // Chỉ định scheme là bearer
+        BearerFormat = "JWT" // Định dạng token là JWT
     });
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            new OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                Reference = new OpenApiReference
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            new string[] { }
         }
     });
 });
+
+// SignalR Configuration
+builder.Services.AddSignalR();
 
 // Authorization
 builder.Services.AddAuthorization();
@@ -221,6 +231,15 @@ builder.Services.AddScoped<ivan_api.Services.ExportService.IExportService, ivan_
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 //builder.Services.AddScoped<IEventService, EventService>();
 
+//Moderation Event Service
+builder.Services.AddScoped<IModerationEventService, ModerationEventService>();
+//Notification Service
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddControllers().AddJsonOptions(opt =>
+{
+    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+}); ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
