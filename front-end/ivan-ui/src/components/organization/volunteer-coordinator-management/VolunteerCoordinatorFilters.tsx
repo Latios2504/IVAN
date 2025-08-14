@@ -11,28 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import { Calendar } from "../../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
-import {
-  Search,
-  Filter,
-  X,
-  Calendar as CalendarIcon,
-  Users,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Search, Filter, X } from "lucide-react";
 import type {
   ManagementLevelDto,
   SpecializationDto,
   VolunteerCoordinatorFilterDto,
-  VolunteerCoordinatorDto,
-} from "../../../types/volunteer-coordinator";
+} from "../../../types/volunteerCoordinator";
 
 interface VolunteerCoordinatorFiltersProps {
   organizationId: number;
   managementLevels: ManagementLevelDto[];
   specializations: SpecializationDto[];
-  availableManagers: VolunteerCoordinatorDto[];
+  availableManagers: any[];
   filters: VolunteerCoordinatorFilterDto;
   onFiltersChange: (filters: Partial<VolunteerCoordinatorFilterDto>) => void;
   onReset: () => void;
@@ -55,15 +45,14 @@ export const VolunteerCoordinatorFilters: React.FC<
     onFiltersChange({ search: value, page: 1 });
   };
 
-  const handleManagementLevelChange = (level: string) => {
-    const managementLevels = level === "all" ? undefined : [level];
-    onFiltersChange({ managementLevels, page: 1 });
+  const handleDepartmentChange = (value: string) => {
+    const department = value === "all" ? undefined : value;
+    onFiltersChange({ department, page: 1 });
   };
 
-  const handleSpecializationChange = (specialization: string) => {
-    const specializations =
-      specialization === "all" ? undefined : [specialization];
-    onFiltersChange({ specializations, page: 1 });
+  const handlePositionChange = (value: string) => {
+    const position = value === "all" ? undefined : value;
+    onFiltersChange({ position, page: 1 });
   };
 
   const handleStatusChange = (value: string) => {
@@ -71,80 +60,54 @@ export const VolunteerCoordinatorFilters: React.FC<
     onFiltersChange({ isActive, page: 1 });
   };
 
-  const handleManagerChange = (managerId: string) => {
-    const managerCoordinatorId =
-      managerId === "all" ? undefined : parseInt(managerId);
-    onFiltersChange({ managerCoordinatorId, page: 1 });
+  const handleManagerChange = (value: string) => {
+    const managerId = value === "all" ? undefined : parseInt(value);
+    onFiltersChange({ managerId, page: 1 });
   };
 
-  const handleHasManagerChange = (value: string) => {
-    const hasManagerOnly = value === "all" ? undefined : value === "true";
-    onFiltersChange({ hasManagerOnly, page: 1 });
+  const handleSortChange = (value: string) => {
+    const [sortBy, sortOrder] = value.split("-");
+    onFiltersChange({ sortBy, sortOrder, page: 1 });
   };
 
-  const handleDateChange = (
-    field: "dateJoinedFrom" | "dateJoinedTo",
-    date: Date | undefined
-  ) => {
-    onFiltersChange({
-      [field]: date ? date.toISOString().split("T")[0] : undefined,
-      page: 1,
-    });
-  };
-
-  const handleVolunteerRangeChange = (
-    field: "minVolunteersManaged" | "maxVolunteersManaged",
-    value: string
-  ) => {
-    const numValue = value ? parseInt(value) : undefined;
-    onFiltersChange({
-      [field]: numValue,
-      page: 1,
-    });
-  };
-
-  const hasActiveFilters = React.useMemo(() => {
+  // Check if any filters are active
+  const hasActiveFilters = () => {
     return (
       filters.search ||
-      filters.managementLevels?.length ||
-      filters.specializations?.length ||
+      filters.department ||
+      filters.position ||
       filters.isActive !== undefined ||
-      filters.managerCoordinatorId ||
-      filters.hasManagerOnly !== undefined ||
-      filters.dateJoinedFrom ||
-      filters.dateJoinedTo ||
-      filters.minVolunteersManaged ||
-      filters.maxVolunteersManaged
+      filters.managerId
     );
-  }, [filters]);
+  };
 
-  const getActiveFiltersCount = () => {
+  // Count active filters
+  const getActiveFilterCount = () => {
     let count = 0;
     if (filters.search) count++;
-    if (filters.managementLevels?.length) count++;
-    if (filters.specializations?.length) count++;
+    if (filters.department) count++;
+    if (filters.position) count++;
     if (filters.isActive !== undefined) count++;
-    if (filters.managerCoordinatorId) count++;
-    if (filters.hasManagerOnly !== undefined) count++;
-    if (filters.dateJoinedFrom || filters.dateJoinedTo) count++;
-    if (filters.minVolunteersManaged || filters.maxVolunteersManaged) count++;
+    if (filters.managerId) count++;
     return count;
   };
+
+  // Get unique departments and positions from available data - use mock data for now
+  const uniqueDepartments = ["IT", "HR", "Marketing", "Operations", "Finance"];
+  const uniquePositions = ["Manager", "Coordinator", "Assistant", "Lead"];
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-2">
-                  {getActiveFiltersCount()}
-                </Badge>
-              )}
-            </div>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+            {hasActiveFilters() && (
+              <Badge variant="secondary" className="ml-2">
+                {getActiveFilterCount()} active
+              </Badge>
+            )}
           </CardTitle>
           <div className="flex gap-2">
             <Button
@@ -152,9 +115,9 @@ export const VolunteerCoordinatorFilters: React.FC<
               size="sm"
               onClick={() => setShowAdvanced(!showAdvanced)}
             >
-              {showAdvanced ? "Simple" : "Advanced"}
+              {showAdvanced ? "Basic" : "Advanced"}
             </Button>
-            {hasActiveFilters && (
+            {hasActiveFilters() && (
               <Button variant="outline" size="sm" onClick={onReset}>
                 <X className="h-4 w-4 mr-1" />
                 Clear
@@ -163,64 +126,60 @@ export const VolunteerCoordinatorFilters: React.FC<
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
         {/* Basic Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
           <div className="space-y-2">
             <Label htmlFor="search">Search</Label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search"
                 placeholder="Search coordinators..."
                 value={filters.search || ""}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-10"
+                className="pl-8"
               />
             </div>
           </div>
 
-          {/* Management Level */}
+          {/* Department */}
           <div className="space-y-2">
-            <Label htmlFor="managementLevel">Management Level</Label>
+            <Label htmlFor="department">Department</Label>
             <Select
-              value={filters.managementLevels?.[0] || "all"}
-              onValueChange={handleManagementLevelChange}
+              value={filters.department || "all"}
+              onValueChange={handleDepartmentChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All levels" />
+                <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                {managementLevels.map((level) => (
-                  <SelectItem key={level.levelId} value={level.levelName}>
-                    {level.levelName}
+                <SelectItem value="all">All Departments</SelectItem>
+                {uniqueDepartments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Specialization */}
+          {/* Position */}
           <div className="space-y-2">
-            <Label htmlFor="specialization">Specialization</Label>
+            <Label htmlFor="position">Position</Label>
             <Select
-              value={filters.specializations?.[0] || "all"}
-              onValueChange={handleSpecializationChange}
+              value={filters.position || "all"}
+              onValueChange={handlePositionChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All specializations" />
+                <SelectValue placeholder="Select position" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Specializations</SelectItem>
-                {specializations.map((spec) => (
-                  <SelectItem
-                    key={spec.specializationId}
-                    value={spec.specializationName}
-                  >
-                    {spec.specializationName}
+                <SelectItem value="all">All Positions</SelectItem>
+                {uniquePositions.map((pos) => (
+                  <SelectItem key={pos} value={pos}>
+                    {pos}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -239,58 +198,12 @@ export const VolunteerCoordinatorFilters: React.FC<
               onValueChange={handleStatusChange}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="true">Active</SelectItem>
                 <SelectItem value="false">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Manager */}
-          <div className="space-y-2">
-            <Label htmlFor="manager">Manager</Label>
-            <Select
-              value={filters.managerCoordinatorId?.toString() || "all"}
-              onValueChange={handleManagerChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All managers" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Managers</SelectItem>
-                {availableManagers.map((manager) => (
-                  <SelectItem
-                    key={manager.coordinatorId}
-                    value={manager.coordinatorId.toString()}
-                  >
-                    {manager.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Has Manager */}
-          <div className="space-y-2">
-            <Label htmlFor="hasManager">Management</Label>
-            <Select
-              value={
-                filters.hasManagerOnly === undefined
-                  ? "all"
-                  : filters.hasManagerOnly.toString()
-              }
-              onValueChange={handleHasManagerChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All coordinators" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Coordinators</SelectItem>
-                <SelectItem value="true">Has Manager</SelectItem>
-                <SelectItem value="false">No Manager</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -298,172 +211,113 @@ export const VolunteerCoordinatorFilters: React.FC<
 
         {/* Advanced Filters */}
         {showAdvanced && (
-          <div className="border-t pt-4 space-y-4">
-            <h4 className="text-sm font-medium text-gray-700">
-              Advanced Filters
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Date Range */}
+          <div className="border-t pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Manager */}
               <div className="space-y-2">
-                <Label>Date Joined From</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !filters.dateJoinedFrom && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filters.dateJoinedFrom ? (
-                        new Date(filters.dateJoinedFrom).toLocaleDateString()
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={
-                        filters.dateJoinedFrom
-                          ? new Date(filters.dateJoinedFrom)
-                          : undefined
-                      }
-                      onSelect={(date) =>
-                        handleDateChange("dateJoinedFrom", date)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="manager">Manager</Label>
+                <Select
+                  value={filters.managerId?.toString() || "all"}
+                  onValueChange={handleManagerChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Managers</SelectItem>
+                    {availableManagers.map((manager) => (
+                      <SelectItem
+                        key={manager.userId}
+                        value={manager.userId.toString()}
+                      >
+                        {manager.fullName || manager.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
+              {/* Sort */}
               <div className="space-y-2">
-                <Label>Date Joined To</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !filters.dateJoinedTo && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filters.dateJoinedTo ? (
-                        new Date(filters.dateJoinedTo).toLocaleDateString()
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={
-                        filters.dateJoinedTo
-                          ? new Date(filters.dateJoinedTo)
-                          : undefined
-                      }
-                      onSelect={(date) =>
-                        handleDateChange("dateJoinedTo", date)
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Volunteers Managed Range */}
-              <div className="space-y-2">
-                <Label htmlFor="minVolunteers">Min Volunteers Managed</Label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="minVolunteers"
-                    type="number"
-                    min="0"
-                    placeholder="Min"
-                    value={filters.minVolunteersManaged || ""}
-                    onChange={(e) =>
-                      handleVolunteerRangeChange(
-                        "minVolunteersManaged",
-                        e.target.value
-                      )
-                    }
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxVolunteers">Max Volunteers Managed</Label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="maxVolunteers"
-                    type="number"
-                    min="0"
-                    placeholder="Max"
-                    value={filters.maxVolunteersManaged || ""}
-                    onChange={(e) =>
-                      handleVolunteerRangeChange(
-                        "maxVolunteersManaged",
-                        e.target.value
-                      )
-                    }
-                    className="pl-10"
-                  />
-                </div>
+                <Label htmlFor="sort">Sort By</Label>
+                <Select
+                  value={`${filters.sortBy}-${filters.sortOrder}`}
+                  onValueChange={handleSortChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CreatedAt-desc">Newest First</SelectItem>
+                    <SelectItem value="CreatedAt-asc">Oldest First</SelectItem>
+                    <SelectItem value="Position-asc">Position A-Z</SelectItem>
+                    <SelectItem value="Position-desc">Position Z-A</SelectItem>
+                    <SelectItem value="Department-asc">
+                      Department A-Z
+                    </SelectItem>
+                    <SelectItem value="Department-desc">
+                      Department Z-A
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
         )}
 
-        {/* Filter Summary */}
-        {hasActiveFilters && (
-          <div className="border-t pt-4">
-            <div className="flex flex-wrap gap-2">
-              {filters.search && (
-                <Badge variant="outline" className="gap-1">
-                  Search: {filters.search}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleSearchChange("")}
-                  />
-                </Badge>
-              )}
-              {filters.managementLevels?.map((level) => (
-                <Badge key={level} variant="outline" className="gap-1">
-                  Level: {level}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleManagementLevelChange("all")}
-                  />
-                </Badge>
-              ))}
-              {filters.specializations?.map((spec) => (
-                <Badge key={spec} variant="outline" className="gap-1">
-                  Spec: {spec}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleSpecializationChange("all")}
-                  />
-                </Badge>
-              ))}
-              {filters.isActive !== undefined && (
-                <Badge variant="outline" className="gap-1">
-                  Status: {filters.isActive ? "Active" : "Inactive"}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleStatusChange("all")}
-                  />
-                </Badge>
-              )}
-            </div>
+        {/* Applied Filters */}
+        {hasActiveFilters() && (
+          <div className="flex flex-wrap gap-2 pt-2 border-t">
+            {filters.search && (
+              <Badge variant="secondary" className="gap-1">
+                Search: {filters.search}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handleSearchChange("")}
+                />
+              </Badge>
+            )}
+            {filters.department && (
+              <Badge variant="secondary" className="gap-1">
+                Department: {filters.department}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handleDepartmentChange("all")}
+                />
+              </Badge>
+            )}
+            {filters.position && (
+              <Badge variant="secondary" className="gap-1">
+                Position: {filters.position}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handlePositionChange("all")}
+                />
+              </Badge>
+            )}
+            {filters.isActive !== undefined && (
+              <Badge variant="secondary" className="gap-1">
+                Status: {filters.isActive ? "Active" : "Inactive"}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handleStatusChange("all")}
+                />
+              </Badge>
+            )}
+            {filters.managerId && (
+              <Badge variant="secondary" className="gap-1">
+                Manager:{" "}
+                {availableManagers.find((m) => m.userId === filters.managerId)
+                  ?.fullName ||
+                  availableManagers.find((m) => m.userId === filters.managerId)
+                    ?.email ||
+                  "Selected"}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => handleManagerChange("all")}
+                />
+              </Badge>
+            )}
           </div>
         )}
       </CardContent>

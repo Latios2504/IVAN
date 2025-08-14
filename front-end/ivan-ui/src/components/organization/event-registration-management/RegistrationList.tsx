@@ -183,10 +183,10 @@ export default function RegistrationList({
       status: filters?.status,
       sortBy: filters?.sortBy || "applicationDate",
       sortDirection: filters?.sortDirection || "desc",
-      page: pagination.page,
-      size: pagination.size,
+      page: filters?.page || pagination.page,
+      size: filters?.size || pagination.size,
     }),
-    [filters, pagination]
+    [filters, pagination.page, pagination.size]
   );
 
   const loadRegistrations = useCallback(async () => {
@@ -204,12 +204,12 @@ export default function RegistrationList({
       );
 
       setRegistrations(result.items || []);
-      setPagination({
-        page: result.pageNumber || 1,
-        size: result.pageSize || 10,
+      // Only update pagination metadata, not page/size that would trigger a loop
+      setPagination((prev) => ({
+        ...prev,
         totalPages: result.totalPages || 0,
         totalItems: result.totalCount || 0,
-      });
+      }));
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load registrations"
@@ -218,11 +218,26 @@ export default function RegistrationList({
     } finally {
       setLoading(false);
     }
-  }, [numericEventId, currentFilters]);
+  }, [
+    numericEventId,
+    currentFilters.status,
+    currentFilters.page,
+    currentFilters.size,
+  ]);
 
   useEffect(() => {
     loadRegistrations();
   }, [loadRegistrations]);
+
+  // Sync pagination with filters
+  useEffect(() => {
+    if (filters?.page !== undefined && filters.page !== pagination.page) {
+      setPagination((prev) => ({ ...prev, page: filters.page || 1 }));
+    }
+    if (filters?.size !== undefined && filters.size !== pagination.size) {
+      setPagination((prev) => ({ ...prev, size: filters.size || 10 }));
+    }
+  }, [filters?.page, filters?.size, pagination.page, pagination.size]);
 
   const handleApprove = async (
     registrationId: number,
@@ -266,6 +281,9 @@ export default function RegistrationList({
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }));
+    if (onFiltersChange) {
+      onFiltersChange({ page });
+    }
   };
 
   const handleViewDetails = async (registration: RegistrationDTO) => {

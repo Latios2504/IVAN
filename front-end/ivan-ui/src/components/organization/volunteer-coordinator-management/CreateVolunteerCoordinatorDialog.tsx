@@ -1,15 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../ui/select";
 import {
   Dialog,
   DialogContent,
@@ -18,472 +11,446 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../ui/dialog";
-import { Loader2, UserPlus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../ui/select";
+import { useForm } from "react-hook-form";
+import { Calendar, CalendarDays, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
 import type {
   CreateVolunteerCoordinatorDto,
   ManagementLevelDto,
   SpecializationDto,
-  VolunteerCoordinatorDto,
-} from "../../../types/volunteer-coordinator";
+} from "../../../types/volunteerCoordinator";
 import { volunteerCoordinatorService } from "../../../services/volunteerCoordinatorService";
 
 interface CreateVolunteerCoordinatorDialogProps {
-  open: boolean;
+  organizationId: number;
+  isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  organizationId: number;
-  managementLevels?: ManagementLevelDto[];
-  specializations?: SpecializationDto[];
+  managementLevels: ManagementLevelDto[];
+  specializations: SpecializationDto[];
+}
+
+interface FormData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  employeeId: string;
+  position: string;
+  department: string;
+  hireDate: string;
+  salary: number;
+  responsibilities: string;
+  notes: string;
 }
 
 export const CreateVolunteerCoordinatorDialog: React.FC<
   CreateVolunteerCoordinatorDialogProps
 > = ({
-  open,
+  organizationId,
+  isOpen,
   onClose,
   onSuccess,
-  organizationId,
   managementLevels,
   specializations,
 }) => {
-  const [isCreating, setIsCreating] = React.useState(false);
-  const [availableManagers, setAvailableManagers] = React.useState<any[]>([]);
-
-  const [formData, setFormData] = React.useState<
-    Partial<CreateVolunteerCoordinatorDto>
-  >({
-    userId: undefined,
-    managementLevel: "",
-    specialization: "",
-    maxVolunteersManaged: 10,
-    notes: "",
-    emergencyContact: "",
-    emergencyPhone: "",
-    workSchedule: "",
-    managerCoordinatorId: undefined,
-    skills: "",
-    certifications: "",
-    languagesSpoken: "",
-    availabilityHours: "",
-    preferredEventTypes: "",
-    experience: "",
-    education: "",
-    profileImageUrl: "",
-    socialMediaLinks: "",
-    personalNotes: "",
+  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<FormData>({
+    defaultValues: {
+      email: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      employeeId: "",
+      position: "",
+      department: "",
+      hireDate: new Date().toISOString().split("T")[0], // Today's date
+      salary: 0,
+      responsibilities: "",
+      notes: "",
+    },
   });
 
-  const handleInputChange = (
-    field: keyof CreateVolunteerCoordinatorDto,
-    value: string | number | undefined
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.userId || !formData.managementLevel) {
-      alert(
-        "Please fill in all required fields (User ID and Management Level)"
-      );
-      return;
-    }
-
-    try {
-      setIsCreating(true);
-      await volunteerCoordinatorService.createCoordinator(
-        formData as CreateVolunteerCoordinatorDto,
-        organizationId
-      );
-      onSuccess();
-      handleClose();
-    } catch (error) {
-      console.error("Failed to create coordinator:", error);
-      alert("Failed to create coordinator. Please try again.");
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  const watchedPosition = watch("position");
+  const watchedDepartment = watch("department");
 
   const handleClose = () => {
-    setFormData({
-      userId: undefined,
-      managementLevel: "",
-      specialization: "",
-      maxVolunteersManaged: 10,
-      notes: "",
-      emergencyContact: "",
-      emergencyPhone: "",
-      workSchedule: "",
-      managerCoordinatorId: undefined,
-      skills: "",
-      certifications: "",
-      languagesSpoken: "",
-      availabilityHours: "",
-      preferredEventTypes: "",
-      experience: "",
-      education: "",
-      profileImageUrl: "",
-      socialMediaLinks: "",
-      personalNotes: "",
-    });
+    reset();
     onClose();
   };
 
+  const onSubmit = async (data: FormData) => {
+    try {
+      setLoading(true);
+
+      const createDto: CreateVolunteerCoordinatorDto = {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        employeeId: data.employeeId,
+        position: data.position,
+        department: data.department,
+        hireDate: data.hireDate,
+        salary: data.salary,
+        responsibilities: data.responsibilities,
+        notes: data.notes,
+      };
+
+      await volunteerCoordinatorService.createCoordinator(
+        organizationId,
+        createDto
+      );
+
+      toast.success("Volunteer coordinator created successfully!");
+      reset();
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      console.error("Error creating volunteer coordinator:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to create volunteer coordinator. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Predefined options - these would typically come from your backend or configuration
+  const departmentOptions = [
+    "Human Resources",
+    "IT",
+    "Marketing",
+    "Operations",
+    "Finance",
+    "Customer Service",
+    "Administration",
+    "Events",
+    "Community Outreach",
+  ];
+
+  const positionOptions = [
+    "Volunteer Coordinator",
+    "Senior Volunteer Coordinator",
+    "Lead Volunteer Coordinator",
+    "Assistant Coordinator",
+    "Program Coordinator",
+    "Event Coordinator",
+    "Community Coordinator",
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
+            <CalendarDays className="h-5 w-5" />
             Create New Volunteer Coordinator
           </DialogTitle>
           <DialogDescription>
-            Add a new volunteer coordinator to your organization. Fill in the
-            required information below.
+            Add a new volunteer coordinator to your organization. All fields
+            marked with * are required.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Basic Information</h3>
-
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Personal Information */}
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-semibold text-lg">Personal Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="userId">
-                  User ID <span className="text-red-500">*</span>
+                <Label htmlFor="firstName">
+                  First Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="userId"
-                  type="number"
-                  value={formData.userId || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "userId",
-                      e.target.value ? parseInt(e.target.value) : undefined
-                    )
-                  }
-                  placeholder="Enter user ID"
-                  required
+                  id="firstName"
+                  {...register("firstName", {
+                    required: "First name is required",
+                    minLength: {
+                      value: 2,
+                      message: "First name must be at least 2 characters",
+                    },
+                  })}
+                  placeholder="Enter first name"
+                  className={errors.firstName ? "border-red-500" : ""}
                 />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500">
+                    {errors.firstName.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="managementLevel">
-                  Management Level <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.managementLevel}
-                  onValueChange={(value) =>
-                    handleInputChange("managementLevel", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select management level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {managementLevels?.map((level) => (
-                      <SelectItem key={level.levelId} value={level.levelName}>
-                        {level.levelName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="specialization">Specialization</Label>
-                <Select
-                  value={formData.specialization}
-                  onValueChange={(value) =>
-                    handleInputChange("specialization", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select specialization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {specializations?.map((spec) => (
-                      <SelectItem
-                        key={spec.specializationId}
-                        value={spec.specializationName}
-                      >
-                        {spec.specializationName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxVolunteersManaged">
-                  Max Volunteers Managed
+                <Label htmlFor="lastName">
+                  Last Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="maxVolunteersManaged"
-                  type="number"
-                  min="1"
-                  value={formData.maxVolunteersManaged || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "maxVolunteersManaged",
-                      e.target.value ? parseInt(e.target.value) : undefined
-                    )
-                  }
-                  placeholder="Maximum number of volunteers"
+                  id="lastName"
+                  {...register("lastName", {
+                    required: "Last name is required",
+                    minLength: {
+                      value: 2,
+                      message: "Last name must be at least 2 characters",
+                    },
+                  })}
+                  placeholder="Enter last name"
+                  className={errors.lastName ? "border-red-500" : ""}
                 />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500">
+                    {errors.lastName.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="managerCoordinatorId">Manager</Label>
-                <Select
-                  value={formData.managerCoordinatorId?.toString() || "none"}
-                  onValueChange={(value) =>
-                    handleInputChange(
-                      "managerCoordinatorId",
-                      value === "none" ? undefined : parseInt(value)
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select manager (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Manager</SelectItem>
-                    {availableManagers?.map((manager) => (
-                      <SelectItem
-                        key={manager.coordinatorId}
-                        value={manager.coordinatorId.toString()}
-                      >
-                        {manager.managerCoordinatorName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Contact & Availability */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Contact & Availability</h3>
-
-              <div className="space-y-2">
-                <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                <Label htmlFor="email">
+                  Email <span className="text-red-500">*</span>
+                </Label>
                 <Input
-                  id="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={(e) =>
-                    handleInputChange("emergencyContact", e.target.value)
-                  }
-                  placeholder="Emergency contact name"
+                  id="email"
+                  type="email"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
+                  placeholder="Enter email address"
+                  className={errors.email ? "border-red-500" : ""}
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="emergencyPhone">Emergency Phone</Label>
+                <Label htmlFor="phoneNumber">Phone Number</Label>
                 <Input
-                  id="emergencyPhone"
-                  value={formData.emergencyPhone}
-                  onChange={(e) =>
-                    handleInputChange("emergencyPhone", e.target.value)
-                  }
-                  placeholder="Emergency phone number"
+                  id="phoneNumber"
+                  {...register("phoneNumber", {
+                    pattern: {
+                      value: /^[\+]?[1-9][\d]{0,15}$/,
+                      message: "Invalid phone number format",
+                    },
+                  })}
+                  placeholder="Enter phone number"
+                  className={errors.phoneNumber ? "border-red-500" : ""}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="workSchedule">Work Schedule</Label>
-                <Textarea
-                  id="workSchedule"
-                  value={formData.workSchedule}
-                  onChange={(e) =>
-                    handleInputChange("workSchedule", e.target.value)
-                  }
-                  placeholder="Describe work schedule availability"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="availabilityHours">Availability Hours</Label>
-                <Input
-                  id="availabilityHours"
-                  value={formData.availabilityHours}
-                  onChange={(e) =>
-                    handleInputChange("availabilityHours", e.target.value)
-                  }
-                  placeholder="e.g., Monday-Friday 9AM-5PM"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="languagesSpoken">Languages Spoken</Label>
-                <Input
-                  id="languagesSpoken"
-                  value={formData.languagesSpoken}
-                  onChange={(e) =>
-                    handleInputChange("languagesSpoken", e.target.value)
-                  }
-                  placeholder="e.g., English, Spanish, French"
-                />
+                {errors.phoneNumber && (
+                  <p className="text-sm text-red-500">
+                    {errors.phoneNumber.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Skills & Experience */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Skills & Experience</h3>
-
+          {/* Employment Information */}
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-semibold text-lg">Employment Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="skills">Skills</Label>
-                <Textarea
-                  id="skills"
-                  value={formData.skills}
-                  onChange={(e) => handleInputChange("skills", e.target.value)}
-                  placeholder="List relevant skills"
-                  rows={3}
+                <Label htmlFor="employeeId">
+                  Employee ID <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="employeeId"
+                  {...register("employeeId", {
+                    required: "Employee ID is required",
+                  })}
+                  placeholder="Enter employee ID"
+                  className={errors.employeeId ? "border-red-500" : ""}
                 />
+                {errors.employeeId && (
+                  <p className="text-sm text-red-500">
+                    {errors.employeeId.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="certifications">Certifications</Label>
-                <Textarea
-                  id="certifications"
-                  value={formData.certifications}
-                  onChange={(e) =>
-                    handleInputChange("certifications", e.target.value)
-                  }
-                  placeholder="List certifications"
-                  rows={3}
+                <Label htmlFor="position">
+                  Position <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watchedPosition}
+                  onValueChange={(value) => setValue("position", value)}
+                >
+                  <SelectTrigger
+                    className={errors.position ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="Select position" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {positionOptions.map((position) => (
+                      <SelectItem key={position} value={position}>
+                        {position}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  type="hidden"
+                  {...register("position", {
+                    required: "Position is required",
+                  })}
                 />
+                {errors.position && (
+                  <p className="text-sm text-red-500">
+                    {errors.position.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="experience">Experience</Label>
-                <Textarea
-                  id="experience"
-                  value={formData.experience}
-                  onChange={(e) =>
-                    handleInputChange("experience", e.target.value)
-                  }
-                  placeholder="Describe relevant experience"
-                  rows={3}
+                <Label htmlFor="department">
+                  Department <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watchedDepartment}
+                  onValueChange={(value) => setValue("department", value)}
+                >
+                  <SelectTrigger
+                    className={errors.department ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departmentOptions.map((department) => (
+                      <SelectItem key={department} value={department}>
+                        {department}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  type="hidden"
+                  {...register("department", {
+                    required: "Department is required",
+                  })}
                 />
+                {errors.department && (
+                  <p className="text-sm text-red-500">
+                    {errors.department.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="education">Education</Label>
-                <Textarea
-                  id="education"
-                  value={formData.education}
-                  onChange={(e) =>
-                    handleInputChange("education", e.target.value)
-                  }
-                  placeholder="Educational background"
-                  rows={3}
+                <Label htmlFor="hireDate">
+                  Hire Date <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="hireDate"
+                  type="date"
+                  {...register("hireDate", {
+                    required: "Hire date is required",
+                  })}
+                  className={errors.hireDate ? "border-red-500" : ""}
                 />
+                {errors.hireDate && (
+                  <p className="text-sm text-red-500">
+                    {errors.hireDate.message}
+                  </p>
+                )}
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="preferredEventTypes">Preferred Event Types</Label>
-              <Input
-                id="preferredEventTypes"
-                value={formData.preferredEventTypes}
-                onChange={(e) =>
-                  handleInputChange("preferredEventTypes", e.target.value)
-                }
-                placeholder="e.g., Community Service, Education, Healthcare"
-              />
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="salary">Salary (Optional)</Label>
+                <Input
+                  id="salary"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  {...register("salary", {
+                    min: {
+                      value: 0,
+                      message: "Salary must be a positive number",
+                    },
+                    valueAsNumber: true,
+                  })}
+                  placeholder="Enter salary"
+                  className={errors.salary ? "border-red-500" : ""}
+                />
+                {errors.salary && (
+                  <p className="text-sm text-red-500">
+                    {errors.salary.message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Additional Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Additional Information</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-semibold text-lg">Additional Information</h3>
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="profileImageUrl">Profile Image URL</Label>
-                <Input
-                  id="profileImageUrl"
-                  value={formData.profileImageUrl}
-                  onChange={(e) =>
-                    handleInputChange("profileImageUrl", e.target.value)
-                  }
-                  placeholder="URL to profile image"
+                <Label htmlFor="responsibilities">Responsibilities</Label>
+                <Textarea
+                  id="responsibilities"
+                  {...register("responsibilities")}
+                  placeholder="Enter key responsibilities and duties..."
+                  rows={4}
+                  className={errors.responsibilities ? "border-red-500" : ""}
                 />
+                {errors.responsibilities && (
+                  <p className="text-sm text-red-500">
+                    {errors.responsibilities.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="socialMediaLinks">Social Media Links</Label>
-                <Input
-                  id="socialMediaLinks"
-                  value={formData.socialMediaLinks}
-                  onChange={(e) =>
-                    handleInputChange("socialMediaLinks", e.target.value)
-                  }
-                  placeholder="Social media profile links"
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  {...register("notes")}
+                  placeholder="Enter any additional notes or comments..."
+                  rows={3}
+                  className={errors.notes ? "border-red-500" : ""}
                 />
+                {errors.notes && (
+                  <p className="text-sm text-red-500">{errors.notes.message}</p>
+                )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => handleInputChange("notes", e.target.value)}
-                placeholder="Additional notes about the coordinator"
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="personalNotes">Personal Notes</Label>
-              <Textarea
-                id="personalNotes"
-                value={formData.personalNotes}
-                onChange={(e) =>
-                  handleInputChange("personalNotes", e.target.value)
-                }
-                placeholder="Personal notes (private)"
-                rows={3}
-              />
             </div>
           </div>
-        </form>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={
-              isCreating || !formData.userId || !formData.managementLevel
-            }
-          >
-            {isCreating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Create Coordinator
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={loading}
+            >
+              <X className="h-4 w-4 mr-1" />
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Create Coordinator
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

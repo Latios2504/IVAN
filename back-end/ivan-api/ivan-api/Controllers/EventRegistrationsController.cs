@@ -16,13 +16,16 @@ namespace ivan_api.Controllers
     {
         private readonly IEventRegistrationService _registrationService;
         private readonly IAuthenticationService _authenticationService;
+        private readonly ILogger<EventRegistrationsController> _logger;
 
         public EventRegistrationsController(
             IEventRegistrationService registrationService,
-            IAuthenticationService authenticationService)
+            IAuthenticationService authenticationService,
+            ILogger<EventRegistrationsController> logger)
         {
             _registrationService = registrationService;
             _authenticationService = authenticationService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -219,7 +222,11 @@ namespace ivan_api.Controllers
             try
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                var result = await _registrationService.ListRegistrationsAsync(eventId, userId, status, page, size);
+                
+                // Get user info with profile to determine organization ID if user is organization
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+                
+                var result = await _registrationService.ListRegistrationsAsync(eventId, userId, userInfo.OrganizationId, status, page, size);
 
                 return Ok(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
                 {
@@ -236,8 +243,24 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
+                if (ex.Message.Contains("Event not found"))
+                    return NotFound(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
+                    {
+                        Success = false,
+                        Message = ex.Message
+                    });
+
+                return BadRequest(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing registrations for event {EventId}", eventId);
                 return StatusCode(500, new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
                 {
                     Success = false,

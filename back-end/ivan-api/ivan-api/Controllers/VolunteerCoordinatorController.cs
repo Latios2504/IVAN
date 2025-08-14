@@ -6,6 +6,7 @@ using ivan_api.Constants;
 using System.Security.Claims;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs;
+using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers;
 
@@ -15,10 +16,14 @@ namespace ivan_api.Controllers;
 public class VolunteerCoordinatorController : ControllerBase
 {
     private readonly IVolunteerCoordinatorService _coordinatorService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public VolunteerCoordinatorController(IVolunteerCoordinatorService coordinatorService)
+    public VolunteerCoordinatorController(
+        IVolunteerCoordinatorService coordinatorService,
+        IAuthenticationService authenticationService)
     {
         _coordinatorService = coordinatorService;
+        _authenticationService = authenticationService;
     }
 
     /// <summary>
@@ -30,17 +35,17 @@ public class VolunteerCoordinatorController : ControllerBase
     {
         try
         {
-            // For organization role, ensure they can only access their own coordinators
-            if (User.IsInRole(AuthenticationConstants.Roles.Organization))
+        // For organization role, ensure they can only access their own coordinators
+        if (User.IsInRole(AuthenticationConstants.Roles.Organization))
+        {
+            var userId = _authenticationService.GetUserIdFromClaims(User);
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+            
+            if (!userInfo.OrganizationId.HasValue || userInfo.OrganizationId.Value != organizationId)
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int currentUserId))
-                    return Unauthorized();
-
-                // TODO: Add validation to ensure user belongs to the organization
+                return Forbid("You can only access coordinators from your own organization");
             }
-
-            var result = await _coordinatorService.GetCoordinatorsByOrganizationAsync(organizationId, filter);
+        }            var result = await _coordinatorService.GetCoordinatorsByOrganizationAsync(organizationId, filter);
             return Ok(new ApiResponseDTO<object>
             {
                 Success = true,
@@ -64,29 +69,80 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("{coordinatorId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<object>>> GetCoordinatorById(int coordinatorId)
+    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> GetCoordinatorById(int coordinatorId)
     {
         try
         {
-            var coordinator = await _coordinatorService.GetCoordinatorByIdAsync(coordinatorId);
-            if (coordinator == null)
-                return NotFound(new ApiResponseDTO<object>
+            // For organization role, ensure they can only access coordinators from their organization
+            if (User.IsInRole(AuthenticationConstants.Roles.Organization))
+            {
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+                
+                // Get coordinator and verify it belongs to the organization
+                var coordinator = await _coordinatorService.GetCoordinatorByIdAsync(coordinatorId);
+                if (coordinator == null)
+                    return NotFound(new ApiResponseDTO<VolunteerCoordinatorDto>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found",
+                        Errors = new List<string> { $"Coordinator with ID {coordinatorId} does not exist" }
+                    });
+
+                // Check if coordinator belongs to the organization
+                var coordinatorOrganizationId = GetCoordinatorOrganizationId(coordinator);
+                if (!userInfo.OrganizationId.HasValue || userInfo.OrganizationId.Value != coordinatorOrganizationId)
+                {
+                    return Forbid("You can only access coordinators from your own organization");
+                }
+
+                return Ok(new ApiResponseDTO<VolunteerCoordinatorDto>
+                {
+                    Success = true,
+                    Data = coordinator,
+                    Message = "Coordinator retrieved successfully"
+                });
+            }
+            
+            // For VolunteerCoordinator role, ensure they can only access their own profile
+            if (User.IsInRole(AuthenticationConstants.Roles.VolunteerCoordinator))
+            {
+                var currentUserId = _authenticationService.GetUserIdFromClaims(User);
+                var coordinator = await _coordinatorService.GetCoordinatorByUserIdAsync(currentUserId);
+                
+                if (coordinator == null || GetCoordinatorId(coordinator) != coordinatorId)
+                {
+                    return Forbid("You can only access your own coordinator profile");
+                }
+
+                return Ok(new ApiResponseDTO<VolunteerCoordinatorDto>
+                {
+                    Success = true,
+                    Data = coordinator,
+                    Message = "Coordinator retrieved successfully"
+                });
+            }
+
+            // For Admin role, allow access to any coordinator
+            var coordinatorData = await _coordinatorService.GetCoordinatorByIdAsync(coordinatorId);
+            if (coordinatorData == null)
+                return NotFound(new ApiResponseDTO<VolunteerCoordinatorDto>
                 {
                     Success = false,
                     Message = "Coordinator not found",
                     Errors = new List<string> { $"Coordinator with ID {coordinatorId} does not exist" }
                 });
 
-            return Ok(new ApiResponseDTO<object>
+            return Ok(new ApiResponseDTO<VolunteerCoordinatorDto>
             {
                 Success = true,
-                Data = coordinator,
+                Data = coordinatorData,
                 Message = "Coordinator retrieved successfully"
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponseDTO<object>
+            return StatusCode(500, new ApiResponseDTO<VolunteerCoordinatorDto>
             {
                 Success = false,
                 Message = "Internal server error",
@@ -100,20 +156,20 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("byUser/{userId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<object>>> GetCoordinatorByUserId(int userId)
+    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> GetCoordinatorByUserId(int userId)
     {
         try
         {
             var coordinator = await _coordinatorService.GetCoordinatorByUserIdAsync(userId);
             if (coordinator == null)
-                return NotFound(new ApiResponseDTO<object>
+                return NotFound(new ApiResponseDTO<VolunteerCoordinatorDto>
                 {
                     Success = false,
                     Message = "Coordinator not found",
                     Errors = new List<string> { $"Coordinator with user ID {userId} does not exist" }
                 });
 
-            return Ok(new ApiResponseDTO<object>
+            return Ok(new ApiResponseDTO<VolunteerCoordinatorDto>
             {
                 Success = true,
                 Data = coordinator,
@@ -155,9 +211,7 @@ public class VolunteerCoordinatorController : ControllerBase
                 });
             }
 
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int currentUserId))
-                return Unauthorized();
+            var currentUserId = _authenticationService.GetUserIdFromClaims(User);
 
             var coordinator = await _coordinatorService.CreateCoordinatorAsync(organizationId, createDto, currentUserId);
             return CreatedAtAction(
@@ -389,4 +443,34 @@ public class VolunteerCoordinatorController : ControllerBase
             });
         }
     }
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Extract organization ID from coordinator object
+    /// </summary>
+    private int GetCoordinatorOrganizationId(object coordinator)
+    {
+        if (coordinator is VolunteerCoordinatorDto coordinatorDto)
+        {
+            return coordinatorDto.OrganizationId;
+        }
+        
+        throw new InvalidOperationException("Coordinator object is not of expected type VolunteerCoordinatorDto");
+    }
+
+    /// <summary>
+    /// Extract coordinator ID from coordinator object
+    /// </summary>
+    private int GetCoordinatorId(object coordinator)
+    {
+        if (coordinator is VolunteerCoordinatorDto coordinatorDto)
+        {
+            return coordinatorDto.CoordinatorId;
+        }
+        
+        throw new InvalidOperationException("Coordinator object is not of expected type VolunteerCoordinatorDto");
+    }
+
+    #endregion
 }

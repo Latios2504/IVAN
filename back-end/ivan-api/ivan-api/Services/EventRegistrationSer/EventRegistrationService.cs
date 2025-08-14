@@ -163,38 +163,60 @@ namespace ivan_api.Services.EventRegistrationSer
             return true;
         }
 
-        public async Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId, string? status, int page, int size)
+        public async Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId, int? organizationId, string? status, int page, int size)
         {
-            // Determine organization ID based on user role
-            var orgUser = await _repository.GetEventWithOrganizationAsync(eventId);
-            if (orgUser?.Organization == null)
+            // Get the event with organization info
+            var eventWithOrg = await _repository.GetEventWithOrganizationAsync(eventId);
+            if (eventWithOrg?.Organization == null)
             {
                 throw new InvalidOperationException("Event not found or has no organization");
             }
             
-            int organizationId;
+            bool isAuthorized = false;
             
-            if (orgUser.Organization.UserId == userId)
+            // Check if user is organization owner
+            if (organizationId.HasValue && eventWithOrg.OrganizationId == organizationId.Value)
             {
-                // User is the organization owner
-                organizationId = orgUser.OrganizationId;
+                isAuthorized = true;
+            }
+            else if (eventWithOrg.Organization.UserId == userId)
+            {
+                // Fallback: Check if user is the organization owner directly
+                isAuthorized = true;
             }
             else
             {
-                // Check if user is coordinator
-                var isAuthorized = await _repository.IsVolunteerCoordinatorAuthorizedAsync(userId, eventId);
-                if (!isAuthorized)
+                // Check if user is coordinator for this event's organization
+                var isCoordinatorAuthorized = await _repository.IsVolunteerCoordinatorAuthorizedAsync(userId, eventId);
+                if (isCoordinatorAuthorized)
                 {
-                    throw new UnauthorizedAccessException("You don't have permission to view registrations for this event");
+                    isAuthorized = true;
                 }
-                organizationId = orgUser.OrganizationId;
+            }
+            
+            if (!isAuthorized)
+            {
+                throw new UnauthorizedAccessException("You don't have permission to view registrations for this event");
             }
 
             // Get registrations
-            var result = await _repository.GetRegistrationsByEventAsync(eventId, organizationId, status, page, size);
+            var result = await _repository.GetRegistrationsByEventAsync(eventId, eventWithOrg.OrganizationId, status, page, size);
             
-            // Map to DTOs
-            var registrationDtos = result.Items.Select(r => _mapper.Map<RegistrationDTO>(r)).ToList();
+            // Handle null result (defensive programming)
+            if (result == null)
+            {
+                _logger.LogWarning("GetRegistrationsByEventAsync returned null for eventId {EventId}", eventId);
+                return new PagedResultDto<RegistrationDTO>
+                {
+                    Items = new List<RegistrationDTO>(),
+                    TotalCount = 0,
+                    PageNumber = page,
+                    PageSize = size
+                };
+            }
+            
+            // Map to DTOs - handle empty collections safely
+            var registrationDtos = result.Items?.Select(r => _mapper.Map<RegistrationDTO>(r))?.ToList() ?? new List<RegistrationDTO>();
             
             var pagedResult = new PagedResultDto<RegistrationDTO>
             {

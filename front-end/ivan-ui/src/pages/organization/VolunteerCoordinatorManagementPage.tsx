@@ -14,7 +14,7 @@ import type {
   VolunteerCoordinatorStatsDto,
   ManagementLevelDto,
   SpecializationDto,
-} from "@/types/volunteer-coordinator";
+} from "@/types/volunteerCoordinator";
 
 const VolunteerCoordinatorManagementPage = () => {
   const { user } = useAuth();
@@ -27,11 +27,11 @@ const VolunteerCoordinatorManagementPage = () => {
         throw new Error("Organization ID is required");
       }
       const result =
-        await volunteerCoordinatorService.getOrganizationCoordinators(
-          {}, // empty filters for initial load
-          organizationId
+        await volunteerCoordinatorService.getCoordinatorsByOrganization(
+          organizationId,
+          {} // empty filters for initial load
         );
-      return result.items;
+      return result.coordinators || [];
     },
   };
 
@@ -77,6 +77,8 @@ const VolunteerCoordinatorManagementPage = () => {
   const [filters, setFilters] = useState<VolunteerCoordinatorFilterDto>({
     page: 1,
     size: 10,
+    sortBy: "CreatedAt",
+    sortOrder: "desc",
   });
 
   useEffect(() => {
@@ -166,6 +168,8 @@ const VolunteerCoordinatorManagementPage = () => {
     setFilters({
       page: 1,
       size: 10,
+      sortBy: "CreatedAt",
+      sortOrder: "desc",
     });
   };
 
@@ -241,7 +245,7 @@ const VolunteerCoordinatorManagementPage = () => {
 
       {/* Create Dialog */}
       <CreateVolunteerCoordinatorDialog
-        open={showCreateDialog}
+        isOpen={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         onSuccess={handleCreateSuccess}
         organizationId={organizationId!}

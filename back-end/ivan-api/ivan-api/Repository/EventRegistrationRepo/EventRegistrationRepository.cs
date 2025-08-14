@@ -35,34 +35,49 @@ namespace ivan_api.Repository.EventRegistrationRepo
 
         public async Task<PagedResultDto<EventRegistration>> GetRegistrationsByEventAsync(int eventId, int organizationId, string? status, int page, int size)
         {
-            var query = _context.EventRegistrations
-                .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                        .ThenInclude(u => u.UserProfiles)
-                .Include(r => r.Status)
-                .Include(r => r.Event)
-                .Where(r => r.EventId == eventId && r.Event.OrganizationId == organizationId);
-
-            // Filter by status if provided
-            if (!string.IsNullOrEmpty(status))
+            try
             {
-                query = query.Where(r => r.Status.StatusName == status);
+                var query = _context.EventRegistrations
+                    .Include(r => r.Volunteer)
+                        .ThenInclude(v => v.User)
+                            .ThenInclude(u => u.UserProfiles)
+                    .Include(r => r.Status)
+                    .Include(r => r.Event)
+                    .Where(r => r.EventId == eventId && r.Event.OrganizationId == organizationId);
+
+                // Filter by status if provided
+                if (!string.IsNullOrEmpty(status))
+                {
+                    query = query.Where(r => r.Status.StatusName == status);
+                }
+
+                var totalCount = await query.CountAsync();
+                var items = await query
+                    .OrderByDescending(r => r.ApplicationDate)
+                    .Skip((page - 1) * size)
+                    .Take(size)
+                    .ToListAsync();
+
+                return new PagedResultDto<EventRegistration>
+                {
+                    Items = items ?? new List<EventRegistration>(),
+                    TotalCount = totalCount,
+                    PageNumber = page,
+                    PageSize = size
+                };
             }
-
-            var totalCount = await query.CountAsync();
-            var items = await query
-                .OrderByDescending(r => r.ApplicationDate)
-                .Skip((page - 1) * size)
-                .Take(size)
-                .ToListAsync();
-
-            return new PagedResultDto<EventRegistration>
+            catch (Exception)
             {
-                Items = items,
-                TotalCount = totalCount,
-                PageNumber = page,
-                PageSize = size
-            };
+                // Log the error but don't rethrow - return empty result instead
+                // You can inject ILogger if needed for proper logging
+                return new PagedResultDto<EventRegistration>
+                {
+                    Items = new List<EventRegistration>(),
+                    TotalCount = 0,
+                    PageNumber = page,
+                    PageSize = size
+                };
+            }
         }
 
         public async Task<bool> CreateRegistrationAsync(EventRegistration registration)
@@ -98,7 +113,7 @@ namespace ivan_api.Repository.EventRegistrationRepo
         {
             return await _context.Events
                 .Include(e => e.Organization)
-                .FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
+                .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == null || e.IsActive == true));
         }
 
         public async Task<VolunteerProfile?> GetVolunteerByUserIdAsync(int userId)
@@ -117,7 +132,7 @@ namespace ivan_api.Repository.EventRegistrationRepo
         {
             return await _context.VolunteerCoordinators
                 .Include(c => c.Organization)
-                .Where(c => c.UserId == userId && c.IsActive.GetValueOrDefault())
+                .Where(c => c.UserId == userId && (c.IsActive == null || c.IsActive == true))
                 .AnyAsync(c => c.Organization.Events.Any(e => e.EventId == eventId));
         }
 

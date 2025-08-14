@@ -1,18 +1,10 @@
 import React, { useState } from "react";
 import { DataTable } from "../../common/DataTable";
-import type { TableColumn, TableAction } from "../../common/DataTable";
+import type { TableColumn } from "../../common/DataTable";
 import { Button } from "../../ui/button";
 import { Badge } from "../../ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
-import {
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Eye,
-  UserCog,
-  UserMinus,
-  Shield,
-} from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, UserMinus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,11 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
-import type { VolunteerCoordinatorDto } from "../../../types/volunteer-coordinator";
+import type { VolunteerCoordinatorDto } from "../../../types/volunteerCoordinator";
 import { volunteerCoordinatorService } from "../../../services/volunteerCoordinatorService";
-// import { EditVolunteerCoordinatorDialog } from "./EditVolunteerCoordinatorDialog";
-// import { VolunteerCoordinatorDetailDialog } from "./VolunteerCoordinatorDetailDialog";
-// import { AssignManagerDialog } from "./AssignManagerDialog";
 
 interface VolunteerCoordinatorListProps {
   organizationId: number;
@@ -37,79 +26,51 @@ export const VolunteerCoordinatorList: React.FC<
 > = ({ organizationId, coordinators, onCoordinatorUpdated }) => {
   const [loading, setLoading] = useState(false);
 
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDetailDialog, setShowDetailDialog] = useState(false);
-  const [showAssignManagerDialog, setShowAssignManagerDialog] = useState(false);
-  const [editingCoordinator, setEditingCoordinator] =
-    useState<VolunteerCoordinatorDto | null>(null);
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-red-100 text-red-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const getStatusColor = (isActive?: boolean) => {
+    if (isActive === true) {
+      return "bg-green-100 text-green-800";
+    } else if (isActive === false) {
+      return "bg-red-100 text-red-800";
+    } else {
+      return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getManagementLevelColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case "senior":
-        return "bg-purple-100 text-purple-800";
-      case "lead":
-        return "bg-blue-100 text-blue-800";
-      case "coordinator":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const handleDeleteCoordinator = async (
+    coordinator: VolunteerCoordinatorDto
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to delete ${
+          coordinator.user?.fullName || coordinator.user?.email
+        }?`
+      )
+    ) {
+      return;
     }
-  };
 
-  const handleToggleStatus = async (coordinator: VolunteerCoordinatorDto) => {
     try {
       setLoading(true);
-      await volunteerCoordinatorService.toggleCoordinatorStatus(
+      await volunteerCoordinatorService.deleteCoordinator(
         coordinator.coordinatorId
       );
       onCoordinatorUpdated?.();
     } catch (error) {
-      console.error("Failed to toggle coordinator status:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAssignManager = (coordinator: VolunteerCoordinatorDto) => {
-    setEditingCoordinator(coordinator);
-    setShowAssignManagerDialog(true);
-  };
-
-  const handleRemoveManager = async (coordinator: VolunteerCoordinatorDto) => {
-    try {
-      setLoading(true);
-      await volunteerCoordinatorService.removeManager(
-        coordinator.coordinatorId
-      );
-      onCoordinatorUpdated?.();
-    } catch (error) {
-      console.error("Failed to remove manager:", error);
+      console.error("Failed to delete coordinator:", error);
+      alert("Failed to delete coordinator. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleEditCoordinator = (coordinator: VolunteerCoordinatorDto) => {
-    setEditingCoordinator(coordinator);
-    setShowEditDialog(true);
+    // TODO: Implement edit functionality
+    console.log("Edit coordinator:", coordinator);
   };
 
   const handleViewDetails = (coordinator: VolunteerCoordinatorDto) => {
-    setEditingCoordinator(coordinator);
-    setShowDetailDialog(true);
+    // TODO: Implement view details functionality
+    console.log("View coordinator details:", coordinator);
   };
 
   const columns: TableColumn<VolunteerCoordinatorDto>[] = [
@@ -120,41 +81,43 @@ export const VolunteerCoordinatorList: React.FC<
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={coordinator.profileImageUrl}
-              alt={coordinator.fullName}
+              src={coordinator.user?.avatar}
+              alt={coordinator.user?.fullName}
             />
             <AvatarFallback>
-              {coordinator.fullName
-                .split(" ")
+              {coordinator.user?.fullName
+                ?.split(" ")
                 .map((n: string) => n[0])
                 .join("")
-                .toUpperCase()}
+                .toUpperCase() || "UC"}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="font-medium text-gray-900">
-              {coordinator.fullName}
+              {coordinator.user?.fullName || "N/A"}
             </div>
-            <div className="text-sm text-gray-500">{coordinator.email}</div>
+            <div className="text-sm text-gray-500">
+              {coordinator.user?.email}
+            </div>
           </div>
         </div>
       ),
     },
     {
-      key: "managementLevel",
-      header: "Level",
+      key: "position",
+      header: "Position",
       render: (_, coordinator) => (
-        <Badge className={getManagementLevelColor(coordinator.managementLevel)}>
-          {coordinator.managementLevel}
+        <Badge variant="outline">
+          {coordinator.position || "Not specified"}
         </Badge>
       ),
     },
     {
-      key: "specialization",
-      header: "Specialization",
+      key: "department",
+      header: "Department",
       render: (_, coordinator) => (
         <span className="text-sm text-gray-900">
-          {coordinator.specialization || "General"}
+          {coordinator.department || "General"}
         </span>
       ),
     },
@@ -163,10 +126,10 @@ export const VolunteerCoordinatorList: React.FC<
       header: "Manager",
       render: (_, coordinator) => (
         <div className="text-sm">
-          {coordinator.managerCoordinatorName ? (
+          {coordinator.manager ? (
             <div>
               <div className="font-medium text-gray-900">
-                {coordinator.managerCoordinatorName}
+                {coordinator.manager.fullName || coordinator.manager.email}
               </div>
               <div className="text-gray-500">Manager</div>
             </div>
@@ -180,17 +143,21 @@ export const VolunteerCoordinatorList: React.FC<
       key: "status",
       header: "Status",
       render: (_, coordinator) => (
-        <Badge className={getStatusColor(coordinator.status)}>
-          {coordinator.status}
+        <Badge className={getStatusColor(coordinator.isActive)}>
+          {coordinator.isActive ? "Active" : "Inactive"}
         </Badge>
       ),
     },
     {
-      key: "volunteersManaged",
-      header: "Volunteers",
+      key: "hireDate",
+      header: "Hire Date",
       render: (_, coordinator) => (
         <span className="text-sm text-gray-900">
-          {coordinator.totalVolunteersManaged || 0}
+          {coordinator.hireDate
+            ? new Date(coordinator.hireDate).toLocaleDateString()
+            : coordinator.createdAt
+            ? new Date(coordinator.createdAt).toLocaleDateString()
+            : "N/A"}
         </span>
       ),
     },
@@ -201,6 +168,7 @@ export const VolunteerCoordinatorList: React.FC<
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -216,27 +184,10 @@ export const VolunteerCoordinatorList: React.FC<
               Edit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleToggleStatus(coordinator)}>
-              <Shield className="mr-2 h-4 w-4" />
-              {coordinator.status === "Active" ? "Deactivate" : "Activate"}
-            </DropdownMenuItem>
-            {coordinator.managerCoordinatorName ? (
-              <DropdownMenuItem
-                onClick={() => handleRemoveManager(coordinator)}
-              >
-                <UserMinus className="mr-2 h-4 w-4" />
-                Remove Manager
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem
-                onClick={() => handleAssignManager(coordinator)}
-              >
-                <UserCog className="mr-2 h-4 w-4" />
-                Assign Manager
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem
+              onClick={() => handleDeleteCoordinator(coordinator)}
+              className="text-red-600"
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
@@ -246,49 +197,9 @@ export const VolunteerCoordinatorList: React.FC<
     },
   ];
 
-  const actions: TableAction<VolunteerCoordinatorDto>[] = [
-    {
-      label: "Edit",
-      onClick: handleEditCoordinator,
-      icon: <Edit className="h-4 w-4" />,
-    },
-    {
-      label: "View Details",
-      onClick: handleViewDetails,
-      icon: <Eye className="h-4 w-4" />,
-    },
-  ];
-
   return (
     <div className="space-y-4">
-      <DataTable data={coordinators} columns={columns} actions={actions} />
-
-      {/* Dialogs would go here when implemented */}
-      {/* <EditVolunteerCoordinatorDialog
-        coordinator={editingCoordinator}
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        onSuccess={() => {
-          setShowEditDialog(false);
-          onCoordinatorUpdated?.();
-        }}
-      />
-
-      <VolunteerCoordinatorDetailDialog
-        coordinator={editingCoordinator}
-        open={showDetailDialog}
-        onOpenChange={setShowDetailDialog}
-      />
-
-      <AssignManagerDialog
-        coordinator={editingCoordinator}
-        open={showAssignManagerDialog}
-        onOpenChange={setShowAssignManagerDialog}
-        onSuccess={() => {
-          setShowAssignManagerDialog(false);
-          onCoordinatorUpdated?.();
-        }}
-      /> */}
+      <DataTable data={coordinators} columns={columns} loading={loading} />
     </div>
   );
 };

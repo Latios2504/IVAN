@@ -8,7 +8,7 @@ namespace ivan_api.Services.EventRegistrationSer
         Task<RegistrationDTO> AddRegistrationAsync(int eventId, int userId, RegistrationRequestDTO request);
         Task<bool> UpdateRegistrationAsync(int eventId, int registrationId, int userId, RegistrationRequestDTO request);
         Task<bool> CancelRegistrationAsync(int eventId, int registrationId, int userId);
-        Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId, string? status, int page, int size);
+        Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId, int? organizationId, string? status, int page, int size);
         Task<RegistrationDTO?> GetRegistrationAsync(int eventId, int registrationId, int userId);
         Task<bool> ApproveRegistrationAsync(int eventId, int registrationId, int userId, ApproveRegistrationRequestDTO request);
         Task<bool> RejectRegistrationAsync(int eventId, int registrationId, int userId, RejectRegistrationRequestDTO request);
