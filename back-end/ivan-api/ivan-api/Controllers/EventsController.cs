@@ -2,6 +2,7 @@ using ivan_api.Constants;
 using ivan_api.DTOs.EventManage;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.EventServ;
+using ivan_api.Services.AuthenticationSer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,13 +14,16 @@ namespace ivan_api.Controllers
     public class EventsController : ControllerBase
     {
         private readonly IEventService _eventService;
+        private readonly IAuthenticationService _authenticationService;
         private readonly ILogger<EventsController> _logger;
 
         public EventsController(
             IEventService eventService,
+            IAuthenticationService authenticationService,
             ILogger<EventsController> logger)
         {
             _eventService = eventService;
+            _authenticationService = authenticationService;
             _logger = logger;
         }
 
@@ -33,12 +37,15 @@ namespace ivan_api.Controllers
             {
                 // If user is authenticated and has organization role, they can see their own events
                 var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (userRole == "Organization" && int.TryParse(userId, out int organizationId))
+                if (userRole == "Organization" && int.TryParse(userIdClaim, out int userId))
                 {
+                    // Get the user's organization ID from their profile
+                    var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+                    
                     // Organization can optionally filter by their own events
-                    if (filters.OrganizationId == null)
+                    if (filters.OrganizationId == null && userInfo.OrganizationId.HasValue)
                     {
                         // If no organization filter specified, show public events + their own
                         // Let them see public events by default, they can filter by OrganizationId if needed

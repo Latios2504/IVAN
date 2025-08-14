@@ -15,16 +15,13 @@ namespace ivan_api.Controllers
     public class EventRegistrationsController : ControllerBase
     {
         private readonly IEventRegistrationService _registrationService;
-        private readonly ILogger<EventRegistrationsController> _logger;
         private readonly IAuthenticationService _authenticationService;
 
         public EventRegistrationsController(
             IEventRegistrationService registrationService,
-            ILogger<EventRegistrationsController> logger,
             IAuthenticationService authenticationService)
         {
             _registrationService = registrationService;
-            _logger = logger;
             _authenticationService = authenticationService;
         }
 
@@ -87,9 +84,8 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error creating registration for event {EventId}", eventId);
                 return StatusCode(500, new ApiResponseDTO<RegistrationDTO>
                 {
                     Success = false,
@@ -157,9 +153,8 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error updating registration {RegistrationId}", registrationId);
                 return StatusCode(500, new ApiResponseDTO<object>
                 {
                     Success = false,
@@ -207,14 +202,12 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error cancelling registration {RegistrationId}", registrationId);
                 return StatusCode(500, new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "Internal server error",
-                    Errors = new List<string> { "Failed to cancel registration" }
+                    Message = "Internal server error"
                 });
             }
         }
@@ -243,14 +236,12 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error retrieving registrations for event {EventId}", eventId);
                 return StatusCode(500, new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
                 {
                     Success = false,
-                    Message = "Internal server error",
-                    Errors = new List<string> { "Failed to retrieve registrations" }
+                    Message = "Internal server error"
                 });
             }
         }
@@ -288,14 +279,12 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error retrieving registration {RegistrationId}", registrationId);
                 return StatusCode(500, new ApiResponseDTO<RegistrationDTO>
                 {
                     Success = false,
-                    Message = "Internal server error",
-                    Errors = new List<string> { "Failed to retrieve registration" }
+                    Message = "Internal server error"
                 });
             }
         }
@@ -351,14 +340,12 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error approving registration {RegistrationId}", registrationId);
                 return StatusCode(500, new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "Internal server error",
-                    Errors = new List<string> { "Failed to approve registration" }
+                    Message = "Internal server error"
                 });
             }
         }
@@ -414,14 +401,12 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error rejecting registration {RegistrationId}", registrationId);
                 return StatusCode(500, new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "Internal server error",
-                    Errors = new List<string> { "Failed to reject registration" }
+                    Message = "Internal server error"
                 });
             }
         }
@@ -459,14 +444,53 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error retrieving status for registration {RegistrationId}", registrationId);
                 return StatusCode(500, new ApiResponseDTO<RegistrationStatusDTO>
                 {
                     Success = false,
-                    Message = "Internal server error",
-                    Errors = new List<string> { "Failed to retrieve registration status" }
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+        /// <summary>Get volunteer's own registrations across all events</summary>
+        [HttpGet("~/api/volunteer/registrations")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<RegistrationDTO>>>> GetMyRegistrations(
+            [FromQuery] string? status, 
+            [FromQuery] int page = 1, 
+            [FromQuery] int size = 20)
+        {
+            try
+            {
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+
+                if (!userInfo.VolunteerId.HasValue)
+                {
+                    return BadRequest(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
+                    {
+                        Success = false,
+                        Message = "Volunteer profile not found"
+                    });
+                }
+
+                var result = await _registrationService.GetVolunteerRegistrationsAsync(userInfo.VolunteerId.Value, status, page, size);
+
+                return Ok(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Registrations retrieved successfully"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
+                {
+                    Success = false,
+                    Message = "Internal server error"
                 });
             }
         }

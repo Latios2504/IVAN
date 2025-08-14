@@ -75,8 +75,13 @@ public class AuthenticationService : IAuthenticationService
             user.LastLoginAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
+            // Get user info with profile data
+            var userInfo = await GetUserInfoWithProfileAsync(user.UserId);
+
             // Generate JWT token
-            var loginResponse = _jwtTokenService.CreateLoginResponse(user, user.Role);           
+            var loginResponse = _jwtTokenService.CreateLoginResponse(user, user.Role);
+            loginResponse.User = userInfo; // Replace with enhanced user info
+            
             return new ApiResponseDTO<LoginResponseDTO>
             {
                 Success = true,
@@ -359,7 +364,7 @@ public class AuthenticationService : IAuthenticationService
     {
         switch (registerRequest.RoleId)
         {
-            case 3: // Volunteer
+            case 1: // Volunteer
                 var volunteerProfile = new VolunteerProfile
                 {
                     UserId = userId,
@@ -397,7 +402,7 @@ public class AuthenticationService : IAuthenticationService
                 }
                 break;
 
-            case 4: // Partner
+            case 3: // Partner
                 // Use provided partner info or create with placeholders
                 var partnerIndustry = registerRequest.IndustryId.HasValue
                     ? await _context.PartnerIndustries.FindAsync(registerRequest.IndustryId.Value)
@@ -425,7 +430,7 @@ public class AuthenticationService : IAuthenticationService
                 }
                 break;
 
-            case 5: // Volunteer Coordinator
+            case 4: // Volunteer Coordinator
                 // Note: Coordinator profiles are typically created by organizations
                 // and require OrganizationId, so this is handled differently
                 // For direct registration, we'll skip creating the coordinator profile
@@ -433,7 +438,7 @@ public class AuthenticationService : IAuthenticationService
                 _logger.LogInformation("Coordinator role registered. Profile creation deferred to organization invitation.");
                 break;
 
-            case 1: // Admin
+            case 5: // Admin
                 // Admin users don't need additional profiles beyond UserProfile
                 _logger.LogInformation("Admin role registered. No additional profile needed.");
                 break;
@@ -459,5 +464,75 @@ public class AuthenticationService : IAuthenticationService
             throw new UnauthorizedAccessException("User ID not found in token claims");
         }
         return userId;
+    }
+
+    public async Task<UserInfoDTO> GetUserInfoWithProfileAsync(int userId)
+    {
+        try
+        {
+            // Get user with role information
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with ID {userId} not found");
+            }
+
+            var userInfo = new UserInfoDTO
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                RoleName = user.Role.RoleName,
+                RoleId = user.RoleId,
+                IsEmailVerified = user.IsEmailVerified ?? false,
+                LastLoginAt = user.LastLoginAt
+            };
+
+            // Get profile-specific IDs based on user role
+            switch (user.Role.RoleName.ToLower())
+            {
+                case "organization":
+                    var organization = await _context.Organizations
+                        .FirstOrDefaultAsync(o => o.UserId == userId);
+                    userInfo.OrganizationId = organization?.OrganizationId;
+                    break;
+
+                case "partner":
+                    var partner = await _context.Partners
+                        .FirstOrDefaultAsync(p => p.UserId == userId);
+                    userInfo.PartnerId = partner?.PartnerId;
+                    break;
+
+                case "volunteer":
+                    var volunteer = await _context.VolunteerProfiles
+                        .FirstOrDefaultAsync(v => v.UserId == userId);
+                    userInfo.VolunteerId = volunteer?.VolunteerId;
+                    break;
+
+                case "coordinator":
+                case "volunteer coordinator":
+                    var coordinator = await _context.VolunteerCoordinators
+                        .FirstOrDefaultAsync(c => c.UserId == userId);
+                    userInfo.CoordinatorId = coordinator?.CoordinatorId;
+                    break;
+
+                case "admin":
+                    // Admin users don't have a specific profile, all IDs remain null
+                    break;
+
+                default:
+                    _logger.LogWarning("Unknown role name: {RoleName} for user ID: {UserId}", user.Role.RoleName, userId);
+                    break;
+            }
+
+            return userInfo;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user info with profile for user ID: {UserId}", userId);
+            throw;
+        }
     }
 }

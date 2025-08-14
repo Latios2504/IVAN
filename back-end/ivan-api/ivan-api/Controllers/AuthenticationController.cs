@@ -304,39 +304,50 @@ public class AuthenticationController : ControllerBase
     /// <summary>Get current user information from token</summary>
     [HttpGet("me")]
     [Authorize]
-    public ActionResult<ApiResponseDTO<UserInfoDTO>> GetCurrentUser()
+    public async Task<ActionResult<ApiResponseDTO<UserInfoDTO>>> GetCurrentUser()
     {
         try
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            var emailClaim = User.FindFirst(ClaimTypes.Email);
-            var roleClaim = User.FindFirst(ClaimTypes.Role);
-            var roleIdClaim = User.FindFirst("RoleId");
-
-            if (userIdClaim == null || emailClaim == null || roleClaim == null || roleIdClaim == null)
+            
+            if (userIdClaim == null)
             {
                 return Unauthorized(new ApiResponseDTO<UserInfoDTO>
                 {
                     Success = false,
                     Message = "Invalid token",
-                    Errors = new List<string> { "Token claims are missing" }
+                    Errors = new List<string> { "User ID not found in token" }
                 });
             }
 
-            var userInfo = new UserInfoDTO
+            if (!int.TryParse(userIdClaim.Value, out int userId))
             {
-                UserId = int.Parse(userIdClaim.Value),
-                Email = emailClaim.Value,
-                RoleName = roleClaim.Value,
-                RoleId = int.Parse(roleIdClaim.Value),
-                IsEmailVerified = true, // We'll get this from database in a future enhancement
-            };
+                return Unauthorized(new ApiResponseDTO<UserInfoDTO>
+                {
+                    Success = false,
+                    Message = "Invalid token",
+                    Errors = new List<string> { "Invalid user ID format" }
+                });
+            }
+
+            // Get user info with profile-specific data
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
 
             return Ok(new ApiResponseDTO<UserInfoDTO>
             {
                 Success = true,
                 Message = "User information retrieved successfully",
                 Data = userInfo
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "User not found");
+            return NotFound(new ApiResponseDTO<UserInfoDTO>
+            {
+                Success = false,
+                Message = "User not found",
+                Errors = new List<string> { ex.Message }
             });
         }
         catch (Exception ex)

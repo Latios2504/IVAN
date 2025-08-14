@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { authService } from "@/services/authService";
 import type {
   User,
+  UserRole,
   LoginRequest,
   RegisterRequest,
   AuthState,
@@ -170,6 +171,34 @@ export const useAuth = () => {
     []
   );
 
+  // Helper methods for role and profile checking
+  const hasRole = useCallback(
+    (role: UserRole): boolean => {
+      return authService.hasRole(state.user, role);
+    },
+    [state.user]
+  );
+
+  const isOrganizationWithProfile = useCallback((): boolean => {
+    return authService.isOrganizationWithProfile(state.user);
+  }, [state.user]);
+
+  const isVolunteerWithProfile = useCallback((): boolean => {
+    return authService.isVolunteerWithProfile(state.user);
+  }, [state.user]);
+
+  const isPartnerWithProfile = useCallback((): boolean => {
+    return authService.isPartnerWithProfile(state.user);
+  }, [state.user]);
+
+  const isCoordinatorWithProfile = useCallback((): boolean => {
+    return authService.isCoordinatorWithProfile(state.user);
+  }, [state.user]);
+
+  const getUserProfileId = useCallback((): number | null => {
+    return authService.getUserProfileId(state.user);
+  }, [state.user]);
+
   return {
     ...state,
     login,
@@ -178,5 +207,12 @@ export const useAuth = () => {
     refreshUser,
     updateUser,
     clearError,
+    // Helper methods
+    hasRole,
+    isOrganizationWithProfile,
+    isVolunteerWithProfile,
+    isPartnerWithProfile,
+    isCoordinatorWithProfile,
+    getUserProfileId,
   };
 };

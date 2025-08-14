@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { eventsService } from "@/services/eventsService";
-import type { PagedResultDto } from "@/types/common";
+import { useAuth } from "@/hooks/useAuth";
 import type {
   EventDto,
   CreateEventDto,
   UpdateEventDto,
-  EventStatsDto,
   EventCategoryDto,
   EventStatusDto,
 } from "@/types/events";
-import { EventDashboard } from "@/components/organization/event-management/EventDashboard";
 import { EventList } from "@/components/organization/event-management/EventList";
 import { EventFilters } from "@/components/organization/event-management/EventFilters";
 import { CreateEventDialog } from "@/components/organization/event-management/CreateEventDialog";
@@ -25,93 +23,52 @@ import {
 import { Plus, Users, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function EventManagementPageNew() {
-  // Service adapters
-  const eventDataService = {
-    getAll: async (): Promise<EventDto[]> => {
-      const filters = {
-        page: 1,
-        size: 100,
-        sortBy: "startDate",
-        sortDirection: "desc" as const,
-      };
-      const result = await eventService.getOrganizationEvents(filters);
-      return result.items;
-    },
-    getById: async (id: number | string): Promise<EventDto> => {
-      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      return await eventService.getOrganizationEvent(numericId);
-    },
-    create: async (data: CreateEventDto): Promise<EventDto> => {
-      const eventId = await eventService.createEvent(data);
-      // Return the created event by fetching it
-      return await eventService.getOrganizationEvent(eventId);
-    },
-    update: async (
-      id: number | string,
-      data: UpdateEventDto
-    ): Promise<EventDto> => {
-      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      await eventService.updateEvent(numericId, data);
-      // Return the updated event by fetching it
-      return await eventService.getOrganizationEvent(numericId);
-    },
-    delete: async (id: number | string): Promise<void> => {
-      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      return await eventService.deleteEvent(numericId);
-    },
-  };
-
-  const eventStatsService = {
-    getAll: async (): Promise<EventStatsDto[]> => {
-      const result = await eventService.getOrganizationStats();
-      return [result]; // Wrap in array for consistency
-    },
-  };
-
-  const eventCategoriesService = {
-    getAll: async (): Promise<EventCategoryDto[]> => {
-      return await eventService.getEventCategories();
-    },
-  };
-
-  const eventStatusesService = {
-    getAll: async (): Promise<EventStatusDto[]> => {
-      return await eventService.getEventStatuses();
-    },
-  };
+export default function EventManagementPage() {
+  const { user } = useAuth();
 
   // State management
   const [events, setEvents] = useState<EventDto[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
 
-  const [stats, setStats] = useState<EventStatsDto[]>([]);
-  const [statsLoading, setStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState<string | null>(null);
-
   const [categories, setCategories] = useState<EventCategoryDto[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   const [statuses, setStatuses] = useState<EventStatusDto[]>([]);
   const [statusesLoading, setStatusesLoading] = useState(false);
-  const [statusesError, setStatusesError] = useState<string | null>(null);
 
-  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Load all data on mount
   useEffect(() => {
-    loadAllData();
-  }, []);
+    // Only load data if user has organization profile
+    if (user?.organizationId) {
+      loadAllData();
+    } else if (user && !user.organizationId) {
+      setEventsError("Organization profile not found. Please contact support.");
+    }
+  }, [user?.organizationId]);
 
   const loadAllData = async () => {
-    // Load events
+    // Check if user has organization profile
+    if (!user?.organizationId) {
+      setEventsError("Organization profile not found. Please contact support.");
+      return;
+    }
+
+    // Load events - filter by organization's own events only
     setEventsLoading(true);
     setEventsError(null);
     try {
-      const eventsResult = await eventDataService.getAll();
-      setEvents(eventsResult);
+      const filters = {
+        page: 1,
+        size: 100,
+        sortBy: "startDate",
+        sortDirection: "desc" as const,
+        organizationId: user.organizationId, // Only load this organization's events
+      };
+      const result = await eventsService.getEvents(filters);
+      setEvents(result.items);
     } catch (err) {
       setEventsError(
         err instanceof Error ? err.message : "Failed to load events"
@@ -120,44 +77,24 @@ export default function EventManagementPageNew() {
       setEventsLoading(false);
     }
 
-    // Load stats
-    setStatsLoading(true);
-    setStatsError(null);
-    try {
-      const statsResult = await eventStatsService.getAll();
-      setStats(statsResult);
-    } catch (err) {
-      setStatsError(
-        err instanceof Error ? err.message : "Failed to load stats"
-      );
-    } finally {
-      setStatsLoading(false);
-    }
-
     // Load categories
     setCategoriesLoading(true);
-    setCategoriesError(null);
     try {
-      const categoriesResult = await eventCategoriesService.getAll();
+      const categoriesResult = await eventsService.getEventCategories();
       setCategories(categoriesResult);
     } catch (err) {
-      setCategoriesError(
-        err instanceof Error ? err.message : "Failed to load categories"
-      );
+      console.warn("Failed to load categories:", err);
     } finally {
       setCategoriesLoading(false);
     }
 
     // Load statuses
     setStatusesLoading(true);
-    setStatusesError(null);
     try {
-      const statusesResult = await eventStatusesService.getAll();
+      const statusesResult = await eventsService.getEventStatuses();
       setStatuses(statusesResult);
     } catch (err) {
-      setStatusesError(
-        err instanceof Error ? err.message : "Failed to load statuses"
-      );
+      console.warn("Failed to load statuses:", err);
     } finally {
       setStatusesLoading(false);
     }
@@ -165,34 +102,24 @@ export default function EventManagementPageNew() {
 
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    loadAllData(); // Refresh all data
+    loadAllData(); // Refresh events data
   };
 
   const handleEditSuccess = () => {
-    // Refresh data after edit
-    loadAllData(); // Refresh all data
+    loadAllData(); // Refresh events data
   };
 
-  // Determine loading state - loading if any critical data is loading
+  // Determine loading state
   const isLoading = eventsLoading;
-
-  // Combine errors from all hooks
-  const hasError =
-    eventsError || statsError || categoriesError || statusesError;
-  const errorMessage =
-    eventsError || statsError || categoriesError || statusesError;
 
   if (isLoading) {
     return <LoadingState loading={true} />;
   }
 
-  if (hasError) {
+  if (eventsError) {
     return (
       <div className="p-6">
-        <div className="text-red-600">
-          Error:{" "}
-          {typeof errorMessage === "string" ? errorMessage : "Đã xảy ra lỗi"}
-        </div>
+        <div className="text-red-600">Error: {eventsError}</div>
         <Button onClick={() => loadAllData()} className="mt-4">
           Retry
         </Button>
@@ -258,9 +185,6 @@ export default function EventManagementPageNew() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Dashboard */}
-      {stats.length > 0 && stats[0] && <EventDashboard stats={stats[0]} />}
 
       {/* Filters */}
       <EventFilters categories={categories} statuses={statuses} />

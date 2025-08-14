@@ -114,4 +114,10 @@ public class UserInfoDTO
     public int RoleId { get; set; }
     public bool IsEmailVerified { get; set; }
     public DateTime? LastLoginAt { get; set; }
+    
+    // Profile-specific IDs based on user role
+    public int? OrganizationId { get; set; }
+    public int? PartnerId { get; set; }
+    public int? VolunteerId { get; set; }
+    public int? CoordinatorId { get; set; }
 }

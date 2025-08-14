@@ -3,7 +3,6 @@ import { eventRegistrationService } from "@/services/eventRegistrationService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,26 +21,17 @@ import {
   MoreVertical,
   Mail,
   Calendar,
-  Award,
   Clock,
-  Star,
-  MessageSquare,
-  Users,
   RefreshCw,
   UserPlus,
+  AlertCircle,
 } from "lucide-react";
 import type {
-  Registration,
+  RegistrationDTO,
   RegistrationFilters,
-  ApproveRegistrationRequest,
-  RejectRegistrationRequest,
+  ApproveRegistrationRequestDTO,
+  RejectRegistrationRequestDTO,
 } from "@/types/eventRegistration";
-
-// Import modal components
-import RegistrationDetailDialog from "./RegistrationDetailDialog";
-import ApprovalDialog from "./ApprovalDialog";
-import RejectionDialog from "./RejectionDialog";
-import BulkActionsDialog from "./BulkActionsDialog";
 
 interface RegistrationListProps {
   eventId: number | string;
@@ -50,9 +40,7 @@ interface RegistrationListProps {
 }
 
 interface RegistrationCardProps {
-  registration: Registration;
-  isSelected: boolean;
-  onSelect: (selected: boolean) => void;
+  registration: RegistrationDTO;
   onView: () => void;
   onApprove: () => void;
   onReject: () => void;
@@ -60,8 +48,6 @@ interface RegistrationCardProps {
 
 const RegistrationCard: React.FC<RegistrationCardProps> = ({
   registration,
-  isSelected,
-  onSelect,
   onView,
   onApprove,
   onReject,
@@ -79,174 +65,92 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const getVolunteerInitials = (name?: string) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  const volunteerName =
-    registration.volunteer?.fullName || registration.fullName || "Unknown";
-  const volunteerEmail = registration.volunteer?.email || "No email";
+  const canModifyStatus = registration.statusName?.toLowerCase() === "pending";
 
   return (
-    <div
-      className={`p-6 hover:bg-gray-50 transition-colors border-b border-gray-200 ${
-        isSelected ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
-      }`}
-    >
-      <div className="flex items-start justify-between">
-        {/* Volunteer Information */}
-        <div className="flex items-start space-x-4 flex-1">
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={onSelect}
-            className="mt-1"
-          />
-
-          <div className="flex-shrink-0">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={registration.volunteer?.profileImage} />
+    <Card className="hover:shadow-sm transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="" alt={registration.fullName || "User"} />
               <AvatarFallback>
-                {getVolunteerInitials(volunteerName)}
+                {registration.fullName
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-2">
-              <h4 className="text-lg font-medium text-gray-900 truncate">
-                {volunteerName}
-              </h4>
-              {registration.volunteer?.rating && (
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm text-gray-600">
-                    {registration.volunteer.rating.toFixed(1)}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
-              <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">{volunteerEmail}</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm">
+                {registration.fullName || "Unknown User"}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${getStatusColor(
+                    registration.statusName || "pending"
+                  )}`}
+                >
+                  {registration.statusName || "Pending"}
+                </Badge>
               </div>
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 flex-shrink-0" />
-                <span>Applied {formatDate(registration.applicationDate)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Award className="w-4 h-4 flex-shrink-0" />
-                <span>
-                  {registration.volunteer?.totalEventsJoined || 0} events
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 flex-shrink-0" />
-                <span>
-                  {registration.volunteer?.totalHoursVolunteered || 0} hours
-                </span>
+              <div className="flex items-center text-xs text-muted-foreground mt-2">
+                <Calendar className="h-3 w-3 mr-1" />
+                {registration.applicationDate
+                  ? new Date(registration.applicationDate).toLocaleDateString()
+                  : "N/A"}
               </div>
             </div>
-
-            {/* Skills */}
-            {registration.volunteer?.skills &&
-              registration.volunteer.skills.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {registration.volunteer.skills
-                    .slice(0, 3)
-                    .map((skill, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="text-xs"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
-                  {registration.volunteer.skills.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{registration.volunteer.skills.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-            {/* Motivation Letter Preview */}
-            {registration.motivationLetter && (
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {registration.motivationLetter}
-              </p>
-            )}
           </div>
-        </div>
 
-        {/* Status and Actions */}
-        <div className="flex items-center space-x-3">
-          <Badge className={getStatusColor(registration.statusName)}>
-            {registration.statusName}
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={onView}>
+              <Eye className="h-4 w-4" />
+            </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onView}>
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              {registration.statusName.toLowerCase() === "pending" && (
-                <>
+            {canModifyStatus && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={onApprove}>
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className="h-4 w-4 mr-2" />
                     Approve
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={onReject}>
-                    <XCircle className="w-4 h-4 mr-2" />
+                    <XCircle className="h-4 w-4 mr-2" />
                     Reject
                   </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Contact Volunteer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
 const RegistrationListSkeleton: React.FC = () => (
   <div className="space-y-4">
     {[...Array(5)].map((_, i) => (
-      <div key={i} className="p-6 border-b border-gray-200">
-        <div className="flex items-start space-x-4">
-          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
-          <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse" />
-            <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
-            <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse" />
+      <Card key={i}>
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3" />
+              <div className="h-3 bg-gray-200 rounded animate-pulse w-1/4" />
+              <div className="h-3 bg-gray-200 rounded animate-pulse w-1/5" />
+            </div>
           </div>
-          <div className="h-6 bg-gray-200 rounded w-20 animate-pulse" />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     ))}
   </div>
 );
@@ -256,69 +160,73 @@ export default function RegistrationList({
   filters,
   onFiltersChange,
 }: RegistrationListProps) {
+  const [registrations, setRegistrations] = useState<RegistrationDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    size: 10,
+    totalPages: 0,
+    totalItems: 0,
+  });
+
+  // Modal states - simplified (no dialogs for now)
+  const [selectedRegistration, setSelectedRegistration] =
+    useState<RegistrationDTO | null>(null);
+
   const numericEventId =
     typeof eventId === "string" ? parseInt(eventId) : eventId;
 
-  // State
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [selectedRegistrations, setSelectedRegistrations] = useState<number[]>(
-    []
-  );
-
-  // Modal states
-  const [selectedRegistration, setSelectedRegistration] =
-    useState<Registration | null>(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
-  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
-  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-
-  // Default filters
   const currentFilters: RegistrationFilters = useMemo(
     () => ({
-      page: 1,
-      size: 20,
-      sortBy: "applicationDate",
-      sortOrder: "desc",
-      ...filters,
+      status: filters?.status,
+      sortBy: filters?.sortBy || "applicationDate",
+      sortDirection: filters?.sortDirection || "desc",
+      page: pagination.page,
+      size: pagination.size,
     }),
-    [filters]
+    [filters, pagination]
   );
 
-  // Load registrations
   const loadRegistrations = useCallback(async () => {
+    if (!numericEventId) return;
+
     setLoading(true);
     setError(null);
+
     try {
-      const result = await eventRegistrationService.getRegistrations(
+      const result = await eventRegistrationService.getEventRegistrations(
         numericEventId,
-        currentFilters
+        currentFilters.status,
+        currentFilters.page,
+        currentFilters.size
       );
-      setRegistrations(result.items);
-      setTotalItems(result.totalCount);
+
+      setRegistrations(result.items || []);
+      setPagination({
+        page: result.pageNumber || 1,
+        size: result.pageSize || 10,
+        totalPages: result.totalPages || 0,
+        totalItems: result.totalCount || 0,
+      });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load registrations"
       );
-      console.error("Failed to load registrations:", err);
+      setRegistrations([]);
     } finally {
       setLoading(false);
     }
   }, [numericEventId, currentFilters]);
 
-  // Effects
   useEffect(() => {
     loadRegistrations();
   }, [loadRegistrations]);
 
-  // Actions
-  const handleApproveRegistration = async (
+  const handleApprove = async (
     registrationId: number,
-    request: ApproveRegistrationRequest
+    request: ApproveRegistrationRequestDTO
   ) => {
     setActionLoading(true);
     try {
@@ -327,8 +235,7 @@ export default function RegistrationList({
         registrationId,
         request
       );
-      await loadRegistrations(); // Refresh the list
-      console.log("Registration approved successfully");
+      await loadRegistrations();
     } catch (err) {
       console.error("Failed to approve registration:", err);
       throw err;
@@ -337,9 +244,9 @@ export default function RegistrationList({
     }
   };
 
-  const handleRejectRegistration = async (
+  const handleReject = async (
     registrationId: number,
-    request: RejectRegistrationRequest
+    request: RejectRegistrationRequestDTO
   ) => {
     setActionLoading(true);
     try {
@@ -348,8 +255,7 @@ export default function RegistrationList({
         registrationId,
         request
       );
-      await loadRegistrations(); // Refresh the list
-      console.log("Registration rejected successfully");
+      await loadRegistrations();
     } catch (err) {
       console.error("Failed to reject registration:", err);
       throw err;
@@ -358,139 +264,74 @@ export default function RegistrationList({
     }
   };
 
-  const handleBulkApprove = async (
-    registrationIds: number[],
-    notes?: string
-  ) => {
-    setActionLoading(true);
-    try {
-      await eventRegistrationService.bulkApproveRegistrations(
-        numericEventId,
-        registrationIds,
-        notes
-      );
-      setSelectedRegistrations([]);
-      await loadRegistrations();
-      console.log("Registrations approved successfully");
-    } catch (err) {
-      console.error("Failed to approve registrations:", err);
-      throw err;
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleBulkReject = async (
-    registrationIds: number[],
-    reason: string
-  ) => {
-    setActionLoading(true);
-    try {
-      await eventRegistrationService.bulkRejectRegistrations(
-        numericEventId,
-        registrationIds,
-        reason
-      );
-      setSelectedRegistrations([]);
-      await loadRegistrations();
-      console.log("Registrations rejected successfully");
-    } catch (err) {
-      console.error("Failed to reject registrations:", err);
-      throw err;
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Selection handlers
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRegistrations(registrations.map((r) => r.registrationId));
-    } else {
-      setSelectedRegistrations([]);
-    }
-  };
-
-  const handleSelectRegistration = (
-    registrationId: number,
-    selected: boolean
-  ) => {
-    if (selected) {
-      setSelectedRegistrations((prev) => [...prev, registrationId]);
-    } else {
-      setSelectedRegistrations((prev) =>
-        prev.filter((id) => id !== registrationId)
-      );
-    }
-  };
-
-  // Page change handler
   const handlePageChange = (page: number) => {
-    onFiltersChange?.({ page });
+    setPagination((prev) => ({ ...prev, page }));
   };
 
-  // Modal handlers
-  const handleViewDetails = (registration: Registration) => {
-    setSelectedRegistration(registration);
-    setDetailDialogOpen(true);
+  const handleViewDetails = async (registration: RegistrationDTO) => {
+    // Simple alert for now - can be enhanced with dialog later
+    alert(
+      `Registration Details:\n\nName: ${registration.fullName}\nStatus: ${
+        registration.statusName
+      }\nDate: ${
+        registration.applicationDate
+          ? new Date(registration.applicationDate).toLocaleDateString()
+          : "N/A"
+      }`
+    );
   };
 
-  const handleOpenApproval = (registration: Registration) => {
-    setSelectedRegistration(registration);
-    setApprovalDialogOpen(true);
+  const handleShowApprovalDialog = async (registration: RegistrationDTO) => {
+    const notes = prompt(
+      `Approve registration for ${registration.fullName}?\n\nOptional notes:`
+    );
+    if (notes !== null) {
+      // User clicked OK (even if notes is empty)
+      try {
+        await handleApprove(registration.registrationId, {
+          notes: notes || undefined,
+        });
+        alert("Registration approved successfully!");
+      } catch (error) {
+        alert("Failed to approve registration. Please try again.");
+      }
+    }
   };
 
-  const handleOpenRejection = (registration: Registration) => {
-    setSelectedRegistration(registration);
-    setRejectionDialogOpen(true);
+  const handleShowRejectionDialog = async (registration: RegistrationDTO) => {
+    const reason = prompt(
+      `Reject registration for ${registration.fullName}?\n\nReason (required):`
+    );
+    if (reason && reason.trim()) {
+      // User provided a reason
+      try {
+        await handleReject(registration.registrationId, {
+          reason: reason.trim(),
+        });
+        alert("Registration rejected successfully!");
+      } catch (error) {
+        alert("Failed to reject registration. Please try again.");
+      }
+    } else if (reason !== null) {
+      // User clicked OK but didn't provide reason
+      alert("Please provide a reason for rejection.");
+    }
   };
-
-  const handleOpenBulkActions = () => {
-    setBulkDialogOpen(true);
-  };
-
-  // Computed values
-  const totalPages = Math.ceil(totalItems / currentFilters.size);
-  const isAllSelected =
-    selectedRegistrations.length === registrations.length &&
-    registrations.length > 0;
-  const isPartiallySelected =
-    selectedRegistrations.length > 0 &&
-    selectedRegistrations.length < registrations.length;
-  const selectedRegistrationObjects = registrations
-    .filter((r) => selectedRegistrations.includes(r.registrationId))
-    .map((r) => ({
-      registrationId: r.registrationId,
-      volunteer: {
-        fullName: r.volunteer?.fullName || r.fullName || "Unknown",
-        email: r.volunteer?.email || "No email",
-      },
-    }));
 
   if (loading && registrations.length === 0) {
-    return (
-      <Card>
-        <CardContent>
-          <RegistrationListSkeleton />
-        </CardContent>
-      </Card>
-    );
+    return <RegistrationListSkeleton />;
   }
 
   if (error) {
     return (
       <Card>
-        <CardContent className="py-8">
-          <div className="text-center">
-            <div className="text-red-600 mb-2">
-              Failed to load registrations
-            </div>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={loadRegistrations} variant="outline">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
-          </div>
+        <CardContent className="p-6">
+          <EmptyState
+            icon={AlertCircle}
+            title="Error loading registrations"
+            description={error}
+            show={true}
+          />
         </CardContent>
       </Card>
     );
@@ -499,11 +340,11 @@ export default function RegistrationList({
   if (registrations.length === 0) {
     return (
       <Card>
-        <CardContent className="py-12">
+        <CardContent className="p-6">
           <EmptyState
-            icon={Users}
+            icon={UserPlus}
             title="No registrations found"
-            description="No volunteer registrations match your current filters."
+            description="There are no volunteer registrations for this event yet."
             show={true}
           />
         </CardContent>
@@ -512,147 +353,66 @@ export default function RegistrationList({
   }
 
   return (
-    <>
+    <div className="space-y-4">
       <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Registrations ({totalItems})
-            </CardTitle>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Event Registrations</span>
             <div className="flex items-center gap-2">
-              {selectedRegistrations.length > 0 && (
-                <Button
-                  onClick={handleOpenBulkActions}
-                  variant="outline"
-                  size="sm"
-                >
-                  Bulk Actions ({selectedRegistrations.length})
-                </Button>
-              )}
-              <Button onClick={loadRegistrations} variant="outline" size="sm">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
+              <Badge variant="outline">{pagination.totalItems} total</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadRegistrations}
+                disabled={loading}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                />
               </Button>
             </div>
-          </div>
-
-          {/* Select All */}
-          {registrations.length > 0 && (
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox
-                checked={isAllSelected}
-                onCheckedChange={handleSelectAll}
-              />
-              <span className="text-sm text-gray-600">
-                {isAllSelected
-                  ? "All registrations selected"
-                  : selectedRegistrations.length > 0
-                  ? `${selectedRegistrations.length} registration${
-                      selectedRegistrations.length !== 1 ? "s" : ""
-                    } selected`
-                  : "Select all registrations"}
-              </span>
-            </div>
-          )}
+          </CardTitle>
         </CardHeader>
+        <CardContent className="space-y-4">
+          {registrations.map((registration) => (
+            <RegistrationCard
+              key={registration.registrationId}
+              registration={registration}
+              onView={() => handleViewDetails(registration)}
+              onApprove={() => handleShowApprovalDialog(registration)}
+              onReject={() => handleShowRejectionDialog(registration)}
+            />
+          ))}
 
-        <CardContent className="p-0">
-          <div className="divide-y divide-gray-200">
-            {registrations.map((registration) => (
-              <RegistrationCard
-                key={registration.registrationId}
-                registration={registration}
-                isSelected={selectedRegistrations.includes(
-                  registration.registrationId
-                )}
-                onSelect={(selected) =>
-                  handleSelectRegistration(
-                    registration.registrationId,
-                    selected
-                  )
-                }
-                onView={() => handleViewDetails(registration)}
-                onApprove={() => handleOpenApproval(registration)}
-                onReject={() => handleOpenRejection(registration)}
-              />
-            ))}
-          </div>
+          {pagination.totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1 || loading}
+              >
+                Previous
+              </Button>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="p-6 border-t">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Showing {(currentFilters.page - 1) * currentFilters.size + 1}{" "}
-                  -{" "}
-                  {Math.min(
-                    currentFilters.page * currentFilters.size,
-                    totalItems
-                  )}{" "}
-                  of {totalItems} registrations
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentFilters.page - 1)}
-                    disabled={currentFilters.page <= 1}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentFilters.page} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentFilters.page + 1)}
-                    disabled={currentFilters.page >= totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
+              <span className="text-sm text-muted-foreground">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages || loading}
+              >
+                Next
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Modals */}
-      <RegistrationDetailDialog
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
-        registration={selectedRegistration}
-        onApprove={handleOpenApproval}
-        onReject={handleOpenRejection}
-      />
-
-      <ApprovalDialog
-        open={approvalDialogOpen}
-        onOpenChange={setApprovalDialogOpen}
-        registration={selectedRegistration}
-        onConfirm={handleApproveRegistration}
-        loading={actionLoading}
-      />
-
-      <RejectionDialog
-        open={rejectionDialogOpen}
-        onOpenChange={setRejectionDialogOpen}
-        registration={selectedRegistration}
-        onConfirm={handleRejectRegistration}
-        loading={actionLoading}
-      />
-
-      <BulkActionsDialog
-        open={bulkDialogOpen}
-        onOpenChange={setBulkDialogOpen}
-        selectedRegistrationIds={selectedRegistrations}
-        selectedRegistrations={selectedRegistrationObjects}
-        onBulkApprove={handleBulkApprove}
-        onBulkReject={handleBulkReject}
-        loading={actionLoading}
-      />
-    </>
+      {/* Dialogs removed for simplicity - using browser prompts instead */}
+    </div>
   );
 }

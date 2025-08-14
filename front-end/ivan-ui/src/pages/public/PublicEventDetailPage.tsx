@@ -1,5 +1,6 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { eventsService } from "@/services/eventsService";
+import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,10 +23,13 @@ import {
   Star,
   Target,
   Eye,
+  UserPlus,
 } from "lucide-react";
 
 export default function PublicEventDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   const [event, setEvent] = useState<EventDto | null>(null);
   const [loading, setLoading] = useState(false);
@@ -543,9 +547,18 @@ export default function PublicEventDetailPage() {
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center">
-          <Button size="lg" className="px-8">
-            Đăng ký tham gia
-          </Button>
+          {/* Show registration button only for volunteers */}
+          {isAuthenticated && user?.role === "volunteer" && (
+            <Button
+              size="lg"
+              className="px-8"
+              onClick={() => navigate(`/volunteer/events/${id}/register`)}
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Đăng ký tham gia
+            </Button>
+          )}
+
           <Button variant="outline" size="lg">
             Chia sẻ
           </Button>

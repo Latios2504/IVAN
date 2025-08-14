@@ -1,17 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { eventRegistrationService } from "@/services/eventRegistrationService";
-import { eventService } from "@/services/eventService";
-import type { PagedResultDto } from "@/types/common";
-import type {
-  Registration,
-  RegistrationFilters as RegistrationFilterType,
-  ApproveRegistrationRequest,
-  RejectRegistrationRequest,
-  EventSummary,
-} from "@/types/eventRegistration";
-import type { EventDto, CreateEventDto, UpdateEventDto } from "@/types/event";
+import React, { useState, useEffect } from "react";
+import { eventsService } from "@/services/eventsService";
+import type { EventDto } from "@/types/events";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -20,24 +10,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LoadingState } from "@/components/common/LoadingState";
-import { EmptyState } from "@/components/common/EmptyState";
-import { Separator } from "@/components/ui/separator";
-import {
-  Users,
-  Calendar,
-  Settings,
-  FileText,
-  ClipboardList,
-  UserCheck,
-  UserX,
-  Clock,
-} from "lucide-react";
+import { Calendar } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
-// Import the registration management components
+// Import only the core registration management components
 import RegistrationList from "@/components/organization/event-registration-management/RegistrationList";
-import RegistrationAnalyticsDashboard from "@/components/organization/event-registration-management/RegistrationAnalyticsDashboard";
 import RegistrationFilters from "@/components/organization/event-registration-management/RegistrationFilters";
+import type { RegistrationFilters as RegistrationFiltersType } from "@/types/eventRegistration";
+
+// Simple event summary interface for internal use
+interface EventSummary {
+  eventId: number;
+  eventName: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  location?: string;
+  statusName?: string;
+}
 
 interface EventSelectorProps {
   onEventSelect: (event: EventSummary | null) => void;
@@ -48,31 +38,31 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   onEventSelect,
   selectedEvent,
 }) => {
-  // Event service adapter
-  const eventDataService = {
-    getAll: async (): Promise<EventDto[]> => {
-      const filters = {
-        page: 1,
-        size: 100,
-        sortBy: "startDate",
-        sortDirection: "desc" as const,
-      };
-      const result = await eventService.getOrganizationEvents(filters);
-      return result.items;
-    },
-  };
-
+  const { user } = useAuth();
   const [events, setEvents] = useState<EventDto[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadEvents = async () => {
+      // Only load events if user is authenticated and has organizationId
+      if (!user?.organizationId) {
+        setEventsError("Organization ID not found");
+        return;
+      }
+
       setEventsLoading(true);
       setEventsError(null);
       try {
-        const result = await eventDataService.getAll();
-        setEvents(result);
+        const filters = {
+          page: 1,
+          size: 100,
+          sortBy: "startDate",
+          sortDirection: "desc" as const,
+          organizationId: user.organizationId, // Filter by organization's own events only
+        };
+        const result = await eventsService.getEvents(filters);
+        setEvents(result.items);
       } catch (err) {
         setEventsError(
           err instanceof Error ? err.message : "Failed to load events"
@@ -83,7 +73,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     };
 
     loadEvents();
-  }, []);
+  }, [user?.organizationId]);
 
   const handleEventChange = (eventId: string) => {
     if (eventId === "none") {
@@ -118,26 +108,49 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Select
-          value={selectedEvent?.eventId.toString() || "none"}
-          onValueChange={handleEventChange}
-          disabled={eventsLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Choose an event to manage registrations" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Select an event...</SelectItem>
-            {events?.map((event: EventDto) => (
-              <SelectItem key={event.eventId} value={event.eventId.toString()}>
-                <div className="flex items-center gap-2">
-                  <span>{event.eventName}</span>
-                  <Badge variant="outline">{event.statusName}</Badge>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {eventsError ? (
+          <div className="text-center py-4">
+            <p className="text-red-600 text-sm">{eventsError}</p>
+          </div>
+        ) : (
+          <>
+            <Select
+              value={selectedEvent?.eventId.toString() || "none"}
+              onValueChange={handleEventChange}
+              disabled={eventsLoading}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    eventsLoading
+                      ? "Loading your events..."
+                      : events.length === 0
+                      ? "No events found for your organization"
+                      : "Choose an event to manage registrations"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">
+                  {events.length === 0
+                    ? "No events available"
+                    : "Select an event..."}
+                </SelectItem>
+                {events?.map((event: EventDto) => (
+                  <SelectItem
+                    key={event.eventId}
+                    value={event.eventId.toString()}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{event.eventName}</span>
+                      <Badge variant="outline">{event.statusName}</Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
 
         {selectedEvent && (
           <div className="mt-4 p-4 bg-muted rounded-lg">
@@ -159,209 +172,70 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   );
 };
 
-// Registration Context Provider Component that provides eventId to child components
-interface RegistrationProviderProps {
-  eventId: number;
-  children: React.ReactNode;
-}
-
-const RegistrationProvider: React.FC<RegistrationProviderProps> = ({
-  eventId,
-  children,
-}) => {
-  // Registration service adapter
-  const registrationDataService = {
-    getAll: async (): Promise<Registration[]> => {
-      const filters: RegistrationFilterType = {
-        page: 1,
-        size: 100,
-        sortBy: "applicationDate",
-        sortOrder: "desc",
-      };
-      const result = await eventRegistrationService.getRegistrations(
-        eventId,
-        filters
-      );
-      return result.items;
-    },
-    getById: async (id: number | string): Promise<Registration> => {
-      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      return await eventRegistrationService.getRegistration(eventId, numericId);
-    },
-    update: async (
-      id: number | string,
-      data: ApproveRegistrationRequest | RejectRegistrationRequest
-    ): Promise<Registration> => {
-      const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      if ("approvedDate" in data) {
-        await eventRegistrationService.approveRegistration(
-          eventId,
-          numericId,
-          data as ApproveRegistrationRequest
-        );
-      } else {
-        await eventRegistrationService.rejectRegistration(
-          eventId,
-          numericId,
-          data as RejectRegistrationRequest
-        );
-      }
-      return await eventRegistrationService.getRegistration(eventId, numericId);
-    },
-  };
-
-  // Initialize the registration state
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [registrationsLoading, setRegistrationsLoading] = useState(false);
-  const [registrationsError, setRegistrationsError] = useState<string | null>(
-    null
-  );
-
-  // Load initial data
-  useEffect(() => {
-    const loadRegistrations = async () => {
-      setRegistrationsLoading(true);
-      setRegistrationsError(null);
-      try {
-        const result = await registrationDataService.getAll();
-        setRegistrations(result);
-      } catch (err) {
-        setRegistrationsError(
-          err instanceof Error ? err.message : "Failed to load registrations"
-        );
-      } finally {
-        setRegistrationsLoading(false);
-      }
-    };
-
-    loadRegistrations();
-  }, [eventId]);
-
-  // Create a context-like object to pass down
-  const contextValue = {
-    eventId,
-    data: registrations,
-    loading: registrationsLoading,
-    error: registrationsError,
-  };
-
-  // Use React Context or just pass as props to children
-  return (
-    <div data-event-id={eventId}>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            registrationContext: contextValue,
-          } as any);
-        }
-        return child;
-      })}
-    </div>
-  );
-};
-
 // Main Event Registration Management Page
 const EventRegistrationManagement: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
-  const [filters, setFilters] = useState<RegistrationFilterType>({
+  const [filters, setFilters] = useState<RegistrationFiltersType>({
     page: 1,
-    size: 20,
-    sortBy: "applicationDate",
-    sortOrder: "desc",
+    size: 10,
   });
 
-  const handleFiltersChange = useCallback(
-    (newFilters: Partial<RegistrationFilterType>) => {
-      setFilters((prev) => ({
-        ...prev,
-        ...newFilters,
-        page: newFilters.page || 1, // Reset to page 1 when filters change (except page itself)
-      }));
-    },
-    []
-  );
+  // Handle filter changes
+  const handleFiltersChange = (
+    newFilters: Partial<RegistrationFiltersType>
+  ) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
 
-  if (!selectedEvent) {
-    return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Event Registration Management
-            </h1>
-            <p className="text-muted-foreground">
-              Manage volunteer registrations for your events
-            </p>
-          </div>
-        </div>
-
-        <EventSelector
-          selectedEvent={selectedEvent}
-          onEventSelect={setSelectedEvent}
-        />
-
-        <EmptyState
-          icon={ClipboardList}
-          title="No Event Selected"
-          description="Please select an event to view and manage registrations."
-          show={true}
-        />
-      </div>
-    );
-  }
+  // Reset filters when event changes
+  useEffect(() => {
+    if (selectedEvent) {
+      setFilters({
+        page: 1,
+        size: 10,
+      });
+    }
+  }, [selectedEvent]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Registration Management
+            Event Registration Management
           </h1>
           <p className="text-muted-foreground">
-            Managing registrations for: {selectedEvent.eventName}
+            Manage volunteer registrations for your events
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Export Data
-          </Button>
         </div>
       </div>
 
-      {/* Event Selector */}
       <EventSelector
         selectedEvent={selectedEvent}
         onEventSelect={setSelectedEvent}
       />
 
-      {/* Registration Management */}
-      <div className="space-y-6">
-        {/* Analytics Dashboard */}
-        <RegistrationAnalyticsDashboard
-          eventId={selectedEvent.eventId.toString()}
-        />
-
-        <Separator />
-
-        {/* Filters */}
-        <RegistrationFilters
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-        />
-
-        {/* Registration List */}
-        <RegistrationList
-          eventId={selectedEvent.eventId}
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-        />
-      </div>
+      {selectedEvent ? (
+        <div className="space-y-4">
+          <RegistrationFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+          />
+          <RegistrationList
+            eventId={selectedEvent.eventId}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+          />
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground">
+              Please select an event to view and manage registrations.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

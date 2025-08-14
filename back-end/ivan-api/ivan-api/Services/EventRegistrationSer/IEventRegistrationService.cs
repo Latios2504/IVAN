@@ -13,5 +13,8 @@ namespace ivan_api.Services.EventRegistrationSer
         Task<bool> ApproveRegistrationAsync(int eventId, int registrationId, int userId, ApproveRegistrationRequestDTO request);
         Task<bool> RejectRegistrationAsync(int eventId, int registrationId, int userId, RejectRegistrationRequestDTO request);
         Task<RegistrationStatusDTO?> GetRegistrationStatusAsync(int eventId, int registrationId, int userId);
+        
+        // New method for volunteers to get their own registrations
+        Task<PagedResultDto<RegistrationDTO>> GetVolunteerRegistrationsAsync(int volunteerId, string? status, int page, int size);
     }
 }

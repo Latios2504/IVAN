@@ -10,8 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
-import type { EventDto } from "../../../types/event";
-import { eventService } from "../../../services/eventService";
+import type { EventDto } from "../../../types/events";
+import { eventsService } from "../../../services/eventsService";
 import { EditEventDialog } from "./EditEventDialog";
 import { EventDetailDialog } from "./EventDetailDialog";
 
@@ -25,22 +25,22 @@ export const EventList: React.FC<EventListProps> = ({
   onEventUpdated,
 }) => {
   // Service adapters for events, categories, and statuses
-  const eventsService = {
+  const eventsServiceAdapter = {
     remove: async (id: string | number) => {
-      await eventService.deleteEvent(Number(id));
+      await eventsService.deleteEvent(Number(id));
       return true;
     },
   };
 
   const categoriesService = {
     getAll: async () => {
-      return await eventService.getEventCategories();
+      return await eventsService.getEventCategories();
     },
   };
 
   const statusesService = {
     getAll: async () => {
-      return await eventService.getEventStatuses();
+      return await eventsService.getEventStatuses();
     },
   };
 
@@ -93,7 +93,7 @@ export const EventList: React.FC<EventListProps> = ({
   const handleDelete = async (event: EventDto) => {
     if (confirm(`Are you sure you want to delete "${event.eventName}"?`)) {
       try {
-        await eventService.deleteEvent(event.eventId);
+        await eventsService.deleteEvent(event.eventId);
         onEventUpdated?.();
       } catch (error) {
         console.error("Failed to delete event:", error);
@@ -166,8 +166,7 @@ export const EventList: React.FC<EventListProps> = ({
     {
       key: "volunteers",
       header: "Volunteers",
-      render: (_, event: EventDto) =>
-        `${event.currentVolunteers || 0}/${event.maxVolunteers}`,
+      render: (_, event: EventDto) => `0/${event.maxVolunteers || 0}`,
     },
     {
       key: "location",

@@ -24,6 +24,11 @@ export interface ApiUser {
   roleId: number;
   isEmailVerified: boolean;
   lastLoginAt?: string;
+  // Profile-specific IDs from enhanced backend
+  organizationId?: number | null;
+  partnerId?: number | null;
+  volunteerId?: number | null;
+  coordinatorId?: number | null;
 }
 
 export interface LoginResponseDTO {
@@ -37,7 +42,12 @@ export interface User extends Omit<ApiUser, "userId" | "roleName"> {
   id: number;
   fullName?: string;
   role: UserRole;
-  organizationId?: number;
+  // Profile-specific IDs
+  organizationId?: number | null;
+  partnerId?: number | null;
+  volunteerId?: number | null;
+  coordinatorId?: number | null;
+  // Additional frontend properties
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -99,3 +109,38 @@ export interface CoordinatorCreationRequest {
   justification: string;
   expectedResponsibilities: string[];
 }
+
+// Utility functions for working with profile IDs
+export const getUserProfileId = (user: User): number | null => {
+  switch (user.role) {
+    case UserRole.ORGANIZATION:
+      return user.organizationId || null;
+    case UserRole.PARTNER:
+      return user.partnerId || null;
+    case UserRole.VOLUNTEER:
+      return user.volunteerId || null;
+    case UserRole.COORDINATOR:
+      return user.coordinatorId || null;
+    default:
+      return null;
+  }
+};
+
+export const hasProfileId = (user: User): boolean => {
+  return getUserProfileId(user) !== null;
+};
+
+export const getProfileType = (user: User): string => {
+  switch (user.role) {
+    case UserRole.ORGANIZATION:
+      return "organization";
+    case UserRole.PARTNER:
+      return "partner";
+    case UserRole.VOLUNTEER:
+      return "volunteer";
+    case UserRole.COORDINATOR:
+      return "coordinator";
+    default:
+      return "user";
+  }
+};

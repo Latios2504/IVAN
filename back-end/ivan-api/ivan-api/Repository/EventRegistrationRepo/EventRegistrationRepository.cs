@@ -21,6 +21,8 @@ namespace ivan_api.Repository.EventRegistrationRepo
                     .ThenInclude(v => v.User)
                         .ThenInclude(u => u.UserProfiles)
                 .Include(r => r.Status)
+                .Include(r => r.Event)
+                    .ThenInclude(e => e.Organization)
                 .FirstOrDefaultAsync(r => r.EventId == eventId && r.RegistrationId == registrationId);
         }
 
@@ -117,6 +119,48 @@ namespace ivan_api.Repository.EventRegistrationRepo
                 .Include(c => c.Organization)
                 .Where(c => c.UserId == userId && c.IsActive.GetValueOrDefault())
                 .AnyAsync(c => c.Organization.Events.Any(e => e.EventId == eventId));
+        }
+
+        public async Task<IEnumerable<EventRegistration>> GetRegistrationsByVolunteerIdAsync(int volunteerId, string? status, int page, int size)
+        {
+            var query = _context.EventRegistrations
+                .Include(r => r.Event)
+                    .ThenInclude(e => e.Organization)
+                .Include(r => r.Status)
+                .Include(r => r.Volunteer)
+                    .ThenInclude(v => v.User)
+                        .ThenInclude(u => u.UserProfiles)
+                .Where(r => r.VolunteerId == volunteerId);
+
+            // Filter by status if provided
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(r => r.Status.StatusName == status);
+            }
+
+            // Order by registration date (newest first)
+            query = query.OrderByDescending(r => r.ApplicationDate);
+
+            // Apply pagination
+            return await query
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+        }
+
+        public async Task<int> CountRegistrationsByVolunteerIdAsync(int volunteerId, string? status)
+        {
+            var query = _context.EventRegistrations
+                .Where(r => r.VolunteerId == volunteerId);
+
+            // Filter by status if provided
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Include(r => r.Status)
+                    .Where(r => r.Status.StatusName == status);
+            }
+
+            return await query.CountAsync();
         }
     }
 }

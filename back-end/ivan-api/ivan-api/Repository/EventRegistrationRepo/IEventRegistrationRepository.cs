@@ -21,5 +21,9 @@ namespace ivan_api.Repository.EventRegistrationRepo
         Task<VolunteerProfile?> GetVolunteerByUserIdAsync(int userId);
         Task<bool> IsOrganizationEventAsync(int eventId, int organizationId);
         Task<bool> IsVolunteerCoordinatorAuthorizedAsync(int userId, int eventId);
+        
+        // Volunteer-specific methods
+        Task<IEnumerable<EventRegistration>> GetRegistrationsByVolunteerIdAsync(int volunteerId, string? status, int page, int size);
+        Task<int> CountRegistrationsByVolunteerIdAsync(int volunteerId, string? status);
     }
 }

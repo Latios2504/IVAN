@@ -3,7 +3,6 @@ using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
 using ivan_api.Models;
 using ivan_api.Repository.EventRegistrationRepo;
-using ivan_api.Services.EmailSer;
 
 namespace ivan_api.Services.EventRegistrationSer
 {
@@ -11,18 +10,15 @@ namespace ivan_api.Services.EventRegistrationSer
     {
         private readonly IEventRegistrationRepository _repository;
         private readonly IMapper _mapper;
-        private readonly IEmailService _emailService;
         private readonly ILogger<EventRegistrationService> _logger;
         
         public EventRegistrationService(
             IEventRegistrationRepository repository, 
             IMapper mapper, 
-            IEmailService emailService,
             ILogger<EventRegistrationService> logger)
         {
             _repository = repository;
             _mapper = mapper;
-            _emailService = emailService;
             _logger = logger;
         }
 
@@ -171,9 +167,14 @@ namespace ivan_api.Services.EventRegistrationSer
         {
             // Determine organization ID based on user role
             var orgUser = await _repository.GetEventWithOrganizationAsync(eventId);
+            if (orgUser?.Organization == null)
+            {
+                throw new InvalidOperationException("Event not found or has no organization");
+            }
+            
             int organizationId;
             
-            if (orgUser?.Organization?.UserId == userId)
+            if (orgUser.Organization.UserId == userId)
             {
                 // User is the organization owner
                 organizationId = orgUser.OrganizationId;
@@ -186,7 +187,7 @@ namespace ivan_api.Services.EventRegistrationSer
                 {
                     throw new UnauthorizedAccessException("You don't have permission to view registrations for this event");
                 }
-                organizationId = orgUser?.OrganizationId ?? 0;
+                organizationId = orgUser.OrganizationId;
             }
 
             // Get registrations
@@ -341,6 +342,30 @@ namespace ivan_api.Services.EventRegistrationSer
 
             var statusDto = _mapper.Map<RegistrationStatusDTO>(registration);
             return statusDto;
+        }
+
+        public async Task<PagedResultDto<RegistrationDTO>> GetVolunteerRegistrationsAsync(int volunteerId, string? status, int page, int size)
+        {
+            try
+            {
+                var registrations = await _repository.GetRegistrationsByVolunteerIdAsync(volunteerId, status, page, size);
+                var totalCount = await _repository.CountRegistrationsByVolunteerIdAsync(volunteerId, status);
+
+                var registrationDtos = registrations.Select(r => _mapper.Map<RegistrationDTO>(r)).ToList();
+
+                return new PagedResultDto<RegistrationDTO>
+                {
+                    Items = registrationDtos,
+                    TotalCount = totalCount,
+                    PageNumber = page,
+                    PageSize = size
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting registrations for volunteer {VolunteerId}", volunteerId);
+                throw;
+            }
         }
     }
 }

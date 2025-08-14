@@ -99,6 +99,49 @@ class AuthService {
     apiClient.setToken(null);
   }
 
+  // Check if user has the required role
+  hasRole(user: User | null, role: UserRole): boolean {
+    return user?.role === role;
+  }
+
+  // Check if user is an organization with profile
+  isOrganizationWithProfile(user: User | null): boolean {
+    return user?.role === "organization" && !!user?.organizationId;
+  }
+
+  // Check if user is a volunteer with profile
+  isVolunteerWithProfile(user: User | null): boolean {
+    return user?.role === "volunteer" && !!user?.volunteerId;
+  }
+
+  // Check if user is a partner with profile
+  isPartnerWithProfile(user: User | null): boolean {
+    return user?.role === "partner" && !!user?.partnerId;
+  }
+
+  // Check if user is a coordinator with profile
+  isCoordinatorWithProfile(user: User | null): boolean {
+    return user?.role === "coordinator" && !!user?.coordinatorId;
+  }
+
+  // Get the appropriate profile ID for the user
+  getUserProfileId(user: User | null): number | null {
+    if (!user) return null;
+
+    switch (user.role) {
+      case "organization":
+        return user.organizationId || null;
+      case "partner":
+        return user.partnerId || null;
+      case "volunteer":
+        return user.volunteerId || null;
+      case "coordinator":
+        return user.coordinatorId || null;
+      default:
+        return null;
+    }
+  }
+
   private mapApiUserToUser(apiUser: ApiUser): User {
     return {
       id: apiUser.userId,
@@ -108,6 +151,11 @@ class AuthService {
       roleId: apiUser.roleId,
       isEmailVerified: apiUser.isEmailVerified,
       lastLoginAt: apiUser.lastLoginAt,
+      // Map profile-specific IDs from enhanced backend
+      organizationId: apiUser.organizationId,
+      partnerId: apiUser.partnerId,
+      volunteerId: apiUser.volunteerId,
+      coordinatorId: apiUser.coordinatorId,
     };
   }
 

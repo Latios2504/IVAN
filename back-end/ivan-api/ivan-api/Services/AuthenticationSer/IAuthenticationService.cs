@@ -12,4 +12,5 @@ public interface IAuthenticationService
     Task<ApiResponseDTO<object>> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest);
     Task<ApiResponseDTO<object>> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest);
     int GetUserIdFromClaims(ClaimsPrincipal user);
+    Task<UserInfoDTO> GetUserInfoWithProfileAsync(int userId);
 }

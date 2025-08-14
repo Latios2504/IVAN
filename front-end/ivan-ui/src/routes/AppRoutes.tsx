@@ -98,6 +98,14 @@ const MyOnSiteTasksPage = lazy(
   () => import("@/pages/volunteer/MyOnSiteTasksPage")
 );
 
+const VolunteerEventRegistrationPage = lazy(
+  () => import("@/pages/volunteer/VolunteerEventRegistrationPage")
+);
+
+const MyEventRegistrationsPage = lazy(
+  () => import("@/pages/volunteer/MyEventRegistrationsPage")
+);
+
 // Profile pages
 const VolunteerProfilePage = lazy(
   () => import("@/pages/volunteer/VolunteerProfilePage")
@@ -270,6 +278,22 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
               <MyOnSiteTasksPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer/events/:eventId/register"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <VolunteerEventRegistrationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer/my-registrations"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <MyEventRegistrationsPage />
             </ProtectedRoute>
           }
         />

@@ -22,8 +22,8 @@ import { Calendar } from "../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { EventCategoryDto, CreateEventDto } from "../../../types/event";
-import { eventService } from "../../../services/eventService";
+import type { EventCategoryDto, CreateEventDto } from "../../../types/events";
+import { eventsService } from "../../../services/eventsService";
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -88,7 +88,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
     try {
       setLoading(true);
-      await eventService.createEvent(formData as CreateEventDto);
+      await eventsService.createEvent(formData as CreateEventDto);
       onSuccess();
       handleClose();
     } catch (error) {
