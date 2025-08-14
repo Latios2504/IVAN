@@ -11,35 +11,17 @@ import {
   XCircle,
   User,
 } from "lucide-react";
-import { profileService } from "@/services/profileService";
-import type { UserAccountDetailDto } from "@/services/userManagementService";
+import { volunteerProfileService } from "@/services/volunteerProfileService";
+import type { UserListDto } from "@/types/userManagement";
+import type { VolunteerProfileViewModel } from "@/types/volunteerProfile";
 
 interface VolunteerProfileTabProps {
-  user: UserAccountDetailDto;
-}
-
-interface VolunteerProfileData {
-  volunteerId: number;
-  studentId?: string;
-  university?: string;
-  major?: string;
-  yearOfStudy?: number;
-  motivation?: string;
-  experience?: string;
-  availability?: string;
-  volunteerHours: number;
-  rating?: number;
-  ratingCount: number;
-  isVerified: boolean;
-  verifiedAt?: string;
-  totalHoursVolunteered: number;
-  skills?: any[];
-  lastActiveDate?: string;
+  user: UserListDto;
 }
 
 export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
   const [volunteerProfile, setVolunteerProfile] =
-    useState<VolunteerProfileData | null>(null);
+    useState<VolunteerProfileViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,9 +29,8 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
     const fetchVolunteerProfile = async () => {
       try {
         setLoading(true);
-        const profile = await profileService.getProfileByRole(
-          user.userId,
-          "volunteer"
+        const profile = await volunteerProfileService.getVolunteerProfile(
+          user.userId
         );
         setVolunteerProfile(profile);
       } catch (err: any) {
@@ -59,14 +40,14 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
       }
     };
 
-    if (user.roleName.toLowerCase() === "volunteer") {
+    if (user.roleName?.toLowerCase() === "volunteer") {
       fetchVolunteerProfile();
     } else {
       setLoading(false);
     }
   }, [user.userId, user.roleName]);
 
-  if (user.roleName.toLowerCase() !== "volunteer") {
+  if (user.roleName?.toLowerCase() !== "volunteer") {
     return null;
   }
 
@@ -222,47 +203,26 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
       </div>
 
       {/* Skills */}
-      {volunteerProfile.skills && volunteerProfile.skills.length > 0 && (
+      {volunteerProfile.skills && (
         <>
           <Separator />
           <div>
             <h3 className="text-lg font-semibold mb-4">Kỹ năng</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {volunteerProfile.skills.map((skill: any, index: number) => (
-                <div key={index} className="border rounded-lg p-3">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium">{skill.skillName}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {skill.proficiencyLevel}
-                    </Badge>
-                  </div>
-                  {skill.yearsOfExperience && (
-                    <p className="text-sm text-gray-600">
-                      {skill.yearsOfExperience} năm kinh nghiệm
-                    </p>
-                  )}
-                  {skill.description && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {skill.description}
-                    </p>
-                  )}
-                </div>
-              ))}
+            <div className="bg-gray-50 p-4 rounded border">
+              <p className="text-sm text-gray-700">{volunteerProfile.skills}</p>
             </div>
           </div>
         </>
       )}
 
-      {/* Last Activity */}
-      {volunteerProfile.lastActiveDate && (
+      {/* Activity Summary */}
+      {volunteerProfile.updatedAt && (
         <>
           <Separator />
           <div>
-            <Label>Hoạt động gần nhất</Label>
+            <Label>Cập nhật gần nhất</Label>
             <p className="text-sm text-gray-600">
-              {new Date(volunteerProfile.lastActiveDate).toLocaleString(
-                "vi-VN"
-              )}
+              {new Date(volunteerProfile.updatedAt).toLocaleString("vi-VN")}
             </p>
           </div>
         </>

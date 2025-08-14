@@ -1,4 +1,4 @@
-﻿using ivan_api.Services.CertificateTemplates;
+using ivan_api.Services.CertificateTemplates;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.CertificateTemplates;
@@ -15,13 +15,6 @@ namespace ivan_api.Controllers
         {
             _service = service;
         }
-
-        //[HttpPost("list")]
-        //public async Task<IActionResult> List([FromBody] CertificateTemplateFilterModel filter)
-        //{
-        //    var result = await _service.ListCertificateTemplate(filter);
-        //    return Ok(result);
-        //}
 
         [HttpGet]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
@@ -88,14 +81,5 @@ namespace ivan_api.Controllers
             }
         }
 
-        //public async Task<int> getLastId()
-        //{
-        //    var temp = await _service.GetList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().TemplateId;
-
-        //    return last == null ? -1 : last;
-        //}
     }
 }

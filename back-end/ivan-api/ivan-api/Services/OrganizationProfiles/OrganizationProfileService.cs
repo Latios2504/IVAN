@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using System.Threading.Tasks;
 using ivan_api.Models;
 using ivan_api.DTOs.OrganizationProfiles;
 using ivan_api.Repository.OrganizationProfiles;
@@ -18,7 +17,7 @@ namespace ivan_api.Services.OrganizationProfiles
             _mapper = mapper;
         }
 
-        public async Task<bool> AddOrganizationProfile(OrganizationProfileInputModel organizationProfile)
+        public async Task<bool> AddOrganizationProfile(OrganizationProfileCreateDto organizationProfile)
         {
             var org = _mapper.Map<Organization>(organizationProfile);
             org.CreatedAt = DateTime.Now;
@@ -26,9 +25,9 @@ namespace ivan_api.Services.OrganizationProfiles
 
             return await _repository.AddOrganizationProfile(org);
         }
-        public async Task<bool> UpdateOrganizationProfile(OrganizationProfileUpdateModel organizationProfile, int orgId)
+        public async Task<bool> UpdateOrganizationProfile(OrganizationProfileUpdateDto organizationProfile, int userId)
         {
-            var existingOrg = await _repository.GetOrganizationProfileById(orgId);
+            var existingOrg = await _repository.GetOrganizationProfileById(userId);
             if (existingOrg == null)
             {
                 throw new Exception("Organization not found");
@@ -37,11 +36,6 @@ namespace ivan_api.Services.OrganizationProfiles
             _mapper.Map(organizationProfile, existingOrg);
             existingOrg.UpdatedAt = DateTime.Now;
             return await _repository.UpdateOrganizationProfile(existingOrg);
-        }
-        public async Task<IEnumerable<OrganizationProfileViewModel>> ListOrganizationProfile(OrganizationProfileFilterModel filter)
-        {
-            var orgs = await _repository.ListOrganizationProfile(filter);
-            return _mapper.Map<IEnumerable<OrganizationProfileViewModel>>(orgs);
         }
         public async Task<OrganizationProfileViewModel> GetOrganizationProfileById(int userId)
         {
@@ -60,5 +54,29 @@ namespace ivan_api.Services.OrganizationProfiles
         }
 
         public async Task<int> GetLastId() => await _repository.GetLastId();
+
+        #region Public Content Methods
+
+        public async Task<PagedResultDto<PublicOrganizationDTO>> GetPublicOrganizationsAsync(PublicOrganizationFiltersDTO filters)
+        {
+            return await _repository.GetPublicOrganizationsAsync(filters);
+        }
+
+        public async Task<PublicOrganizationDTO?> GetPublicOrganizationAsync(int id)
+        {
+            return await _repository.GetPublicOrganizationAsync(id);
+        }
+
+        #endregion
+
+        #region Lookup Methods
+
+        public async Task<IEnumerable<OrganizationTypeDto>> GetAllOrganizationTypesAsync()
+        {
+            var organizationTypes = await _repository.GetAllOrganizationTypesAsync();
+            return _mapper.Map<IEnumerable<OrganizationTypeDto>>(organizationTypes);
+        }
+
+        #endregion
     }
 }

@@ -20,8 +20,6 @@ import {
   Filter,
   ClipboardList,
 } from "lucide-react";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
-import type { VolunteerStats } from "@/types/dashboard";
 
 interface VolunteerActivity {
   id: string;
@@ -37,8 +35,19 @@ interface VolunteerActivity {
 
 export default function VolunteerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const { stats, loading, error } = useDashboardStats();
-  const volunteerStats = stats as VolunteerStats;
+
+  // Mock states
+  const loading = false;
+  const error = null;
+
+  // Mock volunteer stats
+  const volunteerStats = {
+    hoursVolunteered: 156,
+    eventsJoined: 23,
+    totalPoints: 1850,
+    certificatesEarned: 5,
+    currentRating: 4.8,
+  };
 
   const activities: VolunteerActivity[] = [
     {

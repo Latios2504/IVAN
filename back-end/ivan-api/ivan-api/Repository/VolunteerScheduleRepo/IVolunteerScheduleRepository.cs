@@ -1,4 +1,5 @@
-using ivan_api.DTOs;
+using ivan_api.DTOs.VolunteerSchedule;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 
 namespace ivan_api.Repository.VolunteerScheduleRepo
@@ -7,7 +8,7 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
     {
         // Basic CRUD operations
         Task<VolunteerSchedule?> GetByIdAsync(int scheduleId);
-        Task<PagedResultDTO<VolunteerSchedule>> GetPagedAsync(VolunteerScheduleFilterDTO filter, int? organizationId = null);
+        Task<PagedResultDto<VolunteerSchedule>> GetPagedAsync(VolunteerScheduleFilterDTO filter, int? organizationId = null);
         Task<List<VolunteerSchedule>> GetByVolunteerIdAsync(int volunteerId, DateTime? startDate = null, DateTime? endDate = null);
         Task<List<VolunteerSchedule>> GetByEventIdAsync(int eventId);
         Task<VolunteerSchedule> CreateAsync(VolunteerSchedule schedule);
@@ -27,7 +28,7 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
         Task<List<VolunteerScheduleSummaryDTO>> GetTopVolunteersAsync(int? organizationId = null, int limit = 10);
 
         // Organization specific methods
-        Task<PagedResultDTO<VolunteerSchedule>> GetOrganizationVolunteerSchedulesAsync(int organizationId, VolunteerScheduleFilterDTO filter);
+        Task<PagedResultDto<VolunteerSchedule>> GetOrganizationVolunteerSchedulesAsync(int organizationId, VolunteerScheduleFilterDTO filter);
         Task<List<VolunteerSchedule>> GetOrganizationEventSchedulesAsync(int organizationId, int eventId);
 
         // Bulk operations

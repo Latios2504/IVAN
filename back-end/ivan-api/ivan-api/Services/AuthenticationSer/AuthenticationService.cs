@@ -5,6 +5,7 @@ using ivan_api.DTOs.Common;
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
+using System.Security.Claims;
 
 namespace ivan_api.Services.AuthenticationSer;
 
@@ -95,7 +96,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<ApiResponseDTO<SuccessResponseDTO>> RegisterAsync(RegisterRequestDTO registerRequest)
+    public async Task<ApiResponseDTO<object>> RegisterAsync(RegisterRequestDTO registerRequest)
     {
         try
         {
@@ -105,7 +106,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (existingUser != null)
             {
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "User already exists",
@@ -119,7 +120,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (role == null)
             {
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "Invalid role selected",
@@ -128,7 +129,7 @@ public class AuthenticationService : IAuthenticationService
             }            // Note: Volunteer Coordinator cannot be registered directly
             if (role.RoleName == "Volunteer Coordinator")
             {
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "Volunteer Coordinator accounts must be created by an Organization",
@@ -177,17 +178,17 @@ public class AuthenticationService : IAuthenticationService
             // Send email verification (for now, just log)
             await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);
 
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = true,
                 Message = "Registration successful. Please check your email for verification.",
-                Data = new SuccessResponseDTO { Message = "User registered successfully" }
+                Data = null
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during registration for email: {Email}", registerRequest.Email);
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "An error occurred during registration",
@@ -196,7 +197,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<ApiResponseDTO<SuccessResponseDTO>> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest)
+    public async Task<ApiResponseDTO<object>> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest)
     {
         try
         {
@@ -206,11 +207,11 @@ public class AuthenticationService : IAuthenticationService
             if (user == null)
             {
                 // For security, don't reveal if email exists or not
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = true,
                     Message = "If the email exists, a password reset code has been sent.",
-                    Data = new SuccessResponseDTO { Message = "Password reset email sent" }
+                    Data = null
                 };
             }
 
@@ -225,17 +226,17 @@ public class AuthenticationService : IAuthenticationService
             // Send reset email
             await _emailService.SendPasswordResetEmailAsync(user.Email, resetToken);
 
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = true,
                 Message = "If the email exists, a password reset code has been sent.",
-                Data = new SuccessResponseDTO { Message = "Password reset email sent" }
+                Data = null
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during forgot password for email: {Email}", forgotPasswordRequest.Email);
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "An error occurred while processing your request",
@@ -244,7 +245,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<ApiResponseDTO<SuccessResponseDTO>> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest)
+    public async Task<ApiResponseDTO<object>> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest)
     {
         try
         {
@@ -255,7 +256,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null)
             {
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "Invalid or expired reset code",
@@ -276,17 +277,17 @@ public class AuthenticationService : IAuthenticationService
 
             await _context.SaveChangesAsync();
 
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = true,
                 Message = "Password reset successfully",
-                Data = new SuccessResponseDTO { Message = "Password has been reset" }
+                Data = null
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during password reset for email: {Email}", resetPasswordRequest.Email);
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "An error occurred while resetting password",
@@ -295,7 +296,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<ApiResponseDTO<SuccessResponseDTO>> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest)
+    public async Task<ApiResponseDTO<object>> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest)
     {
         try
         {
@@ -304,7 +305,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null)
             {
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "User not found",
@@ -315,7 +316,7 @@ public class AuthenticationService : IAuthenticationService
             // Verify current password
             if (!_passwordHashingService.VerifyPassword(changePasswordRequest.CurrentPassword, user.PasswordHash, user.Salt))
             {
-                return new ApiResponseDTO<SuccessResponseDTO>
+                return new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "Current password is incorrect",
@@ -334,17 +335,17 @@ public class AuthenticationService : IAuthenticationService
 
             await _context.SaveChangesAsync();
 
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = true,
                 Message = "Password changed successfully",
-                Data = new SuccessResponseDTO { Message = "Password has been updated" }
+                Data = null
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during password change for user: {UserId}", userId);
-            return new ApiResponseDTO<SuccessResponseDTO>
+            return new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "An error occurred while changing password",
@@ -353,11 +354,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    /// <summary>
     /// Creates role-specific profile based on user role
-    /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="registerRequest">Registration request containing role and optional profile data</param>
     private async Task CreateRoleSpecificProfileAsync(int userId, RegisterRequestDTO registerRequest)
     {
         switch (registerRequest.RoleId)
@@ -452,5 +449,15 @@ public class AuthenticationService : IAuthenticationService
         // Generate a 6-digit numeric code
         var random = new Random();
         return random.Next(100000, 999999).ToString();
+    }
+
+    public int GetUserIdFromClaims(ClaimsPrincipal user)
+    {
+        var userIdClaim = user.FindFirst("UserId") ?? user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            throw new UnauthorizedAccessException("User ID not found in token claims");
+        }
+        return userId;
     }
 }

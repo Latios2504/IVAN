@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { userManagementService } from "@/services/userManagementService";
 import { UserBasicInfo } from "./user-details/UserBasicInfo";
 import { UserProfileTabs } from "./user-details/UserProfileTabs";
-import type { UserAccountDetailDto } from "@/services/userManagementService";
+import type { UserDetailsDto } from "@/types/userManagement";
 
 interface UserDetailsModalProps {
   userId: number | null;
@@ -27,7 +27,7 @@ function UserDetailsModal({
   onClose,
   onUserUpdate,
 }: UserDetailsModalProps) {
-  const [user, setUser] = useState<UserAccountDetailDto | null>(null);
+  const [user, setUser] = useState<UserDetailsDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClose = () => {
@@ -41,7 +41,7 @@ function UserDetailsModal({
 
       try {
         setIsLoading(true);
-        const userDetail = await userManagementService.getUserDetail(userId);
+        const userDetail = await userManagementService.getUserDetails(userId);
         setUser(userDetail);
       } catch (error) {
         console.error("Error fetching user detail:", error);

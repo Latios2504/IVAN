@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.Wordprocessing;
 using ivan_api.DTOs.Reports;
 using ivan_api.Services.Reports;
 using Microsoft.AspNetCore.Http;
@@ -16,27 +16,6 @@ namespace ivan_api.Controllers
         {
             _service = service;
         }
-
-        //[HttpPost("listEventReport")]
-        //public async Task<IActionResult> ListEventReport([FromBody] ReportFilterModel filter)
-        //{
-        //    var result = await _service.ListEventReport(filter);
-        //    return Ok(result);
-        //}
-
-        //[HttpPost("listOrganizationReport")]
-        //public async Task<IActionResult> ListOrganizationReport([FromBody] ReportFilterModel filter)
-        //{
-        //    var result = await _service.ListOrganizationReport(filter);
-        //    return Ok(result);
-        //}
-
-        //[HttpPost("listSystemReport")]
-        //public async Task<IActionResult> ListSystemReport([FromBody] ReportFilterModel filter)
-        //{
-        //    var result = await _service.ListSystemReport(filter);
-        //    return Ok(result);
-        //}
 
         [HttpGet("listEventReport")]
         public async Task<IActionResult> GetEventReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
@@ -284,34 +263,5 @@ namespace ivan_api.Controllers
             }
         }
 
-        //public async Task<int> getLastIdEvent()
-        //{
-        //    var temp = await _service.GetEventReportList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().ReportId;
-
-        //    return last == null ? -1 : last;
-        //}
-
-        //public async Task<int> getLastIdOrganization()
-        //{
-        //    var temp = await _service.GetOrganizationReportList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().ReportId;
-
-        //    return last == null ? -1 : last;
-        //}
-
-        //public async Task<int> getLastIdSystem()
-        //{
-        //    var temp = await _service.GetSystemReportList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().ReportId;
-
-        //    return last == null ? -1 : last;
-        //}
     }
 }

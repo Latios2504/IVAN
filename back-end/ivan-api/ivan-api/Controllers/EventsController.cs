@@ -1,10 +1,9 @@
-﻿using ivan_api.DTOs.EventManage;
+using ivan_api.Constants;
+using ivan_api.DTOs.EventManage;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.EventServ;
-using ivan_api.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ivan_api.DTOs.Authentication;
 using System.Security.Claims;
 
 namespace ivan_api.Controllers
@@ -13,169 +12,268 @@ namespace ivan_api.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IEventService _service;
+        private readonly IEventService _eventService;
+        private readonly ILogger<EventsController> _logger;
 
-        public EventsController(IEventService service) => _service = service;
-
-        // Public endpoints (existing)
-        [HttpGet, AllowAnonymous]
-        public async Task<IActionResult> GetAll() =>
-            Ok(await _service.GetAllAsync());
-
-        [HttpGet("{id}"), AllowAnonymous]
-        public async Task<IActionResult> Get(int id)
+        public EventsController(
+            IEventService eventService,
+            ILogger<EventsController> logger)
         {
-            var evt = await _service.GetByIdAsync(id);
-            if (evt == null) return NotFound();
-            return Ok(evt);
+            _eventService = eventService;
+            _logger = logger;
         }
 
+        // Get events list (public + filtered for organizations)
+        [HttpGet]
         [AllowAnonymous]
-        [HttpGet("GetEvent/{eventId}")]
-        public async Task<ActionResult<ApiResponseDTO<EventDTO>>> GetEvent(int eventId)
-        {
-            var result = await _service.GetEventAsync(eventId);
-            if (!result.Success)
-            {
-                return result.Errors.Any(e => e.Contains("not found"))
-                    ? NotFound(result) : StatusCode(500, result);
-            }
-            return Ok(result);
-        }
-
-        // Organization-specific endpoints
-        [HttpGet("organization")]
-        [Authorize(Roles = "Organization")]
-        public async Task<ActionResult<PagedResultDto<EventDto>>> GetOrganizationEvents(
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<EventDto>>>> GetEvents(
             [FromQuery] EventFilterDto filters)
         {
-            var organizationId = GetOrganizationIdFromClaims();
-            var result = await _service.GetEventsByOrganizationAsync(organizationId, filters);
-            return Ok(result);
+            try
+            {
+                // If user is authenticated and has organization role, they can see their own events
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userRole == "Organization" && int.TryParse(userId, out int organizationId))
+                {
+                    // Organization can optionally filter by their own events
+                    if (filters.OrganizationId == null)
+                    {
+                        // If no organization filter specified, show public events + their own
+                        // Let them see public events by default, they can filter by OrganizationId if needed
+                    }
+                }
+                else
+                {
+                    // Public users can only see active, published events
+                    filters.IsActive = true;
+                    filters.OrganizationId = null; // Prevent filtering by organization for public
+                }
+
+                var result = await _eventService.GetEventsAsync(filters);
+                
+                return Ok(new ApiResponseDTO<PagedResultDto<EventDto>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Events retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving events");
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<EventDto>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve events" }
+                });
+            }
         }
 
-        [HttpGet("organization/{eventId}")]
-        [Authorize(Roles = "Organization")]
-        public async Task<ActionResult<EventDto>> GetOrganizationEvent(int eventId)
+        // Get specific event details
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<EventDto>>> GetEvent(int id)
         {
-            var organizationId = GetOrganizationIdFromClaims();
-            var evt = await _service.GetEventForOrganizationAsync(eventId, organizationId);
-            if (evt == null) return NotFound();
-            return Ok(evt);
+            try
+            {
+                var eventData = await _eventService.GetEventAsync(id);
+                
+                if (eventData == null)
+                {
+                    return NotFound(new ApiResponseDTO<EventDto>
+                    {
+                        Success = false,
+                        Message = "Event not found",
+                        Errors = new List<string> { $"Event with ID {id} does not exist" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<EventDto>
+                {
+                    Success = true,
+                    Data = eventData,
+                    Message = "Event retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving event with ID {EventId}", id);
+                return StatusCode(500, new ApiResponseDTO<EventDto>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve event" }
+                });
+            }
         }
 
-        [HttpGet("organization/stats")]
-        [Authorize(Roles = "Organization")]
-        public async Task<ActionResult<EventStatsDto>> GetOrganizationStats()
-        {
-            var organizationId = GetOrganizationIdFromClaims();
-            var stats = await _service.GetEventStatsAsync(organizationId);
-            return Ok(stats);
-        }
-
+        // Create new event (Organizations only)
         [HttpPost]
-        [Authorize(Roles = "Organization")]
-        public async Task<IActionResult> Create([FromBody] CreateEventDto dto)
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> CreateEvent([FromBody] CreateEventDto dto)
         {
-            var organizationId = GetOrganizationIdFromClaims();
-            dto.OrganizationId = organizationId; // Ensure security
+            try
+            {
+                var organizationId = GetOrganizationIdFromClaims();
+                dto.OrganizationId = organizationId; // Ensure security
 
-            var newId = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = newId }, null);
+                var newId = await _eventService.CreateAsync(dto);
+                
+                return CreatedAtAction(nameof(GetEvent), new { id = newId }, 
+                    new ApiResponseDTO<object>
+                    {
+                        Success = true,
+                        Data = new { EventId = newId },
+                        Message = "Event created successfully"
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating event");
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to create event",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
+        // Update event (Organizations only)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Organization")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateEventDto dto)
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> UpdateEvent(int id, [FromBody] UpdateEventDto dto)
         {
-            var organizationId = GetOrganizationIdFromClaims();
+            try
+            {
+                var success = await _eventService.UpdateAsync(id, dto);
+                
+                if (!success)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Event not found or you don't have permission to update it"
+                    });
+                }
 
-            if (!await _service.CanUpdateEventAsync(id, organizationId))
-                return Forbid("You don't have permission to update this event");
-
-            if (!await _service.UpdateAsync(id, dto))
-                return NotFound();
-
-            return NoContent();
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Event updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating event {EventId}", id);
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to update event",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
-        [HttpPatch("{id}/status")]
-        [Authorize(Roles = "Organization")]
-        public async Task<IActionResult> UpdateStatus(
-            int id,
-            [FromBody] UpdateEventStatusDto dto)
-        {
-            var organizationId = GetOrganizationIdFromClaims();
-
-            var success = await _service.UpdateEventStatusAsync(
-                id, dto.StatusId, organizationId, dto.Reason);
-
-            if (!success) return BadRequest("Cannot update event status");
-
-            return NoContent();
-        }
-
+        // Delete event (Organizations only)
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Organization")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> DeleteEvent(int id)
         {
-            var organizationId = GetOrganizationIdFromClaims();
+            try
+            {
+                var organizationId = GetOrganizationIdFromClaims();
+                var success = await _eventService.DeleteAsync(id, organizationId);
 
-            if (!await _service.CanDeleteEventAsync(id, organizationId))
-                return Forbid("You don't have permission to delete this event");
+                if (!success)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Event not found or you don't have permission to delete it"
+                    });
+                }
 
-            if (!await _service.DeleteEventAsync(id, organizationId))
-                return NotFound();
-
-            return NoContent();
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Event deleted successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting event {EventId}", id);
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to delete event",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
+        // Get event categories (public reference data)
         [HttpGet("categories")]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<EventCategoryDto>>> GetCategories()
+        public async Task<ActionResult<ApiResponseDTO<IEnumerable<EventCategoryDto>>>> GetCategories()
         {
-            var categories = await _service.GetEventCategoriesAsync();
-            return Ok(categories);
+            try
+            {
+                var categories = await _eventService.GetCategoriesAsync();
+                return Ok(new ApiResponseDTO<IEnumerable<EventCategoryDto>>
+                {
+                    Success = true,
+                    Data = categories,
+                    Message = "Categories retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving categories");
+                return StatusCode(500, new ApiResponseDTO<IEnumerable<EventCategoryDto>>
+                {
+                    Success = false,
+                    Message = "Failed to retrieve categories",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
+        // Get event statuses (for organizations)
         [HttpGet("statuses")]
-        [Authorize(Roles = "Organization")]
-        public async Task<ActionResult<IEnumerable<EventStatusDto>>> GetStatuses()
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<IEnumerable<EventStatusDto>>>> GetStatuses()
         {
-            var statuses = await _service.GetEventStatusesAsync();
-            return Ok(statuses);
-        }
-
-        [HttpGet("{id}/status-transitions")]
-        [Authorize(Roles = "Organization")]
-        public async Task<ActionResult<List<int>>> GetAvailableStatusTransitions(int id)
-        {
-            var transitions = await _service.GetAvailableStatusTransitionsAsync(id);
-            return Ok(transitions);
-        }
-
-        [HttpGet("{id}/analytics")]
-        [Authorize(Roles = "Organization")]
-        public async Task<ActionResult<Dictionary<string, object>>> GetEventAnalytics(
-            int id,
-            [FromQuery] string timeframe = "month")
-        {
-            var organizationId = GetOrganizationIdFromClaims();
-            var evt = await _service.GetEventForOrganizationAsync(id, organizationId);
-            if (evt == null) return NotFound();
-
-            var analytics = await _service.GetEventAnalyticsAsync(id, timeframe);
-            return Ok(analytics);
+            try
+            {
+                var statuses = await _eventService.GetStatusesAsync();
+                return Ok(new ApiResponseDTO<IEnumerable<EventStatusDto>>
+                {
+                    Success = true,
+                    Data = statuses,
+                    Message = "Statuses retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving statuses");
+                return StatusCode(500, new ApiResponseDTO<IEnumerable<EventStatusDto>>
+                {
+                    Success = false,
+                    Message = "Failed to retrieve statuses",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
         private int GetOrganizationIdFromClaims()
         {
-            // Extract organization ID from JWT claims
             var organizationClaim = User.FindFirst("OrganizationId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
             if (organizationClaim == null || !int.TryParse(organizationClaim.Value, out int orgId))
             {
-                // For development, return a default organization ID
-                // In production, this should throw an exception
                 return 1; // Default organization ID for testing
             }
             return orgId;

@@ -9,19 +9,6 @@ namespace ivan_api.Repository.OrganizationProfiles
 {
     public class OrganizationProfileRepository : IOrganizationProfileRepository
     {
-        //private readonly OrganizationProfileDAO _OrganizationProfileDAO;
-
-        //public OrganizationProfileRepository(OrganizationProfileDAO organizationProfileDAO)
-        //{
-        //    _OrganizationProfileDAO = organizationProfileDAO;
-        //}
-
-        //public bool AddOrganizationProfile(OrganizationProfile organizationProfile) => _OrganizationProfileDAO.Add(organizationProfile);
-        //public bool UpdateOrganizationProfile(OrganizationProfile organizationProfile) => _OrganizationProfileDAO.Update(organizationProfile);
-
-        //public IEnumerable<OrganizationProfile> ListOrganizationProfile() => _OrganizationProfileDAO.List();
-
-        //public OrganizationProfile GetOrganizationProfile(int Id) => _OrganizationProfileDAO.GetById(Id);
 
         private readonly VolunteerManagementSystemContext _context;
         private readonly IMapper _mapper;
@@ -45,21 +32,6 @@ namespace ivan_api.Repository.OrganizationProfiles
             _context.Entry(organizationProfile).State = EntityState.Modified;
 
             return await _context.SaveChangesAsync() > 0;
-        }
-
-        public async Task<IEnumerable<Organization>> ListOrganizationProfile(OrganizationProfileFilterModel filter)
-        {
-            var query = _context.Organizations
-                .Include(x => x.User)
-                .Include(x => x.VerifiedByNavigation)
-                .Include(x => x.Type)
-                .AsQueryable();
-
-            //return query.ToList();
-            return await query
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToListAsync();
         }
 
         public async Task<PagedResultDto<OrganizationProfileViewModel>> GetOrganizationProfilesAsync(int PageNumber, int PageSize)
@@ -87,7 +59,7 @@ namespace ivan_api.Repository.OrganizationProfiles
             };
         }
 
-        public async Task<Organization> GetOrganizationProfileById(int userId)
+        public async Task<Organization?> GetOrganizationProfileById(int userId)
         {
             var org = await _context.Organizations
                 .Include(x => x.User)
@@ -105,9 +77,83 @@ namespace ivan_api.Repository.OrganizationProfiles
                 .Include(x => x.Type)
                 .AsQueryable();
 
-            if (query == null) return -1;
+            if (!await query.AnyAsync()) return -1;
 
-            return query.ToList().Last().OrganizationId;
+            return (await query.ToListAsync()).Last().OrganizationId;
+        }
+
+        public async Task<PagedResultDto<PublicOrganizationDTO>> GetPublicOrganizationsAsync(PublicOrganizationFiltersDTO filters)
+        {
+            var query = _context.Organizations
+                .Include(o => o.Type)
+                .Where(o => o.IsActive == true); // Only active organizations
+
+            // Apply filters
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var searchTerm = filters.Search.ToLower();
+                query = query.Where(o => 
+                    o.OrganizationName.ToLower().Contains(searchTerm) ||
+                    (o.ShortName != null && o.ShortName.ToLower().Contains(searchTerm)) ||
+                    (o.Description != null && o.Description.ToLower().Contains(searchTerm)));
+            }
+
+            if (filters.TypeId.HasValue)
+            {
+                query = query.Where(o => o.TypeId == filters.TypeId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.Province))
+            {
+                query = query.Where(o => o.Province == filters.Province);
+            }
+
+            if (filters.IsVerified.HasValue)
+            {
+                query = query.Where(o => o.IsVerified == filters.IsVerified.Value);
+            }
+
+            // Order by rating and verification status (verified first, then by rating)
+            query = query.OrderByDescending(o => o.IsVerified)
+                         .ThenByDescending(o => o.Rating)
+                         .ThenByDescending(o => o.RatingCount);
+
+            // Get total count
+            var totalItems = await query.CountAsync();
+
+            // Apply pagination
+            var organizations = await query
+                .Skip((filters.Page - 1) * filters.Size)
+                .Take(filters.Size)
+                .ProjectTo<PublicOrganizationDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResultDto<PublicOrganizationDTO>
+            {
+                Items = organizations,
+                PageNumber = filters.Page,
+                PageSize = filters.Size,
+                TotalCount = totalItems
+            };
+        }
+
+        public async Task<PublicOrganizationDTO?> GetPublicOrganizationAsync(int id)
+        {
+            var organization = await _context.Organizations
+                .Include(o => o.Type)
+                .Where(o => o.OrganizationId == id && o.IsActive == true)
+                .ProjectTo<PublicOrganizationDTO>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+
+            return organization;
+        }
+
+        public async Task<IEnumerable<OrganizationType>> GetAllOrganizationTypesAsync()
+        {
+            return await _context.OrganizationTypes
+                .Where(ot => ot.IsActive == true)
+                .OrderBy(ot => ot.TypeName)
+                .ToListAsync();
         }
     }
 }

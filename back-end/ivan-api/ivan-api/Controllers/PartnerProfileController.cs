@@ -1,7 +1,13 @@
-﻿using ivan_api.Services.PartnerProfiles;
+using ivan_api.Constants;
+using ivan_api.Services.PartnerProfiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ivan_api.DTOs.PartnerProfiles;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs;
+using System.Security.Claims;
+using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers
 {
@@ -10,142 +16,406 @@ namespace ivan_api.Controllers
     public class PartnerProfileController : ControllerBase
     {
         private readonly IPartnerProfileService _service;
+        private readonly ILogger<PartnerProfileController> _logger;
+        private readonly IAuthenticationService _authenticationService;
 
-        public PartnerProfileController(IPartnerProfileService service)
+        public PartnerProfileController(
+            IPartnerProfileService service,
+            ILogger<PartnerProfileController> logger,
+            IAuthenticationService authenticationService)
         {
             _service = service;
+            _logger = logger;
+            _authenticationService = authenticationService;
         }
 
-        //[HttpPost("list")]
-        //public async Task<IActionResult> List([FromBody] PartnerProfileFilterModel filter)
-        //{
-        //    var result = await _service.ListPartnerProfile(filter);
-        //    return Ok(result);
-        //}
+        #region Public Endpoints
 
+        // Get all public partners with filtering and pagination
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>>> GetPublicPartners(
+            [FromQuery] string? search,
+            [FromQuery] int? industryId,
+            [FromQuery] string? province,
+            [FromQuery] bool? isVerified,
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            try
+            {
+                var filters = new PublicPartnerFiltersDTO
+                {
+                    Search = search,
+                    IndustryId = industryId,
+                    Province = province,
+                    IsVerified = isVerified,
+                    Page = page,
+                    Size = size
+                };
+
+                var result = await _service.GetPublicPartnersAsync(filters);
+                
+                return Ok(new ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Partners retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public partners");
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PublicPartnerDTO>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partners" }
+                });
+            }
+        }
+
+        // Get specific partner's public information
+        [HttpGet("public/{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<PublicPartnerDTO>>> GetPublicPartner(int id)
+        {
+            try
+            {
+                var partner = await _service.GetPublicPartnerAsync(id);
+                
+                if (partner == null)
+                {
+                    return NotFound(new ApiResponseDTO<PublicPartnerDTO>
+                    {
+                        Success = false,
+                        Message = "Partner not found",
+                        Errors = new List<string> { $"Partner with ID {id} does not exist or is not active" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<PublicPartnerDTO>
+                {
+                    Success = true,
+                    Data = partner,
+                    Message = "Partner retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving public partner with ID {PartnerId}", id);
+                return StatusCode(500, new ApiResponseDTO<PublicPartnerDTO>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partner" }
+                });
+            }
+        }
+
+        // Get all partner industries
+        [HttpGet("public/partner-industries")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponseDTO<List<PartnerIndustryDto>>>> GetPartnerIndustries()
+        {
+            try
+            {
+                var industries = await _service.GetAllPartnerIndustriesAsync();
+
+                return Ok(new ApiResponseDTO<List<PartnerIndustryDto>>
+                {
+                    Success = true,
+                    Data = industries.ToList(),
+                    Message = "Partner industries retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving partner industries");
+                return StatusCode(500, new ApiResponseDTO<List<PartnerIndustryDto>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partner industries" }
+                });
+            }
+        }
+
+        #endregion
+
+        #region Partner Management Endpoints
+
+        // Get partner profiles list (Admin only)
         [HttpGet]
-        public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PartnerProfileViewModel>>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _service.GetList(pageNumber, pageSize);
-                return Ok(result);
+                return Ok(new ApiResponseDTO<PagedResultDto<PartnerProfileViewModel>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Partner profiles retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error retrieving partner profiles");
+                return StatusCode(500, new ApiResponseDTO<PagedResultDto<PartnerProfileViewModel>>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partner profiles" }
+                });
             }
         }
 
+        // Get partner profile by user ID
         [HttpGet("get/{userId}")]
-        public async Task<IActionResult> Details(int userId)
+        [Authorize(Roles = "Partner,Admin")]
+        public async Task<ActionResult<ApiResponseDTO<PartnerProfileViewModel>>> Details(int userId)
         {
             try
             {
+                // Check authorization for own profile access
+                if (User.IsInRole(AuthenticationConstants.Roles.Partner))
+                {
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
+                    if (currentUserId != userId)
+                    {
+                        return Forbid("You can only access your own partner profile");
+                    }
+                }
+
                 var result = await _service.GetPartnerProfileById(userId);
-                return Ok(result);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<PartnerProfileViewModel>
+                    {
+                        Success = false,
+                        Message = $"Partner profile for UserId={userId} not found.",
+                        Errors = new List<string> { $"Partner with ID {userId} does not exist" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Partner profile retrieved successfully"
+                });
             }
             catch(Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                _logger.LogError(ex, "Error retrieving partner profile for UserId: {UserId}", userId);
+                return StatusCode(500, new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to retrieve partner profile" }
+                });
             }
         }
 
+        // Create new partner profile (Admin only)
         [HttpPost("add")]
-        public async Task<IActionResult> Add([FromBody] PartnerProfileInputModel input)
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
+        public async Task<ActionResult<ApiResponseDTO<PartnerProfileViewModel>>> Add([FromBody] PartnerProfileCreateDto input)
         {
             if (input == null)
             {
-                input = new PartnerProfileInputModel();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
             {
                 var result = await _service.AddPartnerProfile(input);
 
-                if (!result)//if false
+                if (!result)
                 {
-                    return BadRequest("Failed to add partner profile");
+                    return BadRequest(new ApiResponseDTO<PartnerProfileViewModel>
+                    {
+                        Success = false,
+                        Message = "Failed to create partner profile",
+                        Errors = new List<string> { "Unable to create partner profile" }
+                    });
                 }
 
-                var listDto = await _service.GetList(1, 100);
+                // Get the newly created profile
+                var lastId = await _service.GetLastId();
+                var created = await _service.GetPartnerProfileById(lastId);
 
-                var list = listDto.Items.ToList();
-
-                var postAdd = await _service.GetPartnerProfileById(list.Last().PartnerId);
-
-                return Ok(postAdd);
+                return CreatedAtAction(
+                    nameof(Details),
+                    new { userId = created.UserId },
+                    new ApiResponseDTO<PartnerProfileViewModel>
+                    {
+                        Success = true,
+                        Data = created,
+                        Message = "Partner profile created successfully"
+                    }
+                );
             }
             catch(Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error creating partner profile");
+                return StatusCode(500, new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to create partner profile" }
+                });
             }
         }
 
+        // Update partner profile
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update([FromBody] PartnerProfileUpdateModel input, int id)
+        [Authorize(Roles = "Partner,Admin")]
+        public async Task<ActionResult<ApiResponseDTO<PartnerProfileViewModel>>> Update([FromBody] PartnerProfileUpdateDto input, int id)
         {
             if (input == null)
             {
-                input = new PartnerProfileUpdateModel();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
             {
-                var result = await _service.UpdatePartnerProfile(input, id);
-
-                var postUpate = await _service.GetPartnerProfileById(id);
-
-                if (!result)//if false
+                // Check authorization for own profile updates
+                if (User.IsInRole(AuthenticationConstants.Roles.Partner))
                 {
-                    return BadRequest(postUpate);
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
+                    if (currentUserId != id)
+                    {
+                        return Forbid("You can only update your own partner profile");
+                    }
                 }
 
-                return Ok(postUpate);
+                var result = await _service.UpdatePartnerProfile(input, id);
+                if (!result)
+                {
+                    return NotFound(new ApiResponseDTO<PartnerProfileViewModel>
+                    {
+                        Success = false,
+                        Message = $"Partner profile with UserId={id} not found.",
+                        Errors = new List<string> { $"Partner with ID {id} does not exist" }
+                    });
+                }
+
+                var updated = await _service.GetPartnerProfileById(id);
+                return Ok(new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = true,
+                    Data = updated,
+                    Message = "Partner profile updated successfully"
+                });
             }
             catch(Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                _logger.LogError(ex, "Error updating partner profile for UserId: {UserId}", id);
+                return StatusCode(500, new ApiResponseDTO<PartnerProfileViewModel>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to update partner profile" }
+                });
             }
         }
 
-        /// <summary>
-        /// GET api/PartnerProfile/{userId}/completion
-        /// Get partner profile completion percentage and missing fields
-        /// </summary>
+        // Get partner profile completion percentage and missing fields
         [HttpGet("{userId}/completion")]
-        public async Task<ActionResult<ProfileCompletionDto>> GetProfileCompletion(int userId)
+        [Authorize(Roles = "Partner,Admin")]
+        public async Task<ActionResult<ApiResponseDTO<ProfileCompletionDto>>> GetProfileCompletion(int userId)
         {
             try
             {
+                // Check authorization for own profile completion access
+                if (User.IsInRole(AuthenticationConstants.Roles.Partner))
+                {
+                    var currentUserId = _authenticationService.GetUserIdFromClaims(User);
+                    if (currentUserId != userId)
+                    {
+                        return Forbid("You can only access your own partner profile completion");
+                    }
+                }
+
                 var profile = await _service.GetPartnerProfileById(userId);
                 if (profile == null)
-                    return NotFound(new { message = $"Partner profile for UserId={userId} not found." });
+                    return NotFound(new ApiResponseDTO<ProfileCompletionDto>
+                    {
+                        Success = false,
+                        Message = $"Partner profile for UserId={userId} not found.",
+                        Errors = new List<string> { $"Partner with ID {userId} does not exist" }
+                    });
 
                 var completion = CalculatePartnerProfileCompletion(profile);
-                return Ok(completion);
+                return Ok(new ApiResponseDTO<ProfileCompletionDto>
+                {
+                    Success = true,
+                    Data = completion,
+                    Message = "Profile completion calculated successfully"
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error calculating profile completion", error = ex.Message });
+                _logger.LogError(ex, "Error calculating profile completion for UserId: {UserId}", userId);
+                return StatusCode(500, new ApiResponseDTO<ProfileCompletionDto>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to calculate profile completion" }
+                });
             }
         }
 
+        #endregion
+
+        #region Private Helper Methods
+
         private ProfileCompletionDto CalculatePartnerProfileCompletion(PartnerProfileViewModel profile)
         {
-            var totalFields = 10; // Total important fields
+            var totalFields = 10;
             var completedFields = 0;
             var missingFields = new List<string>();
 
@@ -170,14 +440,7 @@ namespace ivan_api.Controllers
             };
         }
 
-        //public async Task<int> getLastId()
-        //{
-        //    var temp = await _service.GetList(1, 1000);
-        //    if (temp.Items == null) return -1;
-        //    var lastLst = temp.Items.ToList();
-        //    var last = lastLst.Last().PartnerId;
+        #endregion
 
-        //    return last == null ? -1 : last;
-        //}
     }
 }

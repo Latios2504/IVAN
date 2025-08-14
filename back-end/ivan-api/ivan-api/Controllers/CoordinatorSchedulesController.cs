@@ -1,9 +1,13 @@
-﻿using ivan_api.Constants;
-using ivan_api.DTOs;
+using ivan_api.Constants;
+using ivan_api.DTOs.Schedule;
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
+<<<<<<< HEAD
 using ivan_api.Extensions;
 using ivan_api.Services;
+=======
+using ivan_api.Services.ScheduleServ;
+>>>>>>> he176119
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +28,7 @@ namespace ivan_api.Controllers
         // For Volunteer Coordinator: View personal schedules
         [HttpGet("personal")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<ScheduleDTO>>>> GetPersonalSchedules([FromQuery] int? eventId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int page = 1, [FromQuery] int size = 20)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<ScheduleDTO>>>> GetPersonalSchedules([FromQuery] int? eventId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)

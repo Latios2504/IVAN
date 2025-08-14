@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using ivan_api.Constants;
 using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.Services.OnSiteTasks;
@@ -21,16 +21,6 @@ namespace ivan_api.Controllers
             _service = service;
         }
 
-        //[HttpPost("list")]
-        //public async Task<IActionResult> List([FromBody] OnSiteTaskFilterModel filter)
-        //{
-        //    var result = await _service.ListOnSiteTask(filter);
-        //    return Ok(result);
-        //}
-
-        /// <summary>
-        /// Get list of on-site tasks (Coordinator and Volunteer can view)
-        /// </summary>
         [HttpGet]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
@@ -46,9 +36,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        /// <summary>
         /// Get on-site task details by ID (Coordinator and Volunteer can view)
-        /// </summary>
         [HttpGet("get/{id}")]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<IActionResult> Details(int id)
@@ -64,9 +52,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        /// <summary>
         /// Add new on-site task (Only Coordinator can add)
-        /// </summary>
         [HttpPost("add")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> Add([FromBody] OnSiteTaskInputModel input)
@@ -86,7 +72,7 @@ namespace ivan_api.Controllers
             {
                 var result = await _service.AddOnSiteTask(input);
 
-                if (!result)//if false
+                if (!result)
                 {
                     return BadRequest("Failed to add task");
                 }
@@ -105,9 +91,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        /// <summary>
         /// Update on-site task (Only Coordinator can update)
-        /// </summary>
         [HttpPut("update/{id}")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<IActionResult> Update([FromBody] OnSiteTaskUpdateModel input, int id)

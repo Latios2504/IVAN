@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
 import {
   Card,
   CardContent,
@@ -45,11 +44,18 @@ interface AdminStats {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const {
-    stats: adminStats,
-    loading: statsLoading,
-    error: statsError,
-  } = useDashboardStats();
+
+  // Mock admin stats
+  const adminStats = {
+    totalUsers: 1250,
+    totalOrganizations: 89,
+    totalEvents: 342,
+    totalVolunteers: 950,
+    pendingRequests: 12,
+  };
+  const statsLoading = false;
+  const statsError = null;
+
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
 
   const toggleChatBot = () => {

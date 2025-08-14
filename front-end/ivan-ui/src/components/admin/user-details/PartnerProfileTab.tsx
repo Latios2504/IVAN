@@ -14,37 +14,17 @@ import {
   Award,
   Users,
 } from "lucide-react";
-import { profileService } from "@/services/profileService";
-import type { UserAccountDetailDto } from "@/types/userManagement";
+import { partnerProfileService } from "@/services/partnerProfileService";
+import type { UserListDto } from "@/types/userManagement";
+import type { PartnerProfileViewModel } from "@/types/partnerProfile";
 
 interface PartnerProfileTabProps {
-  user: UserAccountDetailDto;
-}
-
-interface PartnerProfileData {
-  partnerId: number;
-  companyName: string;
-  industryId: number;
-  industryName?: string;
-  taxCode?: string;
-  businessLicense?: string;
-  website?: string;
-  description?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  isVerified: boolean;
-  verifiedAt?: string;
-  rating?: number;
-  ratingCount: number;
-  totalCollaborations: number;
+  user: UserListDto;
 }
 
 export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
   const [partnerProfile, setPartnerProfile] =
-    useState<PartnerProfileData | null>(null);
+    useState<PartnerProfileViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,9 +32,8 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
     const fetchPartnerProfile = async () => {
       try {
         setLoading(true);
-        const profile = await profileService.getProfileByRole(
-          user.userId,
-          "partner"
+        const profile = await partnerProfileService.getPartnerProfile(
+          user.userId
         );
         setPartnerProfile(profile);
       } catch (err: any) {
@@ -64,14 +43,14 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
       }
     };
 
-    if (user.roleName.toLowerCase() === "partner") {
+    if (user.roleName?.toLowerCase() === "partner") {
       fetchPartnerProfile();
     } else {
       setLoading(false);
     }
   }, [user.userId, user.roleName]);
 
-  if (user.roleName.toLowerCase() !== "partner") {
+  if (user.roleName?.toLowerCase() !== "partner") {
     return null;
   }
 

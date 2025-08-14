@@ -5,7 +5,8 @@ using System.Text;
 using System.Text.Json;
 using ivan_api.Configuration;
 using ivan_api.Models;
-using ivan_api.Services;
+using ivan_api.Repository.EventRegistrationRepo;
+using ivan_api.Services.EventRegistrationSer;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Services.VolunteerProfileServ;
 using ivan_api.Repository.EventRepo;
@@ -30,9 +31,6 @@ using ivan_api.Services.OnSiteTasks;
 using ivan_api.Services.OrganizationProfiles;
 using ivan_api.Services.PartnerCollaborationServ;
 using ivan_api.Repository.PartnerCollaborationRepo;
-using ivan_api.Services.PublicContentServ;
-using ivan_api.Services.UserAccountServ;
-using ivan_api.Repository.UserAccountRepo;
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
@@ -44,6 +42,9 @@ using ivan_api.Repository.CoordinatorScheduleRepo;
 using ivan_api.Services.CoordinatorScheduleServ;
 using ivan_api.Repository.VolunteerScheduleRepo;
 using ivan_api.Services.VolunteerScheduleServ;
+using ivan_api.Repository.UserManagement;
+using ivan_api.Services.UserManagement;
+using ivan_api.Services.ScheduleServ;
 
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
@@ -152,9 +153,9 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IEventRegistrationRepository, EventRegistrationRepository>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
-builder.Services.AddScoped<IPublicContentService, PublicContentService>();
 
 // AutoMapper Configuration - Minimal configuration to avoid MaxFloat issue
 builder.Services.AddAutoMapper(cfg =>
@@ -189,6 +190,10 @@ builder.Services.AddScoped<IOrganizationProfileService, OrganizationProfileServi
 builder.Services.AddScoped<IPartnerProfileRepository, PartnerProfileRepository>();
 builder.Services.AddScoped<IPartnerProfileService, PartnerProfileService>();
 
+// User Management DI
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddScoped<IOnSiteTaskRepository, OnSiteTaskRepository>();
 builder.Services.AddScoped<IOnSiteTaskService, OnSiteTaskService>();
 
@@ -205,9 +210,6 @@ GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 // Partner Collaboration DI
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
 builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
-
-builder.Services.AddScoped<IUserAccountService, UserAccountService>();
-builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 
 // Support Request DI
 builder.Services.AddScoped<ISupportRequestRepository, SupportRequestRepository>();

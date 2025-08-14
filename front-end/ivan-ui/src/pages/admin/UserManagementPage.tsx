@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { userManagementService } from "@/services/userManagementService";
+import { userManagementService } from "../../services/userManagementService";
 import type {
-  UserAccountListDto,
-  UserAccountDetailDto,
-  UserAccountFilterDto,
-  UserAccountUpdateDto,
-  UserStatisticsDto,
-} from "@/types/userManagement";
+  UserListDto,
+  UserDetailsDto,
+  UserFiltersDto,
+  UserStatusUpdateDto,
+  UserRoleDto,
+} from "../../types/userManagement";
 import { useAuth } from "@/hooks/useAuth";
 import {
   AlertCircle,
@@ -33,40 +33,44 @@ import type { TableColumn, TableAction } from "@/components/common/DataTable";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { LoadingState } from "@/components/common/LoadingState";
 
-// Define UserListItem type based on UserAccountListDto
-type UserListItem = UserAccountListDto;
+// Define UserListItem type based on UserListDto
+type UserListItem = UserListDto;
 
 // Extended filter type to include additional UI filter properties
-interface ExtendedFilterDto extends UserAccountFilterDto {
+interface ExtendedFilterDto extends Omit<UserFiltersDto, "page" | "size"> {
   role?: string;
   status?: string;
   dateRange?: string;
   searchTerm?: string;
+  sortBy?: string;
+  sortDirection?: string;
+  page: number;
+  size: number;
 }
 
 // User selector utilities
 const userSelectors = {
-  filterUsersByRole: (users: UserAccountListDto[], role?: string) => {
+  filterUsersByRole: (users: UserListDto[], role?: string) => {
     if (!role || role === "all") return users;
     return users.filter(
-      (user) => user.roleName.toLowerCase() === role.toLowerCase()
+      (user) => user.roleName?.toLowerCase() === role.toLowerCase()
     );
   },
 
-  filterUsersByStatus: (users: UserAccountListDto[], status?: string) => {
+  filterUsersByStatus: (users: UserListDto[], status?: string) => {
     if (!status || status === "all") return users;
     if (status === "active") return users.filter((user) => user.isActive);
     if (status === "inactive") return users.filter((user) => !user.isActive);
     return users;
   },
 
-  searchUsers: (users: UserAccountListDto[], searchTerm?: string) => {
+  searchUsers: (users: UserListDto[], searchTerm?: string) => {
     if (!searchTerm || searchTerm.trim() === "") return users;
     const term = searchTerm.toLowerCase();
     return users.filter(
       (user) =>
         user.email.toLowerCase().includes(term) ||
-        (user.fullName?.toLowerCase() || "").includes(term)
+        (user.displayName?.toLowerCase() || "").includes(term)
     );
   },
 };
@@ -80,7 +84,11 @@ const roleUtils = {
       organization: "Tổ chức",
       partner: "Đối tác",
       coordinator: "Điều phối viên",
+      volunteercoordinator: "Điều phối viên",
       admin: "Quản trị viên",
+      administrator: "Quản trị viên",
+      // Handle any variations in casing or naming
+      "volunteer coordinator": "Điều phối viên",
     };
     return roleMap[roleName.toLowerCase()] || roleName;
   },
@@ -104,48 +112,54 @@ export default function UserManagementPageNew() {
 
   // Service adapters
   const userDataService = {
-    getAll: async (): Promise<UserAccountListDto[]> => {
-      const defaultFilter: UserAccountFilterDto = {
+    getAll: async (): Promise<UserListDto[]> => {
+      const defaultFilter: UserFiltersDto = {
         page: 1,
         size: 100,
-        sortBy: "createdAt",
-        sortDirection: "DESC",
       };
       const result = await userManagementService.getUsers(defaultFilter);
       return result.items;
     },
-    getById: async (id: number | string): Promise<UserAccountDetailDto> => {
+    getById: async (id: number | string): Promise<UserDetailsDto> => {
       const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      return await userManagementService.getUserDetail(numericId);
+      return await userManagementService.getUserDetails(numericId);
     },
     update: async (
       id: number | string,
-      data: UserAccountUpdateDto
-    ): Promise<UserAccountListDto> => {
+      data: UserStatusUpdateDto
+    ): Promise<UserListDto> => {
       const numericId = typeof id === "string" ? parseInt(id, 10) : id;
-      const currentUserId = currentUser?.id || 0;
-      await userManagementService.updateUserAccount(
-        numericId,
-        currentUserId,
-        data
-      );
+      await userManagementService.updateUserStatus(numericId, data.isActive);
       // Return a basic user object - you might need to fetch the updated user
       return {
         userId: numericId,
-        email: data.userId?.toString() || "",
+        email: "",
+        roleId: 0,
         roleName: "",
         isActive: data.isActive || false,
-        isEmailVerified: data.isEmailVerified || false,
-        statusDisplay: "",
-        verificationDisplay: "",
-      } as UserAccountListDto;
+        isEmailVerified: false,
+        lastLoginAt: null,
+        createdAt: new Date().toISOString(),
+      } as UserListDto;
     },
   };
 
   const userStatsService = {
     getAll: async (): Promise<any[]> => {
       try {
-        const result = await userManagementService.getUserStatistics();
+        // Since getUserStatistics doesn't exist yet, we'll calculate stats from users
+        const usersResponse = await userManagementService.getUsers({});
+        const usersData = usersResponse.items || [];
+
+        const totalUsers = usersData.length;
+        const activeUsers = usersData.filter(
+          (u: UserListDto) => u.isActive
+        ).length;
+        const inactiveUsers = totalUsers - activeUsers;
+        const unverifiedUsers = usersData.filter(
+          (u: UserListDto) => !u.isEmailVerified
+        ).length;
+
         // Transform the statistics result to include both UserStatisticsDto format
         // and the aggregate statistics for display
         return [
@@ -157,10 +171,10 @@ export default function UserManagementPageNew() {
             isNewUser: false,
             activityScore: 0,
             // Additional aggregate properties for display
-            totalUsers: result.totalUsers,
-            activeUsers: result.activeUsers,
-            inactiveUsers: result.inactiveUsers,
-            unverifiedUsers: result.unverifiedUsers,
+            totalUsers,
+            activeUsers,
+            inactiveUsers,
+            unverifiedUsers,
           },
         ];
       } catch (error) {
@@ -168,11 +182,11 @@ export default function UserManagementPageNew() {
         const users_data = users || [];
         const totalUsers = users_data.length;
         const activeUsers = users_data.filter(
-          (u: UserAccountListDto) => u.isActive
+          (u: UserListDto) => u.isActive
         ).length;
         const inactiveUsers = totalUsers - activeUsers;
         const unverifiedUsers = users_data.filter(
-          (u: UserAccountListDto) => !u.isEmailVerified
+          (u: UserListDto) => !u.isEmailVerified
         ).length;
 
         return [
@@ -193,11 +207,11 @@ export default function UserManagementPageNew() {
   };
 
   // Use the new state management
-  const [users, setUsers] = useState<UserAccountListDto[]>([]);
+  const [users, setUsers] = useState<UserListDto[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
 
-  const [stats, setStats] = useState<UserStatisticsDto[]>([]);
+  const [stats, setStats] = useState<any[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
 
@@ -225,9 +239,7 @@ export default function UserManagementPageNew() {
   });
 
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [selectedUser, setSelectedUser] = useState<UserAccountListDto | null>(
-    null
-  );
+  const [selectedUser, setSelectedUser] = useState<UserListDto | null>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -283,6 +295,7 @@ export default function UserManagementPageNew() {
       console.error("Invalid user data for view");
       return;
     }
+
     setSelectedUserId(user.userId);
     try {
       const userDetail = await userDataService.getById(user.userId);
@@ -297,12 +310,7 @@ export default function UserManagementPageNew() {
 
   const handleToggleUserStatus = async (userId: number, newStatus: boolean) => {
     try {
-      const currentUserId = currentUser?.id || 0;
-      await userManagementService.toggleUserStatus(
-        userId,
-        currentUserId,
-        newStatus
-      );
+      await userManagementService.updateUserStatus(userId, newStatus);
 
       // Refresh users list
       setUsersLoading(true);
@@ -339,12 +347,13 @@ export default function UserManagementPageNew() {
   };
 
   const handleResetFilters = () => {
-    setFilters({
+    setFilters((prev) => ({
+      ...prev,
       role: "all",
       status: "all",
       searchTerm: "",
       dateRange: "all",
-    });
+    }));
   };
 
   const closeAllModals = () => {
@@ -369,7 +378,7 @@ export default function UserManagementPageNew() {
   // Table columns definition
   const columns: TableColumn<UserListItem>[] = [
     {
-      key: "fullName",
+      key: "displayName",
       header: "Tên người dùng",
       render: (value, user) => {
         if (!user) {
@@ -389,14 +398,14 @@ export default function UserManagementPageNew() {
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-sm font-medium text-blue-600">
-                {(user.fullName || user.email || "U")
+                {(user.displayName || user.email || "U")
                   ?.charAt(0)
                   ?.toUpperCase() || "U"}
               </span>
             </div>
             <div>
               <div className="font-medium">
-                {user.fullName || "Chưa cập nhật"}
+                {user.displayName || "Chưa cập nhật"}
               </div>
               <div className="text-sm text-gray-500">
                 {user.email || "Không có email"}
@@ -415,7 +424,7 @@ export default function UserManagementPageNew() {
         }
         return (
           <Badge variant="outline">
-            {roleUtils.getRoleDisplayName(user.roleName)}
+            {roleUtils.getRoleDisplayName(user.roleName || "unknown")}
           </Badge>
         );
       },
@@ -474,13 +483,14 @@ export default function UserManagementPageNew() {
     },
   ];
 
-  // Table actions
+  // Table actions - Show details for all users including admin
   const actions: TableAction<UserListItem>[] = [
     {
       label: "Xem chi tiết",
       icon: <Eye className="w-4 h-4" />,
       onClick: handleViewUser,
       variant: "default",
+      // Show "View Details" for all users including admin
     },
     {
       label: "Thay đổi trạng thái",

@@ -9,11 +9,19 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Users, Calendar, Award, LayoutDashboard } from "lucide-react";
-import { useSystemStats } from "@/hooks/useDashboardStats";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
-  const { stats, loading, error } = useSystemStats();
+  // Mock system stats
+  const stats = {
+    totalVolunteers: 1250,
+    totalOrganizations: 89,
+    totalEvents: 342,
+    totalHours: 15640,
+  };
+  const loading = false;
+  const error = null;
+
   const { isAuthenticated, user } = useAuth();
 
   // Get role-specific dashboard URL

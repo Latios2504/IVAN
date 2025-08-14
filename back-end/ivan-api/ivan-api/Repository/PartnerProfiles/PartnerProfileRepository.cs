@@ -9,19 +9,6 @@ namespace ivan_api.Repository.PartnerProfiles
 {
     public class PartnerProfileRepository : IPartnerProfileRepository
     {
-        //private readonly OrganizationProfileDAO _OrganizationProfileDAO;
-
-        //public OrganizationProfileRepository(OrganizationProfileDAO organizationProfileDAO)
-        //{
-        //    _OrganizationProfileDAO = organizationProfileDAO;
-        //}
-
-        //public bool AddOrganizationProfile(OrganizationProfile organizationProfile) => _OrganizationProfileDAO.Add(organizationProfile);
-        //public bool UpdateOrganizationProfile(OrganizationProfile organizationProfile) => _OrganizationProfileDAO.Update(organizationProfile);
-
-        //public IEnumerable<OrganizationProfile> ListOrganizationProfile() => _OrganizationProfileDAO.List();
-
-        //public OrganizationProfile GetOrganizationProfile(int Id) => _OrganizationProfileDAO.GetById(Id);
 
         private readonly VolunteerManagementSystemContext _context;
         private readonly IMapper _mapper;
@@ -45,21 +32,6 @@ namespace ivan_api.Repository.PartnerProfiles
             _context.Entry(partnerProfile).State = EntityState.Modified;
 
             return await _context.SaveChangesAsync() > 0;
-        }
-
-        public async Task<IEnumerable<Partner>> ListPartnerProfile(PartnerProfileFilterModel filter)
-        {
-            var query = _context.Partners
-                .Include(x => x.User)
-                .Include(x => x.VerifiedByNavigation)
-                .Include(x => x.Industry)
-                .AsQueryable();
-
-            //return query.ToList();
-            return await query
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToListAsync();
         }
 
         public async Task<PagedResultDto<PartnerProfileViewModel>> GetPartnerProfilesAsync(int PageNumber, int PageSize)
@@ -87,7 +59,7 @@ namespace ivan_api.Repository.PartnerProfiles
             };
         }
 
-        public async Task<Partner> GetPartnerProfileById(int userId)
+        public async Task<Partner?> GetPartnerProfileById(int userId)
         {
             var par = await _context.Partners
                 .Include(x => x.User)
@@ -105,9 +77,82 @@ namespace ivan_api.Repository.PartnerProfiles
                 .Include(x => x.Industry)
                 .AsQueryable();
 
-            if (query == null) return -1;
+            if (!await query.AnyAsync()) return -1;
 
-            return query.ToList().Last().PartnerId;
+            return (await query.ToListAsync()).Last().PartnerId;
+        }
+
+        public async Task<PagedResultDto<PublicPartnerDTO>> GetPublicPartnersAsync(PublicPartnerFiltersDTO filters)
+        {
+            var query = _context.Partners
+                .Include(p => p.Industry)
+                .Where(p => p.IsActive == true); // Only active partners
+
+            // Apply filters
+            if (!string.IsNullOrWhiteSpace(filters.Search))
+            {
+                var searchTerm = filters.Search.ToLower();
+                query = query.Where(p => 
+                    p.CompanyName.ToLower().Contains(searchTerm) ||
+                    (p.Description != null && p.Description.ToLower().Contains(searchTerm)));
+            }
+
+            if (filters.IndustryId.HasValue)
+            {
+                query = query.Where(p => p.IndustryId == filters.IndustryId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.Province))
+            {
+                query = query.Where(p => p.Province == filters.Province);
+            }
+
+            if (filters.IsVerified.HasValue)
+            {
+                query = query.Where(p => p.IsVerified == filters.IsVerified.Value);
+            }
+
+            // Order by verification status (verified first), then by rating and collaboration count
+            query = query.OrderByDescending(p => p.IsVerified)
+                         .ThenByDescending(p => p.Rating)
+                         .ThenByDescending(p => p.TotalCollaborations);
+
+            // Get total count
+            var totalItems = await query.CountAsync();
+
+            // Apply pagination
+            var partners = await query
+                .Skip((filters.Page - 1) * filters.Size)
+                .Take(filters.Size)
+                .ProjectTo<PublicPartnerDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResultDto<PublicPartnerDTO>
+            {
+                Items = partners,
+                PageNumber = filters.Page,
+                PageSize = filters.Size,
+                TotalCount = totalItems
+            };
+        }
+
+        public async Task<PublicPartnerDTO?> GetPublicPartnerAsync(int id)
+        {
+            var partner = await _context.Partners
+                .Include(p => p.Industry)
+                .Where(p => p.PartnerId == id && p.IsActive == true)
+                .ProjectTo<PublicPartnerDTO>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+
+            return partner;
+        }
+
+        public async Task<IEnumerable<PartnerIndustry>> GetAllPartnerIndustriesAsync()
+        {
+            return await _context.PartnerIndustries
+                .Where(pi => pi.IsActive == true)
+                .OrderBy(pi => pi.IndustryName)
+                .ToListAsync();
         }
     }
 }

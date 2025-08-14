@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { UserRole } from "@/types/auth";
 import {
   Building2,
@@ -48,7 +47,18 @@ interface Partnership {
 
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
-  const { stats: partnerStats, loading, error } = useDashboardStats();
+
+  // Mock loading states
+  const loading = false;
+  const error = null;
+
+  // Mock partner stats
+  const partnerStats = {
+    totalCollaborations: 12,
+    activeProjects: 8,
+    totalInvestment: 250000000,
+    partneredOrganizations: 15,
+  };
 
   // Mock data
   const partnerships: Partnership[] = [

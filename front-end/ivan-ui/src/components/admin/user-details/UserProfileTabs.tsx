@@ -5,10 +5,10 @@ import { VolunteerProfileTab } from "./VolunteerProfileTab";
 import { OrganizationProfileTab } from "./OrganizationProfileTab";
 import { PartnerProfileTab } from "./PartnerProfileTab";
 import { CoordinatorProfileTab } from "./CoordinatorProfileTab";
-import type { UserAccountDetailDto } from "@/types/userManagement";
+import type { UserDetailsDto } from "@/types/userManagement";
 
 interface UserProfileTabsProps {
-  user: UserAccountDetailDto;
+  user: UserDetailsDto;
 }
 
 export function UserProfileTabs({ user }: UserProfileTabsProps) {
@@ -21,8 +21,34 @@ export function UserProfileTabs({ user }: UserProfileTabsProps) {
       },
     ];
 
-    // Add role-specific tabs based on user role
-    switch (user.roleName.toLowerCase()) {
+    // Determine user role from different possible properties
+    let roleName = "";
+
+    // Check if user has roleName property (Admin/Coordinator case)
+    if (user?.roleName) {
+      roleName = user.roleName;
+    }
+    // Check if user has RoleName property (alternative casing)
+    else if (user?.RoleName) {
+      roleName = user.RoleName;
+    }
+    // Infer role from profile type (for volunteer/organization/partner)
+    else if (user?.volunteerId || user?.studentId || user?.university) {
+      roleName = "volunteer";
+    } else if (user?.organizationId || user?.organizationName) {
+      roleName = "organization";
+    } else if (user?.partnerId || user?.companyName) {
+      roleName = "partner";
+    } else {
+      // Default to admin if no role can be determined
+      roleName = "admin";
+    }
+
+    if (!roleName) {
+      return tabs; // Return only basic tab if role cannot be determined
+    }
+
+    switch (roleName?.toLowerCase()) {
       case "volunteer":
         tabs.push({
           value: "volunteer",

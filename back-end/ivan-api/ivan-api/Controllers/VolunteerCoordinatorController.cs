@@ -4,6 +4,8 @@ using ivan_api.DTOs.VolunteerCoordinator;
 using ivan_api.Services.VolunteerCoordinatorServ;
 using ivan_api.Constants;
 using System.Security.Claims;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs;
 
 namespace ivan_api.Controllers;
 
@@ -39,20 +41,20 @@ public class VolunteerCoordinatorController : ControllerBase
             }
 
             var result = await _coordinatorService.GetCoordinatorsByOrganizationAsync(organizationId, filter);
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Coordinators retrieved successfully", 
-                data = result 
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Data = result,
+                Message = "Coordinators retrieved successfully"
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error retrieving coordinators", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Internal server error",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -62,28 +64,33 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("{coordinatorId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> GetCoordinatorById(int coordinatorId)
+    public async Task<ActionResult<ApiResponseDTO<object>>> GetCoordinatorById(int coordinatorId)
     {
         try
         {
             var coordinator = await _coordinatorService.GetCoordinatorByIdAsync(coordinatorId);
             if (coordinator == null)
-                return NotFound(new { success = false, message = "Coordinator not found" });
+                return NotFound(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Coordinator not found",
+                    Errors = new List<string> { $"Coordinator with ID {coordinatorId} does not exist" }
+                });
 
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Coordinator retrieved successfully", 
-                data = coordinator 
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Data = coordinator,
+                Message = "Coordinator retrieved successfully"
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error retrieving coordinator", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Internal server error",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -93,28 +100,33 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("byUser/{userId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> GetCoordinatorByUserId(int userId)
+    public async Task<ActionResult<ApiResponseDTO<object>>> GetCoordinatorByUserId(int userId)
     {
         try
         {
             var coordinator = await _coordinatorService.GetCoordinatorByUserIdAsync(userId);
             if (coordinator == null)
-                return NotFound(new { success = false, message = "Coordinator not found" });
+                return NotFound(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Coordinator not found",
+                    Errors = new List<string> { $"Coordinator with user ID {userId} does not exist" }
+                });
 
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Coordinator retrieved successfully", 
-                data = coordinator 
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Data = coordinator,
+                Message = "Coordinator retrieved successfully"
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error retrieving coordinator", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Internal server error",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -124,12 +136,24 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpPost("{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> CreateCoordinator(int organizationId, [FromBody] CreateVolunteerCoordinatorDto createDto)
+    public async Task<ActionResult<ApiResponseDTO<object>>> CreateCoordinator(int organizationId, [FromBody] CreateVolunteerCoordinatorDto createDto)
     {
         try
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
+            }
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int currentUserId))
@@ -139,28 +163,38 @@ public class VolunteerCoordinatorController : ControllerBase
             return CreatedAtAction(
                 nameof(GetCoordinatorById), 
                 new { coordinatorId = coordinator.CoordinatorId }, 
-                new 
-                { 
-                    success = true, 
-                    message = "Coordinator created successfully", 
-                    data = coordinator 
+                new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = coordinator,
+                    Message = "Coordinator created successfully"
                 });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = ex.Message,
+                Errors = new List<string> { ex.Message }
+            });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { success = false, message = ex.Message });
+            return Conflict(new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = ex.Message,
+                Errors = new List<string> { ex.Message }
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error creating coordinator", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Internal server error",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -170,40 +204,69 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpPut("{coordinatorId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> UpdateCoordinator(int coordinatorId, [FromBody] UpdateVolunteerCoordinatorDto updateDto)
+    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> UpdateCoordinator(int coordinatorId, [FromBody] UpdateVolunteerCoordinatorDto updateDto)
     {
         try
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<VolunteerCoordinatorDto>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
+            }
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int currentUserId))
-                return Unauthorized();
+            {
+                return Unauthorized(new ApiResponseDTO<VolunteerCoordinatorDto>
+                {
+                    Success = false,
+                    Message = "Unauthorized access",
+                    Errors = new List<string> { "Invalid user credentials" }
+                });
+            }
 
             var coordinator = await _coordinatorService.UpdateCoordinatorAsync(coordinatorId, updateDto, currentUserId);
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Coordinator updated successfully", 
-                data = coordinator 
+            return Ok(new ApiResponseDTO<VolunteerCoordinatorDto>
+            {
+                Success = true,
+                Message = "Coordinator updated successfully",
+                Data = coordinator
             });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(new ApiResponseDTO<VolunteerCoordinatorDto>
+            {
+                Success = false,
+                Message = ex.Message,
+                Errors = new List<string> { ex.Message }
+            });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { success = false, message = ex.Message });
+            return Conflict(new ApiResponseDTO<VolunteerCoordinatorDto>
+            {
+                Success = false,
+                Message = ex.Message,
+                Errors = new List<string> { ex.Message }
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error updating coordinator", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<VolunteerCoordinatorDto>
+            {
+                Success = false,
+                Message = "Error updating coordinator",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -225,7 +288,12 @@ public class VolunteerCoordinatorController : ControllerBase
             if (!result)
                 return NotFound(new { success = false, message = "Coordinator not found" });
 
-            return Ok(new { success = true, message = "Coordinator removed successfully" });
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Coordinator removed successfully",
+                Data = new { coordinatorId }
+            });
         }
         catch (Exception ex)
         {
@@ -243,25 +311,25 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("stats/{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> GetCoordinatorStats(int organizationId)
+    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorStatsDto>>> GetCoordinatorStats(int organizationId)
     {
         try
         {
             var stats = await _coordinatorService.GetCoordinatorStatsAsync(organizationId);
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Statistics retrieved successfully", 
-                data = stats 
+            return Ok(new ApiResponseDTO<VolunteerCoordinatorStatsDto>
+            {
+                Success = true,
+                Message = "Statistics retrieved successfully",
+                Data = stats
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error retrieving statistics", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<VolunteerCoordinatorStatsDto>
+            {
+                Success = false,
+                Message = "Error retrieving statistics",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -271,25 +339,25 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("managers/{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> GetAvailableManagers(int organizationId)
+    public async Task<ActionResult<ApiResponseDTO<List<VolunteerCoordinatorDto>>>> GetAvailableManagers(int organizationId)
     {
         try
         {
             var managers = await _coordinatorService.GetAvailableManagersAsync(organizationId);
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Managers retrieved successfully", 
-                data = managers 
+            return Ok(new ApiResponseDTO<List<VolunteerCoordinatorDto>>
+            {
+                Success = true,
+                Message = "Managers retrieved successfully",
+                Data = managers
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error retrieving managers", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<List<VolunteerCoordinatorDto>>
+            {
+                Success = false,
+                Message = "Error retrieving managers",
+                Errors = new List<string> { ex.Message }
             });
         }
     }
@@ -299,25 +367,25 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("check/{userId}/{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> IsUserCoordinatorForOrganization(int userId, int organizationId)
+    public async Task<ActionResult<ApiResponseDTO<bool>>> IsUserCoordinatorForOrganization(int userId, int organizationId)
     {
         try
         {
             var isCoordinator = await _coordinatorService.IsUserCoordinatorForOrganizationAsync(userId, organizationId);
-            return Ok(new 
-            { 
-                success = true, 
-                message = "Check completed successfully", 
-                data = new { isCoordinator } 
+            return Ok(new ApiResponseDTO<bool>
+            {
+                Success = true,
+                Message = "Check completed successfully",
+                Data = isCoordinator
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error checking coordinator status", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new ApiResponseDTO<bool>
+            {
+                Success = false,
+                Message = "Error checking coordinator status",
+                Errors = new List<string> { ex.Message }
             });
         }
     }

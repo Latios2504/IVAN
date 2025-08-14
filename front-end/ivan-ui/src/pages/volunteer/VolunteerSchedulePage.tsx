@@ -221,16 +221,19 @@ export default function VolunteerSchedulePage() {
             <div className="space-y-2">
               <Label>Trạng thái</Label>
               <Select
-                value={filters.status || ""}
+                value={filters.status || "all"}
                 onValueChange={(value) =>
-                  handleFilterChange("status", value || undefined)
+                  handleFilterChange(
+                    "status",
+                    value === "all" ? undefined : value
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
                   <SelectItem value="InProgress">Đang thực hiện</SelectItem>
                   <SelectItem value="Completed">Hoàn thành</SelectItem>
@@ -242,16 +245,19 @@ export default function VolunteerSchedulePage() {
             <div className="space-y-2">
               <Label>Loại lịch trình</Label>
               <Select
-                value={filters.scheduleType || ""}
+                value={filters.scheduleType || "all"}
                 onValueChange={(value) =>
-                  handleFilterChange("scheduleType", value || undefined)
+                  handleFilterChange(
+                    "scheduleType",
+                    value === "all" ? undefined : value
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả loại" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả loại</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value="Event">Sự kiện</SelectItem>
                   <SelectItem value="Training">Đào tạo</SelectItem>
                   <SelectItem value="Meeting">Họp</SelectItem>
@@ -263,16 +269,19 @@ export default function VolunteerSchedulePage() {
             <div className="space-y-2">
               <Label>Mức độ ưu tiên</Label>
               <Select
-                value={filters.priority || ""}
+                value={filters.priority || "all"}
                 onValueChange={(value) =>
-                  handleFilterChange("priority", value || undefined)
+                  handleFilterChange(
+                    "priority",
+                    value === "all" ? undefined : value
+                  )
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả mức độ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả mức độ</SelectItem>
+                  <SelectItem value="all">Tất cả mức độ</SelectItem>
                   <SelectItem value="High">Cao</SelectItem>
                   <SelectItem value="Medium">Trung bình</SelectItem>
                   <SelectItem value="Low">Thấp</SelectItem>

@@ -1,4 +1,5 @@
-using ivan_api.DTOs;
+using ivan_api.DTOs.VolunteerSchedule;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +26,7 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
                 .FirstOrDefaultAsync(vs => vs.ScheduleId == scheduleId);
         }
 
-        public async Task<PagedResultDTO<VolunteerSchedule>> GetPagedAsync(VolunteerScheduleFilterDTO filter, int? organizationId = null)
+        public async Task<PagedResultDto<VolunteerSchedule>> GetPagedAsync(VolunteerScheduleFilterDTO filter, int? organizationId = null)
         {
             var query = _context.VolunteerSchedules
                 .Include(vs => vs.Volunteer)
@@ -119,13 +120,12 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
                 .Take(filter.Size)
                 .ToListAsync();
 
-            return new PagedResultDTO<VolunteerSchedule>
+            return new PagedResultDto<VolunteerSchedule>
             {
                 Items = items,
-                Page = filter.Page,
-                Size = filter.Size,
-                TotalItems = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)filter.Size)
+                PageNumber = filter.Page,
+                PageSize = filter.Size,
+                TotalCount = totalCount
             };
         }
 
@@ -301,7 +301,7 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
                 .ToListAsync();
         }
 
-        public async Task<PagedResultDTO<VolunteerSchedule>> GetOrganizationVolunteerSchedulesAsync(int organizationId, VolunteerScheduleFilterDTO filter)
+        public async Task<PagedResultDto<VolunteerSchedule>> GetOrganizationVolunteerSchedulesAsync(int organizationId, VolunteerScheduleFilterDTO filter)
         {
             return await GetPagedAsync(filter, organizationId);
         }

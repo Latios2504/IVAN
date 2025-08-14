@@ -20,14 +20,25 @@ import {
   Settings,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
-import type { OrganizationStats } from "@/types/dashboard";
 
 export default function OrganizationDashboard() {
   const { user } = useAuth();
-  const { stats, loading, error } = useDashboardStats();
 
-  const orgStats = stats as OrganizationStats;
+  // Mock organization stats
+  const orgStats = {
+    totalEvents: 45,
+    totalVolunteers: 230,
+    activeEvents: 8,
+    completedEvents: 37,
+    totalHours: 4850,
+    newVolunteersThisMonth: 15,
+    totalCoordinators: 8,
+    certificatesIssued: 125,
+    hoursThisMonth: 320,
+    averageRating: 4.7,
+  };
+  const loading = false;
+  const error = null;
 
   return (
     <div className="container mx-auto px-4 py-8">

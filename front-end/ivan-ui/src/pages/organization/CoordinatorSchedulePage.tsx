@@ -510,7 +510,7 @@ export default function CoordinatorSchedulePage() {
                 </SelectTrigger>
                 <SelectContent>
                   {coordinatorsLoading ? (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="loading" disabled>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       Đang tải...
                     </SelectItem>
@@ -530,11 +530,11 @@ export default function CoordinatorSchedulePage() {
             <div className="grid gap-2">
               <Label htmlFor="event">Sự kiện (tùy chọn)</Label>
               <Select
-                value={formData.eventId?.toString() || ""}
+                value={formData.eventId?.toString() || "none"}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    eventId: value ? parseInt(value) : undefined,
+                    eventId: value === "none" ? undefined : parseInt(value),
                   })
                 }
               >
@@ -542,9 +542,9 @@ export default function CoordinatorSchedulePage() {
                   <SelectValue placeholder="Chọn sự kiện" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Không có sự kiện</SelectItem>
+                  <SelectItem value="none">Không có sự kiện</SelectItem>
                   {eventsLoading ? (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="loading" disabled>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       Đang tải...
                     </SelectItem>

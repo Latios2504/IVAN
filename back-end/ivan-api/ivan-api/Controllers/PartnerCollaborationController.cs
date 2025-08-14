@@ -1,4 +1,4 @@
-﻿using ivan_api.DTOs.PartnerCollaboration;
+using ivan_api.DTOs.PartnerCollaboration;
 using ivan_api.Services.PartnerCollaborationServ;
 using Microsoft.AspNetCore.Mvc;
 
