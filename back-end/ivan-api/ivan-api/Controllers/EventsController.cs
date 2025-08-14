@@ -124,7 +124,7 @@ namespace ivan_api.Controllers
         {
             try
             {
-                var organizationId = GetOrganizationIdFromClaims();
+                var organizationId = await GetOrganizationIdFromClaimsAsync();
                 dto.OrganizationId = organizationId; // Ensure security
 
                 var newId = await _eventService.CreateAsync(dto);
@@ -136,6 +136,16 @@ namespace ivan_api.Controllers
                         Data = new { EventId = newId },
                         Message = "Event created successfully"
                     });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized access when creating event");
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Errors = new List<string> { "Authorization failed" }
+                });
             }
             catch (Exception ex)
             {
@@ -192,7 +202,7 @@ namespace ivan_api.Controllers
         {
             try
             {
-                var organizationId = GetOrganizationIdFromClaims();
+                var organizationId = await GetOrganizationIdFromClaimsAsync();
                 var success = await _eventService.DeleteAsync(id, organizationId);
 
                 if (!success)
@@ -208,6 +218,16 @@ namespace ivan_api.Controllers
                 {
                     Success = true,
                     Message = "Event deleted successfully"
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized access when deleting event {EventId}", id);
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Errors = new List<string> { "Authorization failed" }
                 });
             }
             catch (Exception ex)
@@ -276,14 +296,32 @@ namespace ivan_api.Controllers
             }
         }
 
-        private int GetOrganizationIdFromClaims()
+        private async Task<int> GetOrganizationIdFromClaimsAsync()
         {
-            var organizationClaim = User.FindFirst("OrganizationId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-            if (organizationClaim == null || !int.TryParse(organizationClaim.Value, out int orgId))
+            try
             {
-                return 1; // Default organization ID for testing
+                // Get user ID from claims
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    throw new UnauthorizedAccessException("Invalid user ID in token");
+                }
+
+                // Get user info with profile data from authentication service
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+                
+                if (!userInfo.OrganizationId.HasValue)
+                {
+                    throw new UnauthorizedAccessException("User is not associated with any organization");
+                }
+
+                return userInfo.OrganizationId.Value;
             }
-            return orgId;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting organization ID from claims for user");
+                throw new UnauthorizedAccessException("Failed to retrieve organization information");
+            }
         }
     }
 }

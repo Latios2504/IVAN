@@ -1,11 +1,9 @@
 using ivan_api.Constants;
 using ivan_api.DTOs.Schedule;
-using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
 using ivan_api.Extensions;
 using ivan_api.Services.ScheduleServ;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
