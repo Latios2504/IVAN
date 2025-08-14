@@ -1,4 +1,4 @@
-﻿using ivan_api.Constants;
+using ivan_api.Constants;
 using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.Services.CoordinatorTaskServ;
 using Microsoft.AspNetCore.Authorization;
@@ -43,7 +43,7 @@ namespace ivan_api.Controllers
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
         public async Task<IActionResult> Create([FromBody] CoordinatorTaskDto dto)
         {
-            var userId = GetUserId(); // implement lấy UserId từ JWT
+            var userId = GetUserId(); // implement l?y UserId t? JWT
             var task = await _service.CreateTaskAsync(dto, userId);
             return CreatedAtAction(nameof(GetById), new { id = task.TaskId }, task);
         }

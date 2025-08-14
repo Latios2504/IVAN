@@ -1,7 +1,9 @@
+using ivan_api.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.AI;
 using ivan_api.Services.AI.Interfaces;
+using ivan_api.Services.AuthenticationSer;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using ivan_api.DTOs.Common;
@@ -19,20 +21,23 @@ public class AiCustomInstructionController : ControllerBase
 {
     private readonly IAiCustomInstructionService _customInstructionService;
     private readonly ILogger<AiCustomInstructionController> _logger;
+    private readonly IAuthenticationService _authenticationService;
 
     public AiCustomInstructionController(
         IAiCustomInstructionService customInstructionService,
-        ILogger<AiCustomInstructionController> logger)
+        ILogger<AiCustomInstructionController> logger,
+        IAuthenticationService authenticationService)
     {
         _customInstructionService = customInstructionService;
         _logger = logger;
+        _authenticationService = authenticationService;
     }
 
     /// <summary>
     /// Get all AI custom instructions (Admin only)
     /// </summary>
     [HttpGet("all")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
     public async Task<ActionResult<ApiResponseDTO<List<AiCustomInstructionDTO>>>> GetAllInstructions()
     {
         try
@@ -65,7 +70,7 @@ public class AiCustomInstructionController : ControllerBase
     {
         try
         {
-            var userId = GetCurrentUserId();
+            var userId = _authenticationService.GetUserIdFromClaims(User);
             var userRole = GetCurrentUserRole();
 
             var instructions = await _customInstructionService.GetUserCustomInstructionsAsync(userId, userRole);
@@ -150,7 +155,7 @@ public class AiCustomInstructionController : ControllerBase
                 });
             }
 
-            var userId = GetCurrentUserId();
+            var userId = _authenticationService.GetUserIdFromClaims(User);
             var instruction = await _customInstructionService.CreateCustomInstructionAsync(createDto, userId);
 
             return CreatedAtAction(nameof(GetInstruction), new { id = instruction.InstructionId }, 
@@ -304,12 +309,6 @@ public class AiCustomInstructionController : ControllerBase
 
 
     #region Private Helper Methods
-
-    private int GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
-    }
 
     private string GetCurrentUserRole()
     {

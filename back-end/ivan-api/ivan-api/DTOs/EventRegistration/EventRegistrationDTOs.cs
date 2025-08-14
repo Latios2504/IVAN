@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ivan_api.DTOs.EventRegistration
 {
     public class EventDTO
@@ -17,7 +19,10 @@ namespace ivan_api.DTOs.EventRegistration
 
     public class RegistrationRequestDTO
     {
+        [StringLength(1000, ErrorMessage = "Additional info cannot exceed 1000 characters")]
         public string AdditionalInfo { get; set; } = string.Empty;
+        
+        [StringLength(2000, ErrorMessage = "Motivation letter cannot exceed 2000 characters")]
         public string MotivationLetter { get; set; } = string.Empty;
     }
 
@@ -49,6 +54,8 @@ namespace ivan_api.DTOs.EventRegistration
 
     public class RejectRegistrationRequestDTO
     {
+        [Required(ErrorMessage = "Rejection reason is required")]
+        [StringLength(500, ErrorMessage = "Reason cannot exceed 500 characters")]
         public string Reason { get; set; } = string.Empty;
     }
 }

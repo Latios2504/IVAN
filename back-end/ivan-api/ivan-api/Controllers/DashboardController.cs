@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ivan_api.Services.Analytics;
 using ivan_api.DTOs.Analytics;
 using ivan_api.DTOs.Common;
+using ivan_api.Constants;
 
 namespace ivan_api.Controllers
 {
@@ -55,7 +56,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("organization-stats")]
-        [Authorize(Roles = "Organization")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
         public ActionResult<ApiResponseDTO<object>> GetOrganizationStats()
         {
             try
@@ -91,7 +92,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("volunteer-stats")]
-        [Authorize(Roles = "Volunteer")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
         public ActionResult<ApiResponseDTO<object>> GetVolunteerStats()
         {
             try
@@ -126,7 +127,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("partner-stats")]
-        [Authorize(Roles = "Partner")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Partner)]
         public ActionResult<ApiResponseDTO<object>> GetPartnerStats()
         {
             try
@@ -159,7 +160,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("coordinator/{coordinatorId}/stats")]
-        [Authorize(Roles = "Organization,Admin")]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
         public ActionResult<ApiResponseDTO<object>> GetCoordinatorStats(int coordinatorId)
         {
             try
@@ -420,7 +421,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("admin-stats")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<AdminOverviewStatsDto>>> GetAdminStats([FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
@@ -447,7 +448,7 @@ namespace ivan_api.Controllers
 
         // New Analytics Endpoints
         [HttpGet("admin-analytics/overview")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<AdminOverviewStatsDto>>> GetAdminOverviewAnalytics([FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
@@ -473,7 +474,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("admin-analytics/system-health")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<SystemHealthDto>>> GetSystemHealth()
         {
             try
@@ -499,7 +500,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("admin-analytics/users")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetUserAnalytics([FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
@@ -537,7 +538,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("admin-analytics/events")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventAnalytics([FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try

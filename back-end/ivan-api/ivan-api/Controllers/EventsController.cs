@@ -1,4 +1,5 @@
-﻿using ivan_api.DTOs.EventManage;
+using ivan_api.Constants;
+using ivan_api.DTOs.EventManage;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.EventServ;
 using Microsoft.AspNetCore.Authorization;
@@ -111,7 +112,7 @@ namespace ivan_api.Controllers
 
         // Create new event (Organizations only)
         [HttpPost]
-        [Authorize(Roles = "Organization")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
         public async Task<ActionResult<ApiResponseDTO<object>>> CreateEvent([FromBody] CreateEventDto dto)
         {
             try
@@ -143,7 +144,7 @@ namespace ivan_api.Controllers
 
         // Update event (Organizations only)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Organization")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
         public async Task<ActionResult<ApiResponseDTO<object>>> UpdateEvent(int id, [FromBody] UpdateEventDto dto)
         {
             try
@@ -179,7 +180,7 @@ namespace ivan_api.Controllers
 
         // Delete event (Organizations only)
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Organization")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
         public async Task<ActionResult<ApiResponseDTO<object>>> DeleteEvent(int id)
         {
             try
@@ -243,7 +244,7 @@ namespace ivan_api.Controllers
 
         // Get event statuses (for organizations)
         [HttpGet("statuses")]
-        [Authorize(Roles = "Organization")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
         public async Task<ActionResult<ApiResponseDTO<IEnumerable<EventStatusDto>>>> GetStatuses()
         {
             try

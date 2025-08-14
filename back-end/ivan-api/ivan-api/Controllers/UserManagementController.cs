@@ -1,3 +1,4 @@
+using ivan_api.Constants;
 using ivan_api.DTOs.UserManagement;
 using ivan_api.Services.UserManagement;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace ivan_api.Controllers
 
         // Get paginated users list for admin
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<PagedResultDto<UserListDTO>>>> GetUsers(
             [FromQuery] string? search = null,
             [FromQuery] int? roleId = null,
@@ -79,7 +80,7 @@ namespace ivan_api.Controllers
 
         // Get detailed user information for admin
         [HttpGet("{userId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetUserDetails(int userId)
         {
             try
@@ -130,7 +131,7 @@ namespace ivan_api.Controllers
 
         // Update user account status (admin only)
         [HttpPut("{userId}/status")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<bool>>> UpdateUserStatus(int userId, [FromBody] UserStatusUpdateDTO statusUpdate)
         {
             try
@@ -185,7 +186,7 @@ namespace ivan_api.Controllers
 
         // Get all user roles for dropdown/filter
         [HttpGet("roles")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<IEnumerable<UserRoleDto>>>> GetUserRoles()
         {
             try

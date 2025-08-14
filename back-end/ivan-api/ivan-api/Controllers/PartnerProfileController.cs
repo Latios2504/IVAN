@@ -1,4 +1,5 @@
-﻿using ivan_api.Services.PartnerProfiles;
+using ivan_api.Constants;
+using ivan_api.Services.PartnerProfiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -146,7 +147,7 @@ namespace ivan_api.Controllers
 
         // Get partner profiles list (Admin only)
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<PagedResultDto<PartnerProfileViewModel>>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -179,7 +180,7 @@ namespace ivan_api.Controllers
             try
             {
                 // Check authorization for own profile access
-                if (User.IsInRole("Partner"))
+                if (User.IsInRole(AuthenticationConstants.Roles.Partner))
                 {
                     var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
@@ -220,7 +221,7 @@ namespace ivan_api.Controllers
 
         // Create new partner profile (Admin only)
         [HttpPost("add")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<PartnerProfileViewModel>>> Add([FromBody] PartnerProfileCreateDto input)
         {
             if (input == null)
@@ -322,7 +323,7 @@ namespace ivan_api.Controllers
             try
             {
                 // Check authorization for own profile updates
-                if (User.IsInRole("Partner"))
+                if (User.IsInRole(AuthenticationConstants.Roles.Partner))
                 {
                     var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != id)
@@ -370,7 +371,7 @@ namespace ivan_api.Controllers
             try
             {
                 // Check authorization for own profile completion access
-                if (User.IsInRole("Partner"))
+                if (User.IsInRole(AuthenticationConstants.Roles.Partner))
                 {
                     var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)

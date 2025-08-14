@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.Wordprocessing;
 using ivan_api.DTOs.Reports;
 using ivan_api.Services.Reports;
 using Microsoft.AspNetCore.Http;

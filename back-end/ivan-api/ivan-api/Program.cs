@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using ivan_api.Configuration;
 using ivan_api.Models;
+using ivan_api.Repository.EventRegistrationRepo;
 using ivan_api.Services.EventRegistrationSer;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Services.VolunteerProfileServ;
@@ -142,6 +143,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IEventRegistrationRepository, EventRegistrationRepository>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 

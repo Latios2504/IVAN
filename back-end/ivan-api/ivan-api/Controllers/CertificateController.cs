@@ -1,4 +1,4 @@
-﻿using ivan_api.Services.Certificates;
+using ivan_api.Services.Certificates;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.Certificates;

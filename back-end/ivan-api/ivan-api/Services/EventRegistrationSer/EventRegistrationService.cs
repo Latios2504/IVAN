@@ -1,774 +1,346 @@
-using ivan_api.DTOs.Authentication;
+using AutoMapper;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
 using ivan_api.Models;
+using ivan_api.Repository.EventRegistrationRepo;
 using ivan_api.Services.EmailSer;
-using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services.EventRegistrationSer
 {
     public class EventRegistrationService : IEventRegistrationService
     {
-        private readonly VolunteerManagementSystemContext _context;
+        private readonly IEventRegistrationRepository _repository;
+        private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly ILogger<EventRegistrationService> _logger;
         
-        public EventRegistrationService(VolunteerManagementSystemContext context, IEmailService emailService)
+        public EventRegistrationService(
+            IEventRegistrationRepository repository, 
+            IMapper mapper, 
+            IEmailService emailService,
+            ILogger<EventRegistrationService> logger)
         {
-            _context = context;
+            _repository = repository;
+            _mapper = mapper;
             _emailService = emailService;
+            _logger = logger;
         }
 
-        public async Task<ApiResponseDTO<RegistrationDTO>> AddRegistrationAsync(int eventId, int userId, RegistrationRequestDTO request)
+        public async Task<RegistrationDTO> AddRegistrationAsync(int eventId, int userId, RegistrationRequestDTO request)
         {
-            try
+            // Validate volunteer exists
+            var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
+            if (volunteer == null)
             {
-                var volunteer = await _context.VolunteerProfiles.FirstOrDefaultAsync(v => v.UserId == userId);
-                if (volunteer == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "T�nh nguy?n vi�n kh�ng t?n t?i",
-                        Errors = new List<string> { "Volunteer profile not found" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
-                if (eventEntity == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "S? ki?n kh�ng t?n t?i ho?c kh�ng ho?t d?ng",
-                        Errors = new List<string> { "Event not found" }
-                    };
-                }
-
-                if (DateTime.UtcNow < eventEntity.RegistrationStartDate || DateTime.UtcNow > eventEntity.RegistrationEndDate)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Th?i gian dang k� d� d�ng",
-                        Errors = new List<string> { "Registration period closed" }
-                    };
-                }
-
-                var existingRegistration = await _context.EventRegistrations
-                    .FirstOrDefaultAsync(r => r.EventId == eventId && r.VolunteerId == volunteer.VolunteerId);
-                if (existingRegistration != null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "B?n d� dang k� s? ki?n n�y",
-                        Errors = new List<string> { "Duplicate registration" }
-                    };
-                }
-
-                var status = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "�ang ch? duy?t");
-                if (status == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng t�m th?y tr?ng th�i dang k�",
-                        Errors = new List<string> { "Registration status not found" }
-                    };
-                }
-
-                var registration = new EventRegistration
-                {
-                    EventId = eventId,
-                    VolunteerId = volunteer.VolunteerId,
-                    StatusId = status.StatusId,
-                    ApplicationDate = DateTime.UtcNow,
-                    AdditionalInfo = request.AdditionalInfo,
-                    MotivationLetter = request.MotivationLetter
-                };
-
-                _context.EventRegistrations.Add(registration);
-                await _context.SaveChangesAsync();
-
-                var coordinator = await _context.VolunteerCoordinators
-                    .Include(c => c.User)
-                    .FirstOrDefaultAsync(c => c.OrganizationId == eventEntity.OrganizationId);
-                if (coordinator?.User?.Email != null)
-                {
-                    await _emailService.SendEventNotificationAsync(
-                        coordinator.User.Email,
-                        eventEntity.EventName,
-                        $"M?t t�nh nguy?n vi�n m?i d� dang k� tham gia s? ki?n: {eventEntity.EventName}. Vui l�ng ki?m tra v� duy?t.");
-                }
-
-                var registrationDto = new RegistrationDTO
-                {
-                    RegistrationId = registration.RegistrationId,
-                    EventId = registration.EventId,
-                    VolunteerId = registration.VolunteerId,
-                    StatusName = status.StatusName,
-                    ApplicationDate = registration.ApplicationDate
-                };
-
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = true,
-                    Message = "�ang k� th�nh c�ng",
-                    Data = registrationDto
-                };
+                throw new InvalidOperationException("Volunteer profile not found");
             }
-            catch (Exception ex)
+
+            // Validate event exists and is active
+            var eventEntity = await _repository.GetEventWithOrganizationAsync(eventId);
+            if (eventEntity == null)
             {
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                throw new InvalidOperationException("Event not found or inactive");
             }
+
+            // Check registration period
+            if (DateTime.UtcNow < eventEntity.RegistrationStartDate || DateTime.UtcNow > eventEntity.RegistrationEndDate)
+            {
+                throw new InvalidOperationException("Registration period has ended");
+            }
+
+            // Check for duplicate registration
+            var duplicateExists = await _repository.CheckDuplicateRegistrationAsync(eventId, volunteer.VolunteerId);
+            if (duplicateExists)
+            {
+                throw new InvalidOperationException("Already registered for this event");
+            }
+
+            // Get pending status
+            var pendingStatus = await _repository.GetRegistrationStatusAsync("Chờ duyệt");
+            if (pendingStatus == null)
+            {
+                _logger.LogError("Registration status 'Chờ duyệt' not found");
+                throw new InvalidOperationException("System error: Registration status not found");
+            }
+
+            // Create registration
+            var registration = _mapper.Map<EventRegistration>(request);
+            registration.EventId = eventId;
+            registration.VolunteerId = volunteer.VolunteerId;
+            registration.StatusId = pendingStatus.StatusId;
+            registration.ApplicationDate = DateTime.UtcNow;
+            registration.CreatedAt = DateTime.UtcNow;
+            registration.UpdatedAt = DateTime.UtcNow;
+
+            var success = await _repository.CreateRegistrationAsync(registration);
+            if (!success)
+            {
+                _logger.LogError("Failed to create registration for event {EventId} by user {UserId}", eventId, userId);
+                throw new InvalidOperationException("Failed to create registration");
+            }
+
+            // Get the created registration for response
+            var createdRegistration = await _repository.GetRegistrationByVolunteerAsync(eventId, volunteer.VolunteerId);
+            var registrationDto = _mapper.Map<RegistrationDTO>(createdRegistration);
+
+            return registrationDto;
         }
 
-        public async Task<ApiResponseDTO<RegistrationDTO>> UpdateRegistrationAsync(int eventId, int registrationId, int userId, RegistrationRequestDTO request)
+        public async Task<bool> UpdateRegistrationAsync(int eventId, int registrationId, int userId, RegistrationRequestDTO request)
         {
-            try
+            // Get volunteer
+            var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
+            if (volunteer == null)
             {
-                var volunteer = await _context.VolunteerProfiles.FirstOrDefaultAsync(v => v.UserId == userId);
-                if (volunteer == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "T�nh nguy?n vi�n kh�ng t?n t?i",
-                        Errors = new List<string> { "Volunteer profile not found" }
-                    };
-                }
-
-                var registration = await _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .FirstOrDefaultAsync(r => r.RegistrationId == registrationId && r.EventId == eventId && r.VolunteerId == volunteer.VolunteerId);
-                if (registration == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng t?n t?i ho?c kh�ng thu?c v? b?n",
-                        Errors = new List<string> { "Registration not found" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
-                if (eventEntity == null || DateTime.UtcNow > eventEntity.RegistrationEndDate)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Th?i gian dang k� d� d�ng",
-                        Errors = new List<string> { "Registration period closed" }
-                    };
-                }
-
-                if (registration.Status.StatusName != "�ang ch? duy?t")
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng th? c?p nh?t dang k� d� du?c duy?t ho?c t? ch?i",
-                        Errors = new List<string> { "Invalid registration status" }
-                    };
-                }
-
-                registration.AdditionalInfo = request.AdditionalInfo;
-                registration.MotivationLetter = request.MotivationLetter;
-                registration.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                var registrationDto = new RegistrationDTO
-                {
-                    RegistrationId = registration.RegistrationId,
-                    EventId = registration.EventId,
-                    VolunteerId = registration.VolunteerId,
-                    StatusName = registration.Status.StatusName,
-                    ApplicationDate = registration.ApplicationDate
-                };
-
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = true,
-                    Message = "C?p nh?t dang k� th�nh c�ng",
-                    Data = registrationDto
-                };
+                throw new InvalidOperationException("Volunteer profile not found");
             }
-            catch (Exception ex)
+
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null || registration.VolunteerId != volunteer.VolunteerId)
             {
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi c?p nh?t dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                throw new InvalidOperationException("Registration not found or access denied");
             }
+
+            // Check if registration is still pending
+            if (registration.Status?.StatusName != "Chờ duyệt")
+            {
+                throw new InvalidOperationException("Only pending registrations can be updated");
+            }
+
+            // Update registration
+            registration.AdditionalInfo = request.AdditionalInfo;
+            registration.MotivationLetter = request.MotivationLetter;
+            registration.UpdatedAt = DateTime.UtcNow;
+
+            var success = await _repository.UpdateRegistrationAsync(registration);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to update registration");
+            }
+
+            return true;
         }
 
-        public async Task<ApiResponseDTO<object>> CancelRegistrationAsync(int eventId, int registrationId, int userId)
+        public async Task<bool> CancelRegistrationAsync(int eventId, int registrationId, int userId)
         {
-            try
+            // Get volunteer
+            var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
+            if (volunteer == null)
             {
-                var volunteer = await _context.VolunteerProfiles.FirstOrDefaultAsync(v => v.UserId == userId);
-                if (volunteer == null)
-                {
-                    return new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "T�nh nguy?n vi�n kh�ng t?n t?i",
-                        Errors = new List<string> { "Volunteer profile not found" }
-                    };
-                }
-
-                var registration = await _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .FirstOrDefaultAsync(r => r.RegistrationId == registrationId && r.EventId == eventId && r.VolunteerId == volunteer.VolunteerId);
-                if (registration == null)
-                {
-                    return new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng t?n t?i ho?c kh�ng thu?c v? b?n",
-                        Errors = new List<string> { "Registration not found" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault());
-                if (eventEntity == null || DateTime.UtcNow > eventEntity.RegistrationEndDate)
-                {
-                    return new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Th?i gian dang k� d� d�ng",
-                        Errors = new List<string> { "Registration period closed" }
-                    };
-                }
-
-                if (registration.Status.StatusName != "�ang ch? duy?t")
-                {
-                    return new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Kh�ng th? h?y dang k� d� du?c duy?t ho?c t? ch?i",
-                        Errors = new List<string> { "Invalid registration status" }
-                    };
-                }
-
-                var cancelledStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "�� h?y");
-                if (cancelledStatus == null)
-                {
-                    return new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Kh�ng t�m th?y tr?ng th�i h?y",
-                        Errors = new List<string> { "Cancelled status not found" }
-                    };
-                }
-
-                registration.StatusId = cancelledStatus.StatusId;
-                registration.CancelledDate = DateTime.UtcNow;
-                registration.CancellationReason = "H?y b?i t�nh nguy?n vi�n";
-                registration.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                return new ApiResponseDTO<object>
-                {
-                    Success = true,
-                    Message = "H?y dang k� th�nh c�ng",
-                    Data = null
-                };
+                throw new InvalidOperationException("Volunteer profile not found");
             }
-            catch (Exception ex)
+
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null || registration.VolunteerId != volunteer.VolunteerId)
             {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi h?y dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                throw new InvalidOperationException("Registration not found or access denied");
             }
+
+            // Check if registration can be cancelled
+            if (registration.Status?.StatusName != "Chờ duyệt" && registration.Status?.StatusName != "Đã duyệt")
+            {
+                throw new InvalidOperationException("Only pending or approved registrations can be cancelled");
+            }
+
+            // Get cancelled status
+            var cancelledStatus = await _repository.GetRegistrationStatusAsync("Đã hủy");
+            if (cancelledStatus == null)
+            {
+                _logger.LogError("Registration status 'Đã hủy' not found");
+                throw new InvalidOperationException("System error: Cancellation status not found");
+            }
+
+            // Update registration to cancelled (soft delete)
+            registration.StatusId = cancelledStatus.StatusId;
+            registration.CancelledDate = DateTime.UtcNow;
+            registration.CancellationReason = "Cancelled by volunteer";
+            registration.UpdatedAt = DateTime.UtcNow;
+
+            var success = await _repository.UpdateRegistrationAsync(registration);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to cancel registration");
+            }
+
+            return true;
         }
 
-        public async Task<ApiResponseDTO<PagedResultDto<RegistrationDTO>>> ListRegistrationsAsync(int eventId, int userId, string? status, int page, int size)
+        public async Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId, string? status, int page, int size)
         {
-            try
+            // Determine organization ID based on user role
+            var orgUser = await _repository.GetEventWithOrganizationAsync(eventId);
+            int organizationId;
+            
+            if (orgUser?.Organization?.UserId == userId)
             {
-                // Check if user is a coordinator
-                var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                
-                // Check if user is an organization
-                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
-                
-                int? organizationId = null;
-                if (coordinator != null)
-                {
-                    organizationId = coordinator.OrganizationId;
-                }
-                else if (organization != null)
-                {
-                    organizationId = organization.OrganizationId;
-                }
-                else
-                {
-                    return new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
-                    {
-                        Success = false,
-                        Message = "Kh�ng c� quy?n truy c?p",
-                        Errors = new List<string> { "User is not a coordinator or organization owner" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
-                if (eventEntity == null)
-                {
-                    return new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
-                    {
-                        Success = false,
-                        Message = "S? ki?n kh�ng t?n t?i ho?c kh�ng thu?c t? ch?c c?a b?n",
-                        Errors = new List<string> { "Event not found" }
-                    };
-                }
-
-                var query = _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .Include(r => r.Volunteer)
-                        .ThenInclude(v => v.User)
-                        .ThenInclude(u => u.UserProfiles)
-                    .Where(r => r.EventId == eventId);
-
-                if (!string.IsNullOrEmpty(status))
-                {
-                    query = query.Where(r => r.Status.StatusName == status);
-                }
-
-                var totalItems = await query.CountAsync();
-                var registrations = await query
-                    .Skip((page - 1) * size)
-                    .Take(size)
-                    .ToListAsync();
-
-                var registrationDTOs = registrations.Select(r => new RegistrationDTO
-                {
-                    RegistrationId = r.RegistrationId,
-                    EventId = r.EventId,
-                    VolunteerId = r.VolunteerId,
-                    StatusName = r.Status?.StatusName ?? "Unknown",
-                    ApplicationDate = r.ApplicationDate,
-                    FullName = r.Volunteer?.User?.UserProfiles != null && r.Volunteer.User.UserProfiles.Any() 
-                        ? r.Volunteer.User.UserProfiles.FirstOrDefault()?.FullName ?? "Unknown User"
-                        : "Unknown User",
-                    AdditionalInfo = r.AdditionalInfo,
-                    MotivationLetter = r.MotivationLetter
-                }).ToList();
-
-                var result = new PagedResultDto<RegistrationDTO>
-                {
-                    Items = registrationDTOs,
-                    TotalCount = totalItems,
-                    PageNumber = page,
-                    PageSize = size
-                };
-
-                return new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
+                // User is the organization owner
+                organizationId = orgUser.OrganizationId;
+            }
+            else
             {
-                Success = true,
-                Message = "L?y danh s�ch dang k� th�nh c�ng",
-                Data = result
+                // Check if user is coordinator
+                var isAuthorized = await _repository.IsVolunteerCoordinatorAuthorizedAsync(userId, eventId);
+                if (!isAuthorized)
+                {
+                    throw new UnauthorizedAccessException("You don't have permission to view registrations for this event");
+                }
+                organizationId = orgUser?.OrganizationId ?? 0;
+            }
+
+            // Get registrations
+            var result = await _repository.GetRegistrationsByEventAsync(eventId, organizationId, status, page, size);
+            
+            // Map to DTOs
+            var registrationDtos = result.Items.Select(r => _mapper.Map<RegistrationDTO>(r)).ToList();
+            
+            var pagedResult = new PagedResultDto<RegistrationDTO>
+            {
+                Items = registrationDtos,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
             };
-            }
-            catch (Exception ex)
-            {
-                return new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi l?y danh s�ch dang k�",
-                    Errors = new List<string> { 
-                        ex.Message, 
-                        ex.InnerException?.Message ?? "",
-                        ex.StackTrace ?? ""
-                    }.Where(e => !string.IsNullOrEmpty(e)).ToList()
-                };
-            }
+
+            return pagedResult;
         }
 
-        public async Task<ApiResponseDTO<RegistrationDTO>> GetRegistrationAsync(int eventId, int registrationId, int userId)
+        public async Task<RegistrationDTO?> GetRegistrationAsync(int eventId, int registrationId, int userId)
         {
-            try
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null)
             {
-                // Check if user is a coordinator
-                var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                
-                // Check if user is an organization
-                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
-                
-                int? organizationId = null;
-                if (coordinator != null)
-                {
-                    organizationId = coordinator.OrganizationId;
-                }
-                else if (organization != null)
-                {
-                    organizationId = organization.OrganizationId;
-                }
-                else
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng c� quy?n truy c?p",
-                        Errors = new List<string> { "User is not a coordinator or organization owner" }
-                    };
-                }
-
-                var registration = await _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                    .ThenInclude(u => u.UserProfiles)
-                    .FirstOrDefaultAsync(r => r.RegistrationId == registrationId && r.EventId == eventId);
-                if (registration == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng t?n t?i",
-                        Errors = new List<string> { "Registration not found" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
-                if (eventEntity == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "S? ki?n kh�ng t?n t?i ho?c kh�ng thu?c t? ch?c c?a b?n",
-                        Errors = new List<string> { "Event not found" }
-                    };
-                }
-
-                var registrationDto = new RegistrationDTO
-                {
-                    RegistrationId = registration.RegistrationId,
-                    EventId = registration.EventId,
-                    VolunteerId = registration.VolunteerId,
-                    StatusName = registration.Status?.StatusName ?? "Unknown",
-                    ApplicationDate = registration.ApplicationDate,
-                    FullName = registration.Volunteer?.User?.UserProfiles != null && registration.Volunteer.User.UserProfiles.Any()
-                        ? registration.Volunteer.User.UserProfiles.FirstOrDefault()?.FullName ?? "Unknown User"
-                        : "Unknown User",
-                    AdditionalInfo = registration.AdditionalInfo,
-                    MotivationLetter = registration.MotivationLetter
-                };
-
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = true,
-                    Message = "L?y chi ti?t dang k� th�nh c�ng",
-                    Data = registrationDto
-                };
+                return null;
             }
-            catch (Exception ex)
+
+            // Check authorization
+            var isOrganizationUser = registration.Event?.Organization?.UserId == userId;
+            var isAuthorizedCoordinator = await _repository.IsVolunteerCoordinatorAuthorizedAsync(userId, eventId);
+
+            if (!isOrganizationUser && !isAuthorizedCoordinator)
             {
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi l?y chi ti?t dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                throw new UnauthorizedAccessException("You don't have permission to view this registration");
             }
+
+            var registrationDto = _mapper.Map<RegistrationDTO>(registration);
+            return registrationDto;
         }
 
-        public async Task<ApiResponseDTO<RegistrationDTO>> ApproveRegistrationAsync(int eventId, int registrationId, int userId, ApproveRegistrationRequestDTO request)
+        public async Task<bool> ApproveRegistrationAsync(int eventId, int registrationId, int userId, ApproveRegistrationRequestDTO request)
         {
-            try
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null)
             {
-                // Check if user is a coordinator
-                var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                
-                // Check if user is an organization
-                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
-                
-                int? organizationId = null;
-                if (coordinator != null)
-                {
-                    organizationId = coordinator.OrganizationId;
-                }
-                else if (organization != null)
-                {
-                    organizationId = organization.OrganizationId;
-                }
-                else
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng c� quy?n truy c?p",
-                        Errors = new List<string> { "User is not a coordinator or organization owner" }
-                    };
-                }
-
-                var registration = await _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                    .FirstOrDefaultAsync(r => r.RegistrationId == registrationId && r.EventId == eventId);
-                if (registration == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng t?n t?i",
-                        Errors = new List<string> { "Registration not found" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);//true ,(false or null)
-                if (eventEntity == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "S? ki?n kh�ng t?n t?i ho?c kh�ng thu?c t? ch?c c?a b?n",
-                        Errors = new List<string> { "Event not found" }
-                    };
-                }
-
-                if (registration.Status.StatusName != "�ang ch? duy?t")
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng ? tr?ng th�i ch? duy?t",
-                        Errors = new List<string> { "Invalid registration status" }
-                    };
-                }
-
-                var approvedStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "�� duy?t");
-                if (approvedStatus == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng t�m th?y tr?ng th�i duy?t",
-                        Errors = new List<string> { "Approved status not found" }
-                    };
-                }
-
-                registration.StatusId = approvedStatus.StatusId;
-                registration.ApprovedDate = DateTime.UtcNow;
-                registration.ApprovedBy = userId;
-                registration.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                await _emailService.SendEventNotificationAsync(
-                    registration.Volunteer.User.Email,
-                    eventEntity.EventName,
-                    $"�ang k� c?a b?n cho s? ki?n {eventEntity.EventName} d� du?c duy?t. Vui l�ng chu?n b? tham gia!");
-
-                var registrationDto = new RegistrationDTO
-                {
-                    RegistrationId = registration.RegistrationId,
-                    EventId = registration.EventId,
-                    VolunteerId = registration.VolunteerId,
-                    StatusName = approvedStatus.StatusName,
-                    ApplicationDate = registration.ApplicationDate
-                };
-
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = true,
-                    Message = "Duy?t dang k� th�nh c�ng",
-                    Data = registrationDto
-                };
+                throw new InvalidOperationException("Registration not found");
             }
-            catch (Exception ex)
+
+            // Check authorization
+            var isOrganizationUser = registration.Event?.Organization?.UserId == userId;
+            var isAuthorizedCoordinator = await _repository.IsVolunteerCoordinatorAuthorizedAsync(userId, eventId);
+
+            if (!isOrganizationUser && !isAuthorizedCoordinator)
             {
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi duy?t dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                throw new UnauthorizedAccessException("You don't have permission to approve this registration");
             }
+
+            // Check if registration is pending
+            if (registration.Status?.StatusName != "Chờ duyệt")
+            {
+                throw new InvalidOperationException("Only pending registrations can be approved");
+            }
+
+            // Get approved status
+            var approvedStatus = await _repository.GetRegistrationStatusAsync("Đã duyệt");
+            if (approvedStatus == null)
+            {
+                _logger.LogError("Registration status 'Đã duyệt' not found");
+                throw new InvalidOperationException("System error: Approval status not found");
+            }
+
+            // Update registration
+            registration.StatusId = approvedStatus.StatusId;
+            registration.ApprovedDate = DateTime.UtcNow;
+            registration.ApprovedBy = userId;
+            registration.UpdatedAt = DateTime.UtcNow;
+
+            var success = await _repository.UpdateRegistrationAsync(registration);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to approve registration");
+            }
+
+            return true;
         }
 
-        public async Task<ApiResponseDTO<RegistrationDTO>> RejectRegistrationAsync(int eventId, int registrationId, int userId, RejectRegistrationRequestDTO request)
+        public async Task<bool> RejectRegistrationAsync(int eventId, int registrationId, int userId, RejectRegistrationRequestDTO request)
         {
-            try
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null)
             {
-                // Check if user is a coordinator
-                var coordinator = await _context.VolunteerCoordinators.FirstOrDefaultAsync(c => c.UserId == userId);
-                
-                // Check if user is an organization
-                var organization = await _context.Organizations.FirstOrDefaultAsync(o => o.UserId == userId);
-                
-                int? organizationId = null;
-                if (coordinator != null)
-                {
-                    organizationId = coordinator.OrganizationId;
-                }
-                else if (organization != null)
-                {
-                    organizationId = organization.OrganizationId;
-                }
-                else
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng c� quy?n truy c?p",
-                        Errors = new List<string> { "User is not a coordinator or organization owner" }
-                    };
-                }
-
-                var registration = await _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                    .FirstOrDefaultAsync(r => r.RegistrationId == registrationId && r.EventId == eventId);
-                if (registration == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng t?n t?i",
-                        Errors = new List<string> { "Registration not found" }
-                    };
-                }
-
-                var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId && e.IsActive.GetValueOrDefault() && e.OrganizationId == organizationId);
-                if (eventEntity == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "S? ki?n kh�ng t?n t?i ho?c kh�ng thu?c t? ch?c c?a b?n",
-                        Errors = new List<string> { "Event not found" }
-                    };
-                }
-
-                if (registration.Status.StatusName != "�ang ch? duy?t")
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng ? tr?ng th�i ch? duy?t",
-                        Errors = new List<string> { "Invalid registration status" }
-                    };
-                }
-
-                var rejectedStatus = await _context.RegistrationStatuses.FirstOrDefaultAsync(s => s.StatusName == "�� t? ch?i");
-                if (rejectedStatus == null)
-                {
-                    return new ApiResponseDTO<RegistrationDTO>
-                    {
-                        Success = false,
-                        Message = "Kh�ng t�m th?y tr?ng th�i t? ch?i",
-                        Errors = new List<string> { "Rejected status not found" }
-                    };
-                }
-
-                registration.StatusId = rejectedStatus.StatusId;
-                registration.RejectedDate = DateTime.UtcNow;
-                registration.RejectedBy = userId;
-                registration.RejectionReason = request.Reason;
-                registration.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                await _emailService.SendEventNotificationAsync(
-                    registration.Volunteer.User.Email,
-                    eventEntity.EventName,
-                    $"�ang k� c?a b?n cho s? ki?n {eventEntity.EventName} d� b? t? ch?i. L� do: {request.Reason}");
-
-                var registrationDto = new RegistrationDTO
-                {
-                    RegistrationId = registration.RegistrationId,
-                    EventId = registration.EventId,
-                    VolunteerId = registration.VolunteerId,
-                    StatusName = rejectedStatus.StatusName,
-                    ApplicationDate = registration.ApplicationDate
-                };
-
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = true,
-                    Message = "T? ch?i dang k� th�nh c�ng",
-                    Data = registrationDto
-                };
+                throw new InvalidOperationException("Registration not found");
             }
-            catch (Exception ex)
+
+            // Check authorization
+            var isOrganizationUser = registration.Event?.Organization?.UserId == userId;
+            var isAuthorizedCoordinator = await _repository.IsVolunteerCoordinatorAuthorizedAsync(userId, eventId);
+
+            if (!isOrganizationUser && !isAuthorizedCoordinator)
             {
-                return new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi t? ch?i dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                throw new UnauthorizedAccessException("You don't have permission to reject this registration");
             }
+
+            // Check if registration is pending
+            if (registration.Status?.StatusName != "Chờ duyệt")
+            {
+                throw new InvalidOperationException("Only pending registrations can be rejected");
+            }
+
+            // Get rejected status
+            var rejectedStatus = await _repository.GetRegistrationStatusAsync("Bị từ chối");
+            if (rejectedStatus == null)
+            {
+                _logger.LogError("Registration status 'Bị từ chối' not found");
+                throw new InvalidOperationException("System error: Rejection status not found");
+            }
+
+            // Update registration
+            registration.StatusId = rejectedStatus.StatusId;
+            registration.RejectedDate = DateTime.UtcNow;
+            registration.RejectedBy = userId;
+            registration.RejectionReason = request.Reason;
+            registration.UpdatedAt = DateTime.UtcNow;
+
+            var success = await _repository.UpdateRegistrationAsync(registration);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to reject registration");
+            }
+
+            return true;
         }
 
-        public async Task<ApiResponseDTO<RegistrationStatusDTO>> GetRegistrationStatusAsync(int eventId, int registrationId, int userId)
+        public async Task<RegistrationStatusDTO?> GetRegistrationStatusAsync(int eventId, int registrationId, int userId)
         {
-            try
+            // Get volunteer
+            var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
+            if (volunteer == null)
             {
-                var volunteer = await _context.VolunteerProfiles.FirstOrDefaultAsync(v => v.UserId == userId);
-                if (volunteer == null)
-                {
-                    return new ApiResponseDTO<RegistrationStatusDTO>
-                    {
-                        Success = false,
-                        Message = "T�nh nguy?n vi�n kh�ng t?n t?i",
-                        Errors = new List<string> { "Volunteer profile not found" }
-                    };
-                }
-
-                var registration = await _context.EventRegistrations
-                    .Include(r => r.Status)
-                    .FirstOrDefaultAsync(r => r.RegistrationId == registrationId && r.EventId == eventId && r.VolunteerId == volunteer.VolunteerId);
-                if (registration == null)
-                {
-                    return new ApiResponseDTO<RegistrationStatusDTO>
-                    {
-                        Success = false,
-                        Message = "�ang k� kh�ng t?n t?i ho?c kh�ng thu?c v? b?n",
-                        Errors = new List<string> { "Registration not found" }
-                    };
-                }
-
-                var statusDto = new RegistrationStatusDTO
-                {
-                    RegistrationId = registration.RegistrationId,
-                    EventId = registration.EventId,
-                    VolunteerId = registration.VolunteerId,
-                    StatusName = registration.Status.StatusName,
-                    StatusColor = registration.Status.Color
-                };
-
-                return new ApiResponseDTO<RegistrationStatusDTO>
-                {
-                    Success = true,
-                    Message = "L?y tr?ng th�i dang k� th�nh c�ng",
-                    Data = statusDto
-                };
+                throw new InvalidOperationException("Volunteer profile not found");
             }
-            catch (Exception ex)
+
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null || registration.VolunteerId != volunteer.VolunteerId)
             {
-                return new ApiResponseDTO<RegistrationStatusDTO>
-                {
-                    Success = false,
-                    Message = "�� x?y ra l?i khi l?y tr?ng th�i dang k�",
-                    Errors = new List<string> { ex.Message }
-                };
+                return null;
             }
+
+            var statusDto = _mapper.Map<RegistrationStatusDTO>(registration);
+            return statusDto;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using ivan_api.DTOs.VolunteerProfile;
+using ivan_api.DTOs.VolunteerProfile;
 using ivan_api.Services.VolunteerProfileServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +7,7 @@ using ivan_api.DTOs.Common;
 using ivan_api.DTOs;
 using System.Security.Claims;
 using ivan_api.Services.AuthenticationSer;
+using ivan_api.Constants;
 
 namespace ivan_api.Controllers
 {
@@ -169,7 +170,7 @@ namespace ivan_api.Controllers
 
         // Get all volunteer profiles (Admin only)
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<PagedResultDto<VolunteerProfileViewModel>>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -196,13 +197,13 @@ namespace ivan_api.Controllers
 
         // Get volunteer profile by User ID
         [HttpGet("{userId:int}")]
-        [Authorize(Roles = "Volunteer,Admin")]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.Volunteer},{AuthenticationConstants.Roles.Admin}")]
         public async Task<ActionResult<ApiResponseDTO<VolunteerProfileViewModel>>> GetById(int userId)
         {
             try
             {
                 // Check authorization for own profile access
-                if (User.IsInRole("Volunteer"))
+                if (User.IsInRole(AuthenticationConstants.Roles.Volunteer))
                 {
                     var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
@@ -292,7 +293,7 @@ namespace ivan_api.Controllers
             try
             {
                 // Check authorization for own profile updates
-                if (User.IsInRole("Volunteer"))
+                if (User.IsInRole(AuthenticationConstants.Roles.Volunteer))
                 {
                     var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)
@@ -340,7 +341,7 @@ namespace ivan_api.Controllers
             try
             {
                 // Check authorization for own profile completion access
-                if (User.IsInRole("Volunteer"))
+                if (User.IsInRole(AuthenticationConstants.Roles.Volunteer))
                 {
                     var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                     if (currentUserId != userId)

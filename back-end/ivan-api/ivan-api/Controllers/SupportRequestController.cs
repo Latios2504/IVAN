@@ -1,3 +1,4 @@
+using ivan_api.Constants;
 using ivan_api.DTOs.SupportRequest;
 using ivan_api.Services.SupportRequestServ;
 using Microsoft.AspNetCore.Authorization;
@@ -111,7 +112,7 @@ namespace ivan_api.Controllers
 
         // PUT: api/supportrequest/{id} - Admin only
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<IActionResult> UpdateRequest(int id, [FromBody] SupportRequestUpdateDTO dto)
         {
             var userIdClaim = User.FindFirst("UserId")?.Value;

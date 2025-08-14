@@ -1,4 +1,4 @@
-﻿using ivan_api.Constants;
+using ivan_api.Constants;
 using ivan_api.DTOs.Schedule;
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
