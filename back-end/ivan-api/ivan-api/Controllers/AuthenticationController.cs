@@ -78,11 +78,11 @@ public class AuthenticationController : ControllerBase
     }    /// <summary>Register new user account</summary>
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponseDTO<SuccessResponseDTO>>> Register([FromBody] RegisterRequestDTO registerRequest)
+    public async Task<ActionResult<ApiResponseDTO<object>>> Register([FromBody] RegisterRequestDTO registerRequest)
     {
         if (registerRequest == null)
         {
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Invalid input data",
@@ -97,7 +97,7 @@ public class AuthenticationController : ControllerBase
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Validation failed",
@@ -119,7 +119,7 @@ public class AuthenticationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during registration for email: {Email}", registerRequest.Email);
-            return StatusCode(500, new ApiResponseDTO<SuccessResponseDTO>
+            return StatusCode(500, new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Internal server error",
@@ -131,11 +131,11 @@ public class AuthenticationController : ControllerBase
     /// <summary>Request password reset code via email</summary>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponseDTO<SuccessResponseDTO>>> ForgotPassword([FromBody] ForgotPasswordRequestDTO forgotPasswordRequest)
+    public async Task<ActionResult<ApiResponseDTO<object>>> ForgotPassword([FromBody] ForgotPasswordRequestDTO forgotPasswordRequest)
     {
         if (forgotPasswordRequest == null)
         {
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Invalid input data",
@@ -150,7 +150,7 @@ public class AuthenticationController : ControllerBase
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Validation failed",
@@ -166,7 +166,7 @@ public class AuthenticationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during forgot password for email: {Email}", forgotPasswordRequest.Email);
-            return StatusCode(500, new ApiResponseDTO<SuccessResponseDTO>
+            return StatusCode(500, new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Internal server error",
@@ -178,11 +178,11 @@ public class AuthenticationController : ControllerBase
     /// <summary>Reset password using reset code</summary>
     [HttpPost("reset-password")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponseDTO<SuccessResponseDTO>>> ResetPassword([FromBody] ResetPasswordRequestDTO resetPasswordRequest)
+    public async Task<ActionResult<ApiResponseDTO<object>>> ResetPassword([FromBody] ResetPasswordRequestDTO resetPasswordRequest)
     {
         if (resetPasswordRequest == null)
         {
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Invalid input data",
@@ -197,7 +197,7 @@ public class AuthenticationController : ControllerBase
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Validation failed",
@@ -219,7 +219,7 @@ public class AuthenticationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during password reset");
-            return StatusCode(500, new ApiResponseDTO<SuccessResponseDTO>
+            return StatusCode(500, new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Internal server error",
@@ -231,11 +231,11 @@ public class AuthenticationController : ControllerBase
     /// <summary>Change password for authenticated user</summary>
     [HttpPost("change-password")]
     [Authorize]
-    public async Task<ActionResult<ApiResponseDTO<SuccessResponseDTO>>> ChangePassword([FromBody] ChangePasswordRequestDTO changePasswordRequest)
+    public async Task<ActionResult<ApiResponseDTO<object>>> ChangePassword([FromBody] ChangePasswordRequestDTO changePasswordRequest)
     {
         if (changePasswordRequest == null)
         {
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Invalid input data",
@@ -250,7 +250,7 @@ public class AuthenticationController : ControllerBase
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
+            return BadRequest(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Validation failed",
@@ -273,7 +273,7 @@ public class AuthenticationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during password change for user");
-            return StatusCode(500, new ApiResponseDTO<SuccessResponseDTO>
+            return StatusCode(500, new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = "Internal server error",
@@ -289,15 +289,15 @@ public class AuthenticationController : ControllerBase
     /// <summary>Logout user (client-side token removal)</summary>
     [HttpPost("logout")]
     [Authorize]
-    public ActionResult<ApiResponseDTO<SuccessResponseDTO>> Logout()
+    public ActionResult<ApiResponseDTO<object>> Logout()
     {
         // Since we're using JWT tokens, logout is handled on the client side
         // by removing the token from storage
-        return Ok(new ApiResponseDTO<SuccessResponseDTO>
+        return Ok(new ApiResponseDTO<object>
         {
             Success = true,
-            Message = "Logout successful",
-            Data = new SuccessResponseDTO { Message = "Please remove the token from client storage" }
+            Message = "Logout successful. Please remove the token from client storage",
+            Data = null
         });
     }
 

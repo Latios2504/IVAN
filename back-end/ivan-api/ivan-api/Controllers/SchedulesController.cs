@@ -1,9 +1,9 @@
 ﻿using ivan_api.Constants;
-using ivan_api.DTOs;
+using ivan_api.DTOs.Schedule;
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
 using ivan_api.Extensions;
-using ivan_api.Services;
+using ivan_api.Services.ScheduleServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +23,7 @@ namespace ivan_api.Controllers
 
         [HttpGet]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<ScheduleDTO>>>> ListSchedules([FromQuery] int? coordinatorId, [FromQuery] int? eventId, [FromQuery] int page = 1, [FromQuery] int size = 20)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<ScheduleDTO>>>> ListSchedules([FromQuery] int? coordinatorId, [FromQuery] int? eventId, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _scheduleService.ListSchedulesAsync(userId, coordinatorId, eventId, page, size);

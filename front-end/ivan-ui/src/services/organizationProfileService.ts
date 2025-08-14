@@ -20,18 +20,9 @@ class OrganizationProfileService {
   async getPublicOrganizations(
     filters: PublicOrganizationFiltersDto
   ): Promise<PagedResultDto<PublicOrganizationDto>> {
-    const params = new URLSearchParams();
-
-    if (filters.search) params.append("search", filters.search);
-    if (filters.typeId) params.append("typeId", filters.typeId.toString());
-    if (filters.province) params.append("province", filters.province);
-    if (filters.isVerified !== undefined)
-      params.append("isVerified", filters.isVerified.toString());
-    params.append("page", filters.page.toString());
-    params.append("size", filters.size.toString());
-
     const response = await apiClient.get<PagedResultDto<PublicOrganizationDto>>(
-      `${this.baseUrl}/public?${params.toString()}`
+      `${this.baseUrl}/public`,
+      filters // Let apiClient handle parameter building
     );
     return (
       response.data || {
@@ -72,13 +63,9 @@ class OrganizationProfileService {
     pageNumber: number = 1,
     pageSize: number = 10
   ): Promise<PagedResultDto<OrganizationProfileViewModel>> {
-    const params = new URLSearchParams();
-    params.append("pageNumber", pageNumber.toString());
-    params.append("pageSize", pageSize.toString());
-
     const response = await apiClient.get<
       PagedResultDto<OrganizationProfileViewModel>
-    >(`${this.baseUrl}?${params.toString()}`);
+    >(this.baseUrl, { pageNumber, pageSize });
     return (
       response.data || {
         items: [],

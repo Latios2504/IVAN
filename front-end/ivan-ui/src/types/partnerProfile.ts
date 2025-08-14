@@ -42,15 +42,10 @@ export interface PartnerProfileViewModel {
   userId: number;
   companyName: string;
   industryId: number;
-  industryName: string;
   taxCode?: string;
   businessLicense?: string;
-  establishedYear?: number;
   website?: string;
-  linkedInPage?: string;
-  facebookPage?: string;
   description?: string;
-  services?: string;
   address?: string;
   wardCommune?: string;
   district?: string;
@@ -61,7 +56,6 @@ export interface PartnerProfileViewModel {
   contactEmail?: string;
   contactPhone?: string;
   logoUrl?: string;
-  bannerUrl?: string;
   isVerified?: boolean;
   verifiedAt?: string;
   verifiedBy?: number;
@@ -101,14 +95,8 @@ export interface CreatePartnerProfileDto {
 export interface UpdatePartnerProfileDto {
   companyName?: string;
   industryId?: number;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
   website?: string;
-  linkedInPage?: string;
-  facebookPage?: string;
   description?: string;
-  services?: string;
   address?: string;
   wardCommune?: string;
   district?: string;
@@ -118,6 +106,6 @@ export interface UpdatePartnerProfileDto {
   contactPersonTitle?: string;
   contactEmail?: string;
   contactPhone?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
 }

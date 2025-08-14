@@ -5,6 +5,7 @@ using ivan_api.DTOs.AI;
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.AI.SQLGenerator;
 using ivan_api.Models;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Controllers;
 
@@ -41,7 +42,7 @@ public class AiController : ControllerBase
     /// Get available AI models from all providers
     /// </summary>
     [HttpGet("models")]
-    public async Task<ActionResult<List<string>>> GetAvailableModels()
+    public async Task<ActionResult<ApiResponseDTO<List<string>>>> GetAvailableModels()
     {
         try
         {
@@ -57,12 +58,22 @@ public class AiController : ControllerBase
             // Remove duplicates and sort
             var uniqueModels = allModels.Distinct().OrderBy(m => m).ToList();
 
-            return Ok(new { success = true, data = uniqueModels });
+            return Ok(new ApiResponseDTO<List<string>>
+            {
+                Success = true,
+                Data = uniqueModels,
+                Message = "Available AI models retrieved successfully"
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting available models");
-            return StatusCode(500, new { success = false, message = "Error retrieving models" });
+            return StatusCode(500, new ApiResponseDTO<List<string>>
+            {
+                Success = false,
+                Message = "Internal server error",
+                Errors = new List<string> { "Error retrieving models" }
+            });
         }
     }
 
@@ -70,7 +81,7 @@ public class AiController : ControllerBase
     /// Get current AI configuration
     /// </summary>
     [HttpGet("configuration")]
-    public async Task<ActionResult<object>> GetConfiguration()
+    public async Task<ActionResult<ApiResponseDTO<object>>> GetConfiguration()
     {
         try
         {
@@ -83,12 +94,22 @@ public class AiController : ControllerBase
                 status = "Simplified AI System - Phase 1"
             };
 
-            return Ok(new { success = true, data = config });
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Data = config,
+                Message = "AI configuration retrieved successfully"
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting AI configuration");
-            return StatusCode(500, new { success = false, message = "Error retrieving configuration" });
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Internal server error",
+                Errors = new List<string> { "Error retrieving configuration" }
+            });
         }
     }
 
@@ -96,19 +117,34 @@ public class AiController : ControllerBase
     /// Send a query to AI with custom instruction support
     /// </summary>
     [HttpPost("query")]
-public async Task<ActionResult<object>> SendQuery([FromBody] AiQueryRequest request)
+public async Task<ActionResult<ApiResponseDTO<object>>> SendQuery([FromBody] AiQueryRequest request)
 {
     try
     {
         if (!ModelState.IsValid)
         {
-            return BadRequest(new { success = false, message = "Invalid request data", errors = ModelState });
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            return BadRequest(new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "Validation failed",
+                Errors = errors
+            });
         }
 
         var providers = await _aiProviderFactory.GetEnabledProvidersAsync();
         if (!providers.Any())
         {
-            return StatusCode(500, new { success = false, message = "No AI providers available" });
+            return StatusCode(500, new ApiResponseDTO<object>
+            {
+                Success = false,
+                Message = "No AI providers available",
+                Errors = new List<string> { "No AI providers are currently enabled" }
+            });
         }
 
         var provider = providers.First();
@@ -291,12 +327,22 @@ Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời
             sqlGenerated = generatedSql
         };
 
-        return Ok(new { success = true, data = response });
+        return Ok(new ApiResponseDTO<object>
+        {
+            Success = true,
+            Data = response,
+            Message = "AI query processed successfully"
+        });
     }
     catch (Exception ex)
     {
         _logger.LogError(ex, "Error sending AI query");
-        return StatusCode(500, new { success = false, message = "Error processing AI query" });
+        return StatusCode(500, new ApiResponseDTO<object>
+        {
+            Success = false,
+            Message = "Internal server error",
+            Errors = new List<string> { "Error processing AI query" }
+        });
     }
 }
 

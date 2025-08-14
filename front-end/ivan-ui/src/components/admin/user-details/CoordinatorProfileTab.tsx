@@ -12,11 +12,10 @@ import {
   ClipboardList,
   XCircle,
 } from "lucide-react";
-import { profileService } from "@/services/profileService";
-import type { UserAccountDetailDto } from "@/services/userManagementService";
+import type { UserListDto } from "@/types/userManagement";
 
 interface CoordinatorProfileTabProps {
-  user: UserAccountDetailDto;
+  user: UserListDto;
 }
 
 interface CoordinatorProfileData {
@@ -77,8 +76,8 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
     };
 
     if (
-      user.roleName.toLowerCase() === "volunteercoordinator" ||
-      user.roleName.toLowerCase() === "coordinator"
+      user.roleName?.toLowerCase() === "volunteercoordinator" ||
+      user.roleName?.toLowerCase() === "coordinator"
     ) {
       fetchCoordinatorProfile();
     } else {
@@ -87,8 +86,8 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
   }, [user.userId, user.roleName]);
 
   const isCoordinator =
-    user.roleName.toLowerCase() === "volunteercoordinator" ||
-    user.roleName.toLowerCase() === "coordinator";
+    user.roleName?.toLowerCase() === "volunteercoordinator" ||
+    user.roleName?.toLowerCase() === "coordinator";
 
   if (!isCoordinator) {
     return null;

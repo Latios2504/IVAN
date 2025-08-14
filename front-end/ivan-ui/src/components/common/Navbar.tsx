@@ -66,6 +66,26 @@ export default function Navbar() {
     }
   };
 
+  // Get role-specific profile URL
+  const getProfileUrl = () => {
+    if (!user) return "/";
+
+    switch (user.role) {
+      case "volunteer":
+        return "/volunteer/profile";
+      case "organization":
+        return "/organization/profile";
+      case "partner":
+        return "/partner/profile";
+      case "coordinator":
+        return "/coordinator/profile";
+      case "admin":
+        return "/admin/profile";
+      default:
+        return getDashboardUrl();
+    }
+  };
+
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -198,10 +218,7 @@ export default function Navbar() {
                       className="relative h-8 w-8 rounded-full"
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={user?.profile?.avatar}
-                          alt={user?.fullName || ""}
-                        />
+                        <AvatarImage src="" alt={user?.fullName || ""} />
                         <AvatarFallback>
                           {user?.fullName?.charAt(0).toUpperCase() || "U"}
                         </AvatarFallback>
@@ -221,7 +238,10 @@ export default function Navbar() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/profile" className="w-full flex items-center">
+                      <Link
+                        to={getProfileUrl()}
+                        className="w-full flex items-center"
+                      >
                         <User className="mr-2 h-4 w-4" />
                         <span>Hồ sơ cá nhân</span>
                       </Link>

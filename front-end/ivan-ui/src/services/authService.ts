@@ -6,10 +6,8 @@ import type {
   RegisterRequest,
   ResetPasswordData,
   ChangePasswordRequest,
-  ForgotPasswordRequest,
   ApiUser,
   LoginResponseDTO,
-  SuccessResponseDTO,
 } from "../types/auth";
 
 class AuthService {
@@ -21,11 +19,8 @@ class AuthService {
       credentials
     );
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || "Login failed");
-    }
-
-    const { token, expiresAt, user: apiUser } = response.data;
+    // ApiClient throws Error for failures, so we only get here on success
+    const { token, expiresAt, user: apiUser } = response.data!;
 
     apiClient.setToken(token);
     const user: User = this.mapApiUserToUser(apiUser);
@@ -44,33 +39,25 @@ class AuthService {
       roleId: roleId,
     };
 
-    const response = await apiClient.post<SuccessResponseDTO>(
+    const response = await apiClient.post<object>(
       "/Authentication/register",
       registerPayload
     );
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || "Registration failed");
-    }
-
-    return response.data;
+    return { message: response.message };
   }
 
   async requestPasswordReset(email: string): Promise<{ message: string }> {
-    const response = await apiClient.post<SuccessResponseDTO>(
+    const response = await apiClient.post<object>(
       "/Authentication/forgot-password",
       { email }
     );
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || "Password reset request failed");
-    }
-
-    return response.data;
+    return { message: response.message };
   }
 
   async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
-    const response = await apiClient.post<SuccessResponseDTO>(
+    const response = await apiClient.post<object>(
       "/Authentication/reset-password",
       {
         email: data.email,
@@ -80,36 +67,24 @@ class AuthService {
       }
     );
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || "Password reset failed");
-    }
-
-    return response.data;
+    return { message: response.message };
   }
 
   async changePassword(
     data: ChangePasswordRequest
   ): Promise<{ message: string }> {
-    const response = await apiClient.post<SuccessResponseDTO>(
+    const response = await apiClient.post<object>(
       "/Authentication/change-password",
       data
     );
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || "Password change failed");
-    }
-
-    return response.data;
+    return { message: response.message };
   }
 
   async getUserInfo(): Promise<User> {
     const response = await apiClient.get<ApiUser>("/Authentication/me");
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || "Failed to get user information");
-    }
-
-    return this.mapApiUserToUser(response.data);
+    return this.mapApiUserToUser(response.data!);
   }
 
   async getCurrentUser(): Promise<User> {
@@ -129,7 +104,7 @@ class AuthService {
       id: apiUser.userId,
       email: apiUser.email,
       fullName: "",
-      role: this.mapRoleNameToEnum(apiUser.roleName),
+      role: this.mapRoleNameToEnum(apiUser.roleName || ""),
       roleId: apiUser.roleId,
       isEmailVerified: apiUser.isEmailVerified,
       lastLoginAt: apiUser.lastLoginAt,
@@ -148,6 +123,8 @@ class AuthService {
   }
 
   private mapRoleNameToEnum(roleName: string): UserRole {
+    if (!roleName) return "volunteer"; // Default to volunteer if roleName is undefined
+
     const roleMap: Record<string, UserRole> = {
       volunteer: "volunteer",
       organization: "organization",

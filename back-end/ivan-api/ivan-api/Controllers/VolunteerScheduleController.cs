@@ -1,5 +1,5 @@
 using ivan_api.Constants;
-using ivan_api.DTOs;
+using ivan_api.DTOs.VolunteerSchedule;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.VolunteerScheduleServ;
 using Microsoft.AspNetCore.Authorization;

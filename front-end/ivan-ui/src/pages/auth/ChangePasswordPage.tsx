@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
-import { ApiError } from "@/services/apiClient";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ChangePasswordPage() {
@@ -104,7 +103,7 @@ export default function ChangePasswordPage() {
       });
     } catch (error) {
       console.error("Change password error:", error);
-      if (error instanceof ApiError) {
+      if (error instanceof Error) {
         setErrors({ general: error.message });
       } else {
         setErrors({ general: "Có lỗi xảy ra. Vui lòng thử lại." });

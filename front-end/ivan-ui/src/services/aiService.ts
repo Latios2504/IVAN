@@ -1,4 +1,4 @@
-import { apiClient, ApiError } from "./apiClient";
+import { apiClient } from "./apiClient";
 import type {
   AiQueryRequest,
   AiResponse,
@@ -30,8 +30,22 @@ class AiService {
       clientSummary: request.clientSummary,
     };
 
-    const response = await apiClient.post<AiResponse>("/Ai/query", aiRequest);
-    return response.data;
+    const response = await apiClient.post<any>("/Ai/query", aiRequest);
+
+    // ApiClient already throws Error for failures, so we only get here on success
+    const aiResponseData = response.data!;
+
+    return {
+      success: aiResponseData.success,
+      response: aiResponseData.response,
+      modelUsed: aiResponseData.modelUsed,
+      errorMessage: aiResponseData.errorMessage,
+      executionTimeMs: aiResponseData.executionTimeMs,
+      generatedAt: aiResponseData.generatedAt,
+      customInstructionUsed: aiResponseData.customInstructionUsed,
+      isSqlQuery: !!aiResponseData.sqlGenerated,
+      sqlData: aiResponseData.sqlData,
+    };
   }
 
   async sendChatMessage(
@@ -55,15 +69,18 @@ class AiService {
       clientSummary: request.clientSummary,
     };
 
-    const response = await apiClient.post<AiResponse>("/Ai/query", aiRequest);
+    const response = await apiClient.post<any>("/Ai/query", aiRequest);
+
+    // ApiClient already throws Error for failures, so we only get here on success
+    const aiResponseData = response.data!;
 
     // Convert AI response to chatbot response format
     const chatResponse: ChatMessageResponse = {
-      response: response.data.response,
+      response: aiResponseData.response,
       conversationId: request.conversationId || "",
-      timestamp: response.data.generatedAt || new Date().toISOString(),
-      modelUsed: response.data.modelUsed,
-      customInstructionUsed: response.data.customInstructionUsed,
+      timestamp: aiResponseData.generatedAt || new Date().toISOString(),
+      modelUsed: aiResponseData.modelUsed,
+      customInstructionUsed: aiResponseData.customInstructionUsed,
     };
 
     return chatResponse;

@@ -20,19 +20,9 @@ class PartnerProfileService {
   async getPublicPartners(
     filters: PublicPartnerFiltersDto
   ): Promise<PagedResultDto<PublicPartnerDto>> {
-    const params = new URLSearchParams();
-
-    if (filters.search) params.append("search", filters.search);
-    if (filters.industryId)
-      params.append("industryId", filters.industryId.toString());
-    if (filters.province) params.append("province", filters.province);
-    if (filters.isVerified !== undefined)
-      params.append("isVerified", filters.isVerified.toString());
-    params.append("page", filters.page.toString());
-    params.append("size", filters.size.toString());
-
     const response = await apiClient.get<PagedResultDto<PublicPartnerDto>>(
-      `${this.baseUrl}/public?${params.toString()}`
+      `${this.baseUrl}/public`,
+      filters // Let apiClient handle parameter building
     );
     return (
       response.data || {
@@ -73,13 +63,9 @@ class PartnerProfileService {
     pageNumber: number = 1,
     pageSize: number = 10
   ): Promise<PagedResultDto<PartnerProfileViewModel>> {
-    const params = new URLSearchParams();
-    params.append("pageNumber", pageNumber.toString());
-    params.append("pageSize", pageSize.toString());
-
     const response = await apiClient.get<
       PagedResultDto<PartnerProfileViewModel>
-    >(`${this.baseUrl}?${params.toString()}`);
+    >(this.baseUrl, { pageNumber, pageSize });
     return (
       response.data || {
         items: [],

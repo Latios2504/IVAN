@@ -1,8 +1,8 @@
 ﻿using ivan_api.Constants;
-using ivan_api.DTOs;
+using ivan_api.DTOs.Schedule;
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
-using ivan_api.Services;
+using ivan_api.Services.ScheduleServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +22,7 @@ namespace ivan_api.Controllers
 
         [HttpGet]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<ScheduleDTO>>>> GetPersonalSchedules([FromQuery] int? eventId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int page = 1, [FromQuery] int size = 20)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<ScheduleDTO>>>> GetPersonalSchedules([FromQuery] int? eventId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _scheduleService.GetPersonalSchedulesAsync(userId, eventId, startDate, endDate, page, size);

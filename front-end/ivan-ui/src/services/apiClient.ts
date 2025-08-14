@@ -1,22 +1,7 @@
 import type { ApiResponse } from "../types/common";
-import { environment } from "../config";
 
-const API_BASE_URL = environment.API_BASE_URL;
-
-/**
- * API Error class for consistent error handling
- */
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public code?: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5283/api";
 
 class ApiClient {
   private baseURL: string;
@@ -82,24 +67,35 @@ class ApiClient {
     const contentType = response.headers.get("content-type");
     const isJson = contentType?.includes("application/json");
 
+    // Handle authentication errors by clearing token and redirecting
+    if (response.status === 401) {
+      this.setToken(null);
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+
     if (!response.ok) {
+      // For HTTP errors, get the error response and throw with the message
       const errorData = isJson
         ? await response.json()
-        : { message: response.statusText, errors: [] };
+        : {
+            success: false,
+            message: response.statusText,
+            data: null,
+            errors: [],
+          };
 
-      // Handle authentication errors
-      if (response.status === 401) {
-        this.setToken(null);
-        if (!window.location.pathname.includes("/login")) {
-          window.location.href = "/login";
-        }
+      // If backend returns ApiResponse format, throw with its message
+      if (errorData.success !== undefined) {
+        throw new Error(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
-      throw new ApiError(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
-        response.status,
-        errorData.code || `HTTP_${response.status}`,
-        errorData
+      // For non-API errors, throw with HTTP status message
+      throw new Error(
+        errorData.message || `HTTP ${response.status}: ${response.statusText}`
       );
     }
 
@@ -113,7 +109,7 @@ class ApiClient {
       } as ApiResponse<T>;
     }
 
-    // All endpoints return ApiResponse<T> format
+    // All successful endpoints return ApiResponse<T> format
     const result = isJson
       ? await response.json()
       : {

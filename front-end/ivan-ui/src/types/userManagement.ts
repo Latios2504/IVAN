@@ -1,50 +1,59 @@
-// User Management DTOs and Types
+// User Management Types - Matching backend DTOs
 
-import type {
-  OrganizationProfile,
-  PartnerProfile,
-  CoordinatorProfile,
-  VolunteerProfile,
-} from "./profile/profiles";
-
-// Re-export profile types for compatibility
-export type OrganizationProfileData = OrganizationProfile;
-export type PartnerProfileData = PartnerProfile;
-export type CoordinatorProfileData = CoordinatorProfile;
-export type VolunteerProfileData = VolunteerProfile;
-
-export interface UserAccountListDto {
-  userId: number;
-  email: string;
-  fullName?: string; // Can be null from API
-  roleName: string;
-  isActive: boolean;
-  isEmailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  phoneNumber?: string;
-  province?: string;
-  age?: number;
-  statusDisplay: string;
-  verificationDisplay: string;
-}
-
-export interface UserAccountDetailDto {
+export interface UserListDto {
   userId: number;
   email: string;
   roleId: number;
   roleName: string;
-  roleDescription?: string;
   isActive: boolean;
   isEmailVerified: boolean;
-  lastLoginAt?: string;
+  lastLoginAt: string | null;
   createdAt: string;
-  updatedAt: string;
-  profileId?: number;
+
+  // Basic display info only - no detailed profile for user list
+  displayName?: string; // Simple display name for the list
+
+  // Role-specific identifier for quick reference only
+  roleSpecificInfo?: string; // e.g., "Student ID: 123", "Organization: ABC", "Company: XYZ"
+}
+
+export interface UserFiltersDto {
+  search?: string;
+  roleId?: number;
+  isActive?: boolean;
+  isEmailVerified?: boolean;
+  page: number;
+  size: number;
+}
+
+export interface UserRoleDto {
+  roleId: number;
+  roleName: string;
+  description?: string;
+  isActive: boolean;
+}
+
+export interface UserStatusUpdateDto {
+  isActive: boolean;
+}
+
+// For detailed user information (returned from GetUserDetails endpoint)
+export interface UserDetailsDto {
+  // Basic user info (for admin/coordinator)
+  userId?: number;
+  email?: string;
+  roleId?: number;
+  roleName?: string;
+  isActive?: boolean;
+  isEmailVerified?: boolean;
+  lastLoginAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+
+  // Profile information (from UserProfile)
+  fullName?: string;
   firstName?: string;
   lastName?: string;
-  fullName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
   gender?: string;
@@ -54,50 +63,40 @@ export interface UserAccountDetailDto {
   district?: string;
   province?: string;
   postalCode?: string;
-  fullAddress?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
-  age?: number;
-  statusDisplay: string;
-  verificationDisplay: string;
-  statistics: UserStatisticsDto;
-  // Role-specific profile data
-  volunteerProfile?: VolunteerProfileData;
-  organizationProfile?: OrganizationProfileData;
-  partnerProfile?: PartnerProfileData;
-  coordinatorProfile?: CoordinatorProfileData;
+
+  // Role-specific fields (dynamic based on role)
+  // Volunteer fields
+  volunteerId?: number;
+  studentId?: string;
+  university?: string;
+  skills?: string;
+  availability?: string;
+  motivation?: string;
+
+  // Organization fields
+  organizationId?: number;
+  organizationName?: string;
+  organizationType?: string;
+  description?: string;
+  website?: string;
+  establishedYear?: number;
+
+  // Partner fields
+  partnerId?: number;
+  companyName?: string;
+  industry?: string;
+  companySize?: string;
+  contactPersonName?: string;
+  contactPersonPosition?: string;
+
+  // Any other dynamic properties
+  [key: string]: any;
 }
 
-export interface UserStatisticsDto {
-  totalLogins: number;
-  lastLoginDays: number;
-  accountAgeInDays: number;
-  isNewUser: boolean;
-  activityScore: number;
-}
-
-export interface UserAccountFilterDto {
-  email?: string;
-  fullName?: string;
-  roleName?: string;
-  isActive?: boolean;
-  isEmailVerified?: boolean;
-  province?: string;
-  minAge?: number;
-  maxAge?: number;
-  createdFrom?: string;
-  createdTo?: string;
-  lastLoginFrom?: string;
-  lastLoginTo?: string;
-  sortBy?: "email" | "fullName" | "createdAt" | "lastLoginAt";
-  sortDirection?: "ASC" | "DESC";
-  page?: number;
-  size?: number;
-}
-
-export interface UserAccountUpdateDto {
-  userId: number;
-  isActive?: boolean;
-  isEmailVerified?: boolean;
-  // Profile updates can be added here
-}
+// Default filter values
+export const DEFAULT_USER_FILTERS: UserFiltersDto = {
+  page: 1,
+  size: 10,
+} as const;

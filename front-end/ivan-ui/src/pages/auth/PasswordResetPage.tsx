@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { authService } from "@/services/authService";
-import { ApiError } from "@/services/apiClient";
 
 export default function PasswordResetPage() {
   const [searchParams] = useSearchParams();
@@ -88,7 +87,7 @@ export default function PasswordResetPage() {
       });
     } catch (error) {
       console.error("Password reset error:", error);
-      if (error instanceof ApiError) {
+      if (error instanceof Error) {
         setErrors({ general: error.message });
       } else {
         setErrors({ general: "Có lỗi xảy ra. Vui lòng thử lại." });

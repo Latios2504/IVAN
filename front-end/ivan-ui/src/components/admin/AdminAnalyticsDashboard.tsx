@@ -25,12 +25,20 @@ import {
 import { TrendingUp, RefreshCw } from "lucide-react";
 import { Button } from "../ui/button";
 import { ExportButton, type ExportOptions } from "../common/ExportButton";
-import { dashboardService } from "../../services/dashboardService";
-import { exportService } from "../../services/exportService";
 import { toast } from "sonner";
-import type { UserAnalytics, EventAnalytics } from "../../types/analytics";
 
 // Types for analytics data (matching backend DTOs)
+interface UserAnalytics {
+  userGrowth: any[];
+  userRoleDistribution: any[];
+  [key: string]: any;
+}
+
+interface EventAnalytics {
+  eventTrends: any[];
+  [key: string]: any;
+}
+
 interface AdminOverviewStats {
   totalUsers: number;
   totalVolunteers: number;
@@ -46,13 +54,14 @@ interface AdminOverviewStats {
 }
 
 const AdminAnalyticsDashboard: React.FC = () => {
-  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(
-    null
-  );
-  const [eventAnalytics, setEventAnalytics] = useState<EventAnalytics | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>({
+    userGrowth: [],
+    userRoleDistribution: [],
+  });
+  const [eventAnalytics, setEventAnalytics] = useState<EventAnalytics | null>({
+    eventTrends: [],
+  });
+  const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
@@ -62,18 +71,8 @@ const AdminAnalyticsDashboard: React.FC = () => {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-
-      // Fetch user analytics
-      const userResponse = await dashboardService.getUserAnalytics();
-      if (userResponse) {
-        setUserAnalytics(userResponse);
-      }
-
-      // Fetch event analytics
-      const eventResponse = await dashboardService.getEventAnalytics();
-      if (eventResponse) {
-        setEventAnalytics(eventResponse);
-      }
+      // Dashboard service removed - no data fetching
+      console.log("Dashboard service functionality removed");
     } catch (error) {
       console.error("Error fetching analytics data:", error);
     } finally {
@@ -87,28 +86,15 @@ const AdminAnalyticsDashboard: React.FC = () => {
   ) => {
     try {
       setExportLoading(true);
-      toast.info("Đang xuất dữ liệu...");
+      toast.info("Export service functionality removed");
 
-      const result = await exportService.exportAnalyticsFromFrontend({
-        format,
-        dateRange: options.dateRange,
-        sections: options.sections,
-        includeCharts: options.includeCharts,
-        language: options.language || "vi-VN",
-      });
+      // Export service removed - no export functionality
+      console.log("Export functionality removed", { format, options });
 
-      exportService.downloadFile(result.blob, result.filename);
-
-      toast.success(
-        `Xuất dữ liệu thành công! Tệp ${result.filename} đã được tải xuống.`
-      );
+      toast.success("Export service functionality has been removed");
     } catch (error) {
       console.error("Export failed:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Không thể xuất dữ liệu. Vui lòng thử lại sau."
-      );
+      toast.error("Export service not available");
     } finally {
       setExportLoading(false);
     }
@@ -349,13 +335,15 @@ const AdminAnalyticsDashboard: React.FC = () => {
                   >
                     <PieChart width={500} height={300}>
                       <Pie
-                        data={userAnalytics.roleDistribution.map(
-                          (item, index) => ({
-                            name: item.roleName,
-                            value: item.userCount,
-                            fill: CHART_COLORS[index % CHART_COLORS.length],
-                          })
-                        )}
+                        data={
+                          userAnalytics.roleDistribution?.map(
+                            (item: any, index: number) => ({
+                              name: item.roleName,
+                              value: item.userCount,
+                              fill: CHART_COLORS[index % CHART_COLORS.length],
+                            })
+                          ) || []
+                        }
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -467,13 +455,15 @@ const AdminAnalyticsDashboard: React.FC = () => {
                   >
                     <PieChart width={500} height={300}>
                       <Pie
-                        data={eventAnalytics.categoryStats.map(
-                          (item, index) => ({
-                            name: item.categoryName,
-                            value: item.eventCount,
-                            fill: CHART_COLORS[index % CHART_COLORS.length],
-                          })
-                        )}
+                        data={
+                          eventAnalytics.categoryStats?.map(
+                            (item: any, index: number) => ({
+                              name: item.categoryName,
+                              value: item.eventCount,
+                              fill: CHART_COLORS[index % CHART_COLORS.length],
+                            })
+                          ) || []
+                        }
                         cx="50%"
                         cy="50%"
                         labelLine={false}

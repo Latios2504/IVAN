@@ -1,9 +1,9 @@
 ﻿using ivan_api.Constants;
-using ivan_api.DTOs;
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
+using ivan_api.DTOs.EventRegistration;
 using ivan_api.Extensions;
-using ivan_api.Services;
+using ivan_api.Services.EventRegistrationSer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -72,7 +72,7 @@ namespace ivan_api.Controllers
 
         [HttpDelete("{registrationId}")]
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
-        public async Task<ActionResult<ApiResponseDTO<SuccessResponseDTO>>> CancelRegistration(int eventId, int registrationId)
+        public async Task<ActionResult<ApiResponseDTO<object>>> CancelRegistration(int eventId, int registrationId)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _registrationService.CancelRegistrationAsync(eventId, registrationId, userId);
@@ -85,7 +85,7 @@ namespace ivan_api.Controllers
 
         [HttpGet]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<RegistrationDTO>>>> ListRegistrations(int eventId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int size = 20)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<RegistrationDTO>>>> ListRegistrations(int eventId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var result = await _registrationService.ListRegistrationsAsync(eventId, userId, status, page, size);

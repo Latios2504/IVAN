@@ -111,15 +111,11 @@ export interface CreateOrganizationProfileDto {
 }
 
 export interface UpdateOrganizationProfileDto {
-  organizationName?: string;
+  userId: number;
+  organizationName: string;
   shortName?: string;
-  typeId?: number;
-  taxCode?: string;
+  typeId: number;
   businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
   description?: string;
   mission?: string;
   vision?: string;
@@ -132,8 +128,13 @@ export interface UpdateOrganizationProfileDto {
   contactPersonTitle?: string;
   contactEmail?: string;
   contactPhone?: string;
+  website?: string;
+  facebookPage?: string;
+  linkedInPage?: string;
   logoUrl?: string;
   bannerUrl?: string;
+  establishedYear?: number;
+  taxCode?: string;
 }
 
 export interface ProfileCompletionDto {

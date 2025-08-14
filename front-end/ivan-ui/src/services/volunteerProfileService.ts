@@ -20,19 +20,9 @@ class VolunteerProfileService {
   async getPublicVolunteers(
     filters: PublicVolunteerFiltersDto
   ): Promise<PagedResultDto<PublicVolunteerDto>> {
-    const params = new URLSearchParams();
-
-    if (filters.search) params.append("search", filters.search);
-    if (filters.skillId) params.append("skillId", filters.skillId.toString());
-    if (filters.university) params.append("university", filters.university);
-    if (filters.province) params.append("province", filters.province);
-    if (filters.isVerified !== undefined)
-      params.append("isVerified", filters.isVerified.toString());
-    params.append("page", filters.page.toString());
-    params.append("size", filters.size.toString());
-
     const response = await apiClient.get<PagedResultDto<PublicVolunteerDto>>(
-      `${this.baseUrl}/public?${params.toString()}`
+      `${this.baseUrl}/public`,
+      filters // Let apiClient handle parameter building
     );
     return (
       response.data || {
@@ -73,13 +63,9 @@ class VolunteerProfileService {
     pageNumber: number = 1,
     pageSize: number = 10
   ): Promise<PagedResultDto<VolunteerProfileViewModel>> {
-    const params = new URLSearchParams();
-    params.append("pageNumber", pageNumber.toString());
-    params.append("pageSize", pageSize.toString());
-
     const response = await apiClient.get<
       PagedResultDto<VolunteerProfileViewModel>
-    >(`${this.baseUrl}?${params.toString()}`);
+    >(this.baseUrl, { pageNumber, pageSize });
     return (
       response.data || {
         items: [],

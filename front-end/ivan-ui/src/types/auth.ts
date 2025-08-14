@@ -1,12 +1,3 @@
-import type {
-  BaseProfile,
-  VolunteerProfile,
-  OrganizationProfile,
-  CoordinatorProfile,
-  PartnerProfile,
-  AdminProfile,
-} from "./profile/profiles";
-
 export const UserRole = {
   VOLUNTEER: "volunteer",
   ORGANIZATION: "organization",
@@ -41,21 +32,11 @@ export interface LoginResponseDTO {
   user: ApiUser;
 }
 
-export interface SuccessResponseDTO {
-  message: string;
-}
-
 // Frontend User type
 export interface User extends Omit<ApiUser, "userId" | "roleName"> {
   id: number;
   fullName?: string;
   role: UserRole;
-  profile?:
-    | VolunteerProfile
-    | OrganizationProfile
-    | CoordinatorProfile
-    | PartnerProfile
-    | AdminProfile;
   organizationId?: number;
   isActive?: boolean;
   createdAt?: string;
@@ -100,10 +81,13 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
-// Form-specific types
-export interface RegisterData extends RegisterRequest {
-  role: PublicRegistrationRole;
+export interface RegisterData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
   confirmPassword: string;
+  role: PublicRegistrationRole;
 }
 
 export interface CoordinatorCreationRequest {

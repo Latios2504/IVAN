@@ -16,46 +16,17 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { profileService } from "@/services/profileService";
-import type { UserAccountDetailDto } from "@/services/userManagementService";
+import { organizationProfileService } from "@/services/organizationProfileService";
+import type { UserListDto } from "@/types/userManagement";
+import type { OrganizationProfileViewModel } from "@/types/organizationProfile";
 
 interface OrganizationProfileTabProps {
-  user: UserAccountDetailDto;
-}
-
-interface OrganizationProfileData {
-  organizationId: number;
-  organizationName: string;
-  shortName?: string;
-  typeId: number;
-  typeName?: string;
-  taxCode?: string;
-  businessLicense?: string;
-  establishedYear?: number;
-  website?: string;
-  facebookPage?: string;
-  linkedInPage?: string;
-  description?: string;
-  mission?: string;
-  vision?: string;
-  contactPersonName?: string;
-  contactPersonTitle?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  isVerified: boolean;
-  verifiedAt?: string;
-  rating?: number;
-  ratingCount: number;
-  totalEvents: number;
-  totalVolunteers: number;
+  user: UserListDto;
 }
 
 export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
-  const [orgProfile, setOrgProfile] = useState<OrganizationProfileData | null>(
-    null
-  );
+  const [orgProfile, setOrgProfile] =
+    useState<OrganizationProfileViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,9 +34,8 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
     const fetchOrgProfile = async () => {
       try {
         setLoading(true);
-        const profile = await profileService.getProfileByRole(
-          user.userId,
-          "organization"
+        const profile = await organizationProfileService.getOrganizationProfile(
+          user.userId
         );
         setOrgProfile(profile);
       } catch (err: any) {
@@ -75,14 +45,14 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
       }
     };
 
-    if (user.roleName.toLowerCase() === "organization") {
+    if (user.roleName?.toLowerCase() === "organization") {
       fetchOrgProfile();
     } else {
       setLoading(false);
     }
   }, [user.userId, user.roleName]);
 
-  if (user.roleName.toLowerCase() !== "organization") {
+  if (user.roleName?.toLowerCase() !== "organization") {
     return null;
   }
 
@@ -99,7 +69,7 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
     return (
       <div className="text-center py-8 text-red-500">
         <XCircle className="h-12 w-12 mx-auto mb-4" />
-        <p>{error?.message || error?.toString() || 'Đã xảy ra lỗi'}</p>
+        <p>{error}</p>
       </div>
     );
   }
@@ -136,9 +106,7 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
           </div>
           <div>
             <Label>Loại tổ chức</Label>
-            <p className="text-sm text-gray-700">
-              {orgProfile.typeName || "Chưa cập nhật"}
-            </p>
+            <p className="text-sm text-gray-700">Loại {orgProfile.typeId}</p>
           </div>
           <div>
             <Label>Năm thành lập</Label>
