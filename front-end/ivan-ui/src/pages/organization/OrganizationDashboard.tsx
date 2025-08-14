@@ -18,6 +18,7 @@ import {
   Award,
   UserPlus,
   Settings,
+  HeartHandshake,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -127,6 +128,12 @@ export default function OrganizationDashboard() {
               icon={UserPlus}
             >
               Quản lý Coordinators
+            </ActionButton>
+            <ActionButton
+              to="/organization/support-requests"
+              icon={HeartHandshake}
+            >
+              Yêu cầu Từ thiện
             </ActionButton>
             <ActionButton to="/volunteers" icon={UserPlus}>
               Danh sách tình nguyện viên

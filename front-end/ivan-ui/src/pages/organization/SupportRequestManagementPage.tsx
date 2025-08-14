@@ -36,9 +36,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supportRequestService } from "@/services/supportRequestService";
 import type {
-  SupportRequestResponse,
-  SupportCategory,
-} from "@/services/supportRequestService";
+  SupportRequestResponseDto,
+  SupportCategoryDto,
+} from "@/types/supportRequest";
 import {
   Search,
   Eye,
@@ -52,13 +52,13 @@ import {
 import { toast } from "sonner";
 
 export default function SupportRequestManagementPage() {
-  const [requests, setRequests] = useState<SupportRequestResponse[]>([]);
-  const [categories, setCategories] = useState<SupportCategory[]>([]);
+  const [requests, setRequests] = useState<SupportRequestResponseDto[]>([]);
+  const [categories, setCategories] = useState<SupportCategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] =
-    useState<SupportRequestResponse | null>(null);
+    useState<SupportRequestResponseDto | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [comment, setComment] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -75,11 +75,13 @@ export default function SupportRequestManagementPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      // Organizations should only see approved charity requests
-      const data = await supportRequestService.getAll("Approved");
+      // Organizations automatically see only approved charity requests
+      // The backend filters this automatically based on user role
+      const data = await supportRequestService.getAll();
       setRequests(data);
     } catch (error) {
       console.error("Error fetching requests:", error);
+      toast.error("Có lỗi xảy ra khi tải yêu cầu từ thiện");
     } finally {
       setLoading(false);
     }
@@ -200,12 +202,8 @@ export default function SupportRequestManagementPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Pending":
-        return <Badge variant="secondary">Chờ duyệt</Badge>;
       case "Approved":
-        return <Badge variant="default">Đã phê duyệt</Badge>;
-      case "Rejected":
-        return <Badge variant="destructive">Đã từ chối</Badge>;
+        return <Badge variant="default">Đã duyệt</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -242,9 +240,10 @@ export default function SupportRequestManagementPage() {
     <div className="container mx-auto py-6">
       <Card>
         <CardHeader>
-          <CardTitle>Yêu cầu Từ thiện</CardTitle>
+          <CardTitle>Yêu cầu Từ thiện đã duyệt</CardTitle>
           <CardDescription>
-            Xem các yêu cầu từ thiện đã được phê duyệt từ cộng đồng
+            Xem các yêu cầu từ thiện đã được admin xét duyệt để lên kế hoạch tổ
+            chức sự kiện hỗ trợ
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -356,7 +355,8 @@ export default function SupportRequestManagementPage() {
               Chi tiết Yêu cầu Từ thiện #{selectedRequest?.requestId}
             </DialogTitle>
             <DialogDescription>
-              Thông tin chi tiết yêu cầu từ thiện
+              Thông tin chi tiết về hoàn cảnh cần hỗ trợ từ thiện đã được xét
+              duyệt
             </DialogDescription>
           </DialogHeader>
 
@@ -408,13 +408,59 @@ export default function SupportRequestManagementPage() {
 
               {/* Description */}
               <div>
-                <Label className="text-sm font-medium">Mô tả</Label>
+                <Label className="text-sm font-medium">Mô tả tình huống</Label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-md">
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">
                     {selectedRequest.description}
                   </p>
                 </div>
               </div>
+
+              {/* Attachments/Evidence */}
+              {selectedRequest.attachmentUrls &&
+                selectedRequest.attachmentUrls.length > 0 && (
+                  <div>
+                    <Label className="text-sm font-medium">
+                      Hình ảnh minh chứng
+                    </Label>
+                    <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {selectedRequest.attachmentUrls.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            {url.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                              <img
+                                src={url}
+                                alt={`Evidence ${index + 1}`}
+                                className="w-full h-full object-cover cursor-pointer hover:opacity-75 transition-opacity"
+                                onClick={() => window.open(url, "_blank")}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <div className="text-center">
+                                  <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                  <p className="text-xs text-gray-500 truncate px-2">
+                                    {url.split("/").pop()}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => window.open(url, "_blank")}
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Nhấp vào hình ảnh để xem chi tiết
+                    </p>
+                  </div>
+                )}
 
               {/* Resolution */}
               {selectedRequest.resolution && (

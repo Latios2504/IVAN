@@ -36,9 +36,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supportRequestService } from "@/services/supportRequestService";
 import type {
-  SupportRequestResponse,
-  SupportCategory,
-} from "@/services/supportRequestService";
+  SupportRequestResponseDto,
+  SupportCategoryDto,
+} from "@/types/supportRequest";
 import {
   Search,
   Eye,
@@ -52,13 +52,13 @@ import {
 import { toast } from "sonner";
 
 export default function SupportRequestManagementPage() {
-  const [requests, setRequests] = useState<SupportRequestResponse[]>([]);
-  const [categories, setCategories] = useState<SupportCategory[]>([]);
+  const [requests, setRequests] = useState<SupportRequestResponseDto[]>([]);
+  const [categories, setCategories] = useState<SupportCategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] =
-    useState<SupportRequestResponse | null>(null);
+    useState<SupportRequestResponseDto | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [comment, setComment] = useState("");
   const [resolution, setResolution] = useState("");
@@ -112,26 +112,42 @@ export default function SupportRequestManagementPage() {
 
     try {
       setIsUpdating(true);
-      await supportRequestService.update(selectedRequest.requestId, {
-        status,
-        resolution:
-          status === "Approved" || status === "Rejected"
-            ? resolution
-            : undefined,
-      });
+
+      const updateData: any = { status };
+
+      // Add admin comment when approving/rejecting
+      if ((status === "Approved" || status === "Rejected") && comment.trim()) {
+        updateData.adminComment = comment;
+      }
+
+      await supportRequestService.update(selectedRequest.requestId, updateData);
 
       // Refresh the list
       await fetchRequests();
 
       // Update selected request
-      setSelectedRequest({ ...selectedRequest, status });
+      setSelectedRequest({
+        ...selectedRequest,
+        status,
+      });
 
+      const statusText =
+        status === "Approved"
+          ? "duyệt"
+          : status === "Rejected"
+          ? "từ chối"
+          : status;
+      toast.success(`Đã ${statusText} yêu cầu từ thiện`);
+
+      // Close dialog after approve/reject
       if (status === "Approved" || status === "Rejected") {
         setShowDetailDialog(false);
         setSelectedRequest(null);
+        setComment("");
       }
     } catch (error) {
       console.error("Error updating status:", error);
+      toast.error("Có lỗi xảy ra khi cập nhật trạng thái");
     } finally {
       setIsUpdating(false);
     }
@@ -236,7 +252,7 @@ export default function SupportRequestManagementPage() {
       case "Pending":
         return <Badge variant="secondary">Chờ duyệt</Badge>;
       case "Approved":
-        return <Badge variant="default">Đã phê duyệt</Badge>;
+        return <Badge variant="default">Đã duyệt</Badge>;
       case "Rejected":
         return <Badge variant="destructive">Đã từ chối</Badge>;
       default:
@@ -294,7 +310,7 @@ export default function SupportRequestManagementPage() {
               <SelectContent>
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value="Pending">Chờ duyệt</SelectItem>
-                <SelectItem value="Approved">Đã phê duyệt</SelectItem>
+                <SelectItem value="Approved">Đã duyệt</SelectItem>
                 <SelectItem value="Rejected">Đã từ chối</SelectItem>
               </SelectContent>
             </Select>
@@ -420,21 +436,38 @@ export default function SupportRequestManagementPage() {
               </div>
 
               {/* Resolution */}
-              {selectedRequest.status === "Pending" && (
+              {(selectedRequest.status === "Pending" ||
+                selectedRequest.status === "In Progress") && (
                 <div>
                   <Label htmlFor="resolution" className="text-sm font-medium">
-                    Ghi chú phê duyệt/từ chối
+                    Ghi chú giải quyết
                   </Label>
                   <Textarea
                     id="resolution"
                     value={resolution}
                     onChange={(e) => setResolution(e.target.value)}
-                    placeholder="Nhập ghi chú cho quyết định phê duyệt hoặc từ chối..."
+                    placeholder="Nhập ghi chú về cách giải quyết hoặc thông tin bổ sung..."
                     className="mt-1"
                     rows={3}
                   />
                 </div>
               )}
+
+              {/* Show existing resolution if request is resolved or closed */}
+              {selectedRequest.resolution &&
+                (selectedRequest.status === "Resolved" ||
+                  selectedRequest.status === "Closed") && (
+                  <div>
+                    <Label className="text-sm font-medium">
+                      Giải pháp đã thực hiện
+                    </Label>
+                    <div className="mt-1 p-3 bg-green-50 rounded-md">
+                      <p className="whitespace-pre-wrap text-sm text-gray-700">
+                        {selectedRequest.resolution}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
               {/* Comments */}
               {selectedRequest.comments &&
@@ -579,7 +612,7 @@ export default function SupportRequestManagementPage() {
                     variant="default"
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
-                    Phê duyệt
+                    Duyệt yêu cầu
                   </Button>
                   <Button
                     onClick={() => handleStatusUpdate("Rejected")}
@@ -587,7 +620,7 @@ export default function SupportRequestManagementPage() {
                     variant="destructive"
                   >
                     <X className="h-4 w-4 mr-1" />
-                    Từ chối
+                    Từ chối yêu cầu
                   </Button>
                 </>
               )}

@@ -134,6 +134,7 @@ namespace ivan_api.Controllers
         /// <param name="file">File to upload</param>
         /// <returns>URL of uploaded file</returns>
         [HttpPost("support-request-attachment")]
+        [AllowAnonymous]
         public async Task<ActionResult<ApiResponseDTO<FileUploadResponseDto>>> UploadSupportRequestAttachment(IFormFile file)
         {
             try

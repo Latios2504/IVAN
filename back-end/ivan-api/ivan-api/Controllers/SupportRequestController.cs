@@ -159,6 +159,7 @@ namespace ivan_api.Controllers
 
         // GET: api/supportrequest/categories
         [HttpGet("categories")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
             var result = await _service.GetCategoriesAsync();

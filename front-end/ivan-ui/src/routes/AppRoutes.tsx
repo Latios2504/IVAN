@@ -82,6 +82,9 @@ const UserManagementPage = lazy(
 const AIInstructionsManagementPage = lazy(
   () => import("@/pages/admin/AIInstructionsManagementPage")
 );
+const SupportRequestManagementPage = lazy(
+  () => import("@/pages/admin/SupportRequestManagementPage")
+);
 const EventRegistrationPage = lazy(
   () => import("@/pages/organization/EventRegistrationPage")
 );
@@ -104,6 +107,14 @@ const VolunteerEventRegistrationPage = lazy(
 
 const MyEventRegistrationsPage = lazy(
   () => import("@/pages/volunteer/MyEventRegistrationsPage")
+);
+
+// Support Request pages
+const CreateSupportRequestPage = lazy(
+  () => import("@/pages/public/CreateSupportRequestPage")
+);
+const SupportRequestHistoryPage = lazy(
+  () => import("@/pages/user/SupportRequestHistoryPage")
 );
 
 // Profile pages
@@ -149,12 +160,26 @@ export default function AppRoutes() {
         <Route path="/events/:id" element={<PublicEventDetailPage />} />
         <Route path="/volunteers" element={<PublicVolunteersPage />} />
         <Route path="/volunteers/:id" element={<PublicVolunteerDetailPage />} />
+        {/* Support Request routes */}
+        <Route
+          path="/support-request/create"
+          element={<CreateSupportRequestPage />}
+        />
         {/* Protected routes - Role-specific dashboards */}
         <Route
           path="/change-password"
           element={
             <ProtectedRoute>
               <ChangePasswordPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Support Request History - for authenticated users */}
+        <Route
+          path="/support-request/history"
+          element={
+            <ProtectedRoute>
+              <SupportRequestHistoryPage />
             </ProtectedRoute>
           }
         />
@@ -396,6 +421,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <AIInstructionsManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/support-requests"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <SupportRequestManagementPage />
             </ProtectedRoute>
           }
         />

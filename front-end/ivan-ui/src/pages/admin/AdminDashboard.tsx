@@ -188,6 +188,9 @@ export default function AdminDashboard() {
                 <ActionButton to="/admin/notifications" icon={Bell}>
                   Quản lý thông báo
                 </ActionButton>
+                <ActionButton to="/admin/support-requests" icon={MessageCircle}>
+                  Quản lý yêu cầu hỗ trợ
+                </ActionButton>
                 <ActionButton to="/admin/ai-instructions" icon={Bot}>
                   Quản lý AI Instructions
                 </ActionButton>

@@ -19,20 +19,20 @@ import {
 } from "@/components/ui/select";
 import { supportRequestService } from "@/services/supportRequestService";
 import type {
-  SupportRequestCreateRequest,
-  SupportCategory,
-} from "@/services/supportRequestService";
+  SupportRequestCreateDto,
+  SupportCategoryDto,
+} from "@/types/supportRequest";
 import { toast } from "sonner";
 import { Send, Upload, X, FileText } from "lucide-react";
 
 export default function CreateSupportRequestPage() {
-  const [categories, setCategories] = useState<SupportCategory[]>([]);
+  const [categories, setCategories] = useState<SupportCategoryDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [attachments, setAttachments] = useState<
     { name: string; url: string }[]
   >([]);
-  const [formData, setFormData] = useState<SupportRequestCreateRequest>({
+  const [formData, setFormData] = useState<SupportRequestCreateDto>({
     categoryId: 0,
     subject: "",
     description: "",
@@ -160,7 +160,7 @@ export default function CreateSupportRequestPage() {
   };
 
   const handleInputChange = (
-    field: keyof SupportRequestCreateRequest,
+    field: keyof SupportRequestCreateDto,
     value: string | number
   ) => {
     setFormData((prev) => ({

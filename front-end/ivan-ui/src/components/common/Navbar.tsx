@@ -33,6 +33,8 @@ import {
   LogOut,
   Menu,
   Key,
+  HeartHandshake,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -261,6 +263,15 @@ export default function Navbar() {
                         <span>Đổi mật khẩu</span>
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/support-request/history"
+                        className="w-full flex items-center"
+                      >
+                        <History className="mr-2 h-4 w-4" />
+                        <span>Lịch sử yêu cầu hỗ trợ</span>
+                      </Link>
+                    </DropdownMenuItem>
 
                     {/* Role-specific menu items */}
                     {user?.role === "admin" && (
@@ -299,6 +310,14 @@ export default function Navbar() {
               <div className="flex items-center space-x-2">
                 {/* Theme Toggle */}
                 <ThemeToggle />
+
+                {/* Create Support Request for anonymous users */}
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/support-request/create">
+                    <HeartHandshake className="h-4 w-4 mr-1" />
+                    Yêu cầu hỗ trợ
+                  </Link>
+                </Button>
 
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/login">Đăng nhập</Link>

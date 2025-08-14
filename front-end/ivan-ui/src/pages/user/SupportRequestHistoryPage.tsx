@@ -35,7 +35,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supportRequestService } from "@/services/supportRequestService";
-import type { SupportRequestResponse } from "@/services/supportRequestService";
+import type { SupportRequestResponseDto } from "@/types/supportRequest";
 import {
   Search,
   Eye,
@@ -50,12 +50,12 @@ import { toast } from "sonner";
 
 export default function SupportRequestHistoryPage() {
   const navigate = useNavigate();
-  const [requests, setRequests] = useState<SupportRequestResponse[]>([]);
+  const [requests, setRequests] = useState<SupportRequestResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedRequest, setSelectedRequest] =
-    useState<SupportRequestResponse | null>(null);
+    useState<SupportRequestResponseDto | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [comment, setComment] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -186,14 +186,12 @@ export default function SupportRequestHistoryPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Open":
-        return <Badge variant="destructive">Mở</Badge>;
-      case "In Progress":
-        return <Badge variant="secondary">Đang xử lý</Badge>;
-      case "Resolved":
-        return <Badge variant="default">Đã giải quyết</Badge>;
-      case "Closed":
-        return <Badge variant="outline">Đã đóng</Badge>;
+      case "Pending":
+        return <Badge variant="secondary">Chờ duyệt</Badge>;
+      case "Approved":
+        return <Badge variant="default">Đã duyệt</Badge>;
+      case "Rejected":
+        return <Badge variant="destructive">Đã từ chối</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -260,10 +258,9 @@ export default function SupportRequestHistoryPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="Open">Mở</SelectItem>
-                <SelectItem value="In Progress">Đang xử lý</SelectItem>
-                <SelectItem value="Resolved">Đã giải quyết</SelectItem>
-                <SelectItem value="Closed">Đã đóng</SelectItem>
+                <SelectItem value="Pending">Chờ duyệt</SelectItem>
+                <SelectItem value="Approved">Đã duyệt</SelectItem>
+                <SelectItem value="Rejected">Đã từ chối</SelectItem>
               </SelectContent>
             </Select>
           </div>
