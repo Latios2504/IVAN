@@ -14,6 +14,15 @@ import type { ProfileCompletionDto } from "../types/organizationProfile"; // Reu
 class VolunteerProfileService {
   private readonly baseUrl = "/VolunteerProfile";
 
+  // Helper function to handle .NET JSON serialization format
+  private extractDataFromNetResponse<T>(data: T | any): T {
+    // If data has $values property (common with .NET JSON serialization), extract it
+    if (data && typeof data === "object" && "$values" in data) {
+      return data.$values as T;
+    }
+    return data;
+  }
+
   // === PUBLIC ENDPOINTS ===
 
   // GET /api/VolunteerProfile/public - Get Public Volunteers
@@ -24,8 +33,9 @@ class VolunteerProfileService {
       `${this.baseUrl}/public`,
       filters // Let apiClient handle parameter building
     );
-    return (
-      response.data || {
+
+    if (!response.data) {
+      return {
         items: [],
         totalCount: 0,
         pageNumber: 1,
@@ -33,8 +43,31 @@ class VolunteerProfileService {
         totalPages: 0,
         hasPreviousPage: false,
         hasNextPage: false,
+      };
+    }
+
+    // Handle .NET JSON serialization format
+    const extractedData = this.extractDataFromNetResponse(response.data);
+
+    // If the entire response is wrapped, extract it
+    if (
+      extractedData &&
+      typeof extractedData === "object" &&
+      "items" in extractedData
+    ) {
+      const pagedResult = extractedData as PagedResultDto<PublicVolunteerDto>;
+      // Also check if items is wrapped in $values
+      if (
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
+      ) {
+        pagedResult.items = (pagedResult.items as any).$values;
       }
-    );
+      return pagedResult;
+    }
+
+    return extractedData as PagedResultDto<PublicVolunteerDto>;
   }
 
   // GET /api/VolunteerProfile/public/{id} - Get Public Volunteer
@@ -53,7 +86,27 @@ class VolunteerProfileService {
     const response = await apiClient.get<SkillDto[]>(
       `${this.baseUrl}/public/skills`
     );
-    return response.data || [];
+
+    // Ensure we always return an array, even if the response is null or undefined
+    if (!response.success || !response.data) {
+      console.warn("Failed to load skills or received empty data:", response);
+      return [];
+    }
+
+    // Handle .NET JSON serialization format
+    const extractedData = this.extractDataFromNetResponse(response.data);
+
+    // Ensure the data is an array
+    if (!Array.isArray(extractedData)) {
+      console.warn(
+        "Expected skills data to be an array, received:",
+        typeof extractedData,
+        extractedData
+      );
+      return [];
+    }
+
+    return extractedData;
   }
 
   // === MANAGEMENT ENDPOINTS ===

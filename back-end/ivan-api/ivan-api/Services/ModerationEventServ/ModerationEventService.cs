@@ -1,7 +1,7 @@
 ﻿using Azure;
 using ivan_api.DTOs.ModerationEvent;
 using ivan_api.DTOs.NotificationServ;
-using ivan_api.DTOs.VolunteerProfile;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 using ivan_api.Services.NotificationServ;
 using Microsoft.EntityFrameworkCore;

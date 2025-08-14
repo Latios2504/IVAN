@@ -63,6 +63,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 // Database Context
@@ -238,10 +239,6 @@ builder.Services.AddScoped<IModerationEventService, ModerationEventService>();
 //Notification Service
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
-builder.Services.AddControllers().AddJsonOptions(opt =>
-{
-    opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-}); ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 

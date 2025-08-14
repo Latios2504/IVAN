@@ -78,9 +78,11 @@ export default function PublicVolunteersPage() {
     const loadSkills = async () => {
       try {
         const skillsResult = await volunteerProfileService.getSkills();
-        setSkills(skillsResult);
+        // Ensure we always have an array
+        setSkills(Array.isArray(skillsResult) ? skillsResult : []);
       } catch (err) {
         console.error("Failed to load skills:", err);
+        setSkills([]); // Fallback to empty array
       }
     };
     loadSkills();
@@ -223,7 +225,7 @@ export default function PublicVolunteersPage() {
       value: filters.skillId?.toString() || "",
       options: [
         { value: "", label: "Tất cả kỹ năng" },
-        ...skills
+        ...(Array.isArray(skills) ? skills : [])
           .filter((skill) => skill.skillName && skill.skillName.trim() !== "") // Filter out empty skill names
           .map((skill) => ({
             value: skill.skillId.toString(),

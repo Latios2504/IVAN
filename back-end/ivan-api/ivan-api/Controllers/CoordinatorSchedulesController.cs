@@ -2,12 +2,9 @@ using ivan_api.Constants;
 using ivan_api.DTOs.Schedule;
 using ivan_api.DTOs.Authentication;
 using ivan_api.DTOs.Common;
-<<<<<<< HEAD
 using ivan_api.Extensions;
 using ivan_api.Services;
-=======
 using ivan_api.Services.ScheduleServ;
->>>>>>> he176119
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +30,7 @@ namespace ivan_api.Controllers
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
             {
-                return Unauthorized(new ApiResponseDTO<PagedResultDTO<ScheduleDTO>>
+                return Unauthorized(new ApiResponseDTO<PagedResultDto<ScheduleDTO>>
                 {
                     Success = false,
                     Message = "User not authenticated or missing user ID claim"
@@ -41,7 +38,7 @@ namespace ivan_api.Controllers
             }
             if (!int.TryParse(claim.Value, out var userId))
             {
-                return BadRequest(new ApiResponseDTO<PagedResultDTO<ScheduleDTO>>
+                return BadRequest(new ApiResponseDTO<PagedResultDto<ScheduleDTO>>
                 {
                     Success = false,
                     Message = "Invalid user ID format"
@@ -61,12 +58,12 @@ namespace ivan_api.Controllers
         // For Organization: List all schedules, optionally filtered by coordinator or event
         [HttpGet]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDTO<ScheduleDTO>>>> ListSchedules([FromQuery] int? coordinatorId, [FromQuery] int? eventId, [FromQuery] int page = 1, [FromQuery] int size = 20)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<ScheduleDTO>>>> ListSchedules([FromQuery] int? coordinatorId, [FromQuery] int? eventId, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
             {
-                return Unauthorized(new ApiResponseDTO<PagedResultDTO<ScheduleDTO>>
+                return Unauthorized(new ApiResponseDTO<PagedResultDto<ScheduleDTO>>
                 {
                     Success = false,
                     Message = "User not authenticated or missing user ID claim"
@@ -74,7 +71,7 @@ namespace ivan_api.Controllers
             }
             if (!int.TryParse(claim.Value, out var userId))
             {
-                return BadRequest(new ApiResponseDTO<PagedResultDTO<ScheduleDTO>>
+                return BadRequest(new ApiResponseDTO<PagedResultDto<ScheduleDTO>>
                 {
                     Success = false,
                     Message = "Invalid user ID format"

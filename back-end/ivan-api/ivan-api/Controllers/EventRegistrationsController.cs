@@ -87,32 +87,7 @@ namespace ivan_api.Controllers
                     Message = ex.Message
                 });
             }
-<<<<<<< HEAD
-
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.AddRegistrationAsync(eventId, userId, request);
-            if (!result.Success)
-=======
             catch (Exception ex)
->>>>>>> he176119
             {
                 _logger.LogError(ex, "Error creating registration for event {EventId}", eventId);
                 return StatusCode(500, new ApiResponseDTO<RegistrationDTO>
@@ -159,31 +134,7 @@ namespace ivan_api.Controllers
                     Message = "Registration updated successfully"
                 });
             }
-<<<<<<< HEAD
-
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.UpdateRegistrationAsync(eventId, registrationId, userId, request);
-            if (!result.Success)
-=======
             catch (UnauthorizedAccessException ex)
->>>>>>> he176119
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
@@ -221,30 +172,7 @@ namespace ivan_api.Controllers
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
         public async Task<ActionResult<ApiResponseDTO<object>>> CancelRegistration(int eventId, int registrationId)
         {
-<<<<<<< HEAD
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<SuccessResponseDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<SuccessResponseDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.CancelRegistrationAsync(eventId, registrationId, userId);
-            if (!result.Success)
-=======
             try
->>>>>>> he176119
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var success = await _registrationService.CancelRegistrationAsync(eventId, registrationId, userId);
@@ -295,30 +223,7 @@ namespace ivan_api.Controllers
         [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<ActionResult<ApiResponseDTO<PagedResultDto<RegistrationDTO>>>> ListRegistrations(int eventId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
-<<<<<<< HEAD
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<PagedResultDTO<RegistrationDTO>>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<PagedResultDTO<RegistrationDTO>>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.ListRegistrationsAsync(eventId, userId, status, page, size);
-            if (!result.Success)
-=======
             try
->>>>>>> he176119
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var result = await _registrationService.ListRegistrationsAsync(eventId, userId, status, page, size);
@@ -354,30 +259,7 @@ namespace ivan_api.Controllers
         [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<ActionResult<ApiResponseDTO<RegistrationDTO>>> GetRegistration(int eventId, int registrationId)
         {
-<<<<<<< HEAD
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.GetRegistrationAsync(eventId, registrationId, userId);
-            if (!result.Success)
-=======
             try
->>>>>>> he176119
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var registration = await _registrationService.GetRegistrationAsync(eventId, registrationId, userId);
@@ -453,31 +335,7 @@ namespace ivan_api.Controllers
                     Message = "Registration approved successfully"
                 });
             }
-<<<<<<< HEAD
-
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.ApproveRegistrationAsync(eventId, registrationId, userId, request);
-            if (!result.Success)
-=======
             catch (UnauthorizedAccessException ex)
->>>>>>> he176119
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
@@ -540,31 +398,7 @@ namespace ivan_api.Controllers
                     Message = "Registration rejected successfully"
                 });
             }
-<<<<<<< HEAD
-
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<RegistrationDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.RejectRegistrationAsync(eventId, registrationId, userId, request);
-            if (!result.Success)
-=======
             catch (UnauthorizedAccessException ex)
->>>>>>> he176119
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
@@ -596,30 +430,7 @@ namespace ivan_api.Controllers
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
         public async Task<ActionResult<ApiResponseDTO<RegistrationStatusDTO>>> GetRegistrationStatus(int eventId, int registrationId)
         {
-<<<<<<< HEAD
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-            {
-                return Unauthorized(new ApiResponseDTO<RegistrationStatusDTO>
-                {
-                    Success = false,
-                    Message = "User not authenticated or missing user ID claim"
-                });
-            }
-            if (!int.TryParse(claim.Value, out var userId))
-            {
-                return BadRequest(new ApiResponseDTO<RegistrationStatusDTO>
-                {
-                    Success = false,
-                    Message = "Invalid user ID format"
-                });
-            }
-
-            var result = await _registrationService.GetRegistrationStatusAsync(eventId, registrationId, userId);
-            if (!result.Success)
-=======
             try
->>>>>>> he176119
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var status = await _registrationService.GetRegistrationStatusAsync(eventId, registrationId, userId);

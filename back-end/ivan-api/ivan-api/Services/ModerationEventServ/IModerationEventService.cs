@@ -1,5 +1,5 @@
 ﻿using ivan_api.DTOs.ModerationEvent;
-using ivan_api.DTOs.VolunteerProfile;
+using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.ModerationEventServ
 {
