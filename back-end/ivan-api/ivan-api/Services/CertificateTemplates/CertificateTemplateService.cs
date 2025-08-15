@@ -17,13 +17,29 @@ namespace ivan_api.Services.CertificateTemplates
             _mapper = mapper;
         }
 
-        public async Task<bool> AddCertificateTemplate(CertificateTemplateInputModel certificateTemplateInputModel)
+        public async Task<CertificateTemplateViewModel?> AddCertificateTemplate(CertificateTemplateInputModel certificateTemplateInputModel, int createdBy)
         {
             var tem = _mapper.Map<CertificateTemplate>(certificateTemplateInputModel);
             tem.CreatedAt = DateTime.Now;
             tem.UpdatedAt = DateTime.Now;
+            tem.CreatedBy = createdBy;
 
-            return await _repository.AddCertificateTemplate(tem);
+            var createdTemplateId = await _repository.AddCertificateTemplate(tem);
+            
+            if (createdTemplateId == null)
+            {
+                return null;
+            }
+            
+            // Get the newly created template by its ID
+            var createdTemplate = await _repository.GetCertificateTemplateById(createdTemplateId.Value);
+                
+            if (createdTemplate == null)
+            {
+                return null;
+            }
+            
+            return _mapper.Map<CertificateTemplateViewModel>(createdTemplate);
         }
         //public async Task<bool> UpdateCertificateTemplate(CertificateTemplateViewModel certificateTemplateViewModel)
         //{

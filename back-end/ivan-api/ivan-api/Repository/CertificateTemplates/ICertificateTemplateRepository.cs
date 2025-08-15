@@ -6,7 +6,7 @@ namespace ivan_api.Repository.CertificateTemplates
 {
     public interface ICertificateTemplateRepository
     {
-        Task<bool> AddCertificateTemplate(CertificateTemplate certificateTemplate);
+        Task<int?> AddCertificateTemplate(CertificateTemplate certificateTemplate);
         //Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate);
         Task<IEnumerable<CertificateTemplate>> ListCertificateTemplate(CertificateTemplateFilterModel filter);
         Task<CertificateTemplate> GetCertificateTemplateById(int id);

@@ -102,7 +102,7 @@ export interface CertificateTemplateInputModel {
   templateType?: string;
   templateDesign?: string;
   requiredFields?: string;
-  organizationId?: number;
+  organizationId?: number; // Optional - will be auto-set by backend
   isDefault?: boolean;
   isActive?: boolean;
 }
@@ -130,7 +130,7 @@ export interface CreateCertificateTemplateRequest {
   templateType?: string;
   templateDesign?: string;
   requiredFields?: string;
-  organizationId?: number;
+  organizationId?: number; // Optional - will be auto-set by backend
   isDefault?: boolean;
   isActive?: boolean;
 }

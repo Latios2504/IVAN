@@ -1,5 +1,6 @@
 using ivan_api.Constants;
 using ivan_api.DTOs.CoordinatorTask;
+using ivan_api.DTOs.Common;
 using ivan_api.Services.CoordinatorTaskServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,40 +23,181 @@ namespace ivan_api.Controllers
         /// Get all coordinator tasks (Organization and Coordinator can view)
         [HttpGet]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetAll()
         {
-            var tasks = await _service.GetAllTasksAsync();
-            return Ok(tasks);
+            try
+            {
+                var tasks = await _service.GetAllTasksAsync();
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = tasks,
+                    Message = "Coordinator tasks retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving coordinator tasks",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
         /// Get coordinator task by ID (Organization and Coordinator can view)
         [HttpGet("{id}")]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<ApiResponseDTO<CoordinatorTaskDto>>> GetById(int id)
         {
-            var task = await _service.GetTaskByIdAsync(id);
-            if (task == null) return NotFound();
-            return Ok(task);
+            try
+            {
+                var task = await _service.GetTaskByIdAsync(id);
+                if (task == null)
+                {
+                    return NotFound(new ApiResponseDTO<CoordinatorTaskDto>
+                    {
+                        Success = false,
+                        Message = "Coordinator task not found",
+                        Errors = new List<string> { $"Coordinator task with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<CoordinatorTaskDto>
+                {
+                    Success = true,
+                    Data = task,
+                    Message = "Coordinator task retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<CoordinatorTaskDto>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving coordinator task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
         /// Create new coordinator task (Only Organization can create)
         [HttpPost]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<IActionResult> Create([FromBody] CoordinatorTaskDto dto)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Create([FromBody] CoordinatorTaskDto dto)
         {
-            var userId = GetUserId(); // implement l?y UserId t? JWT
-            var task = await _service.CreateTaskAsync(dto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = task.TaskId }, task);
+            if (dto == null)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
+            }
+
+            try
+            {
+                var userId = GetUserId();
+                var task = await _service.CreateTaskAsync(dto, userId);
+
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = task.TaskId },
+                    new ApiResponseDTO<object>
+                    {
+                        Success = true,
+                        Data = task,
+                        Message = "Coordinator task created successfully"
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while creating coordinator task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
         /// Update coordinator task (Only Organization can update)
         [HttpPut("{id}")]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<IActionResult> Update(int id, [FromBody] CoordinatorTaskDto dto)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id, [FromBody] CoordinatorTaskDto dto)
         {
-            var task = await _service.UpdateTaskAsync(id, dto);
-            if (task == null) return NotFound();
-            return Ok(task);
+            if (dto == null)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
+            }
+
+            try
+            {
+                var task = await _service.UpdateTaskAsync(id, dto);
+                if (task == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator task not found",
+                        Errors = new List<string> { $"Coordinator task with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = task,
+                    Message = "Coordinator task updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while updating coordinator task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
         }
 
         private int GetUserId()

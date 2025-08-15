@@ -12,7 +12,7 @@
 
         public string? RequiredFields { get; set; }
 
-        public int? OrganizationId { get; set; }
+        public int? OrganizationId { get; set; } // Will be auto-set by controller, but keep for AutoMapper
 
         public bool? IsDefault { get; set; }
 

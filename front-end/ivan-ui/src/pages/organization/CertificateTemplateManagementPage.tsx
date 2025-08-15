@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
 import type { CertificateTemplateViewModel } from "@/types/certificate";
+import CreateCertificateTemplateModal from "@/components/organization/certificate-template/CreateCertificateTemplateModal";
 
 // Mock current user - replace with actual auth context
 const getCurrentUser = () => ({
@@ -48,6 +49,7 @@ export default function CertificateTemplateManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(12);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const currentUser = getCurrentUser();
   const isAdmin = currentUser.role === "admin";
@@ -124,8 +126,14 @@ export default function CertificateTemplateManagementPage() {
 
   // Handle template creation
   const handleCreateTemplate = () => {
-    // TODO: Open create template modal
-    toast.info("Tính năng tạo mẫu mới sẽ được triển khai");
+    setIsCreateModalOpen(true);
+  };
+
+  // Handle successful template creation
+  const handleTemplateCreated = () => {
+    setIsCreateModalOpen(false);
+    toast.success("Tạo mẫu chứng chỉ thành công!");
+    loadTemplates(); // Reload the templates list
   };
 
   // Handle template editing
@@ -544,6 +552,13 @@ export default function CertificateTemplateManagementPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Create Certificate Template Modal */}
+      <CreateCertificateTemplateModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onSuccess={handleTemplateCreated}
+      />
     </div>
   );
 }

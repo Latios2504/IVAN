@@ -19,11 +19,18 @@ namespace ivan_api.Repository.CertificateTemplates
             _mapper = mapper;
         }
 
-        public async Task<bool> AddCertificateTemplate(CertificateTemplate certificateTemplate)
+        public async Task<int?> AddCertificateTemplate(CertificateTemplate certificateTemplate)
         {
             certificateTemplate.CreatedAt = DateTime.Now;
             await _context.CertificateTemplates.AddAsync(certificateTemplate);
-            return await _context.SaveChangesAsync() > 0;
+            var success = await _context.SaveChangesAsync() > 0;
+            
+            if (success)
+            {
+                return certificateTemplate.TemplateId; // Return the generated ID
+            }
+            
+            return null;
         }
         //public async Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate)
         //{

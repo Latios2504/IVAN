@@ -31,7 +31,7 @@ class CertificateTemplateService {
       PagedResultDto<CertificateTemplateViewModel>
     >(this.baseUrl, { pageNumber, pageSize });
 
-    if (!response.data) {
+    if (!response.data || !response.success) {
       return {
         items: [],
         totalCount: 0,
@@ -73,7 +73,7 @@ class CertificateTemplateService {
     const response = await apiClient.get<CertificateTemplateViewModel>(
       `${this.baseUrl}/get/${id}`
     );
-    if (!response.data) {
+    if (!response.data || !response.success) {
       throw new Error("Certificate template not found");
     }
     return response.data;
@@ -89,7 +89,7 @@ class CertificateTemplateService {
       templateType: templateData.templateType,
       templateDesign: templateData.templateDesign,
       requiredFields: templateData.requiredFields,
-      organizationId: templateData.organizationId,
+      // organizationId: undefined, // Let backend auto-detect from authenticated user
       isDefault: templateData.isDefault ?? false,
       isActive: templateData.isActive ?? true,
     };
@@ -99,8 +99,10 @@ class CertificateTemplateService {
       inputModel
     );
 
-    if (!response.data) {
-      throw new Error("Failed to create certificate template");
+    if (!response.data || !response.success) {
+      throw new Error(
+        response.message || "Failed to create certificate template"
+      );
     }
 
     return response.data;
@@ -193,10 +195,6 @@ class CertificateTemplateService {
 
     if (data.description && data.description.length > 1000) {
       errors.push("Description cannot exceed 1000 characters");
-    }
-
-    if (data.organizationId && data.organizationId <= 0) {
-      errors.push("Organization ID must be a positive number");
     }
 
     return errors;
