@@ -80,10 +80,25 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("filter")]
+        [Authorize]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetFilteredCertificateTemplates([FromBody] CertificateTemplateFilterModel filter)
         {
             try
             {
+                // Get the authenticated user's ID
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                
+                // Get the user's profile information including organization ID
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+                
+                // Set the organization ID from authenticated user for organization-specific filtering
+                // Only filter by organization if the user is not an admin and has an organization
+                if (userInfo != null && userInfo.OrganizationId.HasValue && userInfo.RoleName.ToLower() != "admin")
+                {
+                    filter.OrganizationId = userInfo.OrganizationId.Value;
+                }
+                // For admin users, don't set OrganizationId filter - let them see all
+
                 var result = await _service.ListCertificateTemplate(filter);
                 return Ok(new ApiResponseDTO<object>
                 {

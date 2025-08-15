@@ -102,7 +102,18 @@ export interface CertificateTemplateInputModel {
   templateType?: string;
   templateDesign?: string;
   requiredFields?: string;
-  organizationId?: number; // Optional - will be auto-set by backend
+  isDefault?: boolean;
+  isActive?: boolean;
+}
+
+export interface CertificateTemplateUpdateModel {
+  templateId: number;
+  templateName?: string;
+  description?: string;
+  templateType?: string;
+  templateDesign?: string;
+  requiredFields?: string;
+  organizationId?: number;
   isDefault?: boolean;
   isActive?: boolean;
 }
@@ -110,6 +121,7 @@ export interface CertificateTemplateInputModel {
 export interface CertificateTemplateFilterModel {
   pageNumber?: number;
   pageSize?: number;
+  searchTerm?: string;
 }
 
 // Create request interfaces for frontend forms
@@ -130,7 +142,16 @@ export interface CreateCertificateTemplateRequest {
   templateType?: string;
   templateDesign?: string;
   requiredFields?: string;
-  organizationId?: number; // Optional - will be auto-set by backend
+  isDefault?: boolean;
+  isActive?: boolean;
+}
+
+export interface UpdateCertificateTemplateRequest {
+  templateName?: string;
+  description?: string;
+  templateType?: string;
+  templateDesign?: string;
+  requiredFields?: string;
   isDefault?: boolean;
   isActive?: boolean;
 }
@@ -155,19 +176,4 @@ export enum TemplateType {
   ACHIEVEMENT = "Achievement",
   COMPLETION = "Completion",
   RECOGNITION = "Recognition",
-}
-
-// Extended view models with related data (for display purposes)
-export interface CertificateDetailViewModel extends CertificateViewModel {
-  volunteerName?: string;
-  eventName?: string;
-  templateName?: string;
-  issuedByName?: string;
-}
-
-export interface CertificateTemplateDetailViewModel
-  extends CertificateTemplateViewModel {
-  organizationName?: string;
-  createdByName?: string;
-  certificateCount?: number;
 }

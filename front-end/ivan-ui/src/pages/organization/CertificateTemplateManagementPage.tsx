@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -9,53 +9,88 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FileText,
+  CheckCircle,
+  AlertCircle,
   Plus,
   Search,
-  Edit,
-  Copy,
+  Users,
   Eye,
+  Pencil,
   Trash2,
-  Loader2,
-  AlertCircle,
-  Settings,
-  CheckCircle,
-  XCircle,
+  Copy,
+  MoreHorizontal,
+  ChevronDown,
+  Building2,
+  Calendar,
+  Clock,
+  User,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
 import type { CertificateTemplateViewModel } from "@/types/certificate";
 import CreateCertificateTemplateModal from "@/components/organization/certificate-template/CreateCertificateTemplateModal";
+import EditCertificateTemplateModal from "@/components/organization/certificate-template/EditCertificateTemplateModal";
+import DeleteCertificateTemplateDialog from "@/components/organization/certificate-template/DeleteCertificateTemplateDialog";
+import PreviewCertificateTemplateModal from "@/components/organization/certificate-template/PreviewCertificateTemplateModal";
+import BulkActionsModal from "@/components/organization/certificate-template/BulkActionsModal";
 
 // Mock current user - replace with actual auth context
 const getCurrentUser = () => ({
   userId: 1,
   role: "organization", // organization, admin
-  organizationId: 123,
+  organizationId: 12, // Updated to match your database data
   name: "Organization Admin",
 });
 
 export default function CertificateTemplateManagementPage() {
+  const currentUser = getCurrentUser();
+  const isAdmin = currentUser.role === "admin";
+
   // State management
   const [templates, setTemplates] = useState<CertificateTemplateViewModel[]>(
     []
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState("my-templates");
+  const [selectedTab, setSelectedTab] = useState(
+    isAdmin ? "all-templates" : "my-templates"
+  );
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(12);
+  const [pageSize] = useState(50); // Increased to handle more templates
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(
+    null
+  );
+  const [selectedTemplateName, setSelectedTemplateName] = useState("");
+  const [isBulkActionsOpen, setIsBulkActionsOpen] = useState(false);
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState<number[]>([]);
 
-  const currentUser = getCurrentUser();
-  const isAdmin = currentUser.role === "admin";
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, selectedTab]);
 
   // Load templates from API
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -63,30 +98,63 @@ export default function CertificateTemplateManagementPage() {
       let response;
 
       if (selectedTab === "my-templates" && !isAdmin) {
-        // Organization templates
-        response = await certificateTemplateService.getTemplatesByOrganization(
-          currentUser.organizationId!,
-          currentPage,
-          pageSize
-        );
-      } else if (selectedTab === "default-templates") {
-        // Default/System templates
-        response = await certificateTemplateService.getDefaultTemplates(
-          currentPage,
-          pageSize
-        );
+        // Organization templates - use filter endpoint (backend auto-sets organizationId)
+        const filterModel = {
+          pageNumber: currentPage,
+          pageSize: pageSize,
+          searchTerm: debouncedSearchTerm.trim() || undefined,
+        };
+        response =
+          await certificateTemplateService.getFilteredCertificateTemplates(
+            filterModel
+          );
+      } else if (selectedTab === "my-templates" && isAdmin) {
+        // Admin viewing organization-filtered templates - use filter endpoint
+        const filterModel = {
+          pageNumber: currentPage,
+          pageSize: pageSize,
+          searchTerm: debouncedSearchTerm.trim() || undefined,
+        };
+        response =
+          await certificateTemplateService.getFilteredCertificateTemplates(
+            filterModel
+          );
       } else {
-        // All templates (for admin)
-        response = await certificateTemplateService.getCertificateTemplates(
-          currentPage,
-          pageSize
-        );
+        // All templates (for admin) with search
+        if (debouncedSearchTerm.trim()) {
+          // Use filter endpoint for search (admin sees all because backend doesn't set organizationId for admin)
+          const filterModel = {
+            pageNumber: currentPage,
+            pageSize: pageSize,
+            searchTerm: debouncedSearchTerm.trim(),
+          };
+          response =
+            await certificateTemplateService.getFilteredCertificateTemplates(
+              filterModel
+            );
+        } else {
+          // Use general endpoint for all templates
+          response = await certificateTemplateService.getCertificateTemplates(
+            currentPage,
+            pageSize
+          );
+        }
       }
 
       setTemplates(response.items);
       setTotalPages(
         response.totalPages || Math.ceil(response.totalCount / pageSize)
       );
+
+      // Debug logging to see what we're getting
+      console.log("API Response:", {
+        itemCount: response.items?.length,
+        totalCount: response.totalCount,
+        totalPages: response.totalPages,
+        pageNumber: response.pageNumber,
+        pageSize: response.pageSize,
+        selectedTab,
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load templates";
@@ -95,31 +163,24 @@ export default function CertificateTemplateManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, selectedTab, debouncedSearchTerm, isAdmin]);
 
   // Load templates on component mount and when filters change
   useEffect(() => {
     loadTemplates();
-  }, [currentPage, pageSize, selectedTab]);
+  }, [loadTemplates]);
 
-  // Filter templates based on search term
-  const filteredTemplates = templates.filter(
-    (template) =>
-      template.templateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.templateType?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Calculate statistics
+  // Calculate statistics (using server-filtered templates)
   const getTemplateStats = () => {
+    if (!templates || !Array.isArray(templates)) {
+      return { total: 0, active: 0, myTemplates: 0 };
+    }
+
     const total = templates.length;
     const active = templates.filter((t) => t.isActive).length;
-    const myTemplates = templates.filter(
-      (t) => t.organizationId === currentUser.organizationId
-    ).length;
-    const defaultTemplates = templates.filter((t) => t.isDefault).length;
+    const myTemplates = templates.length;
 
-    return { total, active, myTemplates, defaultTemplates };
+    return { total, active, myTemplates };
   };
 
   const stats = getTemplateStats();
@@ -138,27 +199,75 @@ export default function CertificateTemplateManagementPage() {
 
   // Handle template editing
   const handleEditTemplate = (templateId: number) => {
-    // TODO: Open edit template modal
-    toast.info(`Chỉnh sửa mẫu ${templateId} sẽ được triển khai`);
+    setSelectedTemplateId(templateId);
+    setIsEditModalOpen(true);
   };
 
   // Handle template duplication
-  const handleDuplicateTemplate = (template: CertificateTemplateViewModel) => {
-    // TODO: Duplicate template logic
-    toast.info(`Sao chép mẫu "${template.templateName}" sẽ được triển khai`);
+  const handleDuplicateTemplate = async (
+    template: CertificateTemplateViewModel
+  ) => {
+    try {
+      await certificateTemplateService.duplicateTemplate(
+        template.templateId,
+        `${template.templateName} (Bản sao)`
+      );
+      toast.success(`Đã sao chép mẫu "${template.templateName}" thành công!`);
+      loadTemplates(); // Reload the templates list
+    } catch (error) {
+      toast.error("Không thể sao chép mẫu chứng chỉ");
+    }
   };
 
   // Handle template deletion
   const handleDeleteTemplate = (templateId: number, templateName: string) => {
-    // TODO: Add confirmation dialog and delete logic
-    toast.info(`Xóa mẫu "${templateName}" sẽ được triển khai`);
+    setSelectedTemplateId(templateId);
+    setSelectedTemplateName(templateName);
+    setIsDeleteDialogOpen(true);
   };
 
   // Handle template preview
   const handlePreviewTemplate = (templateId: number) => {
-    // TODO: Open template preview modal
-    toast.info(`Xem trước mẫu ${templateId} sẽ được triển khai`);
+    setSelectedTemplateId(templateId);
+    setIsPreviewModalOpen(true);
   };
+
+  // Handle successful operations
+  const handleOperationSuccess = () => {
+    loadTemplates(); // Reload the templates list
+    setSelectedTemplateIds([]); // Clear selection
+  };
+
+  // Handle template selection
+  const handleTemplateSelect = (templateId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedTemplateIds((prev) => [...prev, templateId]);
+    } else {
+      setSelectedTemplateIds((prev) => prev.filter((id) => id !== templateId));
+    }
+  };
+
+  // Handle select all
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && templates && Array.isArray(templates)) {
+      setSelectedTemplateIds(templates.map((t) => t.templateId));
+    } else {
+      setSelectedTemplateIds([]);
+    }
+  };
+
+  // Handle bulk actions
+  const handleBulkActions = () => {
+    if (selectedTemplateIds.length > 0) {
+      setIsBulkActionsOpen(true);
+    }
+  };
+
+  // Get selected templates
+  const selectedTemplates =
+    templates && Array.isArray(templates)
+      ? templates.filter((t) => selectedTemplateIds.includes(t.templateId))
+      : [];
 
   // Get template type display info
   const getTemplateTypeInfo = (templateType?: string) => {
@@ -205,9 +314,9 @@ export default function CertificateTemplateManagementPage() {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      {/* Search and Bulk Actions */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Tìm kiếm mẫu chứng chỉ..."
@@ -216,10 +325,35 @@ export default function CertificateTemplateManagementPage() {
             className="pl-10"
           />
         </div>
+
+        {/* Bulk Actions */}
+        {selectedTemplateIds.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              Đã chọn {selectedTemplateIds.length} mẫu
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkActions}
+              className="flex items-center gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Thao tác hàng loạt
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedTemplateIds([])}
+            >
+              Bỏ chọn
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng mẫu</CardTitle>
@@ -246,31 +380,20 @@ export default function CertificateTemplateManagementPage() {
           </CardContent>
         </Card>
 
-        {!isAdmin && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mẫu của tôi</CardTitle>
-              <Settings className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.myTemplates}
-              </div>
-              <p className="text-xs text-muted-foreground">Tự tạo</p>
-            </CardContent>
-          </Card>
-        )}
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mẫu hệ thống</CardTitle>
-            <FileText className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium">
+              {isAdmin ? "Mẫu hiện tại" : "Mẫu của tổ chức"}
+            </CardTitle>
+            <Building2 className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {stats.defaultTemplates}
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.myTemplates}
             </div>
-            <p className="text-xs text-muted-foreground">Mẫu mặc định</p>
+            <p className="text-xs text-muted-foreground">
+              {isAdmin ? "Hiển thị" : "Mẫu riêng"}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -302,202 +425,180 @@ export default function CertificateTemplateManagementPage() {
         className="space-y-6"
       >
         <TabsList
-          className={`grid w-full ${isAdmin ? "grid-cols-3" : "grid-cols-2"}`}
+          className={`grid w-full ${isAdmin ? "grid-cols-2" : "grid-cols-1"}`}
         >
           {!isAdmin && (
-            <TabsTrigger value="my-templates">Mẫu của tôi</TabsTrigger>
+            <TabsTrigger value="my-templates">Mẫu của tổ chức</TabsTrigger>
           )}
-          <TabsTrigger value="default-templates">Mẫu hệ thống</TabsTrigger>
           {isAdmin && (
-            <TabsTrigger value="all-templates">Tất cả mẫu</TabsTrigger>
+            <>
+              <TabsTrigger value="my-templates">Mẫu theo tổ chức</TabsTrigger>
+              <TabsTrigger value="all-templates">Tất cả mẫu</TabsTrigger>
+            </>
           )}
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>
-                {selectedTab === "my-templates" && "Mẫu chứng chỉ của tôi"}
-                {selectedTab === "default-templates" && "Mẫu hệ thống"}
-                {selectedTab === "all-templates" && "Tất cả mẫu chứng chỉ"}
-              </CardTitle>
-              <CardDescription>
-                {selectedTab === "my-templates" &&
-                  "Quản lý các mẫu chứng chỉ do tổ chức của bạn tạo"}
-                {selectedTab === "default-templates" &&
-                  "Sử dụng các mẫu chứng chỉ có sẵn của hệ thống"}
-                {selectedTab === "all-templates" &&
-                  "Quản lý tất cả mẫu chứng chỉ trong hệ thống"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Loading State */}
-              {loading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">
-                    Đang tải mẫu chứng chỉ...
-                  </span>
+            <CardContent className="pt-6">
+              {loading ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="h-8 w-8 mx-auto mb-2 animate-spin" />
+                  <p>Đang tải...</p>
                 </div>
-              )}
-
-              {/* Empty State */}
-              {!loading && filteredTemplates.length === 0 && (
+              ) : templates.length === 0 ? (
                 <div className="text-center py-12">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {searchTerm
-                      ? "Không tìm thấy mẫu"
-                      : "Chưa có mẫu chứng chỉ"}
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Chưa có mẫu chứng chỉ
                   </h3>
-                  <p className="text-gray-600 mb-4">
-                    {searchTerm
-                      ? "Thử thay đổi từ khóa tìm kiếm"
-                      : "Tạo mẫu chứng chỉ đầu tiên cho tổ chức của bạn"}
+                  <p className="text-gray-500 mb-4">
+                    Bắt đầu bằng cách tạo mẫu chứng chỉ đầu tiên
                   </p>
-                  {!searchTerm && selectedTab === "my-templates" && (
-                    <Button onClick={handleCreateTemplate}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Tạo mẫu đầu tiên
-                    </Button>
-                  )}
+                  <Button onClick={handleCreateTemplate}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tạo mẫu mới
+                  </Button>
                 </div>
-              )}
+              ) : (
+                <div className="space-y-4">
+                  {/* Header with select all */}
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center space-x-4">
+                      <Checkbox
+                        checked={
+                          templates.length > 0 &&
+                          selectedTemplateIds.length === templates.length
+                        }
+                        onCheckedChange={(checked) =>
+                          handleSelectAll(checked as boolean)
+                        }
+                      />
+                      <span className="text-sm font-medium">
+                        Chọn tất cả ({templates.length} mẫu)
+                      </span>
+                    </div>
+                  </div>
 
-              {/* Templates Grid */}
-              {!loading && filteredTemplates.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredTemplates.map((template) => {
-                    const typeInfo = getTemplateTypeInfo(template.templateType);
-                    const isOwned =
-                      template.organizationId === currentUser.organizationId;
-                    const canEdit = isAdmin || isOwned;
+                  {/* Templates list */}
+                  <div className="space-y-3">
+                    {templates.map((template) => {
+                      const typeInfo = getTemplateTypeInfo(
+                        template.templateType
+                      );
+                      const isSelected = selectedTemplateIds.includes(
+                        template.templateId
+                      );
 
-                    return (
-                      <Card
-                        key={template.templateId}
-                        className="hover:shadow-lg transition-shadow duration-200"
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg mb-1">
-                                {template.templateName}
-                              </CardTitle>
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge className={typeInfo.color}>
-                                  {typeInfo.label}
-                                </Badge>
-                                {template.isDefault && (
-                                  <Badge variant="outline">Hệ thống</Badge>
+                      return (
+                        <div
+                          key={template.templateId}
+                          className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                            isSelected ? "ring-2 ring-blue-500" : ""
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4 flex-1">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) =>
+                                  handleTemplateSelect(
+                                    template.templateId,
+                                    checked as boolean
+                                  )
+                                }
+                              />
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                    {template.templateName}
+                                  </h3>
+                                  <Badge
+                                    className={`text-xs ${typeInfo.color}`}
+                                    variant="secondary"
+                                  >
+                                    {typeInfo.label}
+                                  </Badge>
+                                  {template.isDefault && (
+                                    <Badge
+                                      className="text-xs bg-yellow-100 text-yellow-800"
+                                      variant="secondary"
+                                    >
+                                      Mặc định
+                                    </Badge>
+                                  )}
+                                  <Badge
+                                    className={`text-xs ${
+                                      template.isActive
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                    variant="secondary"
+                                  >
+                                    {template.isActive
+                                      ? "Hoạt động"
+                                      : "Tạm dừng"}
+                                  </Badge>
+                                </div>
+
+                                {template.description && (
+                                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                    {template.description}
+                                  </p>
                                 )}
-                                {!template.isActive && (
-                                  <Badge variant="destructive">Tạm dừng</Badge>
-                                )}
+
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    {template.createdAt
+                                      ? new Date(
+                                          template.createdAt
+                                        ).toLocaleDateString("vi-VN")
+                                      : "N/A"}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    ID: {template.templateId}
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <CardDescription className="text-sm line-clamp-2">
-                            {template.description || "Không có mô tả"}
-                          </CardDescription>
-                        </CardHeader>
 
-                        <CardContent className="space-y-4">
-                          {/* Template Details */}
-                          <div className="space-y-2 text-sm text-gray-600">
-                            {template.requiredFields && (
-                              <div>
-                                <span className="font-medium">
-                                  Trường bắt buộc:{" "}
-                                </span>
-                                <span className="text-xs">
-                                  {certificateTemplateService
-                                    .parseRequiredFields(
-                                      template.requiredFields
-                                    )
-                                    .slice(0, 3)
-                                    .join(", ")}
-                                  {certificateTemplateService.parseRequiredFields(
-                                    template.requiredFields
-                                  ).length > 3 && "..."}
-                                </span>
-                              </div>
-                            )}
-
-                            {template.createdAt && (
-                              <div>
-                                <span className="font-medium">Tạo: </span>
-                                {new Date(
-                                  template.createdAt
-                                ).toLocaleDateString("vi-VN")}
-                              </div>
-                            )}
-
-                            {template.updatedAt &&
-                              template.updatedAt !== template.createdAt && (
-                                <div>
-                                  <span className="font-medium">
-                                    Cập nhật:{" "}
-                                  </span>
-                                  {new Date(
-                                    template.updatedAt
-                                  ).toLocaleDateString("vi-VN")}
-                                </div>
-                              )}
-                          </div>
-
-                          {/* Status Indicator */}
-                          <div className="flex items-center gap-2 text-sm">
-                            {template.isActive ? (
-                              <div className="flex items-center gap-1 text-green-600">
-                                <CheckCircle className="h-4 w-4" />
-                                <span>Đang hoạt động</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1 text-red-600">
-                                <XCircle className="h-4 w-4" />
-                                <span>Tạm dừng</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex gap-2 pt-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                handlePreviewTemplate(template.templateId)
-                              }
-                              className="flex-1"
-                            >
-                              <Eye className="mr-1 h-4 w-4" />
-                              Xem
-                            </Button>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDuplicateTemplate(template)}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-
-                            {canEdit && (
+                            {/* Actions */}
+                            <div className="flex items-center gap-2 ml-4">
                               <Button
-                                variant="outline"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handlePreviewTemplate(template.templateId)
+                                }
+                                className="text-blue-600 hover:text-blue-700"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={() =>
                                   handleEditTemplate(template.templateId)
                                 }
+                                className="text-green-600 hover:text-green-700"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" />
                               </Button>
-                            )}
-
-                            {canEdit && !template.isDefault && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleDuplicateTemplate(template)
+                                }
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={() =>
                                   handleDeleteTemplate(
@@ -509,43 +610,39 @@ export default function CertificateTemplateManagementPage() {
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
-                            )}
+                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+                        </div>
+                      );
+                    })}
+                  </div>
 
-              {/* Pagination */}
-              {!loading && filteredTemplates.length > 0 && totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-gray-600">
-                    Trang {currentPage} / {totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(1, prev - 1))
-                      }
-                      disabled={currentPage === 1}
-                    >
-                      Trước
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                      }
-                      disabled={currentPage === totalPages}
-                    >
-                      Sau
-                    </Button>
-                  </div>
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="text-sm text-gray-600">
+                        Trang {currentPage} / {totalPages}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                        >
+                          Trước
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                        >
+                          Sau
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -558,6 +655,38 @@ export default function CertificateTemplateManagementPage() {
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         onSuccess={handleTemplateCreated}
+      />
+
+      {/* Edit Certificate Template Modal */}
+      <EditCertificateTemplateModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        onSuccess={handleOperationSuccess}
+        templateId={selectedTemplateId}
+      />
+
+      {/* Delete Certificate Template Dialog */}
+      <DeleteCertificateTemplateDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onSuccess={handleOperationSuccess}
+        templateId={selectedTemplateId}
+        templateName={selectedTemplateName}
+      />
+
+      {/* Preview Certificate Template Modal */}
+      <PreviewCertificateTemplateModal
+        open={isPreviewModalOpen}
+        onOpenChange={setIsPreviewModalOpen}
+        templateId={selectedTemplateId}
+      />
+
+      {/* Bulk Actions Modal */}
+      <BulkActionsModal
+        open={isBulkActionsOpen}
+        onOpenChange={setIsBulkActionsOpen}
+        onSuccess={handleOperationSuccess}
+        selectedTemplates={selectedTemplates}
       />
     </div>
   );

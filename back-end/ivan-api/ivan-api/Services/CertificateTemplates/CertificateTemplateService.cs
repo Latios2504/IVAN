@@ -95,10 +95,9 @@ namespace ivan_api.Services.CertificateTemplates
             }
         }
 
-        public async Task<IEnumerable<CertificateTemplateViewModel>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
+        public async Task<PagedResultDto<CertificateTemplateViewModel>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
         {
-            var tems = await _repository.ListCertificateTemplate(filter);
-            return _mapper.Map<IEnumerable<CertificateTemplateViewModel>>(tems);
+            return await _repository.ListCertificateTemplate(filter);
         }
         public async Task<CertificateTemplateViewModel> GetCertificateTemplateById(int id)
         {

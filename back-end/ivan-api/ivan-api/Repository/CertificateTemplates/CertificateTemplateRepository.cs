@@ -52,18 +52,41 @@ namespace ivan_api.Repository.CertificateTemplates
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<IEnumerable<CertificateTemplate>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
+        public async Task<PagedResultDto<CertificateTemplateViewModel>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
         {
             var query = _context.CertificateTemplates
                 .Include(x => x.CreatedByNavigation)
                 .Include(x => x.Organization)
                 .AsQueryable();
 
-            //return query.ToList();
-            return await query
+            // Apply organization filter if provided
+            if (filter.OrganizationId.HasValue)
+            {
+                query = query.Where(x => x.OrganizationId == filter.OrganizationId.Value);
+            }
+
+            // Apply search term filter if provided
+            if (!string.IsNullOrEmpty(filter.SearchTerm))
+            {
+                query = query.Where(x => x.TemplateName.Contains(filter.SearchTerm) || 
+                                        (x.Description != null && x.Description.Contains(filter.SearchTerm)));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
+                .ProjectTo<CertificateTemplateViewModel>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            return new PagedResultDto<CertificateTemplateViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            };
         }
 
         public async Task<PagedResultDto<CertificateTemplateViewModel>> GetCertificateTemplatesAsync(int PageNumber, int PageSize)

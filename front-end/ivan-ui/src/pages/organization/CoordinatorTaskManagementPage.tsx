@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,18 +27,9 @@ import {
 import { useModal } from "@/hooks/useModal";
 import { toast } from "sonner";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Plus,
   Search,
   Download,
-  MoreHorizontal,
   Calendar,
   Clock,
   User,
@@ -46,129 +37,122 @@ import {
   AlertCircle,
   XCircle,
   FileText,
+  Eye,
+  Edit,
+  Trash2,
 } from "lucide-react";
-import type { Task } from "@/types/organization-extended";
+import coordinatorTaskService from "@/services/coordinatorTaskService";
+import type {
+  CoordinatorTaskDto,
+  CreateCoordinatorTaskDto,
+  TaskStatus,
+  TaskPriority,
+} from "@/types/coordinatorTask";
 
-// Mock data for coordinator tasks
-const mockTasks: Task[] = [
-  {
-    id: "task-001",
-    title: "Tổ chức sự kiện từ thiện tại trường tiểu học",
-    description:
-      "Điều phối và quản lý hoạt động tình nguyện tại trường tiểu học Nguyễn Du",
-    coordinatorName: "Nguyễn Thị Lan",
-    eventName: "Chương trình học bổng cho trẻ em vùng cao",
-    priority: "high",
-    status: "in_progress",
-    assignedDate: "2024-01-15",
-    dueDate: "2024-02-15",
-    completedDate: undefined,
-    estimatedHours: 40,
-    actualHours: 25,
-    volunteers: 15,
-    notes: "Tiến độ tốt, cần bổ sung thêm vật tư",
-    location: "Hà Nội",
-    category: "education",
-  },
-  {
-    id: "task-002",
-    title: "Quản lý chiến dịch trồng cây xanh",
-    description:
-      "Điều phối tình nguyện viên trong chiến dịch trồng cây xanh tại công viên",
-    coordinatorName: "Trần Văn Minh",
-    eventName: "Chiến dịch xanh hóa môi trường",
-    priority: "medium",
-    status: "completed",
-    assignedDate: "2024-01-10",
-    dueDate: "2024-01-25",
-    completedDate: "2024-01-24",
-    estimatedHours: 20,
-    actualHours: 18,
-    volunteers: 8,
-    notes: "Hoàn thành trước thời hạn",
-    location: "Hồ Chí Minh",
-    category: "environment",
-  },
-  {
-    id: "task-003",
-    title: "Hỗ trợ người cao tuổi tại viện dư양lão",
-    description: "Điều phối các hoạt động chăm sóc và hỗ trợ người cao tuổi",
-    coordinatorName: "Lê Thị Hương",
-    eventName: "Chương trình chăm sóc người cao tuổi",
-    priority: "high",
-    status: "pending",
-    assignedDate: "2024-01-20",
-    dueDate: "2024-03-01",
-    completedDate: undefined,
-    estimatedHours: 60,
-    actualHours: 0,
-    volunteers: 12,
-    notes: "Chờ phê duyệt từ viện dưyang lão",
-    location: "Đà Nẵng",
-    category: "healthcare",
-  },
-  {
-    id: "task-004",
-    title: "Hỗ trợ khẩn cấp sau thiên tai",
-    description:
-      "Điều phối cứu trợ khẩn cấp cho người dân bị ảnh hưởng bởi lũ lụt",
-    coordinatorName: "Phạm Văn Đức",
-    eventName: "Cứu trợ khẩn cấp miền Trung",
-    priority: "urgent",
-    status: "overdue",
-    assignedDate: "2024-01-05",
-    dueDate: "2024-01-20",
-    completedDate: undefined,
-    estimatedHours: 80,
-    actualHours: 45,
-    volunteers: 25,
-    notes: "Cần hỗ trợ thêm nguồn lực",
-    location: "Quảng Nam",
-    category: "emergency",
-  },
-];
-
-const priorityColors: Record<Task["priority"], string> = {
-  low: "bg-green-100 text-green-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-orange-100 text-orange-800",
-  urgent: "bg-red-100 text-red-800",
+const priorityColors: Record<string, string> = {
+  Low: "bg-green-100 text-green-800",
+  Medium: "bg-yellow-100 text-yellow-800",
+  High: "bg-orange-100 text-orange-800",
+  Urgent: "bg-red-100 text-red-800",
 };
 
-const statusColors: Record<Task["status"], string> = {
-  pending: "bg-gray-100 text-gray-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  completed: "bg-green-100 text-green-800",
-  overdue: "bg-red-100 text-red-800",
-  cancelled: "bg-gray-100 text-gray-600",
+const statusColors: Record<string, string> = {
+  Pending: "bg-gray-100 text-gray-800",
+  "In Progress": "bg-blue-100 text-blue-800",
+  Completed: "bg-green-100 text-green-800",
+  Overdue: "bg-red-100 text-red-800",
+  Cancelled: "bg-gray-100 text-gray-600",
 };
 
-const statusIcons: Record<Task["status"], typeof Clock> = {
-  pending: Clock,
-  in_progress: AlertCircle,
-  completed: CheckCircle,
-  overdue: XCircle,
-  cancelled: XCircle,
+const statusIcons: Record<string, typeof Clock> = {
+  Pending: Clock,
+  "In Progress": AlertCircle,
+  Completed: CheckCircle,
+  Overdue: XCircle,
+  Cancelled: XCircle,
 };
 
 export default function CoordinatorTaskManagementPage() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<CoordinatorTaskDto[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<CoordinatorTaskDto | null>(
+    null
+  );
+  const [newTask, setNewTask] = useState<CreateCoordinatorTaskDto>({
+    eventId: 0,
+    coordinatorId: 0,
+    taskName: "",
+    description: "",
+    dueDate: "",
+    priority: "Medium",
+    status: "Pending",
+    category: "",
+    estimatedHours: 0,
+    notes: "",
+  });
 
   // Hooks
   const createModal = useModal();
   const viewModal = useModal();
-  // Remove useToast hook since we're using sonner directly
+
+  // Load tasks on component mount
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      setLoading(true);
+      const tasksData = await coordinatorTaskService.getAllTasks();
+      setTasks(tasksData);
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      toast.error("Không thể tải danh sách nhiệm vụ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateTask = async () => {
+    try {
+      if (!newTask.taskName.trim()) {
+        toast.error("Vui lòng nhập tên nhiệm vụ");
+        return;
+      }
+
+      await coordinatorTaskService.createTask(newTask);
+      toast.success("Tạo nhiệm vụ thành công");
+      createModal.close();
+      loadTasks(); // Reload tasks
+
+      // Reset form
+      setNewTask({
+        eventId: 0,
+        coordinatorId: 0,
+        taskName: "",
+        description: "",
+        dueDate: "",
+        priority: "Medium",
+        status: "Pending",
+        category: "",
+        estimatedHours: 0,
+        notes: "",
+      });
+    } catch (error) {
+      console.error("Error creating task:", error);
+      toast.error("Không thể tạo nhiệm vụ");
+    }
+  };
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
-      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.coordinatorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.eventName.toLowerCase().includes(searchTerm.toLowerCase());
+      task.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      "";
     const matchesStatus =
       statusFilter === "all" || task.status === statusFilter;
     const matchesPriority =
@@ -180,30 +164,25 @@ export default function CoordinatorTaskManagementPage() {
   // Task statistics
   const taskStats = {
     total: tasks.length,
-    pending: tasks.filter((t) => t.status === "pending").length,
-    inProgress: tasks.filter((t) => t.status === "in_progress").length,
-    completed: tasks.filter((t) => t.status === "completed").length,
-    overdue: tasks.filter((t) => t.status === "overdue").length,
-    totalVolunteers: tasks.reduce((sum, task) => sum + task.volunteers, 0),
-    totalHours: tasks.reduce((sum, task) => sum + task.actualHours, 0),
+    pending: tasks.filter((t) => t.status === "Pending").length,
+    inProgress: tasks.filter((t) => t.status === "In Progress").length,
+    completed: tasks.filter((t) => t.status === "Completed").length,
+    overdue: tasks.filter((t) => t.status === "Overdue").length,
+    totalHours: tasks.reduce((sum, task) => sum + (task.actualHours || 0), 0),
   };
 
   const handleExportToExcel = () => {
     // Create CSV content for Excel export
     const headers = [
-      "ID",
-      "Tiêu đề",
-      "Điều phối viên",
-      "Sự kiện",
+      "Event ID",
+      "Coordinator ID",
+      "Tên nhiệm vụ",
+      "Mô tả",
       "Ưu tiên",
       "Trạng thái",
-      "Ngày giao",
       "Hạn chót",
-      "Ngày hoàn thành",
       "Giờ ước tính",
       "Giờ thực tế",
-      "Số tình nguyện viên",
-      "Địa điểm",
       "Danh mục",
       "Ghi chú",
     ];
@@ -212,21 +191,17 @@ export default function CoordinatorTaskManagementPage() {
       headers.join(","),
       ...filteredTasks.map((task) =>
         [
-          task.id,
-          `"${task.title}"`,
-          `"${task.coordinatorName}"`,
-          `"${task.eventName}"`,
-          task.priority,
-          task.status,
-          task.assignedDate,
-          task.dueDate,
-          task.completedDate || "",
-          task.estimatedHours,
-          task.actualHours,
-          task.volunteers,
-          `"${task.location}"`,
-          task.category,
-          `"${task.notes}"`,
+          task.eventId,
+          task.coordinatorId,
+          `"${task.taskName}"`,
+          `"${task.description || ""}"`,
+          task.priority || "",
+          task.status || "",
+          task.dueDate || "",
+          task.estimatedHours || 0,
+          task.actualHours || 0,
+          task.category || "",
+          `"${task.notes || ""}"`,
         ].join(",")
       ),
     ].join("\n");
@@ -248,13 +223,13 @@ export default function CoordinatorTaskManagementPage() {
   };
 
   // DataTable columns configuration
-  const taskColumns: TableColumn<Task>[] = [
+  const taskColumns: TableColumn<CoordinatorTaskDto>[] = [
     {
-      key: "title",
+      key: "taskName",
       header: "Nhiệm vụ",
       render: (_, task) => (
         <div>
-          <div className="font-medium">{task.title}</div>
+          <div className="font-medium">{task.taskName}</div>
           <div className="text-sm text-gray-500 truncate max-w-64">
             {task.description}
           </div>
@@ -262,37 +237,35 @@ export default function CoordinatorTaskManagementPage() {
       ),
     },
     {
-      key: "coordinatorName",
+      key: "coordinatorId",
       header: "Điều phối viên",
       render: (_, task) => (
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-gray-400" />
-          <span>{task.coordinatorName}</span>
+          <span>ID: {task.coordinatorId}</span>
         </div>
       ),
     },
     {
-      key: "eventName",
+      key: "eventId",
       header: "Sự kiện",
-      render: (_, task) => <div className="text-sm">{task.eventName}</div>,
+      render: (_, task) => (
+        <div className="text-sm">Event ID: {task.eventId}</div>
+      ),
     },
     {
       key: "priority",
       header: "Ưu tiên",
       render: (_, task) => {
-        const priorityLabels: Record<string, string> = {
-          low: "Thấp",
-          medium: "Trung bình",
-          high: "Cao",
-          urgent: "Khẩn cấp",
-        };
+        if (!task.priority)
+          return <span className="text-gray-400">Chưa xác định</span>;
         return (
           <Badge
             className={
-              priorityColors[task.priority as keyof typeof priorityColors]
+              priorityColors[task.priority] || "bg-gray-100 text-gray-800"
             }
           >
-            {priorityLabels[task.priority]}
+            {task.priority}
           </Badge>
         );
       },
@@ -301,21 +274,16 @@ export default function CoordinatorTaskManagementPage() {
       key: "status",
       header: "Trạng thái",
       render: (_, task) => {
-        const StatusIcon = statusIcons[task.status as keyof typeof statusIcons];
-        const statusLabels: Record<string, string> = {
-          pending: "Chờ xử lý",
-          in_progress: "Đang thực hiện",
-          completed: "Hoàn thành",
-          overdue: "Quá hạn",
-          cancelled: "Đã hủy",
-        };
+        const StatusIcon = statusIcons[task.status || ""] || Clock;
         return (
           <div className="flex items-center gap-2">
             <StatusIcon className="w-4 h-4" />
             <Badge
-              className={statusColors[task.status as keyof typeof statusColors]}
+              className={
+                statusColors[task.status || ""] || "bg-gray-100 text-gray-800"
+              }
             >
-              {statusLabels[task.status]}
+              {task.status || "Chưa xác định"}
             </Badge>
           </div>
         );
@@ -325,8 +293,10 @@ export default function CoordinatorTaskManagementPage() {
       key: "dueDate",
       header: "Hạn chót",
       render: (_, task) => {
+        if (!task.dueDate)
+          return <span className="text-gray-400">Chưa xác định</span>;
         const isOverdue =
-          new Date(task.dueDate) < new Date() && task.status !== "completed";
+          new Date(task.dueDate) < new Date() && task.status !== "Completed";
         return (
           <div
             className={`text-sm ${isOverdue ? "text-red-600 font-medium" : ""}`}
@@ -341,15 +311,15 @@ export default function CoordinatorTaskManagementPage() {
       },
     },
     {
-      key: "progress",
+      key: "estimatedHours",
       header: "Tiến độ",
       render: (_, task) => {
         const progress =
-          task.status === "completed"
+          task.status === "Completed"
             ? 100
-            : task.status === "in_progress"
+            : task.status === "In Progress"
             ? 65
-            : task.status === "pending"
+            : task.status === "Pending"
             ? 0
             : 0;
         return (
@@ -368,7 +338,7 @@ export default function CoordinatorTaskManagementPage() {
               />
             </div>
             <div className="text-xs text-gray-500">
-              {task.actualHours}h / {task.estimatedHours}h
+              {task.actualHours || 0}h / {task.estimatedHours || 0}h
             </div>
           </div>
         );
@@ -376,7 +346,7 @@ export default function CoordinatorTaskManagementPage() {
     },
   ];
 
-  const taskActions: TableAction<Task>[] = [
+  const taskActions: TableAction<CoordinatorTaskDto>[] = [
     {
       label: "Xem chi tiết",
       onClick: (task) => {
@@ -386,32 +356,55 @@ export default function CoordinatorTaskManagementPage() {
     },
     {
       label: "Chỉnh sửa",
-      onClick: () => {},
+      onClick: () => {
+        toast.info("Chức năng chỉnh sửa đang được phát triển");
+      },
     },
     {
       label: "Đánh dấu hoàn thành",
-      onClick: (task) => {
-        setTasks((prev) =>
-          prev.map((t) =>
-            t.id === task.id
-              ? {
-                  ...t,
-                  status: "completed",
-                  completedDate: new Date().toISOString(),
-                }
-              : t
-          )
-        );
-        toast.success("Đã đánh dấu nhiệm vụ hoàn thành");
+      onClick: async (task) => {
+        try {
+          // In a real implementation, you would call the update API
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.eventId === task.eventId &&
+              t.coordinatorId === task.coordinatorId
+                ? {
+                    ...t,
+                    status: "Completed",
+                    completedAt: new Date().toISOString(),
+                  }
+                : t
+            )
+          );
+          toast.success("Đã đánh dấu nhiệm vụ hoàn thành");
+        } catch (error) {
+          toast.error("Không thể cập nhật trạng thái");
+        }
       },
-      visible: (task) => task.status !== "completed",
+      visible: (task) => task.status !== "Completed",
     },
     {
       label: "Xóa",
-      onClick: () => {},
+      onClick: () => {
+        toast.info("Chức năng xóa đang được phát triển");
+      },
       variant: "destructive" as const,
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải danh sách nhiệm vụ...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -444,23 +437,33 @@ export default function CoordinatorTaskManagementPage() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="title">Tiêu đề nhiệm vụ</Label>
-                    <Input id="title" placeholder="Nhập tiêu đề nhiệm vụ" />
+                    <Label htmlFor="taskName">Tên nhiệm vụ</Label>
+                    <Input
+                      id="taskName"
+                      placeholder="Nhập tên nhiệm vụ"
+                      value={newTask.taskName}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          taskName: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="coordinator">Điều phối viên</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn điều phối viên" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="coord-001">
-                          Nguyễn Thị Lan
-                        </SelectItem>
-                        <SelectItem value="coord-002">Trần Văn Minh</SelectItem>
-                        <SelectItem value="coord-003">Lê Thị Hương</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="coordinatorId">ID Điều phối viên</Label>
+                    <Input
+                      id="coordinatorId"
+                      type="number"
+                      placeholder="Nhập ID điều phối viên"
+                      value={newTask.coordinatorId || ""}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          coordinatorId: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
                   </div>
                 </div>
                 <div>
@@ -468,39 +471,70 @@ export default function CoordinatorTaskManagementPage() {
                   <Textarea
                     id="description"
                     placeholder="Mô tả chi tiết nhiệm vụ"
+                    value={newTask.description || ""}
+                    onChange={(e) =>
+                      setNewTask((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="priority">Ưu tiên</Label>
-                    <Select>
+                    <Select
+                      value={newTask.priority || "Medium"}
+                      onValueChange={(value) =>
+                        setNewTask((prev) => ({ ...prev, priority: value }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn mức ưu tiên" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Thấp</SelectItem>
-                        <SelectItem value="medium">Trung bình</SelectItem>
-                        <SelectItem value="high">Cao</SelectItem>
-                        <SelectItem value="urgent">Khẩn cấp</SelectItem>
+                        <SelectItem value="Low">Thấp</SelectItem>
+                        <SelectItem value="Medium">Trung bình</SelectItem>
+                        <SelectItem value="High">Cao</SelectItem>
+                        <SelectItem value="Urgent">Khẩn cấp</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="dueDate">Hạn chót</Label>
-                    <Input id="dueDate" type="date" />
+                    <Input
+                      id="dueDate"
+                      type="date"
+                      value={newTask.dueDate || ""}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          dueDate: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
                   <div>
                     <Label htmlFor="estimatedHours">Giờ ước tính</Label>
-                    <Input id="estimatedHours" type="number" placeholder="0" />
+                    <Input
+                      id="estimatedHours"
+                      type="number"
+                      placeholder="0"
+                      value={newTask.estimatedHours || ""}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          estimatedHours: parseInt(e.target.value) || 0,
+                        }))
+                      }
+                    />
                   </div>
                 </div>
                 <div className="flex justify-end gap-3">
                   <Button variant="outline" onClick={() => createModal.close()}>
                     Hủy
                   </Button>
-                  <Button onClick={() => createModal.close()}>
-                    Tạo nhiệm vụ
-                  </Button>
+                  <Button onClick={handleCreateTask}>Tạo nhiệm vụ</Button>
                 </div>
               </div>
             </DialogContent>
@@ -578,7 +612,7 @@ export default function CoordinatorTaskManagementPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm theo tên nhiệm vụ, điều phối viên, sự kiện..."
+                placeholder="Tìm kiếm theo tên nhiệm vụ, mô tả..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -590,10 +624,10 @@ export default function CoordinatorTaskManagementPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="pending">Chờ xử lý</SelectItem>
-                <SelectItem value="in_progress">Đang thực hiện</SelectItem>
-                <SelectItem value="completed">Hoàn thành</SelectItem>
-                <SelectItem value="overdue">Quá hạn</SelectItem>
+                <SelectItem value="Pending">Chờ xử lý</SelectItem>
+                <SelectItem value="In Progress">Đang thực hiện</SelectItem>
+                <SelectItem value="Completed">Hoàn thành</SelectItem>
+                <SelectItem value="Overdue">Quá hạn</SelectItem>
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -602,10 +636,10 @@ export default function CoordinatorTaskManagementPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả mức ưu tiên</SelectItem>
-                <SelectItem value="low">Thấp</SelectItem>
-                <SelectItem value="medium">Trung bình</SelectItem>
-                <SelectItem value="high">Cao</SelectItem>
-                <SelectItem value="urgent">Khẩn cấp</SelectItem>
+                <SelectItem value="Low">Thấp</SelectItem>
+                <SelectItem value="Medium">Trung bình</SelectItem>
+                <SelectItem value="High">Cao</SelectItem>
+                <SelectItem value="Urgent">Khẩn cấp</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -629,7 +663,12 @@ export default function CoordinatorTaskManagementPage() {
 
           {filteredTasks.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-500">Không tìm thấy nhiệm vụ nào</p>
+              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-gray-500">
+                {tasks.length === 0
+                  ? "Chưa có nhiệm vụ nào"
+                  : "Không tìm thấy nhiệm vụ phù hợp với bộ lọc"}
+              </p>
             </div>
           )}
         </CardContent>
@@ -646,37 +685,31 @@ export default function CoordinatorTaskManagementPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
-                    {selectedTask.title}
+                    {selectedTask.taskName}
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    {selectedTask.description}
+                    {selectedTask.description || "Không có mô tả"}
                   </p>
 
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">
-                        Điều phối viên:
+                        ID Điều phối viên:
                       </span>
                       <span className="text-sm font-medium">
-                        {selectedTask.coordinatorName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Sự kiện:</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.eventName}
+                        {selectedTask.coordinatorId}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Địa điểm:</span>
+                      <span className="text-sm text-gray-500">ID Sự kiện:</span>
                       <span className="text-sm font-medium">
-                        {selectedTask.location}
+                        {selectedTask.eventId}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">Danh mục:</span>
                       <span className="text-sm font-medium">
-                        {selectedTask.category}
+                        {selectedTask.category || "Chưa phân loại"}
                       </span>
                     </div>
                   </div>
@@ -684,68 +717,69 @@ export default function CoordinatorTaskManagementPage() {
 
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Badge className={priorityColors[selectedTask.priority]}>
-                      {selectedTask.priority === "low" && "Thấp"}
-                      {selectedTask.priority === "medium" && "Trung bình"}
-                      {selectedTask.priority === "high" && "Cao"}
-                      {selectedTask.priority === "urgent" && "Khẩn cấp"}
-                    </Badge>
-                    <Badge className={statusColors[selectedTask.status]}>
-                      {selectedTask.status === "pending" && "Chờ xử lý"}
-                      {selectedTask.status === "in_progress" &&
-                        "Đang thực hiện"}
-                      {selectedTask.status === "completed" && "Hoàn thành"}
-                      {selectedTask.status === "overdue" && "Quá hạn"}
-                    </Badge>
+                    {selectedTask.priority && (
+                      <Badge
+                        className={
+                          priorityColors[selectedTask.priority] ||
+                          "bg-gray-100 text-gray-800"
+                        }
+                      >
+                        {selectedTask.priority}
+                      </Badge>
+                    )}
+                    {selectedTask.status && (
+                      <Badge
+                        className={
+                          statusColors[selectedTask.status] ||
+                          "bg-gray-100 text-gray-800"
+                        }
+                      >
+                        {selectedTask.status}
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Ngày giao:</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.assignedDate}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Hạn chót:</span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.dueDate}
-                      </span>
-                    </div>
-                    {selectedTask.completedDate && (
+                    {selectedTask.dueDate && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Hạn chót:</span>
+                        <span className="text-sm font-medium">
+                          {new Date(selectedTask.dueDate).toLocaleDateString(
+                            "vi-VN"
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    {selectedTask.completedAt && (
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-500">
                           Ngày hoàn thành:
                         </span>
                         <span className="text-sm font-medium">
-                          {selectedTask.completedDate}
+                          {new Date(
+                            selectedTask.completedAt
+                          ).toLocaleDateString("vi-VN")}
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">
-                        Số tình nguyện viên:
-                      </span>
-                      <span className="text-sm font-medium">
-                        {selectedTask.volunteers} người
-                      </span>
-                    </div>
                   </div>
 
                   <div>
                     <h4 className="font-medium mb-2">Tiến độ thời gian</h4>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span>Thực tế: {selectedTask.actualHours}h</span>
-                        <span>Ước tính: {selectedTask.estimatedHours}h</span>
+                        <span>Thực tế: {selectedTask.actualHours || 0}h</span>
+                        <span>
+                          Ước tính: {selectedTask.estimatedHours || 0}h
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
                             width: `${Math.min(
-                              (selectedTask.actualHours /
-                                selectedTask.estimatedHours) *
+                              ((selectedTask.actualHours || 0) /
+                                Math.max(selectedTask.estimatedHours || 1, 1)) *
                                 100,
                               100
                             )}%`,
