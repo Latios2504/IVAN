@@ -20,6 +20,7 @@ import {
   Filter,
   ClipboardList,
 } from "lucide-react";
+import { VolunteerAnalyticsDashboard } from "@/components/volunteer/VolunteerAnalyticsDashboard";
 
 interface VolunteerActivity {
   id: string;
@@ -226,6 +227,7 @@ export default function VolunteerDashboard() {
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="activities">Hoạt động</TabsTrigger>
           <TabsTrigger value="achievements">Thành tích</TabsTrigger>
+          <TabsTrigger value="analytics">Phân tích</TabsTrigger>
           <TabsTrigger value="profile">Hồ sơ</TabsTrigger>
         </TabsList>
 
@@ -476,6 +478,10 @@ export default function VolunteerDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <VolunteerAnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-4">

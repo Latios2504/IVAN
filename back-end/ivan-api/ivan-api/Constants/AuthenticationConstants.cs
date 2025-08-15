@@ -8,7 +8,7 @@ public static class AuthenticationConstants
         public const string Volunteer = "Volunteer";
         public const string Organization = "Organization";
         public const string Partner = "Partner";
-        public const string VolunteerCoordinator = "Volunteer Coordinator";
+        public const string VolunteerCoordinator = "Coordinator";
         public const string Admin = "Admin";
     }
 

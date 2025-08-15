@@ -27,6 +27,7 @@ import {
   AlertCircle,
   XCircle,
 } from "lucide-react";
+import { PartnerAnalyticsDashboard } from "@/components/partner/PartnerAnalyticsDashboard";
 
 interface Partnership {
   id: string;
@@ -243,6 +244,7 @@ export default function PartnerDashboard() {
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
           <TabsTrigger value="partnerships">Quan hệ đối tác</TabsTrigger>
+          <TabsTrigger value="analytics">Phân tích</TabsTrigger>
           <TabsTrigger value="reports">Báo cáo</TabsTrigger>
           <TabsTrigger value="settings">Cài đặt</TabsTrigger>
         </TabsList>
@@ -382,6 +384,10 @@ export default function PartnerDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          <PartnerAnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">

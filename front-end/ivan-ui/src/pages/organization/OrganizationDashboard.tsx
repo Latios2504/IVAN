@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActionButton } from "@/components/dashboard/ActionButton";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import OrganizationAnalyticsDashboard from "@/components/organization/OrganizationAnalyticsDashboard";
 import {
   Users,
   Calendar,
@@ -99,7 +101,15 @@ export default function OrganizationDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="management" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="management">Management</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="management" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Management Links */}
         <Card>
           <CardHeader>
@@ -267,7 +277,13 @@ export default function OrganizationDashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <OrganizationAnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

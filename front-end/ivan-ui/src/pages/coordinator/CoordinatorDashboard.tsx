@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActionButton } from "@/components/dashboard/ActionButton";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { CoordinatorAnalyticsDashboard } from "@/components/coordinator/CoordinatorAnalyticsDashboard";
 import {
   Users,
   Calendar,
@@ -35,33 +37,41 @@ export default function CoordinatorDashboard() {
         </p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Tình nguyện viên phụ trách"
-          value={24}
-          icon={Users}
-          description="Đang hoạt động"
-        />
-        <StatsCard
-          title="Sự kiện được phân công"
-          value={5}
-          icon={Calendar}
-          description="3 đang diễn ra"
-        />
-        <StatsCard
-          title="Đăng ký chờ duyệt"
-          value={8}
-          icon={UserCheck}
-          description="Cần xem xét"
-        />
-        <StatsCard
-          title="Nhiệm vụ tuần này"
-          value={12}
-          icon={Settings}
-          description="7 hoàn thành"
-        />
-      </div>
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="management" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="management">Quản lý</TabsTrigger>
+          <TabsTrigger value="analytics">Phân tích</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="management" className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatsCard
+              title="Tình nguyện viên phụ trách"
+              value={24}
+              icon={Users}
+              description="Đang hoạt động"
+            />
+            <StatsCard
+              title="Sự kiện được phân công"
+              value={5}
+              icon={Calendar}
+              description="3 đang diễn ra"
+            />
+            <StatsCard
+              title="Đăng ký chờ duyệt"
+              value={8}
+              icon={UserCheck}
+              description="Cần xem xét"
+            />
+            <StatsCard
+              title="Nhiệm vụ tuần này"
+              value={12}
+              icon={Settings}
+              description="7 hoàn thành"
+            />
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Schedule Management */}
@@ -209,6 +219,12 @@ export default function CoordinatorDashboard() {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <CoordinatorAnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
