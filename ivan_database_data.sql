@@ -67,16 +67,11 @@ INSERT INTO EventCategories (CategoryName, Description) VALUES
 (N'Công nghệ', N'Cuộc thi lập trình, hackathon');
 
 INSERT INTO EventStatus (StatusName, Description, Color) VALUES
-(N'Upcoming', N'Sự kiện chưa bắt đầu', '#4287f5'),
+(N'Pending Approval', N'Chờ xác nhận tổ chức', '#00b894'),
+(N'Scheduled', N'Sự kiện đã lên lịch', '#4287f5'),
 (N'Ongoing', N'Sự kiện đang tiến hành', '#2ecc71'),
 (N'Completed', N'Sự kiện đã hoàn thành', '#888888'),
 (N'Cancelled', N'Sự kiện bị huỷ', '#ff3333'),
-(N'Registration Closed', N'Không nhận đăng ký mới', '#ffc107'),
-(N'Pending Approval', N'Chờ xác nhận tổ chức', '#00b894'),
-(N'Postponed', N'Tạm hoãn sự kiện', '#fdcb6e'),
-(N'Full', N'Đủ số lượng tham gia', '#00b894'),
-(N'Need Support', N'Cần thêm nhân sự', '#e17055'),
-(N'Featured', N'Sự kiện nổi bật', '#fd79a8');
 
 INSERT INTO VolunteerProfiles (UserId, StudentId, University, Major, YearOfStudy, Motivation, Experience, Availability, VolunteerHours, IsVerified)
 VALUES
