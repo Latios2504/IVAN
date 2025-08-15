@@ -1,6 +1,7 @@
 ﻿using ivan_api.DTOs.ModerationEvent;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.ModerationEventServ;
+using ivan_api.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace ivan_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
     public class ModerationController : ControllerBase
     {
         private readonly IModerationEventService _moderationEventService;
@@ -19,7 +21,6 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Admin, Moderator")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventsForModeration([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -44,7 +45,6 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("{eventId}")]
-        //[Authorize(Roles = "Admin, Moderator")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventDetailsForModeration(int eventId)
         {
             try
@@ -69,7 +69,6 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("{eventId}/approve")]
-        //[Authorize(Roles = "Admin, Moderator")]
         public async Task<ActionResult<ApiResponseDTO<object>>> ApproveEvent(int eventId)
         {
             try
@@ -94,7 +93,6 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("{eventId}/reject")]
-        //[Authorize(Roles = "Admin, Moderator")]
         public async Task<ActionResult<ApiResponseDTO<object>>> RejectEvent(int eventId, [FromBody] RejectEventRequestDto request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Reason))

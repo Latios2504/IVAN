@@ -91,8 +91,14 @@ const AIInstructionsManagementPage = lazy(
 const SupportRequestManagementPage = lazy(
   () => import("@/pages/admin/SupportRequestManagementPage")
 );
+const ModerationManagementPage = lazy(
+  () => import("@/pages/admin/ModerationManagementPage")
+);
 const EventRegistrationPage = lazy(
   () => import("@/pages/organization/EventRegistrationPage")
+);
+const EventFeedbackManagementPage = lazy(
+  () => import("@/pages/organization/EventFeedbackManagementPage")
 );
 const VolunteerCoordinatorManagementPage = lazy(
   () => import("@/pages/organization/VolunteerCoordinatorManagementPage")
@@ -407,6 +413,16 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/organization/event-feedback"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <EventFeedbackManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/organization/coordinator-schedule"
           element={
             <ProtectedRoute
@@ -461,6 +477,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <SupportRequestManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/moderation"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <ModerationManagementPage />
             </ProtectedRoute>
           }
         />

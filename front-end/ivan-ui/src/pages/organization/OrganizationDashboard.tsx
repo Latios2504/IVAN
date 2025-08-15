@@ -19,6 +19,7 @@ import {
   UserPlus,
   Settings,
   HeartHandshake,
+  MessageSquare,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -172,6 +173,12 @@ export default function OrganizationDashboard() {
             </ActionButton>
             <ActionButton to="/organization/event-registrations" icon={Users}>
               Quản lý đăng ký sự kiện
+            </ActionButton>
+            <ActionButton
+              to="/organization/event-feedback"
+              icon={MessageSquare}
+            >
+              Quản lý phản hồi sự kiện
             </ActionButton>
             <ActionButton to="/organization/certificates" icon={Award}>
               Quản lý chứng chỉ

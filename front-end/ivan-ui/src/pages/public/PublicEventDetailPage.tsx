@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { eventsService } from "@/services/eventsService";
+import { feedbackService } from "@/services/feedbackService";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { PublicDetailPageLayout } from "@/components/public/PublicDetailPageLayout";
@@ -7,7 +8,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { EventDto } from "@/types/events";
+import type { FeedbackCreateDto } from "@/types/feedback";
+import { toast } from "sonner";
 import {
   MapPin,
   Calendar,
@@ -24,6 +46,7 @@ import {
   Target,
   Eye,
   UserPlus,
+  MessageSquare,
 } from "lucide-react";
 
 export default function PublicEventDetailPage() {
@@ -34,6 +57,59 @@ export default function PublicEventDetailPage() {
   const [event, setEvent] = useState<EventDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Feedback form state
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState<FeedbackCreateDto>({
+    eventId: 0,
+    categoryId: 1,
+    subject: "",
+    content: "",
+    rating: 5,
+    isAnonymous: false,
+    isPublic: true,
+    attachmentUrls: null,
+  });
+
+  // Predefined feedback categories based on database data
+  const feedbackCategories = [
+    {
+      id: 1,
+      name: "Tổ chức sự kiện",
+      description: "Phản hồi về cách tổ chức và điều phối sự kiện",
+    },
+    {
+      id: 2,
+      name: "Nội dung chương trình",
+      description: "Đánh giá về nội dung và chất lượng chương trình",
+    },
+    {
+      id: 3,
+      name: "Cơ sở vật chất",
+      description: "Phản hồi về địa điểm, thiết bị, tiện ích",
+    },
+    {
+      id: 4,
+      name: "Đội ngũ tổ chức",
+      description: "Đánh giá về thái độ và năng lực của BTC",
+    },
+    {
+      id: 5,
+      name: "Truyền thông",
+      description: "Phản hồi về hoạt động truyền thông, quảng bá",
+    },
+    {
+      id: 6,
+      name: "Đăng ký tham gia",
+      description: "Phản hồi về quy trình đăng ký và xác nhận",
+    },
+    {
+      id: 7,
+      name: "Khác",
+      description: "Các phản hồi khác không thuộc danh mục trên",
+    },
+  ];
 
   useEffect(() => {
     if (id) {
@@ -148,6 +224,57 @@ export default function PublicEventDetailPage() {
       );
     }
     return null;
+  };
+
+  // Check if event is completed
+  const isEventCompleted = (event: EventDto) => {
+    if (!event.statusName) return false;
+    const status = event.statusName.toLowerCase();
+    return status === "completed" || status === "hoàn thành";
+  };
+
+  // Handle feedback form submission
+  const handleFeedbackSubmit = async () => {
+    if (!event || !isAuthenticated || !user) {
+      toast.error("Bạn cần đăng nhập để gửi phản hồi");
+      return;
+    }
+
+    if (!feedbackForm.subject.trim() || !feedbackForm.content.trim()) {
+      toast.error("Vui lòng điền đầy đủ tiêu đề và nội dung phản hồi");
+      return;
+    }
+
+    setFeedbackLoading(true);
+    try {
+      const feedbackData: FeedbackCreateDto = {
+        ...feedbackForm,
+        eventId: Number(id),
+      };
+
+      await feedbackService.createFeedback(feedbackData);
+      toast.success("Gửi phản hồi thành công! Cảm ơn bạn đã đóng góp ý kiến.");
+
+      // Reset form and close dialog
+      setFeedbackForm({
+        eventId: 0,
+        categoryId: 1,
+        subject: "",
+        content: "",
+        rating: 5,
+        isAnonymous: false,
+        isPublic: true,
+        attachmentUrls: null,
+      });
+      setFeedbackDialogOpen(false);
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Có lỗi xảy ra khi gửi phản hồi"
+      );
+    } finally {
+      setFeedbackLoading(false);
+    }
   };
 
   if (loading) {
@@ -394,7 +521,13 @@ export default function PublicEventDetailPage() {
         <Tabs defaultValue="description" className="w-full">
           <TabsList
             className={`grid w-full ${
-              event.galleryImages ? "grid-cols-5" : "grid-cols-4"
+              isEventCompleted(event)
+                ? event.galleryImages
+                  ? "grid-cols-6"
+                  : "grid-cols-5"
+                : event.galleryImages
+                ? "grid-cols-5"
+                : "grid-cols-4"
             }`}
           >
             <TabsTrigger value="description">Mô tả</TabsTrigger>
@@ -404,6 +537,9 @@ export default function PublicEventDetailPage() {
               <TabsTrigger value="gallery">Hình ảnh</TabsTrigger>
             )}
             <TabsTrigger value="contact">Liên hệ</TabsTrigger>
+            {isEventCompleted(event) && (
+              <TabsTrigger value="feedback">Phản hồi</TabsTrigger>
+            )}
           </TabsList>
           <TabsContent value="description" className="space-y-4">
             <Card>
@@ -543,19 +679,272 @@ export default function PublicEventDetailPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          {isEventCompleted(event) && (
+            <TabsContent value="feedback" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <MessageSquare className="w-5 h-5 mr-2" />
+                    Phản hồi về sự kiện
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-center p-8 bg-green-50 rounded-lg">
+                      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-green-800 mb-2">
+                        Sự kiện đã hoàn thành
+                      </h3>
+                      <p className="text-green-700 mb-4">
+                        Sự kiện "{event.eventName}" đã kết thúc thành công. Cảm
+                        ơn bạn đã tham gia!
+                      </p>
+                      {isAuthenticated ? (
+                        <Dialog
+                          open={feedbackDialogOpen}
+                          onOpenChange={setFeedbackDialogOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button className="bg-green-600 hover:bg-green-700">
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Gửi phản hồi về sự kiện
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[600px]">
+                            <DialogHeader>
+                              <DialogTitle>Gửi phản hồi về sự kiện</DialogTitle>
+                              <DialogDescription>
+                                Chia sẻ trải nghiệm và góp ý của bạn về sự kiện
+                                "{event.eventName}"
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              {/* Category Selection */}
+                              <div className="space-y-2">
+                                <Label htmlFor="category">Loại phản hồi</Label>
+                                <Select
+                                  value={feedbackForm.categoryId.toString()}
+                                  onValueChange={(value) =>
+                                    setFeedbackForm({
+                                      ...feedbackForm,
+                                      categoryId: parseInt(value),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Chọn loại phản hồi" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {feedbackCategories.map((category) => (
+                                      <SelectItem
+                                        key={category.id}
+                                        value={category.id.toString()}
+                                      >
+                                        {category.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {/* Subject */}
+                              <div className="space-y-2">
+                                <Label htmlFor="subject">
+                                  Tiêu đề phản hồi
+                                </Label>
+                                <Input
+                                  id="subject"
+                                  value={feedbackForm.subject}
+                                  onChange={(e) =>
+                                    setFeedbackForm({
+                                      ...feedbackForm,
+                                      subject: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Nhập tiêu đề cho phản hồi của bạn"
+                                />
+                              </div>
+
+                              {/* Content */}
+                              <div className="space-y-2">
+                                <Label htmlFor="content">
+                                  Nội dung phản hồi
+                                </Label>
+                                <Textarea
+                                  id="content"
+                                  value={feedbackForm.content}
+                                  onChange={(e) =>
+                                    setFeedbackForm({
+                                      ...feedbackForm,
+                                      content: e.target.value,
+                                    })
+                                  }
+                                  placeholder="Chia sẻ chi tiết về trải nghiệm của bạn..."
+                                  rows={4}
+                                />
+                              </div>
+
+                              {/* Rating */}
+                              <div className="space-y-2">
+                                <Label htmlFor="rating">
+                                  Đánh giá sự kiện (1-5 sao)
+                                </Label>
+                                <Select
+                                  value={feedbackForm.rating?.toString() || "5"}
+                                  onValueChange={(value) =>
+                                    setFeedbackForm({
+                                      ...feedbackForm,
+                                      rating: parseInt(value),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Chọn số sao" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <SelectItem
+                                        key={star}
+                                        value={star.toString()}
+                                      >
+                                        <div className="flex items-center">
+                                          {Array.from({ length: star }).map(
+                                            (_, i) => (
+                                              <Star
+                                                key={i}
+                                                className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1"
+                                              />
+                                            )
+                                          )}
+                                          <span className="ml-2">
+                                            {star} sao
+                                          </span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {/* Privacy Options */}
+                              <div className="space-y-3">
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id="anonymous"
+                                    checked={feedbackForm.isAnonymous || false}
+                                    onCheckedChange={(checked) =>
+                                      setFeedbackForm({
+                                        ...feedbackForm,
+                                        isAnonymous: !!checked,
+                                      })
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor="anonymous"
+                                    className="text-sm"
+                                  >
+                                    Gửi phản hồi ẩn danh
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id="public"
+                                    checked={feedbackForm.isPublic || false}
+                                    onCheckedChange={(checked) =>
+                                      setFeedbackForm({
+                                        ...feedbackForm,
+                                        isPublic: !!checked,
+                                      })
+                                    }
+                                  />
+                                  <Label htmlFor="public" className="text-sm">
+                                    Cho phép hiển thị công khai
+                                  </Label>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex justify-end space-x-2 pt-4">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setFeedbackDialogOpen(false)}
+                                  disabled={feedbackLoading}
+                                >
+                                  Hủy
+                                </Button>
+                                <Button
+                                  onClick={handleFeedbackSubmit}
+                                  disabled={feedbackLoading}
+                                >
+                                  {feedbackLoading
+                                    ? "Đang gửi..."
+                                    : "Gửi phản hồi"}
+                                </Button>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        <p className="text-green-600">
+                          <Link to="/login" className="underline">
+                            Đăng nhập
+                          </Link>{" "}
+                          để gửi phản hồi về sự kiện
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Placeholder for existing feedback display */}
+                    <div className="text-center py-8 text-gray-500">
+                      <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>
+                        Phần hiển thị phản hồi từ người tham gia sẽ được thêm
+                        vào sau
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center">
-          {/* Show registration button only for volunteers */}
-          {isAuthenticated && user?.role === "volunteer" && (
+          {/* Show registration button only for volunteers and if event is not completed */}
+          {isAuthenticated &&
+            user?.role === "volunteer" &&
+            !isEventCompleted(event) && (
+              <Button
+                size="lg"
+                className="px-8"
+                onClick={() => navigate(`/volunteer/events/${id}/register`)}
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Đăng ký tham gia
+              </Button>
+            )}
+
+          {/* Show feedback button only for completed events */}
+          {isEventCompleted(event) && (
             <Button
               size="lg"
               className="px-8"
-              onClick={() => navigate(`/volunteer/events/${id}/register`)}
+              onClick={() => {
+                // Scroll to feedback tab and activate it
+                const feedbackTab = document.querySelector(
+                  '[value="feedback"]'
+                ) as HTMLElement;
+                feedbackTab?.click();
+                setTimeout(() => {
+                  document
+                    .querySelector('[value="feedback"]')
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+              }}
             >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Đăng ký tham gia
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Xem phản hồi
             </Button>
           )}
 

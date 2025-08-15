@@ -52,10 +52,10 @@ namespace ivan_api.Services.EventRegistrationSer
             }
 
             // Get pending status
-            var pendingStatus = await _repository.GetRegistrationStatusAsync("Chờ duyệt");
+            var pendingStatus = await _repository.GetRegistrationStatusAsync("Pending");
             if (pendingStatus == null)
             {
-                _logger.LogError("Registration status 'Chờ duyệt' not found");
+                _logger.LogError("Registration status 'Pending' not found");
                 throw new InvalidOperationException("System error: Registration status not found");
             }
 
@@ -74,6 +74,9 @@ namespace ivan_api.Services.EventRegistrationSer
                 _logger.LogError("Failed to create registration for event {EventId} by user {UserId}", eventId, userId);
                 throw new InvalidOperationException("Failed to create registration");
             }
+
+            // Update event statistics to reflect the new registration
+            await _repository.UpdateEventStatisticsAsync(eventId);
 
             // Get the created registration for response
             var createdRegistration = await _repository.GetRegistrationByVolunteerAsync(eventId, volunteer.VolunteerId);
@@ -99,7 +102,7 @@ namespace ivan_api.Services.EventRegistrationSer
             }
 
             // Check if registration is still pending
-            if (registration.Status?.StatusName != "Chờ duyệt")
+            if (registration.Status?.StatusName != "Pending")
             {
                 throw new InvalidOperationException("Only pending registrations can be updated");
             }
@@ -135,16 +138,16 @@ namespace ivan_api.Services.EventRegistrationSer
             }
 
             // Check if registration can be cancelled
-            if (registration.Status?.StatusName != "Chờ duyệt" && registration.Status?.StatusName != "Đã duyệt")
+            if (registration.Status?.StatusName != "Pending" && registration.Status?.StatusName != "Approved")
             {
                 throw new InvalidOperationException("Only pending or approved registrations can be cancelled");
             }
 
             // Get cancelled status
-            var cancelledStatus = await _repository.GetRegistrationStatusAsync("Đã hủy");
+            var cancelledStatus = await _repository.GetRegistrationStatusAsync("Cancelled");
             if (cancelledStatus == null)
             {
-                _logger.LogError("Registration status 'Đã hủy' not found");
+                _logger.LogError("Registration status 'Cancelled' not found");
                 throw new InvalidOperationException("System error: Cancellation status not found");
             }
 
@@ -159,6 +162,9 @@ namespace ivan_api.Services.EventRegistrationSer
             {
                 throw new InvalidOperationException("Failed to cancel registration");
             }
+
+            // Update event statistics to reflect the cancelled registration
+            await _repository.UpdateEventStatisticsAsync(registration.EventId);
 
             return true;
         }
@@ -270,16 +276,16 @@ namespace ivan_api.Services.EventRegistrationSer
             }
 
             // Check if registration is pending
-            if (registration.Status?.StatusName != "Chờ duyệt")
+            if (registration.Status?.StatusName != "Pending")
             {
                 throw new InvalidOperationException("Only pending registrations can be approved");
             }
 
             // Get approved status
-            var approvedStatus = await _repository.GetRegistrationStatusAsync("Đã duyệt");
+            var approvedStatus = await _repository.GetRegistrationStatusAsync("Approved");
             if (approvedStatus == null)
             {
-                _logger.LogError("Registration status 'Đã duyệt' not found");
+                _logger.LogError("Registration status 'Approved' not found");
                 throw new InvalidOperationException("System error: Approval status not found");
             }
 
@@ -294,6 +300,9 @@ namespace ivan_api.Services.EventRegistrationSer
             {
                 throw new InvalidOperationException("Failed to approve registration");
             }
+
+            // Update event statistics to reflect the new approved registration
+            await _repository.UpdateEventStatisticsAsync(eventId);
 
             return true;
         }
@@ -317,16 +326,16 @@ namespace ivan_api.Services.EventRegistrationSer
             }
 
             // Check if registration is pending
-            if (registration.Status?.StatusName != "Chờ duyệt")
+            if (registration.Status?.StatusName != "Pending")
             {
                 throw new InvalidOperationException("Only pending registrations can be rejected");
             }
 
             // Get rejected status
-            var rejectedStatus = await _repository.GetRegistrationStatusAsync("Bị từ chối");
+            var rejectedStatus = await _repository.GetRegistrationStatusAsync("Rejected");
             if (rejectedStatus == null)
             {
-                _logger.LogError("Registration status 'Bị từ chối' not found");
+                _logger.LogError("Registration status 'Rejected' not found");
                 throw new InvalidOperationException("System error: Rejection status not found");
             }
 
@@ -342,6 +351,9 @@ namespace ivan_api.Services.EventRegistrationSer
             {
                 throw new InvalidOperationException("Failed to reject registration");
             }
+
+            // Update event statistics to reflect the rejected registration
+            await _repository.UpdateEventStatisticsAsync(eventId);
 
             return true;
         }

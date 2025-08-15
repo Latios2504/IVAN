@@ -1,4 +1,4 @@
-﻿using Azure;
+using Azure;
 using ivan_api.DTOs.ModerationEvent;
 using ivan_api.DTOs.NotificationServ;
 using ivan_api.DTOs.Common;
@@ -100,9 +100,7 @@ namespace ivan_api.Services.ModerationEventServ
             {
                 throw new Exception("Event is not eligible for rejection.");
             }
-            eventEntity.StatusId = 6; // Đã từ chối
-            //eventEntity.IsPendingModeration = false;
-            //eventEntity.RejectionReason = reason;
+            eventEntity.StatusId = 5; // Cancelled (used for rejected events)
             await _dbContext.SaveChangesAsync();
             var notificationDto = new SendNotificationDTO
             {

@@ -25,5 +25,8 @@ namespace ivan_api.Repository.EventRegistrationRepo
         // Volunteer-specific methods
         Task<IEnumerable<EventRegistration>> GetRegistrationsByVolunteerIdAsync(int volunteerId, string? status, int page, int size);
         Task<int> CountRegistrationsByVolunteerIdAsync(int volunteerId, string? status);
+        
+        // Event statistics update methods
+        Task<bool> UpdateEventStatisticsAsync(int eventId);
     }
 }
