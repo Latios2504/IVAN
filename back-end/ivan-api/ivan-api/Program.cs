@@ -54,6 +54,8 @@ using ivan_api.Repository.SupportRequestRepo;
 using ivan_api.Services.SupportRequestServ;
 using AutoMapper;
 using Microsoft.OpenApi.Models;
+using ivan_api.Services.FeedbackServ;
+using ivan_api.Repository.FeedbackRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -215,6 +217,10 @@ builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaboration
 // Support Request DI
 builder.Services.AddScoped<ISupportRequestRepository, SupportRequestRepository>();
 builder.Services.AddScoped<ISupportRequestService, SupportRequestService>();
+
+// Feedback Management DI
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 // Schema Services DI
 builder.Services.AddScoped<ISchemaService, SchemaService>();

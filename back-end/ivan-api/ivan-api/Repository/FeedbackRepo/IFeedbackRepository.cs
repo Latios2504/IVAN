@@ -10,5 +10,7 @@ namespace ivan_api.Repository.FeedbackRepo
         Task<List<Feedback>> getListFeedbackByUser(int userId);
 
         Task<Feedback> updateFeedback(FeedbackUpdateDTO dto);
+        Task<Feedback> addFeedback(FeedbackCreateDTO dto);
+        Task<bool> deleteFeedback(int feedbackId, int userId, bool isAdmin);
     }
 }
