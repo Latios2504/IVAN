@@ -131,7 +131,7 @@ namespace ivan_api.Controllers
         }
 
         // Add feedback for an event
-        [HttpPost]
+        [HttpPost("creatFeedback")]
         [Authorize]
         public async Task<ActionResult<ApiResponseDTO<Feedback>>> AddFeedback([FromBody] FeedbackCreateDTO dto)
         {
@@ -190,6 +190,63 @@ namespace ivan_api.Controllers
                     Success = false,
                     Message = "Internal server error",
                     Errors = new List<string> { "Failed to create feedback" }
+                });
+            }
+        }
+
+        //Delete feedback by ID
+        [HttpDelete("deleteFeedbackByID")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponseDTO<bool>>> DeleteFeedback(int id)
+        {
+            try
+            {
+                // Lấy userId từ token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return Unauthorized(new ApiResponseDTO<bool>
+                    {
+                        Success = false,
+                        Message = "Invalid token",
+                        Errors = new List<string> { "User ID not found or invalid format" }
+                    });
+                }
+
+                // Kiểm tra role từ token
+                var role = User.FindFirst("RoleId")?.Value;
+                bool isAdmin = role != null && role == "1";
+
+                var result = await _feedbackRepository.deleteFeedback(id, userId, isAdmin);
+
+                return Ok(new ApiResponseDTO<bool>
+                {
+                    Success = true,
+                    Message = "Feedback deleted successfully",
+                    Data = result
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ApiResponseDTO<bool>
+                {
+                    Success = false,
+                    Message = "Feedback not found",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting feedback");
+                return StatusCode(500, new ApiResponseDTO<bool>
+                {
+                    Success = false,
+                    Message = "Internal server error",
+                    Errors = new List<string> { "Failed to delete feedback" }
                 });
             }
         }

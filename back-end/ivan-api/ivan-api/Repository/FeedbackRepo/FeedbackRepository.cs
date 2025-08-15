@@ -94,5 +94,22 @@ namespace ivan_api.Repository.FeedbackRepo
             return feedback;
         }
 
+        public async Task<bool> deleteFeedback(int feedbackId, int userId, bool isAdmin)
+        {
+            var feedback = await _context.Feedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId);
+
+            if (feedback == null)
+                throw new KeyNotFoundException($"Feedback with ID {feedbackId} not found");
+
+            // Nếu không phải Admin thì chỉ được xóa feedback của mình
+            if (!isAdmin && feedback.UserId != userId)
+                throw new UnauthorizedAccessException("You are not authorized to delete this feedback");
+
+            _context.Feedbacks.Remove(feedback);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }
