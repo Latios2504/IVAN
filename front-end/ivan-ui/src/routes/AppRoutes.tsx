@@ -94,6 +94,9 @@ const SupportRequestManagementPage = lazy(
 const EventRegistrationPage = lazy(
   () => import("@/pages/organization/EventRegistrationPage")
 );
+const EventFeedbackManagementPage = lazy(
+  () => import("@/pages/organization/EventFeedbackManagementPage")
+);
 const VolunteerCoordinatorManagementPage = lazy(
   () => import("@/pages/organization/VolunteerCoordinatorManagementPage")
 );
@@ -403,6 +406,16 @@ export default function AppRoutes() {
               allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
             >
               <EventRegistrationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/event-feedback"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
+            >
+              <EventFeedbackManagementPage />
             </ProtectedRoute>
           }
         />

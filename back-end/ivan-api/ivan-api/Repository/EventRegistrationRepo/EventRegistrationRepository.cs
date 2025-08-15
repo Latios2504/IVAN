@@ -177,5 +177,30 @@ namespace ivan_api.Repository.EventRegistrationRepo
 
             return await query.CountAsync();
         }
+
+        public async Task<bool> UpdateEventStatisticsAsync(int eventId)
+        {
+            // Get the event
+            var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            if (eventEntity == null) return false;
+
+            // Count approved registrations for this event
+            var approvedCount = await _context.EventRegistrations
+                .Include(r => r.Status)
+                .CountAsync(r => r.EventId == eventId && r.Status.StatusName == "Approved");
+
+            // Count total registrations for this event (excluding cancelled)
+            var totalRegistrationsCount = await _context.EventRegistrations
+                .Include(r => r.Status)
+                .CountAsync(r => r.EventId == eventId && r.Status.StatusName != "Cancelled");
+
+            // Update event statistics
+            eventEntity.CurrentVolunteers = approvedCount;
+            eventEntity.RegistrationCount = totalRegistrationsCount;
+            eventEntity.UpdatedAt = DateTime.UtcNow;
+
+            // Save changes
+            return await SaveChangesAsync();
+        }
     }
 }

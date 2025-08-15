@@ -67,16 +67,16 @@ INSERT INTO EventCategories (CategoryName, Description) VALUES
 (N'Công nghệ', N'Cuộc thi lập trình, hackathon');
 
 INSERT INTO EventStatus (StatusName, Description, Color) VALUES
-(N'Sắp diễn ra', N'Sự kiện chưa bắt đầu', '#4287f5'),
-(N'Đang diễn ra', N'Sự kiện đang tiến hành', '#2ecc71'),
-(N'Đã kết thúc', N'Sự kiện đã hoàn thành', '#888888'),
-(N'Huỷ', N'Sự kiện bị huỷ', '#ff3333'),
-(N'Đóng đăng ký', N'Không nhận đăng ký mới', '#ffc107'),
-(N'Chờ duyệt', N'Chờ xác nhận tổ chức', '#00b894'),
-(N'Hoãn', N'Tạm hoãn sự kiện', '#fdcb6e'),
-(N'Đầy slot', N'Đủ số lượng tham gia', '#00b894'),
-(N'Cần hỗ trợ', N'Cần thêm nhân sự', '#e17055'),
-(N'Nổi bật', N'Sự kiện nổi bật', '#fd79a8');
+(N'Upcoming', N'Sự kiện chưa bắt đầu', '#4287f5'),
+(N'Ongoing', N'Sự kiện đang tiến hành', '#2ecc71'),
+(N'Completed', N'Sự kiện đã hoàn thành', '#888888'),
+(N'Cancelled', N'Sự kiện bị huỷ', '#ff3333'),
+(N'Registration Closed', N'Không nhận đăng ký mới', '#ffc107'),
+(N'Pending Approval', N'Chờ xác nhận tổ chức', '#00b894'),
+(N'Postponed', N'Tạm hoãn sự kiện', '#fdcb6e'),
+(N'Full', N'Đủ số lượng tham gia', '#00b894'),
+(N'Need Support', N'Cần thêm nhân sự', '#e17055'),
+(N'Featured', N'Sự kiện nổi bật', '#fd79a8');
 
 INSERT INTO VolunteerProfiles (UserId, StudentId, University, Major, YearOfStudy, Motivation, Experience, Availability, VolunteerHours, IsVerified)
 VALUES
@@ -184,13 +184,13 @@ INSERT INTO UserProfiles (UserId, FirstName, LastName, PhoneNumber, DateOfBirth,
 
 -- Insert Registration Status
 INSERT INTO RegistrationStatus (StatusName, Description, Color) VALUES
-(N'Chờ duyệt', N'Đăng ký đang chờ được xem xét', '#ffc107'),
-(N'Đã duyệt', N'Đăng ký đã được chấp nhận', '#28a745'),
-(N'Bị từ chối', N'Đăng ký không được chấp nhận', '#dc3545'),
-(N'Đã hủy', N'Người dùng đã hủy đăng ký', '#6c757d'),
-(N'Đã tham gia', N'Đã tham gia sự kiện thành công', '#17a2b8'),
-(N'Vắng mặt', N'Không tham gia sự kiện đã đăng ký', '#fd7e14'),
-(N'Hoàn thành', N'Đã hoàn thành sự kiện và nhận chứng chỉ', '#20c997');
+(N'Pending', N'Đăng ký đang chờ được xem xét', '#ffc107'),
+(N'Approved', N'Đăng ký đã được chấp nhận', '#28a745'),
+(N'Rejected', N'Đăng ký không được chấp nhận', '#dc3545'),
+(N'Cancelled', N'Người dùng đã hủy đăng ký', '#6c757d'),
+(N'Attended', N'Đã tham gia sự kiện thành công', '#17a2b8'),
+(N'No Show', N'Không tham gia sự kiện đã đăng ký', '#fd7e14'),
+(N'Completed', N'Đã hoàn thành sự kiện và nhận chứng chỉ', '#20c997');
 
 -- Insert Event Registrations
 INSERT INTO EventRegistrations (EventId, VolunteerId, StatusId, ApplicationDate, MotivationLetter, AdditionalInfo) VALUES
@@ -220,11 +220,11 @@ INSERT INTO TaskCategories (CategoryName, Description, Color) VALUES
 
 -- Insert Task Status
 INSERT INTO TaskStatus (StatusName, Description, Color) VALUES
-(N'Chưa bắt đầu', N'Nhiệm vụ chưa được thực hiện', '#6c757d'),
-(N'Đang thực hiện', N'Nhiệm vụ đang được thực hiện', '#ffc107'),
-(N'Hoàn thành', N'Nhiệm vụ đã hoàn thành', '#28a745'),
-(N'Tạm dừng', N'Nhiệm vụ bị tạm dừng', '#fd7e14'),
-(N'Hủy bỏ', N'Nhiệm vụ bị hủy bỏ', '#dc3545');
+(N'Not Started', N'Nhiệm vụ chưa được thực hiện', '#6c757d'),
+(N'In Progress', N'Nhiệm vụ đang được thực hiện', '#ffc107'),
+(N'Completed', N'Nhiệm vụ đã hoàn thành', '#28a745'),
+(N'On Hold', N'Nhiệm vụ bị tạm dừng', '#fd7e14'),
+(N'Cancelled', N'Nhiệm vụ bị hủy bỏ', '#dc3545');
 
 -- Insert On-Site Tasks
 INSERT INTO OnSiteTasks (EventId, CategoryId, StatusId, TaskName, Description, StartTime, EndTime, EstimatedHours, Location, RequiredVolunteers, Priority, Difficulty, Instructions) VALUES
@@ -242,18 +242,18 @@ INSERT INTO OnSiteTasks (EventId, CategoryId, StatusId, TaskName, Description, S
 
 -- Insert Task Assignments
 INSERT INTO TaskAssignments (TaskId, VolunteerId, AssignedBy, Status) VALUES
-(1, 1, 2, N'Đã nhận'),
-(1, 5, 2, N'Đã nhận'),
-(2, 2, 2, N'Đã nhận'),
-(2, 4, 2, N'Đã nhận'),
-(3, 3, 3, N'Đã nhận'),
-(4, 3, 3, N'Đã nhận'),
-(5, 5, 4, N'Đã nhận'),
-(6, 6, 5, N'Đã nhận'),
-(7, 7, 6, N'Đã nhận'),
-(8, 8, 7, N'Đã nhận'),
-(9, 9, 8, N'Đã nhận'),
-(10, 10, 10, N'Đã nhận');
+(1, 1, 2, N'Accepted'),
+(1, 5, 2, N'Accepted'),
+(2, 2, 2, N'Accepted'),
+(2, 4, 2, N'Accepted'),
+(3, 3, 3, N'Accepted'),
+(4, 3, 3, N'Accepted'),
+(5, 5, 4, N'Accepted'),
+(6, 6, 5, N'Accepted'),
+(7, 7, 6, N'Accepted'),
+(8, 8, 7, N'Accepted'),
+(9, 9, 8, N'Accepted'),
+(10, 10, 10, N'Accepted');
 
 -- Insert Feedback Categories
 INSERT INTO FeedbackCategories (CategoryName, Description) VALUES
@@ -312,16 +312,16 @@ INSERT INTO CollaborationTypes (TypeName, Description) VALUES
 
 -- Insert Partner Collaborations
 INSERT INTO PartnerCollaborations (OrganizationId, PartnerId, TypeId, CollaborationName, Description, StartDate, EndDate, Status, Budget, Currency) VALUES
-(1, 1, 4, N'Hợp tác tổ chức workshop kỹ năng', N'Cùng nhau tổ chức các workshop kỹ năng mềm cho sinh viên', '2025-01-01', '2025-12-31', N'Đang thực hiện', 50000000, 'VND'),
-(1, 2, 1, N'Tài trợ sự kiện hiến máu', N'VIB tài trợ kinh phí cho chương trình hiến máu nhân đạo', '2025-07-01', '2025-07-31', N'Hoàn thành', 20000000, 'VND'),
-(2, 3, 2, N'Hỗ trợ công nghệ cho sự kiện', N'BKSoft cung cấp hệ thống quản lý đăng ký trực tuyến', '2025-06-01', '2025-08-31', N'Đang thực hiện', 15000000, 'VND'),
-(3, 4, 5, N'Truyền thông sự kiện giáo dục', N'Viettel hỗ trợ truyền thông cho các chương trình giáo dục', '2025-03-01', '2025-12-31', N'Đang thực hiện', 30000000, 'VND'),
-(4, 5, 10, N'Hỗ trợ y tế sự kiện cộng đồng', N'Bệnh viện Hạnh Phúc cung cấp dịch vụ khám sức khỏe', '2025-07-15', '2025-08-15', N'Đang thực hiện', 25000000, 'VND'),
-(5, 6, 1, N'Tài trợ hoạt động từ thiện', N'PVI tài trợ cho các hoạt động từ thiện của quỹ', '2025-01-01', '2025-12-31', N'Đang thực hiện', 100000000, 'VND'),
-(6, 7, 9, N'Cung cấp thực phẩm cho sự kiện', N'Orion tài trợ thực phẩm cho các hoạt động môi trường', '2025-08-01', '2025-08-31', N'Đang thương thảo', 10000000, 'VND'),
-(7, 8, 7, N'Hỗ trợ vận chuyển thiết bị', N'GHTK hỗ trợ vận chuyển thiết bị xây dựng', '2025-06-01', '2025-12-31', N'Đang thực hiện', 12000000, 'VND'),
-(8, 9, 6, N'Cung cấp địa điểm đào tạo', N'Hòa Bình cung cấp không gian cho các khóa đào tạo', '2025-07-01', '2025-09-30', N'Đã ký kết', 8000000, 'VND'),
-(9, 10, 8, N'Tư vấn dinh dưỡng sự kiện', N'Nông sản Sạch tư vấn dinh dưỡng cho chương trình âm nhạc', '2025-08-01', '2025-08-10', N'Đang thương thảo', 5000000, 'VND');
+(1, 1, 4, N'Hợp tác tổ chức workshop kỹ năng', N'Cùng nhau tổ chức các workshop kỹ năng mềm cho sinh viên', '2025-01-01', '2025-12-31', N'In Progress', 50000000, 'VND'),
+(1, 2, 1, N'Tài trợ sự kiện hiến máu', N'VIB tài trợ kinh phí cho chương trình hiến máu nhân đạo', '2025-07-01', '2025-07-31', N'Completed', 20000000, 'VND'),
+(2, 3, 2, N'Hỗ trợ công nghệ cho sự kiện', N'BKSoft cung cấp hệ thống quản lý đăng ký trực tuyến', '2025-06-01', '2025-08-31', N'In Progress', 15000000, 'VND'),
+(3, 4, 5, N'Truyền thông sự kiện giáo dục', N'Viettel hỗ trợ truyền thông cho các chương trình giáo dục', '2025-03-01', '2025-12-31', N'In Progress', 30000000, 'VND'),
+(4, 5, 10, N'Hỗ trợ y tế sự kiện cộng đồng', N'Bệnh viện Hạnh Phúc cung cấp dịch vụ khám sức khỏe', '2025-07-15', '2025-08-15', N'In Progress', 25000000, 'VND'),
+(5, 6, 1, N'Tài trợ hoạt động từ thiện', N'PVI tài trợ cho các hoạt động từ thiện của quỹ', '2025-01-01', '2025-12-31', N'In Progress', 100000000, 'VND'),
+(6, 7, 9, N'Cung cấp thực phẩm cho sự kiện', N'Orion tài trợ thực phẩm cho các hoạt động môi trường', '2025-08-01', '2025-08-31', N'Negotiating', 10000000, 'VND'),
+(7, 8, 7, N'Hỗ trợ vận chuyển thiết bị', N'GHTK hỗ trợ vận chuyển thiết bị xây dựng', '2025-06-01', '2025-12-31', N'In Progress', 12000000, 'VND'),
+(8, 9, 6, N'Cung cấp địa điểm đào tạo', N'Hòa Bình cung cấp không gian cho các khóa đào tạo', '2025-07-01', '2025-09-30', N'Signed', 8000000, 'VND'),
+(9, 10, 8, N'Tư vấn dinh dưỡng sự kiện', N'Nông sản Sạch tư vấn dinh dưỡng cho chương trình âm nhạc', '2025-08-01', '2025-08-10', N'Negotiating', 5000000, 'VND');
 
 -- Insert Notifications
 INSERT INTO Notifications (UserId, Title, Content, SendDate, IsRead) VALUES
