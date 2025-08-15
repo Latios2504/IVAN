@@ -32,14 +32,26 @@ namespace ivan_api.Repository.CertificateTemplates
             
             return null;
         }
-        //public async Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate)
-        //{
-        //    _context.ChangeTracker.Clear();//
-        //    _context.CertificateTemplates.Attach(certificateTemplate);
-        //    _context.Entry(certificateTemplate).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-        //    return await _context.SaveChangesAsync() > 0;
-        //}
+        public async Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate)
+        {
+            _context.ChangeTracker.Clear();//
+            _context.CertificateTemplates.Attach(certificateTemplate);
+            _context.Entry(certificateTemplate).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> DeleteCertificateTemplate(int CertificateTemplateId)
+        {
+            var template = await _context.CertificateTemplates.FindAsync(CertificateTemplateId);
+            if(template == null)
+                return false;
+
+            _context.CertificateTemplates.Remove(template);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task<IEnumerable<CertificateTemplate>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
         {
             var query = _context.CertificateTemplates

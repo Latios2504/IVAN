@@ -7,7 +7,8 @@ namespace ivan_api.Repository.CertificateTemplates
     public interface ICertificateTemplateRepository
     {
         Task<int?> AddCertificateTemplate(CertificateTemplate certificateTemplate);
-        //Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate);
+        Task<bool> UpdateCertificateTemplate(CertificateTemplate certificateTemplate);
+        Task<bool> DeleteCertificateTemplate(int certificateTemplateId);
         Task<IEnumerable<CertificateTemplate>> ListCertificateTemplate(CertificateTemplateFilterModel filter);
         Task<CertificateTemplate> GetCertificateTemplateById(int id);
         Task<PagedResultDto<CertificateTemplateViewModel>> GetCertificateTemplatesAsync(int PageNumber, int PageSize);

@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
-using ivan_api.Models;
+using ivan_api.DTOs.Certificates;
 using ivan_api.DTOs.CertificateTemplates;
-using ivan_api.Repository.CertificateTemplates;
 using ivan_api.DTOs.Common;
+using ivan_api.Models;
+using ivan_api.Repository.CertificateTemplates;
 
 namespace ivan_api.Services.CertificateTemplates
 {
@@ -41,10 +42,59 @@ namespace ivan_api.Services.CertificateTemplates
             
             return _mapper.Map<CertificateTemplateViewModel>(createdTemplate);
         }
-        //public async Task<bool> UpdateCertificateTemplate(CertificateTemplateViewModel certificateTemplateViewModel)
-        //{
 
-        //}
+        public async Task<bool> UpdateCertificateTemplate(CertificateTemplateUpdateModel certificateTemplateUpdateModel)
+        {
+            try
+            {
+                var existingCertificateTemplate = await _repository.GetCertificateTemplateById(certificateTemplateUpdateModel.TemplateId);
+                if (existingCertificateTemplate == null)
+                {
+                    throw new Exception("Certificate Template not found");
+                }
+
+                // Update only provided fields
+                if (!string.IsNullOrEmpty(certificateTemplateUpdateModel.TemplateName))
+                    existingCertificateTemplate.TemplateName = certificateTemplateUpdateModel.TemplateName;
+
+                if (!string.IsNullOrEmpty(certificateTemplateUpdateModel.Description))
+                    existingCertificateTemplate.Description = certificateTemplateUpdateModel.Description;
+
+                if (!string.IsNullOrEmpty(certificateTemplateUpdateModel.TemplateType))
+                    existingCertificateTemplate.TemplateType = certificateTemplateUpdateModel.TemplateType;
+
+                if (!string.IsNullOrEmpty(certificateTemplateUpdateModel.TemplateDesign))
+                    existingCertificateTemplate.TemplateDesign = certificateTemplateUpdateModel.TemplateDesign;
+
+                if (!string.IsNullOrEmpty(certificateTemplateUpdateModel.RequiredFields))
+                    existingCertificateTemplate.RequiredFields = certificateTemplateUpdateModel.RequiredFields;
+
+                if (certificateTemplateUpdateModel.IsDefault.HasValue)
+                    existingCertificateTemplate.IsDefault = certificateTemplateUpdateModel.IsDefault;
+
+                if (certificateTemplateUpdateModel.IsActive.HasValue)
+                    existingCertificateTemplate.IsActive = certificateTemplateUpdateModel.IsActive;
+
+                return await _repository.UpdateCertificateTemplate(existingCertificateTemplate);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteCertificateTemplate(int certificateTemplateId)
+        {
+            try
+            {
+                return await _repository.DeleteCertificateTemplate(certificateTemplateId);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<CertificateTemplateViewModel>> ListCertificateTemplate(CertificateTemplateFilterModel filter)
         {
             var tems = await _repository.ListCertificateTemplate(filter);

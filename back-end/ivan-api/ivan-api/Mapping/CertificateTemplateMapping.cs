@@ -16,6 +16,15 @@ namespace ivan_api.Mapping
 
             CreateMap<CertificateTemplate, CertificateTemplateInputModel>();
             CreateMap<CertificateTemplateInputModel, CertificateTemplate>();
+
+            CreateMap<CertificateTemplate, CertificateTemplateUpdateModel>();
+            CreateMap<CertificateTemplateUpdateModel, CertificateTemplate>();
+
+            CreateMap<CertificateTemplateInputModel, CertificateTemplateUpdateModel>();
+            CreateMap<CertificateTemplateUpdateModel, CertificateTemplateInputModel>();
+
+            CreateMap<CertificateTemplateViewModel, CertificateTemplateUpdateModel>();
+            CreateMap<CertificateTemplateUpdateModel, CertificateTemplateViewModel>();
         }
     }
 }

@@ -1,10 +1,10 @@
+using ivan_api.DTOs.CertificateTemplates;
+using ivan_api.DTOs.Common;
+using ivan_api.Services.AuthenticationSer;
 using ivan_api.Services.CertificateTemplates;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ivan_api.DTOs.CertificateTemplates;
-using ivan_api.Services.AuthenticationSer;
-using Microsoft.AspNetCore.Authorization;
-using ivan_api.DTOs.Common;
 
 namespace ivan_api.Controllers
 {
@@ -74,6 +74,30 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "An error occurred while retrieving certificate template",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        [HttpPost("filter")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetFilteredCertificateTemplates([FromBody] CertificateTemplateFilterModel filter)
+        {
+            try
+            {
+                var result = await _service.ListCertificateTemplate(filter);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Filtered certificate templates retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to retrieve filtered certificate templates",
                     Errors = new List<string> { ex.Message }
                 });
             }
@@ -156,5 +180,110 @@ namespace ivan_api.Controllers
             }
         }
 
+        [HttpPut("update/{id}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id, [FromBody] CertificateTemplateUpdateModel updateModel)
+        {
+            if (updateModel == null)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid update data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
+            }
+
+            if (id != updateModel.TemplateId)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Certificate Template ID mismatch",
+                    Errors = new List<string> { "URL ID does not match request body ID" }
+                });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
+            }
+
+            try
+            {
+                var result = await _service.UpdateCertificateTemplate(updateModel);
+
+                if (!result)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to update certificate template",
+                        Errors = new List<string> { "Unable to update certificate template" }
+                    });
+                }
+
+                var updatedCertificateTemplate = await _service.GetCertificateTemplateById(id);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = updatedCertificateTemplate,
+                    Message = "Certificate Template updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to update certificate template",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> Delete(int id)
+        {
+            try
+            {
+                var result = await _service.DeleteCertificateTemplate(id);
+
+                if (!result)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to delete certificate template",
+                        Errors = new List<string> { "Unable to delete certificate template" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Certificate Template deleted successfully",
+                    Data = new { deletedId = id }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to delete certificate template",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
     }
 }
