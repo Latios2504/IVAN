@@ -52,5 +52,47 @@ namespace ivan_api.Repository.FeedbackRepo
             await _context.SaveChangesAsync();
             return feedback;
         }
+
+        public async Task<Feedback> addFeedback(FeedbackCreateDTO dto)
+        {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            // Kiểm tra event tồn tại
+            var eventExists = await _context.Events.AnyAsync(e => e.EventId == dto.EventId);
+            if (!eventExists)
+                throw new KeyNotFoundException($"Event with ID {dto.EventId} not found");
+
+            // Kiểm tra category tồn tại
+            var categoryExists = await _context.FeedbackCategories.AnyAsync(c => c.CategoryId == dto.CategoryId);
+            if (!categoryExists)
+                throw new KeyNotFoundException($"Feedback category with ID {dto.CategoryId} not found");
+
+            var feedback = new Feedback
+            {
+                EventId = dto.EventId,
+                UserId = dto.UserId,
+                CategoryId = dto.CategoryId,
+                Subject = dto.Subject,
+                Content = dto.Content,
+                Rating = dto.Rating,
+                IsAnonymous = dto.IsAnonymous,
+                IsPublic = dto.IsPublic,
+                AttachmentUrls = dto.AttachmentUrls,
+                Status = "Pending",
+                IsVerified = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Feedbacks.Add(feedback);
+            await _context.SaveChangesAsync();
+
+            // Load thêm Category để trả về đầy đủ
+            await _context.Entry(feedback).Reference(f => f.Category).LoadAsync();
+
+            return feedback;
+        }
+
     }
 }
