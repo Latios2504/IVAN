@@ -71,7 +71,7 @@ INSERT INTO EventStatus (StatusName, Description, Color) VALUES
 (N'Scheduled', N'Sự kiện đã lên lịch', '#4287f5'),
 (N'Ongoing', N'Sự kiện đang tiến hành', '#2ecc71'),
 (N'Completed', N'Sự kiện đã hoàn thành', '#888888'),
-(N'Cancelled', N'Sự kiện bị huỷ', '#ff3333'),
+(N'Cancelled', N'Sự kiện bị huỷ', '#ff3333');
 
 INSERT INTO VolunteerProfiles (UserId, StudentId, University, Major, YearOfStudy, Motivation, Experience, Availability, VolunteerHours, IsVerified)
 VALUES

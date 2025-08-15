@@ -58,7 +58,7 @@ export default function PublicEventsPage() {
   const [filters, setFilters] = useState<EventFilterDto>({
     search: "",
     categoryIds: [],
-    statusIds: [],
+    statusIds: [2, 3, 4], // Only show Scheduled, Ongoing, and Completed events
     startDateFrom: "",
     startDateTo: "",
     endDateFrom: "",

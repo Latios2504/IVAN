@@ -91,6 +91,9 @@ const AIInstructionsManagementPage = lazy(
 const SupportRequestManagementPage = lazy(
   () => import("@/pages/admin/SupportRequestManagementPage")
 );
+const ModerationManagementPage = lazy(
+  () => import("@/pages/admin/ModerationManagementPage")
+);
 const EventRegistrationPage = lazy(
   () => import("@/pages/organization/EventRegistrationPage")
 );
@@ -474,6 +477,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
               <SupportRequestManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/moderation"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <ModerationManagementPage />
             </ProtectedRoute>
           }
         />
