@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.Wordprocessing;
 using ivan_api.DTOs.Reports;
+using ivan_api.DTOs.Common;
 using ivan_api.Services.Reports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,161 +19,304 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("listEventReport")]
-        public async Task<IActionResult> GetEventReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _service.GetEventReportList(pageNumber, pageSize);
-                return Ok(result);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Event reports retrieved successfully"
+                });
             }
             catch(Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving event reports",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpGet("listOrganizationReport")]
-        public async Task<IActionResult> GetOrganizationReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _service.GetOrganizationReportList(pageNumber, pageSize);
-                return Ok(result);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Organization reports retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving organization reports",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpGet("listSystemReport")]
-        public async Task<IActionResult> GetSystemReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _service.GetSystemReportList(pageNumber, pageSize);
-                return Ok(result);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "System reports retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving system reports",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpGet("getEventReport/{id}")]
-        public async Task<IActionResult> GetEventReport(int id)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReport(int id)
         {
             try
             {
                 var result = await _service.GetEventReportById(id);
-                return Ok(result);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Event report not found",
+                        Errors = new List<string> { $"Event report with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Event report retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving event report",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpGet("getOrganizationReport/{id}")]
-        public async Task<IActionResult> GetOrganizationReport(int id)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReport(int id)
         {
             try
             {
                 var result = await _service.GetOrganizationReportById(id);
-                return Ok(result);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Organization report not found",
+                        Errors = new List<string> { $"Organization report with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Organization report retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving organization report",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpGet("getSystemReport/{id}")]
-        public async Task<IActionResult> GetSystemReport(int id)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReport(int id)
         {
             try
             {
                 var result = await _service.GetSystemReportById(id);
-                return Ok(result);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "System report not found",
+                        Errors = new List<string> { $"System report with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "System report retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving system report",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpPost("addEventReport")]
-        public async Task<IActionResult> AddEventReport([FromBody] ReportInputModel input)
+        public async Task<ActionResult<ApiResponseDTO<object>>> AddEventReport([FromBody] ReportInputModel input)
         {
             if (input == null)
             {
-                input = new ReportInputModel();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
             {
                 var result = await _service.AddEventReport(input);
 
-                if (!result)//if false
+                if (!result)
                 {
-                    return BadRequest(null);
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to add event report",
+                        Errors = new List<string> { "Unable to create event report" }
+                    });
                 }
 
                 var listDto = await _service.GetEventReportList(1, 100);
-
                 var list = listDto.Items.ToList();
-
                 var postAdd = await _service.GetEventReportById(list.Last().ReportId);
 
-                return Ok(postAdd);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = postAdd,
+                    Message = "Event report created successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while creating event report",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         [HttpPost("addOrganizationReport")]
-        public async Task<IActionResult> AddOrganizationReport([FromBody] ReportInputModel input)
+        public async Task<ActionResult<ApiResponseDTO<object>>> AddOrganizationReport([FromBody] ReportInputModel input)
         {
             if (input == null)
             {
-                input = new ReportInputModel();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
             {
                 var result = await _service.AddOrganizationReport(input);
 
-
-                if (!result)//if false
+                if (!result)
                 {
-                    return BadRequest(null);
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to add organization report",
+                        Errors = new List<string> { "Unable to create organization report" }
+                    });
                 }
 
                 var listDto = await _service.GetOrganizationReportList(1, 100);
-
                 var list = listDto.Items.ToList();
-
                 var postAdd = await _service.GetOrganizationReportById(list.Last().ReportId);
 
-                return Ok(postAdd);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = postAdd,
+                    Message = "Organization report created successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while creating organization report",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 

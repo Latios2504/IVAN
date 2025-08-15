@@ -1,6 +1,7 @@
 using DocumentFormat.OpenXml.Office2010.Excel;
 using ivan_api.Constants;
 using ivan_api.DTOs.OnSiteTasks;
+using ivan_api.DTOs.Common;
 using ivan_api.Services.OnSiteTasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,49 +24,93 @@ namespace ivan_api.Controllers
 
         [HttpGet]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
-        public async Task<IActionResult> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _service.GetList(pageNumber, pageSize);
-                return Ok(result);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "On-site tasks retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving on-site tasks",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         /// Get on-site task details by ID (Coordinator and Volunteer can view)
         [HttpGet("get/{id}")]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
-        public async Task<IActionResult> Details(int id)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Details(int id)
         {
             try
             {
                 var result = await _service.GetOnSiteTaskById(id);
-                return Ok(result);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "On-site task not found",
+                        Errors = new List<string> { $"On-site task with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "On-site task retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving on-site task",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         /// Add new on-site task (Only Coordinator can add)
         [HttpPost("add")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
-        public async Task<IActionResult> Add([FromBody] OnSiteTaskInputModel input)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Add([FromBody] OnSiteTaskInputModel input)
         {
             if (input == null)
             {
-                input = new OnSiteTaskInputModel();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
@@ -74,55 +119,96 @@ namespace ivan_api.Controllers
 
                 if (!result)
                 {
-                    return BadRequest("Failed to add task");
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to add on-site task",
+                        Errors = new List<string> { "Unable to create on-site task" }
+                    });
                 }
 
                 var listDto = await _service.GetList(1, 100);
-
                 var list = listDto.Items.ToList();
-
                 var postAdd = await _service.GetOnSiteTaskById(list.Last().TaskId);
 
-                return Ok(postAdd);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = postAdd,
+                    Message = "On-site task created successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while creating on-site task",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 
         /// Update on-site task (Only Coordinator can update)
         [HttpPut("update/{id}")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
-        public async Task<IActionResult> Update([FromBody] OnSiteTaskUpdateModel input, int id)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Update([FromBody] OnSiteTaskUpdateModel input, int id)
         {
             if (input == null)
             {
-                input = new OnSiteTaskUpdateModel();
-                TryValidateModel(input);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Request body cannot be null" }
+                });
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = errors
+                });
             }
 
             try
             {
                 var result = await _service.UpdateOnSiteTask(input, id);
+                var postUpdate = await _service.GetOnSiteTaskById(id);
 
-                var postUpate = await _service.GetOnSiteTaskById(id);
-
-                if (!result)//if false
+                if (!result)
                 {
-                    return BadRequest(postUpate);
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to update on-site task",
+                        Errors = new List<string> { "Unable to update on-site task" }
+                    });
                 }
 
-                return Ok(postUpate);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = postUpdate,
+                    Message = "On-site task updated successfully"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while updating on-site task",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
 

@@ -259,7 +259,7 @@ namespace ivan_api.Controllers
 
         /// Get available export formats and their capabilities
         [HttpGet("formats")]
-        public IActionResult GetSupportedFormats()
+        public ActionResult<ApiResponseDTO<object>> GetSupportedFormats()
         {
             var formats = new[]
             {
@@ -301,28 +301,38 @@ namespace ivan_api.Controllers
                 }
             };
 
-            return Ok(new
+            return Ok(new ApiResponseDTO<object>
             {
-                Formats = formats,
-                DefaultFormat = "Excel",
-                SupportedLanguages = new[] { "vi-VN", "en-US" },
-                DefaultLanguage = "vi-VN"
+                Success = true,
+                Data = new
+                {
+                    Formats = formats,
+                    DefaultFormat = "Excel",
+                    SupportedLanguages = new[] { "vi-VN", "en-US" },
+                    DefaultLanguage = "vi-VN"
+                },
+                Message = "Export formats retrieved successfully"
             });
         }
 
         /// Get export statistics and usage information
         [HttpGet("statistics")]
         [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
-        public IActionResult GetExportStatistics()
+        public ActionResult<ApiResponseDTO<object>> GetExportStatistics()
         {
             // TODO: Implement export statistics tracking
             // This would track export frequency, popular formats, file sizes, etc.
-            return Ok(new
+            return Ok(new ApiResponseDTO<object>
             {
-                Message = "Thống kê xuất dữ liệu sẽ được triển khai trong phiên bản tương lai",
-                TotalExports = 0,
-                PopularFormat = "Excel",
-                LastExportDate = (DateTime?)null
+                Success = true,
+                Data = new
+                {
+                    Message = "Thống kê xuất dữ liệu sẽ được triển khai trong phiên bản tương lai",
+                    TotalExports = 0,
+                    PopularFormat = "Excel",
+                    LastExportDate = (DateTime?)null
+                },
+                Message = "Export statistics retrieved successfully"
             });
         }
     }
