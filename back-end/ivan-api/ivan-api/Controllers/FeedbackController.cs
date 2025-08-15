@@ -235,7 +235,7 @@ namespace ivan_api.Controllers
                     Errors = new List<string> { ex.Message }
                 });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return Forbid();
             }
