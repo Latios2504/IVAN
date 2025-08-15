@@ -236,7 +236,12 @@ namespace ivan_api.Controllers
 
                 var listDto = await _service.GetEventReportList(1, 100);
                 var list = listDto.Items.ToList();
-                var postAdd = await _service.GetEventReportById(list.Last().ReportId);
+
+                object postAdd = null;
+                if (list.Any())
+                {
+                    postAdd = await _service.GetEventReportById(list.Last().ReportId);
+                }
 
                 return Ok(new ApiResponseDTO<object>
                 {
@@ -300,7 +305,12 @@ namespace ivan_api.Controllers
 
                 var listDto = await _service.GetOrganizationReportList(1, 100);
                 var list = listDto.Items.ToList();
-                var postAdd = await _service.GetOrganizationReportById(list.Last().ReportId);
+
+                object postAdd = null;
+                if (list.Any())
+                {
+                    postAdd = await _service.GetOrganizationReportById(list.Last().ReportId);
+                }
 
                 return Ok(new ApiResponseDTO<object>
                 {
