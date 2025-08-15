@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   CheckCircle,
   Clock,
@@ -12,134 +20,162 @@ import {
   Building,
   FileText,
   TrendingUp,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Eye,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-
-// Mock data for coordinator dashboard
-const mockCoordinatorData = {
-  assignedOrganizations: [
-    {
-      id: "org_001",
-      name: "Quỹ Tấm Lòng Việt",
-      activeEvents: 3,
-      volunteers: 45,
-      pendingTasks: 2,
-    },
-    {
-      id: "org_002",
-      name: "Hội Chữ thập đỏ Việt Nam",
-      activeEvents: 5,
-      volunteers: 68,
-      pendingTasks: 1,
-    },
-  ],
-  tasks: [
-    {
-      id: "task_001",
-      title: "Phê duyệt sự kiện 'Dạy máy tính cho trẻ em'",
-      organizationName: "Quỹ Tấm Lòng Việt",
-      priority: "high",
-      status: "pending",
-      dueDate: "2024-06-08",
-      description: "Xem xét và phê duyệt sự kiện mới được tạo",
-    },
-    {
-      id: "task_002",
-      title: "Phân bổ tình nguyện viên cho sự kiện khẩn cấp",
-      organizationName: "Hội Chữ thập đỏ Việt Nam",
-      priority: "urgent",
-      status: "in_progress",
-      dueDate: "2024-06-07",
-      description: "Hỗ trợ phân bổ tình nguyện viên cho hoạt động cứu trợ",
-    },
-    {
-      id: "task_003",
-      title: "Báo cáo hoạt động tháng 5",
-      organizationName: "Quỹ Tấm Lòng Việt",
-      priority: "medium",
-      status: "completed",
-      dueDate: "2024-06-05",
-      description: "Tổng hợp báo cáo hoạt động tình nguyện tháng 5",
-    },
-  ],
-  upcomingEvents: [
-    {
-      id: "evt_001",
-      title: "Khám sức khỏe miễn phí",
-      organizationName: "Hội Chữ thập đỏ Việt Nam",
-      date: "2024-06-08",
-      volunteersNeeded: 15,
-      volunteersRegistered: 12,
-      status: "needs_approval",
-    },
-    {
-      id: "evt_002",
-      title: "Dạy máy tính cho trẻ em",
-      organizationName: "Quỹ Tấm Lòng Việt",
-      date: "2024-06-10",
-      volunteersNeeded: 8,
-      volunteersRegistered: 8,
-      status: "approved",
-    },
-  ],
-  stats: {
-    totalOrganizations: 2,
-    totalVolunteers: 113,
-    activeEvents: 8,
-    completedTasksThisMonth: 12,
-    pendingTasks: 3,
-    overdueTasks: 0,
-  },
-};
+import { toast } from "sonner";
+import coordinatorTaskService from "@/services/coordinatorTaskService";
+import type {
+  CoordinatorTaskDto,
+  TaskStatus,
+  TaskPriority,
+} from "@/types/coordinatorTask";
 
 export default function CoordinatorTasksPage() {
   const { user } = useAuth();
+  const [tasks, setTasks] = useState<CoordinatorTaskDto[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
 
-  const getPriorityColor = (priority: string) => {
+  // Load tasks on component mount
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      setLoading(true);
+      // Get tasks for the current coordinator
+      const tasksData = await coordinatorTaskService.getAllTasks();
+      setTasks(tasksData);
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      toast.error("Không thể tải danh sách nhiệm vụ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter tasks based on search and filters
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch =
+      task.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      "";
+    const matchesStatus =
+      statusFilter === "all" || task.status === statusFilter;
+    const matchesPriority =
+      priorityFilter === "all" || task.priority === priorityFilter;
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  // Calculate stats from tasks
+  const stats = {
+    totalTasks: tasks.length,
+    pendingTasks: tasks.filter((t) => t.status === "Pending").length,
+    inProgressTasks: tasks.filter((t) => t.status === "In Progress").length,
+    completedTasks: tasks.filter((t) => t.status === "Completed").length,
+    totalEstimatedHours: tasks.reduce(
+      (sum, task) => sum + (task.estimatedHours || 0),
+      0
+    ),
+    totalActualHours: tasks.reduce(
+      (sum, task) => sum + (task.actualHours || 0),
+      0
+    ),
+  };
+
+  const handleUpdateTaskStatus = async (taskId: number, newStatus: string) => {
+    try {
+      // In a real implementation, you would call the update API
+      // For now, we'll simulate the update
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.eventId === taskId // Using eventId as task identifier since backend doesn't have taskId in DTO
+            ? {
+                ...task,
+                status: newStatus,
+                completedAt:
+                  newStatus === "Completed"
+                    ? new Date().toISOString()
+                    : undefined,
+              }
+            : task
+        )
+      );
+      toast.success("Cập nhật trạng thái thành công");
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      toast.error("Không thể cập nhật trạng thái");
+    }
+  };
+
+  const getPriorityColor = (priority?: string) => {
     switch (priority) {
-      case "urgent":
+      case "Khẩn cấp":
+      case "Urgent":
         return "bg-red-100 text-red-800";
-      case "high":
+      case "Cao":
+      case "High":
         return "bg-orange-100 text-orange-800";
-      case "medium":
+      case "Trung bình":
+      case "Medium":
         return "bg-yellow-100 text-yellow-800";
-      case "low":
+      case "Thấp":
+      case "Low":
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status?: string) => {
     switch (status) {
-      case "completed":
+      case "Hoàn thành":
+      case "Completed":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "in_progress":
+      case "Đang thực hiện":
+      case "In Progress":
         return <Clock className="h-4 w-4 text-blue-600" />;
-      case "pending":
+      case "Chờ xử lý":
+      case "Pending":
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       default:
         return <Clock className="h-4 w-4 text-gray-600" />;
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status?: string) => {
     switch (status) {
-      case "completed":
+      case "Completed":
         return "Hoàn thành";
-      case "in_progress":
+      case "In Progress":
         return "Đang thực hiện";
-      case "pending":
+      case "Pending":
         return "Chờ xử lý";
-      case "overdue":
+      case "Overdue":
         return "Quá hạn";
       default:
-        return status;
+        return status || "Không xác định";
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Chưa xác định";
     return new Date(dateString).toLocaleDateString("vi-VN", {
       weekday: "long",
       year: "numeric",
@@ -147,6 +183,19 @@ export default function CoordinatorTasksPage() {
       day: "numeric",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải danh sách nhiệm vụ...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -164,16 +213,12 @@ export default function CoordinatorTasksPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổ chức phụ trách
-            </CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Tổng nhiệm vụ</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCoordinatorData.stats.totalOrganizations}
-            </div>
-            <p className="text-xs text-muted-foreground">Đang hoạt động</p>
+            <div className="text-2xl font-bold">{stats.totalTasks}</div>
+            <p className="text-xs text-muted-foreground">Được giao</p>
           </CardContent>
         </Card>
 
@@ -185,199 +230,276 @@ export default function CoordinatorTasksPage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCoordinatorData.stats.pendingTasks}
-            </div>
-            <p className="text-xs text-muted-foreground">Cần xử lý ngay</p>
+            <div className="text-2xl font-bold">{stats.pendingTasks}</div>
+            <p className="text-xs text-muted-foreground">Cần thực hiện</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Sự kiện đang quản lý
+              Đang thực hiện
             </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCoordinatorData.stats.activeEvents}
-            </div>
-            <p className="text-xs text-muted-foreground">Sự kiện hoạt động</p>
+            <div className="text-2xl font-bold">{stats.inProgressTasks}</div>
+            <p className="text-xs text-muted-foreground">Đang tiến hành</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Hiệu suất tháng này
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Hoàn thành</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {mockCoordinatorData.stats.completedTasksThisMonth}
-            </div>
-            <p className="text-xs text-muted-foreground">Nhiệm vụ hoàn thành</p>
+            <div className="text-2xl font-bold">{stats.completedTasks}</div>
+            <p className="text-xs text-muted-foreground">Đã xong</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="tasks">Nhiệm vụ</TabsTrigger>
-          <TabsTrigger value="organizations">Tổ chức</TabsTrigger>
-          <TabsTrigger value="events">Sự kiện</TabsTrigger>
+          <TabsTrigger value="tasks">Nhiệm vụ của tôi</TabsTrigger>
+          <TabsTrigger value="completed">Đã hoàn thành</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-6">
+          {/* Search and Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Tìm kiếm nhiệm vụ..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Lọc theo trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="Pending">Chờ xử lý</SelectItem>
+                    <SelectItem value="In Progress">Đang thực hiện</SelectItem>
+                    <SelectItem value="Completed">Hoàn thành</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={priorityFilter}
+                  onValueChange={setPriorityFilter}
+                >
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Lọc theo ưu tiên" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả mức ưu tiên</SelectItem>
+                    <SelectItem value="Low">Thấp</SelectItem>
+                    <SelectItem value="Medium">Trung bình</SelectItem>
+                    <SelectItem value="High">Cao</SelectItem>
+                    <SelectItem value="Urgent">Khẩn cấp</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle>Danh sách nhiệm vụ</CardTitle>
+              <CardTitle>Danh sách nhiệm vụ ({filteredTasks.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockCoordinatorData.tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      setSelectedTask(task.id === selectedTask ? null : task.id)
-                    }
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          {getStatusIcon(task.status)}
-                          <h3 className="font-semibold">{task.title}</h3>
-                          <Badge className={getPriorityColor(task.priority)}>
-                            {task.priority === "urgent"
-                              ? "Khẩn cấp"
-                              : task.priority === "high"
-                              ? "Cao"
-                              : task.priority === "medium"
-                              ? "Trung bình"
-                              : "Thấp"}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {task.organizationName}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Hạn: {formatDate(task.dueDate)}</span>
-                          <span>Trạng thái: {getStatusText(task.status)}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {task.status === "pending" && (
-                          <>
-                            <Button size="sm" variant="outline">
-                              Từ chối
-                            </Button>
-                            <Button size="sm">Phê duyệt</Button>
-                          </>
-                        )}
-                        {task.status === "in_progress" && (
-                          <Button size="sm">Hoàn thành</Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {selectedTask === task.id && (
-                      <div className="mt-4 pt-4 border-t">
-                        <p className="text-sm text-gray-700">
-                          {task.description}
-                        </p>
-                      </div>
-                    )}
+                {filteredTasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600">
+                      {tasks.length === 0
+                        ? "Chưa có nhiệm vụ nào được giao"
+                        : "Không tìm thấy nhiệm vụ phù hợp với bộ lọc"}
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  filteredTasks.map((task) => (
+                    <div
+                      key={`${task.eventId}-${task.coordinatorId}`}
+                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() =>
+                        setSelectedTask(
+                          selectedTask ===
+                            `${task.eventId}-${task.coordinatorId}`
+                            ? null
+                            : `${task.eventId}-${task.coordinatorId}`
+                        )
+                      }
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            {getStatusIcon(task.status || undefined)}
+                            <h3 className="font-semibold">{task.taskName}</h3>
+                            {task.priority && (
+                              <Badge
+                                className={getPriorityColor(task.priority)}
+                              >
+                                {task.priority}
+                              </Badge>
+                            )}
+                          </div>
+                          {task.description && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {task.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            {task.dueDate && (
+                              <span>Hạn: {formatDate(task.dueDate)}</span>
+                            )}
+                            <span>
+                              Trạng thái:{" "}
+                              {getStatusText(task.status || undefined)}
+                            </span>
+                            {task.estimatedHours && (
+                              <span>Ước tính: {task.estimatedHours}h</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Xem chi tiết
+                              </DropdownMenuItem>
+                              {task.status !== "Completed" && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateTaskStatus(
+                                      task.eventId,
+                                      "Completed"
+                                    );
+                                  }}
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Đánh dấu hoàn thành
+                                </DropdownMenuItem>
+                              )}
+                              {task.status === "Pending" && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateTaskStatus(
+                                      task.eventId,
+                                      "In Progress"
+                                    );
+                                  }}
+                                >
+                                  <Clock className="mr-2 h-4 w-4" />
+                                  Bắt đầu thực hiện
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+
+                      {selectedTask ===
+                        `${task.eventId}-${task.coordinatorId}` && (
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <strong>Danh mục:</strong>{" "}
+                              {task.category || "Chưa phân loại"}
+                            </div>
+                            <div>
+                              <strong>Thời gian thực tế:</strong>{" "}
+                              {task.actualHours || 0}h
+                            </div>
+                            {task.completedAt && (
+                              <div>
+                                <strong>Hoàn thành lúc:</strong>{" "}
+                                {formatDate(task.completedAt)}
+                              </div>
+                            )}
+                            {task.notes && (
+                              <div className="md:col-span-2">
+                                <strong>Ghi chú:</strong> {task.notes}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="organizations" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {mockCoordinatorData.assignedOrganizations.map((org) => (
-              <Card key={org.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    {org.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-lg font-semibold text-blue-600">
-                        {org.activeEvents}
-                      </div>
-                      <div className="text-xs text-gray-500">Sự kiện</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-semibold text-green-600">
-                        {org.volunteers}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Tình nguyện viên
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-semibold text-orange-600">
-                        {org.pendingTasks}
-                      </div>
-                      <div className="text-xs text-gray-500">Nhiệm vụ chờ</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" className="flex-1">
-                      Xem chi tiết
-                    </Button>
-                    <Button className="flex-1">Quản lý</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="events" className="space-y-6">
+        <TabsContent value="completed" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Sự kiện sắp tới cần phê duyệt</CardTitle>
+              <CardTitle>Nhiệm vụ đã hoàn thành</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockCoordinatorData.upcomingEvents.map((event) => (
-                  <div key={event.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">{event.title}</h3>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {event.organizationName}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>📅 {formatDate(event.date)}</span>
-                          <span>
-                            👥 {event.volunteersRegistered}/
-                            {event.volunteersNeeded}
-                          </span>
+                {tasks
+                  .filter((task) => task.status === "Completed")
+                  .map((task) => (
+                    <div
+                      key={`${task.eventId}-${task.coordinatorId}`}
+                      className="border rounded-lg p-4 bg-green-50"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <h3 className="font-semibold">{task.taskName}</h3>
+                            <Badge className="bg-green-100 text-green-800">
+                              Hoàn thành
+                            </Badge>
+                          </div>
+                          {task.description && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {task.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            {task.completedAt && (
+                              <span>
+                                Hoàn thành: {formatDate(task.completedAt)}
+                              </span>
+                            )}
+                            {task.actualHours && (
+                              <span>Thời gian: {task.actualHours}h</span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {event.status === "needs_approval" ? (
-                          <Badge variant="secondary">Chờ phê duyệt</Badge>
-                        ) : (
-                          <Badge className="bg-green-100 text-green-800">
-                            Đã phê duyệt
-                          </Badge>
-                        )}
-                        <Button size="sm">Xem chi tiết</Button>
-                      </div>
                     </div>
+                  ))}
+                {tasks.filter((task) => task.status === "Completed").length ===
+                  0 && (
+                  <div className="text-center py-8">
+                    <CheckCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600">
+                      Chưa có nhiệm vụ nào hoàn thành
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </CardContent>
           </Card>
