@@ -1,0 +1,564 @@
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Award,
+  Download,
+  Eye,
+  Share2,
+  Calendar,
+  Building,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  AlertCircle,
+  Search,
+  ExternalLink,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { certificateService } from "@/services/certificateService";
+import type { CertificateViewModel } from "@/types/certificate";
+
+// Mock current user - replace with actual auth context
+const getCurrentUser = () => ({
+  userId: 1,
+  volunteerId: 123, // This should come from volunteer profile
+  name: "John Doe",
+});
+
+export default function VolunteerCertificatesPage() {
+  // State management
+  const [certificates, setCertificates] = useState<CertificateViewModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize] = useState(10);
+
+  const currentUser = getCurrentUser();
+
+  // Status configuration for UI
+  const statusConfig = {
+    draft: {
+      label: "Đang chuẩn bị",
+      variant: "outline" as const,
+      color: "text-gray-600",
+      icon: Clock,
+      description: "Chứng chỉ đang được chuẩn bị",
+    },
+    pending: {
+      label: "Chờ phê duyệt",
+      variant: "outline" as const,
+      color: "text-yellow-600",
+      icon: Clock,
+      description: "Chứng chỉ đang chờ được phê duyệt",
+    },
+    issued: {
+      label: "Đã cấp",
+      variant: "default" as const,
+      color: "text-green-600",
+      icon: CheckCircle,
+      description: "Chứng chỉ hợp lệ, có thể tải xuống",
+    },
+    rejected: {
+      label: "Bị từ chối",
+      variant: "destructive" as const,
+      color: "text-red-600",
+      icon: XCircle,
+      description: "Chứng chỉ bị từ chối",
+    },
+    revoked: {
+      label: "Đã thu hồi",
+      variant: "destructive" as const,
+      color: "text-red-600",
+      icon: XCircle,
+      description: "Chứng chỉ đã bị thu hồi",
+    },
+    expired: {
+      label: "Hết hạn",
+      variant: "outline" as const,
+      color: "text-gray-600",
+      icon: XCircle,
+      description: "Chứng chỉ đã hết hạn",
+    },
+  };
+
+  // Load volunteer's certificates
+  const loadCertificates = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Filter certificates by current volunteer ID
+      const response = await certificateService.getFilteredCertificates({
+        pageNumber: currentPage,
+        pageSize: pageSize,
+        volunteerId: currentUser.volunteerId,
+      });
+
+      setCertificates(response);
+      // Calculate total pages - this should come from API response
+      setTotalPages(Math.ceil(response.length / pageSize));
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load certificates";
+      setError(errorMessage);
+      toast.error("Không thể tải danh sách chứng chỉ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load certificates on component mount and when page changes
+  useEffect(() => {
+    loadCertificates();
+  }, [currentPage, pageSize]);
+
+  // Filter certificates based on selected tab and search term
+  const filteredCertificates = certificates.filter((cert) => {
+    const matchesSearch =
+      cert.certificateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cert.certificateNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Check if certificate is expired
+    const isExpired = cert.expiryDate && new Date(cert.expiryDate) < new Date();
+    const displayStatus = isExpired ? "expired" : cert.status;
+
+    if (selectedTab === "all") return matchesSearch;
+    return matchesSearch && displayStatus === selectedTab;
+  });
+
+  // Calculate statistics
+  const getCertificateStats = () => {
+    const total = certificates.length;
+    const issued = certificates.filter((c) => {
+      const isExpired = c.expiryDate && new Date(c.expiryDate) < new Date();
+      return c.status === "issued" && !isExpired;
+    }).length;
+    const pending = certificates.filter((c) => c.status === "pending").length;
+    const expired = certificates.filter(
+      (c) => c.expiryDate && new Date(c.expiryDate) < new Date()
+    ).length;
+
+    return { total, issued, pending, expired };
+  };
+
+  const stats = getCertificateStats();
+
+  // Handle certificate download
+  const handleDownload = async (
+    certificateId: number,
+    certificateNumber: string
+  ) => {
+    try {
+      await certificateService.downloadCertificateFile(certificateId);
+      toast.success("Chứng chỉ đã được tải xuống thành công");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to download certificate";
+      toast.error("Không thể tải chứng chỉ");
+    }
+  };
+
+  // Handle certificate sharing (generate verification link)
+  const handleShare = async (certificate: CertificateViewModel) => {
+    try {
+      // Create verification link - this should use actual domain
+      const verificationLink = `${window.location.origin}/verify/${certificate.verificationCode}`;
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(verificationLink);
+      toast.success("Liên kết xác thực đã được sao chép");
+    } catch (err) {
+      toast.error("Không thể tạo liên kết chia sẻ");
+    }
+  };
+
+  // Get certificate display status (includes expired check)
+  const getCertificateDisplayStatus = (cert: CertificateViewModel) => {
+    const isExpired = cert.expiryDate && new Date(cert.expiryDate) < new Date();
+    return isExpired ? "expired" : cert.status;
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <Award className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Chứng chỉ của tôi
+            </h1>
+            <p className="text-gray-600">
+              Quản lý và tải xuống các chứng chỉ tình nguyện của bạn
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Tìm kiếm chứng chỉ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tổng chứng chỉ
+            </CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">Tất cả chứng chỉ</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Có hiệu lực</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.issued}
+            </div>
+            <p className="text-xs text-muted-foreground">Chứng chỉ hợp lệ</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Chờ duyệt</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {stats.pending}
+            </div>
+            <p className="text-xs text-muted-foreground">Đang xử lý</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Hết hạn</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.expired}
+            </div>
+            <p className="text-xs text-muted-foreground">Cần gia hạn</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Error State */}
+      {error && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-4 w-4" />
+              <span>{error}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadCertificates}
+                className="ml-auto"
+              >
+                Thử lại
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Certificates Tabs */}
+      <Tabs
+        value={selectedTab}
+        onValueChange={setSelectedTab}
+        className="space-y-6"
+      >
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="all">Tất cả</TabsTrigger>
+          <TabsTrigger value="issued">Có hiệu lực</TabsTrigger>
+          <TabsTrigger value="pending">Chờ duyệt</TabsTrigger>
+          <TabsTrigger value="expired">Hết hạn</TabsTrigger>
+          <TabsTrigger value="rejected">Bị từ chối</TabsTrigger>
+          <TabsTrigger value="revoked">Đã thu hồi</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={selectedTab} className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {selectedTab === "all"
+                  ? "Tất cả chứng chỉ"
+                  : statusConfig[selectedTab as keyof typeof statusConfig]
+                      ?.label}
+              </CardTitle>
+              <CardDescription>
+                Danh sách chứng chỉ tình nguyện của bạn từ các hoạt động đã tham
+                gia
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Loading State */}
+              {loading && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">
+                    Đang tải chứng chỉ...
+                  </span>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loading && filteredCertificates.length === 0 && (
+                <div className="text-center py-12">
+                  <Award className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {searchTerm
+                      ? "Không tìm thấy chứng chỉ"
+                      : "Chưa có chứng chỉ"}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {searchTerm
+                      ? "Thử thay đổi từ khóa tìm kiếm"
+                      : "Tham gia các hoạt động tình nguyện để nhận chứng chỉ"}
+                  </p>
+                  {!searchTerm && (
+                    <Button variant="outline" asChild>
+                      <a href="/volunteer/events">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Xem sự kiện
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Certificates Grid */}
+              {!loading && filteredCertificates.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredCertificates.map((certificate) => {
+                    const displayStatus =
+                      getCertificateDisplayStatus(certificate);
+                    const statusInfo =
+                      statusConfig[displayStatus as keyof typeof statusConfig];
+                    const StatusIcon = statusInfo?.icon || Award;
+
+                    return (
+                      <Card
+                        key={certificate.certificateId}
+                        className="hover:shadow-lg transition-shadow duration-200"
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg mb-1">
+                                {certificate.certificateName}
+                              </CardTitle>
+                              <div className="flex items-center gap-2 mb-2">
+                                <StatusIcon
+                                  className={`h-4 w-4 ${statusInfo?.color}`}
+                                />
+                                <Badge variant={statusInfo?.variant}>
+                                  {statusInfo?.label}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <CardDescription className="text-sm">
+                            {certificate.description || statusInfo?.description}
+                          </CardDescription>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4">
+                          {/* Certificate Details */}
+                          <div className="space-y-2 text-sm">
+                            {certificate.certificateNumber && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">Mã số:</span>
+                                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                  {certificate.certificateNumber}
+                                </span>
+                              </div>
+                            )}
+
+                            {certificate.issueDate && (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-gray-400" />
+                                <span>
+                                  Ngày cấp:{" "}
+                                  {new Date(
+                                    certificate.issueDate
+                                  ).toLocaleDateString("vi-VN")}
+                                </span>
+                              </div>
+                            )}
+
+                            {certificate.expiryDate && (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-gray-400" />
+                                <span>
+                                  Hết hạn:{" "}
+                                  {new Date(
+                                    certificate.expiryDate
+                                  ).toLocaleDateString("vi-VN")}
+                                </span>
+                              </div>
+                            )}
+
+                            {certificate.hoursCompleted && (
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-gray-400" />
+                                <span>
+                                  {certificate.hoursCompleted} giờ tình nguyện
+                                </span>
+                              </div>
+                            )}
+
+                            {certificate.performanceLevel && (
+                              <div className="flex items-center gap-2">
+                                <Award className="h-4 w-4 text-gray-400" />
+                                <span>
+                                  Đánh giá: {certificate.performanceLevel}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 pt-2">
+                            {displayStatus === "issued" && (
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleDownload(
+                                    certificate.certificateId,
+                                    certificate.certificateNumber ||
+                                      "certificate"
+                                  )
+                                }
+                                className="flex-1"
+                              >
+                                <Download className="mr-2 h-4 w-4" />
+                                Tải xuống
+                              </Button>
+                            )}
+
+                            {(displayStatus === "issued" ||
+                              displayStatus === "expired") && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleShare(certificate)}
+                                className="flex-1"
+                              >
+                                <Share2 className="mr-2 h-4 w-4" />
+                                Chia sẻ
+                              </Button>
+                            )}
+
+                            {displayStatus === "pending" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled
+                                className="flex-1"
+                              >
+                                <Clock className="mr-2 h-4 w-4" />
+                                Đang chờ duyệt
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* Additional Info */}
+                          {certificate.downloadCount &&
+                            certificate.downloadCount > 0 && (
+                              <div className="text-xs text-gray-500 border-t pt-2">
+                                Đã tải xuống {certificate.downloadCount} lần
+                                {certificate.lastDownloadDate && (
+                                  <span>
+                                    {" "}
+                                    • Lần cuối:{" "}
+                                    {new Date(
+                                      certificate.lastDownloadDate
+                                    ).toLocaleDateString("vi-VN")}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {!loading &&
+                filteredCertificates.length > 0 &&
+                totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm text-gray-600">
+                      Trang {currentPage} / {totalPages}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        Trước
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      >
+                        Sau
+                      </Button>
+                    </div>
+                  </div>
+                )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

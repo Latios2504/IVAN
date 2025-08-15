@@ -28,6 +28,7 @@ import {
   Shield,
   MessageCircle,
   Bot,
+  Award,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChatBot from "@/components/chatbot/ChatBot";
@@ -193,6 +194,9 @@ export default function AdminDashboard() {
                 </ActionButton>
                 <ActionButton to="/admin/ai-instructions" icon={Bot}>
                   Quản lý AI Instructions
+                </ActionButton>
+                <ActionButton to="/admin/certificate-templates" icon={Award}>
+                  Quản lý mẫu chứng chỉ hệ thống
                 </ActionButton>
                 <ActionButton to="/admin/reports" icon={BarChart3}>
                   Báo cáo hệ thống

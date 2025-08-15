@@ -23,7 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { certificateService } from "@/services/certificateService";
-import type { Certificate } from "@/types/certificate";
+import type { CertificateViewModel } from "@/types/certificate";
 import { toast } from "sonner";
 
 interface CertificateDetailModalProps {
@@ -37,7 +37,9 @@ export default function CertificateDetailModal({
   onClose,
   certificateId,
 }: CertificateDetailModalProps) {
-  const [certificate, setCertificate] = useState<Certificate | null>(null);
+  const [certificate, setCertificate] = useState<CertificateViewModel | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,7 +75,7 @@ export default function CertificateDetailModal({
     try {
       setLoading(true);
       setError(null);
-      const data = await certificateService.getById(id);
+      const data = await certificateService.getCertificateById(id);
       setCertificate(data);
     } catch (err) {
       const errorMessage =
@@ -97,9 +99,8 @@ export default function CertificateDetailModal({
     if (!certificate) return;
 
     try {
-      await certificateService.downloadAsFile(
-        certificate.certificateId,
-        `certificate_${certificate.certificateNumber}.pdf`
+      await certificateService.downloadCertificateFile(
+        certificate.certificateId
       );
       toast.success("Tải xuống chứng chỉ thành công");
     } catch (err) {

@@ -290,6 +290,15 @@ export default function VolunteerDashboard() {
             <CardContent className="space-y-3">
               <Button asChild className="w-full">
                 <Link
+                  to="/volunteer/certificates"
+                  className="flex items-center gap-2"
+                >
+                  <Award className="w-4 h-4" />
+                  Xem chứng chỉ của tôi
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link
                   to="/volunteer/schedule"
                   className="flex items-center gap-2"
                 >

@@ -173,12 +173,15 @@ export default function OrganizationDashboard() {
             <ActionButton to="/organization/event-registrations" icon={Users}>
               Quản lý đăng ký sự kiện
             </ActionButton>
+            <ActionButton to="/organization/certificates" icon={Award}>
+              Quản lý chứng chỉ
+            </ActionButton>
             <ActionButton
-              to="/organization/certificates"
+              to="/organization/certificate-templates"
               icon={Award}
               variant="outline"
             >
-              Quản lý chứng chỉ
+              Quản lý mẫu chứng chỉ
             </ActionButton>
           </CardContent>
         </Card>

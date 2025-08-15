@@ -26,13 +26,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
-import type { Certificate, CertificateStatus } from "@/types/certificate";
+import type {
+  CertificateViewModel,
+  CertificateStatus,
+} from "@/types/certificate";
 import CertificateDetailModal from "@/components/organization/certificates/CertificateDetailModal";
 import CreateCertificateModal from "@/components/organization/certificates/CreateCertificateModal";
 
 export default function CertificateManagementPage() {
   // State management
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [certificates, setCertificates] = useState<CertificateViewModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState("all");
@@ -50,22 +53,27 @@ export default function CertificateManagementPage() {
 
   // Status configuration for UI
   const statusConfig = {
-    draft: {
+    Draft: {
       label: "Bản nháp",
       variant: "outline" as const,
       color: "text-gray-600",
     },
-    pending: {
+    Pending: {
       label: "Chờ phê duyệt",
       variant: "outline" as const,
       color: "text-yellow-600",
     },
-    issued: {
+    Approved: {
       label: "Đã cấp",
       variant: "default" as const,
       color: "text-green-600",
     },
-    revoked: {
+    Rejected: {
+      label: "Bị từ chối",
+      variant: "destructive" as const,
+      color: "text-red-600",
+    },
+    Revoked: {
       label: "Đã thu hồi",
       variant: "destructive" as const,
       color: "text-red-600",
@@ -78,7 +86,10 @@ export default function CertificateManagementPage() {
       setLoading(true);
       setError(null);
 
-      const response = await certificateService.getList(currentPage, pageSize);
+      const response = await certificateService.getCertificates(
+        currentPage,
+        pageSize
+      );
       setCertificates(response.items);
       setTotalPages(response.totalPages);
     } catch (err) {
@@ -110,14 +121,14 @@ export default function CertificateManagementPage() {
   // Calculate statistics
   const getCertificateStats = () => {
     const total = certificates.length;
-    const issued = certificates.filter((c) => c.status === "issued").length;
-    const pending = certificates.filter((c) => c.status === "pending").length;
+    const approved = certificates.filter((c) => c.status === "Approved").length;
+    const pending = certificates.filter((c) => c.status === "Pending").length;
     const totalDownloads = certificates.reduce(
       (sum, c) => sum + (c.downloadCount || 0),
       0
     );
 
-    return { total, issued, pending, totalDownloads };
+    return { total, approved, pending, totalDownloads };
   };
 
   const stats = getCertificateStats();
@@ -128,10 +139,7 @@ export default function CertificateManagementPage() {
     certificateNumber: string
   ) => {
     try {
-      await certificateService.downloadAsFile(
-        certificateId,
-        `certificate_${certificateNumber}.pdf`
-      );
+      await certificateService.downloadCertificateFile(certificateId);
       toast.success("Certificate downloaded successfully");
     } catch (err) {
       const errorMessage =
@@ -170,9 +178,10 @@ export default function CertificateManagementPage() {
   // Handle certificate approval
   const handleApprove = async (certificateId: number) => {
     try {
-      await certificateService.approve({
+      await certificateService.approveCertificate({
         certificateId,
         approvalNotes: "Approved via management interface",
+        approvedBy: 0, // This should be replaced with actual user ID
       });
       toast.success("Certificate approved successfully");
       loadCertificates(); // Reload to get updated data
@@ -186,9 +195,10 @@ export default function CertificateManagementPage() {
   // Handle certificate rejection
   const handleReject = async (certificateId: number) => {
     try {
-      await certificateService.reject({
+      await certificateService.rejectCertificate({
         certificateId,
         rejectionReason: "Rejected via management interface",
+        rejectedBy: 0, // This should be replaced with actual user ID
       });
       toast.success("Certificate rejected successfully");
       loadCertificates(); // Reload to get updated data
@@ -252,7 +262,7 @@ export default function CertificateManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats.issued}
+              {stats.approved}
             </div>
             <p className="text-xs text-muted-foreground">Chứng chỉ hợp lệ</p>
           </CardContent>
@@ -311,12 +321,13 @@ export default function CertificateManagementPage() {
         onValueChange={setSelectedTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="draft">Bản nháp</TabsTrigger>
-          <TabsTrigger value="pending">Chờ duyệt</TabsTrigger>
-          <TabsTrigger value="issued">Đã cấp</TabsTrigger>
-          <TabsTrigger value="revoked">Đã thu hồi</TabsTrigger>
+          <TabsTrigger value="Draft">Bản nháp</TabsTrigger>
+          <TabsTrigger value="Pending">Chờ duyệt</TabsTrigger>
+          <TabsTrigger value="Approved">Đã cấp</TabsTrigger>
+          <TabsTrigger value="Rejected">Bị từ chối</TabsTrigger>
+          <TabsTrigger value="Revoked">Đã thu hồi</TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
@@ -446,7 +457,7 @@ export default function CertificateManagementPage() {
                             Xem chi tiết
                           </Button>
 
-                          {certificate.status === "issued" && (
+                          {certificate.status === "Approved" && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -463,8 +474,8 @@ export default function CertificateManagementPage() {
                           )}
 
                           {/* TODO: Add edit modal functionality
-                          {(certificate.status === "draft" ||
-                            certificate.status === "pending") && (
+                          {(certificate.status === "Draft" ||
+                            certificate.status === "Pending") && (
                             <Button variant="outline" size="sm" disabled>
                               <Edit className="mr-2 h-4 w-4" />
                               Chỉnh sửa
@@ -472,7 +483,7 @@ export default function CertificateManagementPage() {
                           )}
                           */}
 
-                          {certificate.status === "pending" && (
+                          {certificate.status === "Pending" && (
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700"
@@ -485,7 +496,7 @@ export default function CertificateManagementPage() {
                             </Button>
                           )}
 
-                          {certificate.status === "pending" && (
+                          {certificate.status === "Pending" && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -494,7 +505,7 @@ export default function CertificateManagementPage() {
                                 handleReject(certificate.certificateId)
                               }
                             >
-                              Thu hồi
+                              Từ chối
                             </Button>
                           )}
                         </div>

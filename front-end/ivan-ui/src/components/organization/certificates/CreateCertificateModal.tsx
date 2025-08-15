@@ -32,7 +32,7 @@ import { Loader2, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
-import type { CertificateTemplate } from "@/types/certificate";
+import type { CertificateTemplateViewModel } from "@/types/certificate";
 
 // Form validation schema
 const createCertificateSchema = z.object({
@@ -62,7 +62,9 @@ export default function CreateCertificateModal({
   onSuccess,
 }: CreateCertificateModalProps) {
   const [loading, setLoading] = useState(false);
-  const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
+  const [templates, setTemplates] = useState<CertificateTemplateViewModel[]>(
+    []
+  );
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   const form = useForm<CreateCertificateFormData>({
@@ -96,7 +98,10 @@ export default function CreateCertificateModal({
   const loadTemplates = async () => {
     try {
       setLoadingTemplates(true);
-      const response = await certificateTemplateService.getActive(1, 100);
+      const response = await certificateTemplateService.getCertificateTemplates(
+        1,
+        100
+      );
       setTemplates(response.items);
     } catch (error) {
       console.error("Failed to load templates:", error);
@@ -130,7 +135,7 @@ export default function CreateCertificateModal({
         // Add other fields as needed
       };
 
-      await certificateService.create(createRequest);
+      await certificateService.createCertificate(createRequest);
 
       const statusMessage =
         status === "draft"

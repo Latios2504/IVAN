@@ -17,6 +17,7 @@ import {
   UserCheck,
   Settings,
   ClipboardList,
+  Award,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -194,6 +195,9 @@ export default function CoordinatorDashboard() {
             </ActionButton>
             <ActionButton to="/coordinator/my-tasks" icon={Settings}>
               Xem nhiệm vụ của tôi
+            </ActionButton>
+            <ActionButton to="/organization/certificates" icon={Award}>
+              Xem chứng chỉ sự kiện
             </ActionButton>
             <Button variant="outline" className="w-full" disabled>
               <UserCheck className="w-4 h-4 mr-2" />

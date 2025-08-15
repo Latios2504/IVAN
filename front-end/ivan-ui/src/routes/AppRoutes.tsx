@@ -55,6 +55,12 @@ const EventManagementPage = lazy(
 const CertificateManagementPage = lazy(
   () => import("@/pages/organization/CertificateManagementPage")
 );
+const CertificateTemplateManagementPage = lazy(
+  () => import("@/pages/organization/CertificateTemplateManagementPage")
+);
+const VolunteerCertificatesPage = lazy(
+  () => import("@/pages/volunteer/VolunteerCertificatesPage")
+);
 const OrganizationReportsPage = lazy(
   () => import("@/pages/organization/OrganizationReportsPage")
 );
@@ -337,6 +343,32 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
               <CertificateManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/certificate-templates"
+          element={
+            <ProtectedRoute
+              allowedRoles={[UserRole.ORGANIZATION, UserRole.ADMIN]}
+            >
+              <CertificateTemplateManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/certificate-templates"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
+              <CertificateTemplateManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/volunteer/certificates"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
+              <VolunteerCertificatesPage />
             </ProtectedRoute>
           }
         />
