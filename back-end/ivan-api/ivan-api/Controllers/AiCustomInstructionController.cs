@@ -5,15 +5,11 @@ using ivan_api.DTOs.AI;
 using ivan_api.Services.AI.Interfaces;
 using ivan_api.Services.AuthenticationSer;
 using System.Security.Claims;
-using Microsoft.Extensions.Logging;
 using ivan_api.DTOs.Common;
 
 namespace ivan_api.Controllers;
 
-/// <summary>
 /// Controller for AI Custom Instructions management
-/// Handles CRUD operations and testing for custom AI instructions
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -102,7 +98,7 @@ public class AiCustomInstructionController : ControllerBase
         try
         {
             var instruction = await _customInstructionService.GetCustomInstructionByIdAsync(id);
-            
+
             if (instruction == null)
                 return NotFound(new ApiResponseDTO<AiCustomInstructionDTO>
                 {
@@ -131,12 +127,12 @@ public class AiCustomInstructionController : ControllerBase
     }
 
 
-
     /// <summary>
     /// Create a new AI custom instruction
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> CreateInstruction([FromBody] AiCustomInstructionCreateDTO createDto)
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> CreateInstruction(
+        [FromBody] AiCustomInstructionCreateDTO createDto)
     {
         try
         {
@@ -158,7 +154,7 @@ public class AiCustomInstructionController : ControllerBase
             var userId = _authenticationService.GetUserIdFromClaims(User);
             var instruction = await _customInstructionService.CreateCustomInstructionAsync(createDto, userId);
 
-            return CreatedAtAction(nameof(GetInstruction), new { id = instruction.InstructionId }, 
+            return CreatedAtAction(nameof(GetInstruction), new { id = instruction.InstructionId },
                 new ApiResponseDTO<AiCustomInstructionDTO>
                 {
                     Success = true,
@@ -182,7 +178,8 @@ public class AiCustomInstructionController : ControllerBase
     /// Update an existing AI custom instruction
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> UpdateInstruction(int id, [FromBody] AiCustomInstructionUpdateDTO updateDto)
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> UpdateInstruction(int id,
+        [FromBody] AiCustomInstructionUpdateDTO updateDto)
     {
         try
         {
@@ -240,7 +237,7 @@ public class AiCustomInstructionController : ControllerBase
         try
         {
             var result = await _customInstructionService.DeleteCustomInstructionAsync(id);
-            
+
             if (!result)
                 return NotFound(new ApiResponseDTO<object>
                 {
@@ -272,7 +269,8 @@ public class AiCustomInstructionController : ControllerBase
     /// Toggle instruction active status
     /// </summary>
     [HttpPatch("{id}/status")]
-    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> ToggleInstructionStatus(int id, [FromBody] ToggleInstructionStatusDTO statusDto)
+    public async Task<ActionResult<ApiResponseDTO<AiCustomInstructionDTO>>> ToggleInstructionStatus(int id,
+        [FromBody] ToggleInstructionStatusDTO statusDto)
     {
         try
         {
@@ -305,7 +303,6 @@ public class AiCustomInstructionController : ControllerBase
             });
         }
     }
-
 
 
     #region Private Helper Methods

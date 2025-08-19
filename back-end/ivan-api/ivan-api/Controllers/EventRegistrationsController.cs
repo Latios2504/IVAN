@@ -6,7 +6,6 @@ using ivan_api.Services.EventRegistrationSer;
 using ivan_api.Services.AuthenticationSer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace ivan_api.Controllers
 {
@@ -30,7 +29,8 @@ namespace ivan_api.Controllers
 
         [HttpPost]
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
-        public async Task<ActionResult<ApiResponseDTO<RegistrationDTO>>> AddRegistration(int eventId, [FromBody] RegistrationRequestDTO request)
+        public async Task<ActionResult<ApiResponseDTO<RegistrationDTO>>> AddRegistration(int eventId,
+            [FromBody] RegistrationRequestDTO request)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace ivan_api.Controllers
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var registration = await _registrationService.AddRegistrationAsync(eventId, userId, request);
 
-                return CreatedAtAction(nameof(GetRegistration), 
+                return CreatedAtAction(nameof(GetRegistration),
                     new { eventId, registrationId = registration.RegistrationId },
                     new ApiResponseDTO<RegistrationDTO>
                     {
@@ -73,7 +73,7 @@ namespace ivan_api.Controllers
                         Success = false,
                         Message = ex.Message
                     });
-                
+
                 if (ex.Message.Contains("Already registered"))
                     return Conflict(new ApiResponseDTO<RegistrationDTO>
                     {
@@ -96,11 +96,12 @@ namespace ivan_api.Controllers
                 });
             }
         }
-        
+
 
         [HttpPut("{registrationId}")]
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
-        public async Task<ActionResult<ApiResponseDTO<object>>> UpdateRegistration(int eventId, int registrationId, [FromBody] RegistrationRequestDTO request)
+        public async Task<ActionResult<ApiResponseDTO<object>>> UpdateRegistration(int eventId, int registrationId,
+            [FromBody] RegistrationRequestDTO request)
         {
             try
             {
@@ -116,7 +117,8 @@ namespace ivan_api.Controllers
                 }
 
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                var success = await _registrationService.UpdateRegistrationAsync(eventId, registrationId, userId, request);
+                var success =
+                    await _registrationService.UpdateRegistrationAsync(eventId, registrationId, userId, request);
 
                 if (!success)
                 {
@@ -216,17 +218,20 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<RegistrationDTO>>>> ListRegistrations(int eventId, [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int size = 20)
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<RegistrationDTO>>>> ListRegistrations(int eventId,
+            [FromQuery] string? status, [FromQuery] int page = 1, [FromQuery] int size = 20)
         {
             try
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                
+
                 // Get user info with profile to determine organization ID if user is organization
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
-                var result = await _registrationService.ListRegistrationsAsync(eventId, userId, userInfo.OrganizationId, status, page, size);
+
+                var result = await _registrationService.ListRegistrationsAsync(eventId, userId, userInfo.OrganizationId,
+                    status, page, size);
 
                 return Ok(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
                 {
@@ -270,8 +275,10 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("{registrationId}")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<ActionResult<ApiResponseDTO<RegistrationDTO>>> GetRegistration(int eventId, int registrationId)
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        public async Task<ActionResult<ApiResponseDTO<RegistrationDTO>>> GetRegistration(int eventId,
+            int registrationId)
         {
             try
             {
@@ -313,8 +320,10 @@ namespace ivan_api.Controllers
         }
 
         [HttpPatch("{registrationId}/approve")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> ApproveRegistration(int eventId, int registrationId, [FromBody] ApproveRegistrationRequestDTO request)
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> ApproveRegistration(int eventId, int registrationId,
+            [FromBody] ApproveRegistrationRequestDTO request)
         {
             try
             {
@@ -330,7 +339,8 @@ namespace ivan_api.Controllers
                 }
 
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                var success = await _registrationService.ApproveRegistrationAsync(eventId, registrationId, userId, request);
+                var success =
+                    await _registrationService.ApproveRegistrationAsync(eventId, registrationId, userId, request);
 
                 if (!success)
                 {
@@ -374,8 +384,10 @@ namespace ivan_api.Controllers
         }
 
         [HttpPatch("{registrationId}/reject")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> RejectRegistration(int eventId, int registrationId, [FromBody] RejectRegistrationRequestDTO request)
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> RejectRegistration(int eventId, int registrationId,
+            [FromBody] RejectRegistrationRequestDTO request)
         {
             try
             {
@@ -391,7 +403,8 @@ namespace ivan_api.Controllers
                 }
 
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                var success = await _registrationService.RejectRegistrationAsync(eventId, registrationId, userId, request);
+                var success =
+                    await _registrationService.RejectRegistrationAsync(eventId, registrationId, userId, request);
 
                 if (!success)
                 {
@@ -436,7 +449,8 @@ namespace ivan_api.Controllers
 
         [HttpGet("{registrationId}/status")]
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
-        public async Task<ActionResult<ApiResponseDTO<RegistrationStatusDTO>>> GetRegistrationStatus(int eventId, int registrationId)
+        public async Task<ActionResult<ApiResponseDTO<RegistrationStatusDTO>>> GetRegistrationStatus(int eventId,
+            int registrationId)
         {
             try
             {
@@ -481,8 +495,8 @@ namespace ivan_api.Controllers
         [HttpGet("~/api/volunteer/registrations")]
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
         public async Task<ActionResult<ApiResponseDTO<PagedResultDto<RegistrationDTO>>>> GetMyRegistrations(
-            [FromQuery] string? status, 
-            [FromQuery] int page = 1, 
+            [FromQuery] string? status,
+            [FromQuery] int page = 1,
             [FromQuery] int size = 20)
         {
             try
@@ -499,7 +513,9 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var result = await _registrationService.GetVolunteerRegistrationsAsync(userInfo.VolunteerId.Value, status, page, size);
+                var result =
+                    await _registrationService.GetVolunteerRegistrationsAsync(userInfo.VolunteerId.Value, status, page,
+                        size);
 
                 return Ok(new ApiResponseDTO<PagedResultDto<RegistrationDTO>>
                 {

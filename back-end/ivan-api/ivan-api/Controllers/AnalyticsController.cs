@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.Services.Analytics;
 using ivan_api.DTOs.Analytics;
-using System.Security.Claims;
 using ivan_api.Constants;
 using ivan_api.Services.AuthenticationSer;
 using ivan_api.DTOs.Common;
@@ -18,7 +17,8 @@ namespace ivan_api.Controllers
         private readonly IAuthenticationService _authenticationService;
         private readonly ILogger<AnalyticsController> _logger;
 
-        public AnalyticsController(IAnalyticsService analyticsService, IAuthenticationService authenticationService, ILogger<AnalyticsController> logger)
+        public AnalyticsController(IAnalyticsService analyticsService, IAuthenticationService authenticationService,
+            ILogger<AnalyticsController> logger)
         {
             _analyticsService = analyticsService;
             _authenticationService = authenticationService;
@@ -28,8 +28,8 @@ namespace ivan_api.Controllers
         /// Get admin dashboard analytics - System overview, user statistics, and growth metrics
         [HttpGet("admin/dashboard")]
         [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
-
-        public async Task<ActionResult<ApiResponseDTO<AdminDashboardDto>>> GetAdminDashboard([FromQuery] TimePeriod period = TimePeriod.Last30Days)
+        public async Task<ActionResult<ApiResponseDTO<AdminDashboardDto>>> GetAdminDashboard(
+            [FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
             {
@@ -57,14 +57,15 @@ namespace ivan_api.Controllers
         /// Get organization dashboard analytics - Event management, volunteer engagement, and performance metrics
         [HttpGet("organization/dashboard")]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<OrganizationDashboardDto>>> GetOrganizationDashboard([FromQuery] TimePeriod period = TimePeriod.Last30Days)
+        public async Task<ActionResult<ApiResponseDTO<OrganizationDashboardDto>>> GetOrganizationDashboard(
+            [FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
             {
                 // Get user ID from claims and then get organization-specific info
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 if (!userInfo.OrganizationId.HasValue)
                 {
                     return BadRequest(new ApiResponseDTO<OrganizationDashboardDto>
@@ -75,7 +76,8 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var dashboard = await _analyticsService.GetOrganizationDashboardAsync(userInfo.OrganizationId.Value, period);
+                var dashboard =
+                    await _analyticsService.GetOrganizationDashboardAsync(userInfo.OrganizationId.Value, period);
                 return Ok(new ApiResponseDTO<OrganizationDashboardDto>
                 {
                     Success = true,
@@ -99,14 +101,15 @@ namespace ivan_api.Controllers
         /// Get partner dashboard analytics - Collaboration statistics, funding metrics, and recent activities
         [HttpGet("partner/dashboard")]
         [Authorize(Roles = AuthenticationConstants.Roles.Partner)]
-        public async Task<ActionResult<ApiResponseDTO<PartnerDashboardDto>>> GetPartnerDashboard([FromQuery] TimePeriod period = TimePeriod.Last30Days)
+        public async Task<ActionResult<ApiResponseDTO<PartnerDashboardDto>>> GetPartnerDashboard(
+            [FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
             {
                 // Get user ID from claims and then get partner-specific info
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 if (!userInfo.PartnerId.HasValue)
                 {
                     return BadRequest(new ApiResponseDTO<PartnerDashboardDto>
@@ -141,14 +144,15 @@ namespace ivan_api.Controllers
         /// Get coordinator dashboard analytics - Event management, volunteer coordination, and task tracking
         [HttpGet("coordinator/dashboard")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
-        public async Task<ActionResult<ApiResponseDTO<CoordinatorDashboardDto>>> GetCoordinatorDashboard([FromQuery] TimePeriod period = TimePeriod.Last30Days)
+        public async Task<ActionResult<ApiResponseDTO<CoordinatorDashboardDto>>> GetCoordinatorDashboard(
+            [FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
             {
                 // Get user ID from claims and then get coordinator-specific info
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 if (!userInfo.CoordinatorId.HasValue)
                 {
                     return BadRequest(new ApiResponseDTO<CoordinatorDashboardDto>
@@ -159,7 +163,8 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var dashboard = await _analyticsService.GetCoordinatorDashboardAsync(userInfo.CoordinatorId.Value, period);
+                var dashboard =
+                    await _analyticsService.GetCoordinatorDashboardAsync(userInfo.CoordinatorId.Value, period);
                 return Ok(new ApiResponseDTO<CoordinatorDashboardDto>
                 {
                     Success = true,
@@ -183,14 +188,15 @@ namespace ivan_api.Controllers
         /// Get volunteer dashboard analytics - Participation history, impact metrics, and upcoming events
         [HttpGet("volunteer/dashboard")]
         [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
-        public async Task<ActionResult<ApiResponseDTO<VolunteerDashboardDto>>> GetVolunteerDashboard([FromQuery] TimePeriod period = TimePeriod.Last30Days)
+        public async Task<ActionResult<ApiResponseDTO<VolunteerDashboardDto>>> GetVolunteerDashboard(
+            [FromQuery] TimePeriod period = TimePeriod.Last30Days)
         {
             try
             {
                 // Get user ID from claims and then get volunteer-specific info
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 if (!userInfo.VolunteerId.HasValue)
                 {
                     return BadRequest(new ApiResponseDTO<VolunteerDashboardDto>

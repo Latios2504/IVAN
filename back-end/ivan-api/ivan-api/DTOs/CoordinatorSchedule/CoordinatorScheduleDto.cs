@@ -20,6 +20,8 @@ namespace ivan_api.DTOs.CoordinatorSchedule
 
     public class UpdateCoordinatorScheduleDto
     {
+        public int? EventId { get; set; }
+        public int? CoordinatorId { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         public DateTime? StartDateTime { get; set; }
@@ -35,14 +37,16 @@ namespace ivan_api.DTOs.CoordinatorSchedule
 
     public class CoordinatorScheduleFilterDto
     {
-        public int Page { get; set; } = 1;
-        public int Size { get; set; } = 20;
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
         public string? SortBy { get; set; } = "StartDateTime";
         public string? SortDirection { get; set; } = "asc";
         
         // Filters
         public int? CoordinatorId { get; set; }
         public int? EventId { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public DateTime? StartDateFrom { get; set; }
         public DateTime? StartDateTo { get; set; }
         public DateTime? EndDateFrom { get; set; }

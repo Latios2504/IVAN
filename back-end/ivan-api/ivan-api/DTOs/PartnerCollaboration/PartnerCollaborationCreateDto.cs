@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ivan_api.DTOs.PartnerCollaboration

@@ -124,19 +124,19 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             }
 
             var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling((double)totalCount / filter.Size);
+            var totalPages = (int)Math.Ceiling((double)totalCount / filter.PageSize);
 
             var items = await query
-                .Skip((filter.Page - 1) * filter.Size)
-                .Take(filter.Size)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
             return new PagedResultDto<CoordinatorSchedule>
             {
                 Items = items,
                 TotalCount = totalCount,
-                PageNumber = filter.Page,
-                PageSize = filter.Size
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
             };
         }
 
@@ -150,8 +150,8 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
                 {
                     Items = new List<CoordinatorSchedule>(),
                     TotalCount = 0,
-                    PageNumber = filter.Page,
-                    PageSize = filter.Size
+                    PageNumber = filter.PageNumber,
+                    PageSize = filter.PageSize
                 };
             }
 
@@ -459,19 +459,19 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             }
 
             var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling((double)totalCount / filter.Size);
+            var totalPages = (int)Math.Ceiling((double)totalCount / filter.PageSize);
 
             var items = await query
-                .Skip((filter.Page - 1) * filter.Size)
-                .Take(filter.Size)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
             return new PagedResultDto<CoordinatorSchedule>
             {
                 Items = items,
                 TotalCount = totalCount,
-                PageNumber = filter.Page,
-                PageSize = filter.Size
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
             };
         }
 

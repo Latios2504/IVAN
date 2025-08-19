@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ivan_api.Models;
 using ivan_api.DTOs.Authentication;
-using ivan_api.DTOs.Common;
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
@@ -31,332 +30,198 @@ public class AuthenticationService : IAuthenticationService
         _logger = logger;
     }
 
-    public async Task<ApiResponseDTO<LoginResponseDTO>> LoginAsync(LoginRequestDTO loginRequest)
+    public async Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO loginRequest)
     {
-        try
+        // Find user by email
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
+        if (user == null)
         {
-            // Find user by email
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);           
-            if (user == null)
-            {
-                return new ApiResponseDTO<LoginResponseDTO>
-                {
-                    Success = false,
-                    Message = "Invalid email or password",
-                    Errors = new List<string> { "User not found" }
-                };
-            }
-
-            // Check if user is active
-            if (user.IsActive == false)
-            {
-                return new ApiResponseDTO<LoginResponseDTO>
-                {
-                    Success = false,
-                    Message = "Account is deactivated",
-                    Errors = new List<string> { "Account is not active" }
-                };
-            }
-
-            // Verify password
-            if (!_passwordHashingService.VerifyPassword(loginRequest.Password, user.PasswordHash, user.Salt))
-            {
-                return new ApiResponseDTO<LoginResponseDTO>
-                {
-                    Success = false,
-                    Message = "Invalid email or password",
-                    Errors = new List<string> { "Invalid credentials" }
-                };
-            }
-
-            // Update last login time
-            user.LastLoginAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            // Get user info with profile data
-            var userInfo = await GetUserInfoWithProfileAsync(user.UserId);
-
-            // Generate JWT token
-            var loginResponse = _jwtTokenService.CreateLoginResponse(user, user.Role);
-            loginResponse.User = userInfo; // Replace with enhanced user info
-            
-            return new ApiResponseDTO<LoginResponseDTO>
-            {
-                Success = true,
-                Message = "Login successful",
-                Data = loginResponse
-            };
+            return null;
         }
-        catch (Exception ex)
+
+        // Check if user is active
+        if (user.IsActive == false)
         {
-            _logger.LogError(ex, "Error during login for email: {Email}", loginRequest.Email);
-            return new ApiResponseDTO<LoginResponseDTO>
-            {
-                Success = false,
-                Message = "An error occurred during login",
-                Errors = new List<string> { "Internal server error" }
-            };
+            return null;
         }
+
+        // Verify password
+        if (!_passwordHashingService.VerifyPassword(loginRequest.Password, user.PasswordHash, user.Salt))
+        {
+            return null;
+        }
+
+        // Update last login time
+        user.LastLoginAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        // Get user info with profile data
+        var userInfo = await GetUserInfoWithProfileAsync(user.UserId);
+
+        // Generate JWT token
+        var loginResponse = _jwtTokenService.CreateLoginResponse(user, user.Role);
+        loginResponse.User = userInfo; // Replace with enhanced user info
+
+        return loginResponse;
     }
 
-    public async Task<ApiResponseDTO<object>> RegisterAsync(RegisterRequestDTO registerRequest)
+    public async Task<bool> RegisterAsync(RegisterRequestDTO registerRequest)
     {
-        try
+        // Check if user already exists
+        var existingUser = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == registerRequest.Email);
+
+        if (existingUser != null)
         {
-            // Check if user already exists
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == registerRequest.Email);
-
-            if (existingUser != null)
-            {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "User already exists",
-                    Errors = new List<string> { "Email is already registered" }
-                };
-            }
-
-            // Check if role exists and is valid for registration
-            var role = await _context.UserRoles
-                .FirstOrDefaultAsync(r => r.RoleId == registerRequest.RoleId && r.IsActive == true);
-
-            if (role == null)
-            {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Invalid role selected",
-                    Errors = new List<string> { "Role not found or inactive" }
-                };
-            }            // Note: Volunteer Coordinator cannot be registered directly
-            if (role.RoleName == "Volunteer Coordinator")
-            {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Volunteer Coordinator accounts must be created by an Organization",
-                    Errors = new List<string> { "Direct registration not allowed for this role" }
-                };
-            }
-
-            // Generate salt and hash password
-            var salt = _passwordHashingService.GenerateSalt();
-            var passwordHash = _passwordHashingService.HashPassword(registerRequest.Password, salt);
-
-            // Create new user
-            var newUser = new User
-            {
-                Email = registerRequest.Email,
-                PasswordHash = passwordHash,
-                Salt = salt,
-                RoleId = registerRequest.RoleId,
-                IsActive = true,
-                IsEmailVerified = false,
-                EmailVerificationToken = Guid.NewGuid().ToString(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-
-            // Create UserProfile (common for all roles)
-            var userProfile = new UserProfile
-            {
-                UserId = newUser.UserId,
-                FirstName = registerRequest.FirstName,
-                LastName = registerRequest.LastName,
-                PhoneNumber = registerRequest.PhoneNumber,
-                Address = registerRequest.Address,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            _context.UserProfiles.Add(userProfile);
-
-            // Create role-specific profile based on the selected role
-            await CreateRoleSpecificProfileAsync(newUser.UserId, registerRequest);
-
-            // Save all profiles
-            await _context.SaveChangesAsync();
-
-            // Send email verification (for now, just log)
-            await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);
-
-            return new ApiResponseDTO<object>
-            {
-                Success = true,
-                Message = "Registration successful. Please check your email for verification.",
-                Data = null
-            };
+            return false;
         }
-        catch (Exception ex)
+
+        // Check if role exists and is valid for registration
+        var role = await _context.UserRoles
+            .FirstOrDefaultAsync(r => r.RoleId == registerRequest.RoleId && r.IsActive == true);
+
+        if (role == null)
         {
-            _logger.LogError(ex, "Error during registration for email: {Email}", registerRequest.Email);
-            return new ApiResponseDTO<object>
-            {
-                Success = false,
-                Message = "An error occurred during registration",
-                Errors = new List<string> { "Internal server error" }
-            };
+            return false;
         }
+
+        // Note: Volunteer Coordinator cannot be registered directly
+        if (role.RoleName == "Volunteer Coordinator")
+        {
+            return false;
+        }
+
+        // Generate salt and hash password
+        var salt = _passwordHashingService.GenerateSalt();
+        var passwordHash = _passwordHashingService.HashPassword(registerRequest.Password, salt);
+
+        // Create new user
+        var newUser = new User
+        {
+            Email = registerRequest.Email,
+            PasswordHash = passwordHash,
+            Salt = salt,
+            RoleId = registerRequest.RoleId,
+            IsActive = true,
+            IsEmailVerified = false,
+            EmailVerificationToken = Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.Users.Add(newUser);
+        await _context.SaveChangesAsync();
+
+        // Create UserProfile (common for all roles)
+        var userProfile = new UserProfile
+        {
+            UserId = newUser.UserId,
+            FirstName = registerRequest.FirstName,
+            LastName = registerRequest.LastName,
+            PhoneNumber = registerRequest.PhoneNumber,
+            Address = registerRequest.Address,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.UserProfiles.Add(userProfile);
+
+        // Create role-specific profile based on the selected role
+        await CreateRoleSpecificProfileAsync(newUser.UserId, registerRequest);
+
+        // Save all profiles
+        await _context.SaveChangesAsync();
+
+        // Send email verification (for now, just log)
+        await _emailService.SendEmailVerificationAsync(newUser.Email, newUser.EmailVerificationToken);
+
+        return true;
     }
 
-    public async Task<ApiResponseDTO<object>> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest)
+    public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest)
     {
-        try
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == forgotPasswordRequest.Email);
+
+        if (user == null)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == forgotPasswordRequest.Email);
-
-            if (user == null)
-            {
-                // For security, don't reveal if email exists or not
-                return new ApiResponseDTO<object>
-                {
-                    Success = true,
-                    Message = "If the email exists, a password reset code has been sent.",
-                    Data = null
-                };
-            }
-
-            // Generate reset token
-            var resetToken = GenerateResetCode();
-            user.PasswordResetToken = resetToken;
-            user.PasswordResetExpiry = DateTime.UtcNow.AddHours(1); // 1 hour expiry
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            // Send reset email
-            await _emailService.SendPasswordResetEmailAsync(user.Email, resetToken);
-
-            return new ApiResponseDTO<object>
-            {
-                Success = true,
-                Message = "If the email exists, a password reset code has been sent.",
-                Data = null
-            };
+            // For security, don't reveal if email exists or not
+            // Still return true to not reveal user existence
+            return true;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during forgot password for email: {Email}", forgotPasswordRequest.Email);
-            return new ApiResponseDTO<object>
-            {
-                Success = false,
-                Message = "An error occurred while processing your request",
-                Errors = new List<string> { "Internal server error" }
-            };
-        }
+
+        // Generate reset token
+        var resetToken = GenerateResetCode();
+        user.PasswordResetToken = resetToken;
+        user.PasswordResetExpiry = DateTime.UtcNow.AddHours(1); // 1 hour expiry
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        // Send reset email
+        await _emailService.SendPasswordResetEmailAsync(user.Email, resetToken);
+
+        return true;
     }
 
-    public async Task<ApiResponseDTO<object>> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest)
+    public async Task<bool> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest)
     {
-        try
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == resetPasswordRequest.Email
+                                      && u.PasswordResetToken == resetPasswordRequest.ResetCode
+                                      && u.PasswordResetExpiry > DateTime.UtcNow);
+
+        if (user == null)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == resetPasswordRequest.Email 
-                                    && u.PasswordResetToken == resetPasswordRequest.ResetCode
-                                    && u.PasswordResetExpiry > DateTime.UtcNow);
-
-            if (user == null)
-            {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Invalid or expired reset code",
-                    Errors = new List<string> { "Reset code is invalid or has expired" }
-                };
-            }
-
-            // Generate new salt and hash new password
-            var salt = _passwordHashingService.GenerateSalt();
-            var passwordHash = _passwordHashingService.HashPassword(resetPasswordRequest.NewPassword, salt);
-
-            // Update user password and clear reset token
-            user.PasswordHash = passwordHash;
-            user.Salt = salt;
-            user.PasswordResetToken = null;
-            user.PasswordResetExpiry = null;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return new ApiResponseDTO<object>
-            {
-                Success = true,
-                Message = "Password reset successfully",
-                Data = null
-            };
+            return false;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during password reset for email: {Email}", resetPasswordRequest.Email);
-            return new ApiResponseDTO<object>
-            {
-                Success = false,
-                Message = "An error occurred while resetting password",
-                Errors = new List<string> { "Internal server error" }
-            };
-        }
+
+        // Generate new salt and hash new password
+        var salt = _passwordHashingService.GenerateSalt();
+        var passwordHash = _passwordHashingService.HashPassword(resetPasswordRequest.NewPassword, salt);
+
+        // Update user password and clear reset token
+        user.PasswordHash = passwordHash;
+        user.Salt = salt;
+        user.PasswordResetToken = null;
+        user.PasswordResetExpiry = null;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 
-    public async Task<ApiResponseDTO<object>> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest)
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest)
     {
-        try
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+
+        if (user == null)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == userId);
-
-            if (user == null)
-            {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "User not found",
-                    Errors = new List<string> { "User does not exist" }
-                };
-            }
-
-            // Verify current password
-            if (!_passwordHashingService.VerifyPassword(changePasswordRequest.CurrentPassword, user.PasswordHash, user.Salt))
-            {
-                return new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Current password is incorrect",
-                    Errors = new List<string> { "Invalid current password" }
-                };
-            }
-
-            // Generate new salt and hash new password
-            var salt = _passwordHashingService.GenerateSalt();
-            var passwordHash = _passwordHashingService.HashPassword(changePasswordRequest.NewPassword, salt);
-
-            // Update user password
-            user.PasswordHash = passwordHash;
-            user.Salt = salt;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return new ApiResponseDTO<object>
-            {
-                Success = true,
-                Message = "Password changed successfully",
-                Data = null
-            };
+            return false;
         }
-        catch (Exception ex)
+
+        // Verify current password
+        if (!_passwordHashingService.VerifyPassword(changePasswordRequest.CurrentPassword, user.PasswordHash,
+                user.Salt))
         {
-            _logger.LogError(ex, "Error during password change for user: {UserId}", userId);
-            return new ApiResponseDTO<object>
-            {
-                Success = false,
-                Message = "An error occurred while changing password",
-                Errors = new List<string> { "Internal server error" }
-            };
+            return false;
         }
+
+        // Generate new salt and hash new password
+        var salt = _passwordHashingService.GenerateSalt();
+        var passwordHash = _passwordHashingService.HashPassword(changePasswordRequest.NewPassword, salt);
+
+        // Update user password
+        user.PasswordHash = passwordHash;
+        user.Salt = salt;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 
     /// Creates role-specific profile based on user role
@@ -376,17 +241,17 @@ public class AuthenticationService : IAuthenticationService
 
             case 2: // Organization
                 // Use provided organization info or create with placeholders
-                var organizationType = registerRequest.OrganizationTypeId.HasValue 
+                var organizationType = registerRequest.OrganizationTypeId.HasValue
                     ? await _context.OrganizationTypes.FindAsync(registerRequest.OrganizationTypeId.Value)
                     : await _context.OrganizationTypes.FirstOrDefaultAsync(ot => ot.IsActive == true);
-                
+
                 if (organizationType != null)
                 {
                     var organization = new Organization
                     {
                         UserId = userId,
-                        OrganizationName = !string.IsNullOrEmpty(registerRequest.OrganizationName) 
-                            ? registerRequest.OrganizationName 
+                        OrganizationName = !string.IsNullOrEmpty(registerRequest.OrganizationName)
+                            ? registerRequest.OrganizationName
                             : "Organization Name (To be updated)",
                         TypeId = organizationType.TypeId,
                         TaxCode = registerRequest.TaxCode,
@@ -400,6 +265,7 @@ public class AuthenticationService : IAuthenticationService
                     };
                     _context.Organizations.Add(organization);
                 }
+
                 break;
 
             case 3: // Partner
@@ -407,7 +273,7 @@ public class AuthenticationService : IAuthenticationService
                 var partnerIndustry = registerRequest.IndustryId.HasValue
                     ? await _context.PartnerIndustries.FindAsync(registerRequest.IndustryId.Value)
                     : await _context.PartnerIndustries.FirstOrDefaultAsync(pi => pi.IsActive == true);
-                
+
                 if (partnerIndustry != null)
                 {
                     var partner = new Partner
@@ -428,6 +294,7 @@ public class AuthenticationService : IAuthenticationService
                     };
                     _context.Partners.Add(partner);
                 }
+
                 break;
 
             case 4: // Volunteer Coordinator
@@ -435,7 +302,8 @@ public class AuthenticationService : IAuthenticationService
                 // and require OrganizationId, so this is handled differently
                 // For direct registration, we'll skip creating the coordinator profile
                 // and require it to be created through organization invitation
-                _logger.LogInformation("Coordinator role registered. Profile creation deferred to organization invitation.");
+                _logger.LogInformation(
+                    "Coordinator role registered. Profile creation deferred to organization invitation.");
                 break;
 
             case 5: // Admin
@@ -463,6 +331,7 @@ public class AuthenticationService : IAuthenticationService
         {
             throw new UnauthorizedAccessException("User ID not found in token claims");
         }
+
         return userId;
     }
 
@@ -523,7 +392,8 @@ public class AuthenticationService : IAuthenticationService
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown role name: {RoleName} for user ID: {UserId}", user.Role.RoleName, userId);
+                    _logger.LogWarning("Unknown role name: {RoleName} for user ID: {UserId}", user.Role.RoleName,
+                        userId);
                     break;
             }
 

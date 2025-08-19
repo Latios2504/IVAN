@@ -58,12 +58,22 @@ public class AuthenticationController : ControllerBase
         {
             var result = await _authenticationService.LoginAsync(loginRequest);
 
-            if (!result.Success)
+            if (result == null)
             {
-                return Unauthorized(result);
+                return Unauthorized(new ApiResponseDTO<LoginResponseDTO>
+                {
+                    Success = false,
+                    Message = "Invalid email or password",
+                    Errors = new List<string> { "Authentication failed" }
+                });
             }
 
-            return Ok(result);
+            return Ok(new ApiResponseDTO<LoginResponseDTO>
+            {
+                Success = true,
+                Message = "Login successful",
+                Data = result
+            });
         }
         catch (Exception ex)
         {
@@ -109,12 +119,22 @@ public class AuthenticationController : ControllerBase
         {
             var result = await _authenticationService.RegisterAsync(registerRequest);
 
-            if (!result.Success)
+            if (!result)
             {
-                return BadRequest(result);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Registration failed",
+                    Errors = new List<string> { "User already exists or invalid role" }
+                });
             }
 
-            return Ok(result);
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Registration successful. Please check your email for verification.",
+                Data = null
+            });
         }
         catch (Exception ex)
         {
@@ -161,7 +181,13 @@ public class AuthenticationController : ControllerBase
         try
         {
             var result = await _authenticationService.ForgotPasswordAsync(forgotPasswordRequest);
-            return Ok(result);
+            
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "If the email exists, a password reset code has been sent.",
+                Data = null
+            });
         }
         catch (Exception ex)
         {
@@ -209,12 +235,22 @@ public class AuthenticationController : ControllerBase
         {
             var result = await _authenticationService.ResetPasswordAsync(resetPasswordRequest);
 
-            if (!result.Success)
+            if (!result)
             {
-                return BadRequest(result);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Password reset failed",
+                    Errors = new List<string> { "Invalid or expired reset code" }
+                });
             }
 
-            return Ok(result);
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Password reset successful",
+                Data = null
+            });
         }
         catch (Exception ex)
         {
@@ -263,12 +299,22 @@ public class AuthenticationController : ControllerBase
             var userId = _authenticationService.GetUserIdFromClaims(User);
             var result = await _authenticationService.ChangePasswordAsync(userId, changePasswordRequest);
 
-            if (!result.Success)
+            if (!result)
             {
-                return BadRequest(result);
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Password change failed",
+                    Errors = new List<string> { "Current password is incorrect" }
+                });
             }
 
-            return Ok(result);
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Password changed successfully",
+                Data = null
+            });
         }
         catch (Exception ex)
         {

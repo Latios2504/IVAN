@@ -1,11 +1,12 @@
 using ivan_api.DTOs.VolunteerCoordinator;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 
 namespace ivan_api.Repository.VolunteerCoordinatorRepo;
 
 public interface IVolunteerCoordinatorRepository
 {
-    Task<VolunteerCoordinatorListResponseDto> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter);
+    Task<PagedResultDto<VolunteerCoordinatorDto>> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter);
     Task<VolunteerCoordinator?> GetCoordinatorByIdAsync(int coordinatorId);
     Task<VolunteerCoordinator?> GetCoordinatorByUserIdAsync(int userId);
     Task<VolunteerCoordinator> CreateCoordinatorAsync(VolunteerCoordinator coordinator);

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ivan_api.DTOs;
 using ivan_api.DTOs.Common;
 
 namespace ivan_api.Controllers
@@ -33,8 +32,8 @@ namespace ivan_api.Controllers
         /// <returns>URL of uploaded image</returns>
         [HttpPost("{imageType}/{userId}")]
         public async Task<ActionResult<ApiResponseDTO<ImageUploadResponseDto>>> UploadProfileImage(
-            string imageType, 
-            int userId, 
+            string imageType,
+            int userId,
             IFormFile image)
         {
             try
@@ -88,7 +87,8 @@ namespace ivan_api.Controllers
                 }
 
                 // Create uploads directory structure
-                var uploadsPath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads", imageType);
+                var uploadsPath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads",
+                    imageType);
                 if (!Directory.Exists(uploadsPath))
                 {
                     Directory.CreateDirectory(uploadsPath);
@@ -135,7 +135,8 @@ namespace ivan_api.Controllers
         /// <returns>URL of uploaded file</returns>
         [HttpPost("support-request-attachment")]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponseDTO<FileUploadResponseDto>>> UploadSupportRequestAttachment(IFormFile file)
+        public async Task<ActionResult<ApiResponseDTO<FileUploadResponseDto>>> UploadSupportRequestAttachment(
+            IFormFile file)
         {
             try
             {
@@ -176,7 +177,8 @@ namespace ivan_api.Controllers
                 }
 
                 // Create uploads directory structure
-                var uploadsPath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads", "support-requests");
+                var uploadsPath = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads",
+                    "support-requests");
                 if (!Directory.Exists(uploadsPath))
                 {
                     Directory.CreateDirectory(uploadsPath);

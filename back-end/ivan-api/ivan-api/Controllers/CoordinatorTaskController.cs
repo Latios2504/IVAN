@@ -3,7 +3,6 @@ using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.CoordinatorTaskServ;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -22,7 +21,8 @@ namespace ivan_api.Controllers
 
         /// Get all coordinator tasks (Organization and Coordinator can view)
         [HttpGet]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetAll()
         {
             try
@@ -48,7 +48,8 @@ namespace ivan_api.Controllers
 
         /// Get coordinator task by ID (Organization and Coordinator can view)
         [HttpGet("{id}")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<ActionResult<ApiResponseDTO<CoordinatorTaskDto>>> GetById(int id)
         {
             try

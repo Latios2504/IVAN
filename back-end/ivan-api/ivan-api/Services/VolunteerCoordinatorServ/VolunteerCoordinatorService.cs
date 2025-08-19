@@ -1,4 +1,5 @@
 using ivan_api.DTOs.VolunteerCoordinator;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 using ivan_api.Repository.VolunteerCoordinatorRepo;
 using ivan_api.Constants;
@@ -21,7 +22,7 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
         _context = context;
     }
 
-    public async Task<VolunteerCoordinatorListResponseDto> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter)
+    public async Task<PagedResultDto<VolunteerCoordinatorDto>> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter)
     {
         return await _coordinatorRepository.GetCoordinatorsByOrganizationAsync(organizationId, filter);
     }

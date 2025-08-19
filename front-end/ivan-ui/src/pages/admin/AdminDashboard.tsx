@@ -29,6 +29,7 @@ import {
   MessageCircle,
   Bot,
   Award,
+  CheckCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChatBot from "@/components/chatbot/ChatBot";
@@ -186,6 +187,9 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
+                <ActionButton to="/admin/moderation" icon={CheckCircle}>
+                  Kiểm duyệt sự kiện
+                </ActionButton>
                 <ActionButton to="/admin/notifications" icon={Bell}>
                   Quản lý thông báo
                 </ActionButton>

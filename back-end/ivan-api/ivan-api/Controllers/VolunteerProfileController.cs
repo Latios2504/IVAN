@@ -1,11 +1,8 @@
 using ivan_api.DTOs.VolunteerProfile;
 using ivan_api.Services.VolunteerProfileServ;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.Common;
-using ivan_api.DTOs;
-using System.Security.Claims;
 using ivan_api.Services.AuthenticationSer;
 using ivan_api.Constants;
 
@@ -171,7 +168,8 @@ namespace ivan_api.Controllers
         // Get all volunteer profiles (Admin only)
         [HttpGet]
         [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<VolunteerProfileViewModel>>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<VolunteerProfileViewModel>>>> GetAll(
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -243,7 +241,8 @@ namespace ivan_api.Controllers
         // Create new volunteer profile (Open registration)
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponseDTO<VolunteerProfileViewModel>>> Create([FromBody] VolunteerProfileCreateDto dto)
+        public async Task<ActionResult<ApiResponseDTO<VolunteerProfileViewModel>>> Create(
+            [FromBody] VolunteerProfileCreateDto dto)
         {
             try
             {
@@ -261,7 +260,7 @@ namespace ivan_api.Controllers
                 // Get the newly created profile
                 var lastId = await _service.GetLastId();
                 var created = await _service.GetVolunteerProfileById(lastId);
-                
+
                 return CreatedAtAction(
                     nameof(GetById),
                     new { userId = created.UserId },
@@ -288,7 +287,8 @@ namespace ivan_api.Controllers
         // Update volunteer profile
         [HttpPut("{userId:int}")]
         [Authorize(Roles = "Volunteer,Admin")]
-        public async Task<ActionResult<ApiResponseDTO<VolunteerProfileViewModel>>> Update(int userId, [FromBody] VolunteerProfileUpdateDto dto)
+        public async Task<ActionResult<ApiResponseDTO<VolunteerProfileViewModel>>> Update(int userId,
+            [FromBody] VolunteerProfileUpdateDto dto)
         {
             try
             {
@@ -390,21 +390,36 @@ namespace ivan_api.Controllers
             var missingFields = new List<string>();
 
             // Check required fields
-            if (!string.IsNullOrEmpty(profile.FullName)) completedFields++; else missingFields.Add("Full Name");
-            if (!string.IsNullOrEmpty(profile.PhoneNumber)) completedFields++; else missingFields.Add("Phone Number");
-            if (profile.DateOfBirth.HasValue) completedFields++; else missingFields.Add("Date of Birth");
-            if (!string.IsNullOrEmpty(profile.Gender)) completedFields++; else missingFields.Add("Gender");
-            if (!string.IsNullOrEmpty(profile.Address)) completedFields++; else missingFields.Add("Address");
-            if (!string.IsNullOrEmpty(profile.University)) completedFields++; else missingFields.Add("University");
-            if (!string.IsNullOrEmpty(profile.Major)) completedFields++; else missingFields.Add("Major");
-            if (profile.YearOfStudy.HasValue) completedFields++; else missingFields.Add("Year of Study");
-            if (!string.IsNullOrEmpty(profile.Motivation)) completedFields++; else missingFields.Add("Motivation");
-            if (!string.IsNullOrEmpty(profile.Experience)) completedFields++; else missingFields.Add("Experience");
-            if (!string.IsNullOrEmpty(profile.Availability)) completedFields++; else missingFields.Add("Availability");
-            if (profile.VolunteerSkills?.Any() == true) completedFields++; else missingFields.Add("Skills");
-            if (!string.IsNullOrEmpty(profile.StudentId)) completedFields++; else missingFields.Add("Student ID");
-            if (!string.IsNullOrEmpty(profile.Avatar)) completedFields++; else missingFields.Add("Profile Picture");
-            if (!string.IsNullOrEmpty(profile.Email)) completedFields++; else missingFields.Add("Email");
+            if (!string.IsNullOrEmpty(profile.FullName)) completedFields++;
+            else missingFields.Add("Full Name");
+            if (!string.IsNullOrEmpty(profile.PhoneNumber)) completedFields++;
+            else missingFields.Add("Phone Number");
+            if (profile.DateOfBirth.HasValue) completedFields++;
+            else missingFields.Add("Date of Birth");
+            if (!string.IsNullOrEmpty(profile.Gender)) completedFields++;
+            else missingFields.Add("Gender");
+            if (!string.IsNullOrEmpty(profile.Address)) completedFields++;
+            else missingFields.Add("Address");
+            if (!string.IsNullOrEmpty(profile.University)) completedFields++;
+            else missingFields.Add("University");
+            if (!string.IsNullOrEmpty(profile.Major)) completedFields++;
+            else missingFields.Add("Major");
+            if (profile.YearOfStudy.HasValue) completedFields++;
+            else missingFields.Add("Year of Study");
+            if (!string.IsNullOrEmpty(profile.Motivation)) completedFields++;
+            else missingFields.Add("Motivation");
+            if (!string.IsNullOrEmpty(profile.Experience)) completedFields++;
+            else missingFields.Add("Experience");
+            if (!string.IsNullOrEmpty(profile.Availability)) completedFields++;
+            else missingFields.Add("Availability");
+            if (profile.VolunteerSkills?.Any() == true) completedFields++;
+            else missingFields.Add("Skills");
+            if (!string.IsNullOrEmpty(profile.StudentId)) completedFields++;
+            else missingFields.Add("Student ID");
+            if (!string.IsNullOrEmpty(profile.Avatar)) completedFields++;
+            else missingFields.Add("Profile Picture");
+            if (!string.IsNullOrEmpty(profile.Email)) completedFields++;
+            else missingFields.Add("Email");
 
             var completionPercentage = (int)Math.Round((double)completedFields / totalFields * 100);
 
@@ -416,6 +431,5 @@ namespace ivan_api.Controllers
         }
 
         #endregion
-
     }
 }

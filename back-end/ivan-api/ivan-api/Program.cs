@@ -44,18 +44,17 @@ using ivan_api.Repository.VolunteerScheduleRepo;
 using ivan_api.Services.VolunteerScheduleServ;
 using ivan_api.Repository.UserManagement;
 using ivan_api.Services.UserManagement;
-using ivan_api.Services.ScheduleServ;
-
 using ivan_api.Services.DatabaseSchema.Interfaces;
 using ivan_api.Services.DatabaseSchema.Services;
 using ivan_api.Services.AI.SQLGenerator;
 using ivan_api.Services.Analytics;
 using ivan_api.Repository.SupportRequestRepo;
 using ivan_api.Services.SupportRequestServ;
-using AutoMapper;
 using Microsoft.OpenApi.Models;
 using ivan_api.Services.FeedbackServ;
 using ivan_api.Repository.FeedbackRepo;
+using ivan_api.Services.ExportService;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,9 +143,9 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(builder =>
     {
         builder.WithOrigins("http://localhost:5173", "http://localhost:5174") // Vite dev server ports
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials();
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -158,7 +157,6 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRegistrationRepository, EventRegistrationRepository>();
 builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
-builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 // AutoMapper Configuration - Minimal configuration to avoid MaxFloat issue
 builder.Services.AddAutoMapper(cfg =>
@@ -209,7 +207,6 @@ builder.Services.AddScoped<ICertificateTemplateService, CertificateTemplateServi
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
 
-GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 // Partner Collaboration DI
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();
 builder.Services.AddScoped<IPartnerCollaborationRepository, PartnerCollaborationRepository>();
@@ -232,9 +229,7 @@ builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 // Export Services DI
-builder.Services.AddScoped<ivan_api.Services.ExportService.IExportService, ivan_api.Services.ExportService.ExportService>();
-
-// TODO: Phase 2 - Add simplified services registration
+builder.Services.AddScoped<IExportService, ExportService>();
 
 // Đăng ký Repository & Service
 builder.Services.AddScoped<IEventRepository, EventRepository>();
@@ -246,6 +241,9 @@ builder.Services.AddScoped<IModerationEventService, ModerationEventService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+GlobalFontSettings.UseWindowsFontsUnderWindows = true;
+
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();

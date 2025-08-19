@@ -1,8 +1,6 @@
-using DocumentFormat.OpenXml.Wordprocessing;
 using ivan_api.DTOs.Reports;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.Reports;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ivan_api.Controllers
@@ -19,7 +17,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("listEventReport")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReportList([FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -31,7 +30,7 @@ namespace ivan_api.Controllers
                     Message = "Event reports retrieved successfully"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(new ApiResponseDTO<object>
                 {
@@ -43,7 +42,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("listOrganizationReport")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReportList(
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -67,7 +67,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("listSystemReport")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReportList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReportList([FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -416,6 +417,5 @@ namespace ivan_api.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
     }
 }

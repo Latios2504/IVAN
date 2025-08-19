@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.Export;
 using ivan_api.Services.ExportService;
 using ivan_api.Constants;
-using ivan_api.DTOs;
 using ivan_api.DTOs.Common;
 
 namespace ivan_api.Controllers
@@ -24,12 +23,13 @@ namespace ivan_api.Controllers
 
         /// Export analytics data in various formats (Excel, CSV, PDF, JSON)
         [HttpPost("analytics")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<IActionResult> ExportAnalytics([FromBody] AnalyticsExportRequest request)
         {
             try
             {
-                _logger.LogInformation("Analytics export requested by user {UserId} with format {Format}", 
+                _logger.LogInformation("Analytics export requested by user {UserId} with format {Format}",
                     User?.Identity?.Name, request.Format);
 
                 if (!ModelState.IsValid)
@@ -45,7 +45,8 @@ namespace ivan_api.Controllers
                     return BadRequest(new { message = result.ErrorMessage });
                 }
 
-                _logger.LogInformation("Analytics export completed successfully. File: {FileName}, Records: {RecordCount}, Size: {FileSizeBytes} bytes", 
+                _logger.LogInformation(
+                    "Analytics export completed successfully. File: {FileName}, Records: {RecordCount}, Size: {FileSizeBytes} bytes",
                     result.FileName, result.RecordCount, result.FileSizeBytes);
 
                 return File(result.Data, result.ContentType, result.FileName);
@@ -84,12 +85,13 @@ namespace ivan_api.Controllers
 
         /// Export user data in various formats
         [HttpPost("users")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<IActionResult> ExportUsers([FromBody] UserExportRequest request)
         {
             try
             {
-                _logger.LogInformation("User export requested by user {UserId} with format {Format}", 
+                _logger.LogInformation("User export requested by user {UserId} with format {Format}",
                     User?.Identity?.Name, request.Format);
 
                 if (!ModelState.IsValid)
@@ -110,7 +112,7 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                _logger.LogInformation("User export completed successfully. File: {FileName}, Records: {RecordCount}", 
+                _logger.LogInformation("User export completed successfully. File: {FileName}, Records: {RecordCount}",
                     result.FileName, result.RecordCount);
 
                 return File(result.Data, result.ContentType, result.FileName);
@@ -139,12 +141,13 @@ namespace ivan_api.Controllers
 
         /// Export event data in various formats
         [HttpPost("events")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
         public async Task<IActionResult> ExportEvents([FromBody] EventExportRequest request)
         {
             try
             {
-                _logger.LogInformation("Event export requested by user {UserId} with format {Format}", 
+                _logger.LogInformation("Event export requested by user {UserId} with format {Format}",
                     User?.Identity?.Name, request.Format);
 
                 if (!ModelState.IsValid)
@@ -160,7 +163,7 @@ namespace ivan_api.Controllers
                     return BadRequest(new { message = result.ErrorMessage });
                 }
 
-                _logger.LogInformation("Event export completed successfully. File: {FileName}, Records: {RecordCount}", 
+                _logger.LogInformation("Event export completed successfully. File: {FileName}, Records: {RecordCount}",
                     result.FileName, result.RecordCount);
 
                 return File(result.Data, result.ContentType, result.FileName);
@@ -168,23 +171,26 @@ namespace ivan_api.Controllers
             catch (NotImplementedException ex)
             {
                 _logger.LogWarning("Event export not yet implemented: {Message}", ex.Message);
-                return BadRequest(new { message = "Tính năng xuất dữ liệu sự kiện sẽ được triển khai trong Giai đoạn 2." });
+                return BadRequest(new
+                    { message = "Tính năng xuất dữ liệu sự kiện sẽ được triển khai trong Giai đoạn 2." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during event export");
-                return StatusCode(500, new { message = "Đã xảy ra lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại sau." });
+                return StatusCode(500,
+                    new { message = "Đã xảy ra lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại sau." });
             }
         }
 
         /// Export event registration data in various formats
         [HttpPost("event-registrations")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
         public async Task<IActionResult> ExportEventRegistrations([FromBody] EventRegistrationExportRequest request)
         {
             try
             {
-                _logger.LogInformation("Event registration export requested by user {UserId} with format {Format}", 
+                _logger.LogInformation("Event registration export requested by user {UserId} with format {Format}",
                     User?.Identity?.Name, request.Format);
 
                 if (!ModelState.IsValid)
@@ -200,7 +206,8 @@ namespace ivan_api.Controllers
                     return BadRequest(new { message = result.ErrorMessage });
                 }
 
-                _logger.LogInformation("Event registration export completed successfully. File: {FileName}, Records: {RecordCount}", 
+                _logger.LogInformation(
+                    "Event registration export completed successfully. File: {FileName}, Records: {RecordCount}",
                     result.FileName, result.RecordCount);
 
                 return File(result.Data, result.ContentType, result.FileName);
@@ -208,12 +215,14 @@ namespace ivan_api.Controllers
             catch (NotImplementedException ex)
             {
                 _logger.LogWarning("Event registration export not yet implemented: {Message}", ex.Message);
-                return BadRequest(new { message = "Tính năng xuất dữ liệu đăng ký sự kiện sẽ được triển khai trong Giai đoạn 2." });
+                return BadRequest(new
+                    { message = "Tính năng xuất dữ liệu đăng ký sự kiện sẽ được triển khai trong Giai đoạn 2." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during event registration export");
-                return StatusCode(500, new { message = "Đã xảy ra lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại sau." });
+                return StatusCode(500,
+                    new { message = "Đã xảy ra lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại sau." });
             }
         }
 
@@ -224,7 +233,7 @@ namespace ivan_api.Controllers
         {
             try
             {
-                _logger.LogInformation("Organization export requested by admin user {UserId} with format {Format}", 
+                _logger.LogInformation("Organization export requested by admin user {UserId} with format {Format}",
                     User?.Identity?.Name, request.Format);
 
                 if (!ModelState.IsValid)
@@ -240,7 +249,8 @@ namespace ivan_api.Controllers
                     return BadRequest(new { message = result.ErrorMessage });
                 }
 
-                _logger.LogInformation("Organization export completed successfully. File: {FileName}, Records: {RecordCount}", 
+                _logger.LogInformation(
+                    "Organization export completed successfully. File: {FileName}, Records: {RecordCount}",
                     result.FileName, result.RecordCount);
 
                 return File(result.Data, result.ContentType, result.FileName);
@@ -248,12 +258,14 @@ namespace ivan_api.Controllers
             catch (NotImplementedException ex)
             {
                 _logger.LogWarning("Organization export not yet implemented: {Message}", ex.Message);
-                return BadRequest(new { message = "Tính năng xuất dữ liệu tổ chức sẽ được triển khai trong Giai đoạn 2." });
+                return BadRequest(new
+                    { message = "Tính năng xuất dữ liệu tổ chức sẽ được triển khai trong Giai đoạn 2." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during organization export");
-                return StatusCode(500, new { message = "Đã xảy ra lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại sau." });
+                return StatusCode(500,
+                    new { message = "Đã xảy ra lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại sau." });
             }
         }
 

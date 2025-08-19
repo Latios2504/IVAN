@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ivan_api.DTOs.SupportRequest;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +19,7 @@ namespace ivan_api.Services.SupportRequestService
         {
             var category = await _context.SupportCategories.FindAsync(dto.CategoryId);
             if (category == null)
-                throw new Exception("Danh mục không tồn tại");
+                throw new Exception("Category not found");
 
             var supportRequest = new SupportRequest
             {
@@ -46,7 +46,7 @@ namespace ivan_api.Services.SupportRequestService
                 .FirstOrDefaultAsync(sr => sr.RequestId == requestId);
 
             if (supportRequest == null)
-                throw new Exception("Không tìm thấy yêu cầu hỗ trợ");
+                throw new Exception("Support request not found");
 
             return _mapper.Map<SupportRequestDto>(supportRequest);
         }
@@ -57,7 +57,7 @@ namespace ivan_api.Services.SupportRequestService
                 .FirstOrDefaultAsync(sr => sr.RequestId == requestId && sr.UserId == userId);
 
             if (supportRequest == null)
-                throw new Exception("Không tìm thấy yêu cầu hỗ trợ hoặc bạn không có quyền xem");
+                throw new Exception("Support request not found or you don't have permission to view");
 
             return _mapper.Map<SupportRequestDto>(supportRequest);
         }
@@ -91,7 +91,7 @@ namespace ivan_api.Services.SupportRequestService
                 .FirstOrDefaultAsync(sr => sr.RequestId == requestId);
 
             if (supportRequest == null)
-                throw new Exception("Không tìm thấy yêu cầu hỗ trợ");
+                throw new Exception("Support request not found");
 
             supportRequest.Status = dto.Status ?? supportRequest.Status;
             supportRequest.AssignedTo = dto.AssignedTo ?? supportRequest.AssignedTo;

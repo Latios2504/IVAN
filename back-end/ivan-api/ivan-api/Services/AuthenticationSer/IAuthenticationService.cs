@@ -6,11 +6,11 @@ namespace ivan_api.Services.AuthenticationSer;
 
 public interface IAuthenticationService
 {
-    Task<ApiResponseDTO<LoginResponseDTO>> LoginAsync(LoginRequestDTO loginRequest);
-    Task<ApiResponseDTO<object>> RegisterAsync(RegisterRequestDTO registerRequest);
-    Task<ApiResponseDTO<object>> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest);
-    Task<ApiResponseDTO<object>> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest);
-    Task<ApiResponseDTO<object>> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest);
+    Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO loginRequest);
+    Task<bool> RegisterAsync(RegisterRequestDTO registerRequest);
+    Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDTO forgotPasswordRequest);
+    Task<bool> ResetPasswordAsync(ResetPasswordRequestDTO resetPasswordRequest);
+    Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequestDTO changePasswordRequest);
     int GetUserIdFromClaims(ClaimsPrincipal user);
     Task<UserInfoDTO> GetUserInfoWithProfileAsync(int userId);
 }

@@ -27,7 +27,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<List<SupportRequestResponseDTO>>
                 {
                     Success = true,
-                    Message = "Lấy danh sách yêu cầu hỗ trợ thành công",
+                    Message = "Successfully retrieved support request list",
                     Data = response
                 };
             }
@@ -36,7 +36,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<List<SupportRequestResponseDTO>>
                 {
                     Success = false,
-                    Message = "Lỗi khi lấy danh sách yêu cầu hỗ trợ",
+                    Message = "Error retrieving support request list",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -52,7 +52,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<List<SupportRequestResponseDTO>>
                 {
                     Success = true,
-                    Message = "Lấy danh sách yêu cầu của người dùng thành công",
+                    Message = "Successfully retrieved user's support requests",
                     Data = response
                 };
             }
@@ -61,7 +61,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<List<SupportRequestResponseDTO>>
                 {
                     Success = false,
-                    Message = "Lỗi khi lấy danh sách yêu cầu của người dùng",
+                    Message = "Error retrieving user's support requests",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -77,7 +77,7 @@ namespace ivan_api.Services.SupportRequestServ
                     return new ApiResponseDTO<SupportRequestResponseDTO>
                     {
                         Success = false,
-                        Message = "Không tìm thấy yêu cầu hỗ trợ"
+                        Message = "Support request not found"
                     };
                 }
 
@@ -86,7 +86,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<SupportRequestResponseDTO>
                 {
                     Success = true,
-                    Message = "Lấy thông tin yêu cầu hỗ trợ thành công",
+                    Message = "Successfully retrieved support request information",
                     Data = response
                 };
             }
@@ -95,7 +95,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<SupportRequestResponseDTO>
                 {
                     Success = false,
-                    Message = "Lỗi khi lấy thông tin yêu cầu hỗ trợ",
+                    Message = "Error retrieving support request information",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -129,7 +129,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<SupportRequestResponseDTO>
                 {
                     Success = true,
-                    Message = "Tạo yêu cầu hỗ trợ thành công",
+                    Message = "Successfully created support request",
                     Data = response
                 };
             }
@@ -138,7 +138,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<SupportRequestResponseDTO>
                 {
                     Success = false,
-                    Message = "Lỗi khi tạo yêu cầu hỗ trợ",
+                    Message = "Error creating support request",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -154,7 +154,7 @@ namespace ivan_api.Services.SupportRequestServ
                     return new ApiResponseDTO<bool>
                     {
                         Success = false,
-                        Message = "Không tìm thấy yêu cầu hỗ trợ"
+                        Message = "Support request not found"
                     };
                 }
 
@@ -190,7 +190,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = success,
-                    Message = success ? "Cập nhật yêu cầu hỗ trợ thành công" : "Cập nhật yêu cầu hỗ trợ thất bại",
+                    Message = success ? "Successfully updated support request" : "Failed to update support request",
                     Data = success
                 };
             }
@@ -199,7 +199,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = false,
-                    Message = "Lỗi khi cập nhật yêu cầu hỗ trợ",
+                    Message = "Error updating support request",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -215,7 +215,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<List<SupportCategoryDTO>>
                 {
                     Success = true,
-                    Message = "Lấy danh sách danh mục thành công",
+                    Message = "Successfully retrieved category list",
                     Data = response
                 };
             }
@@ -224,7 +224,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<List<SupportCategoryDTO>>
                 {
                     Success = false,
-                    Message = "Lỗi khi lấy danh sách danh mục",
+                    Message = "Error retrieving category list",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -240,7 +240,7 @@ namespace ivan_api.Services.SupportRequestServ
                     return new ApiResponseDTO<bool>
                     {
                         Success = false,
-                        Message = "Không tìm thấy yêu cầu hỗ trợ"
+                        Message = "Support request not found"
                     };
                 }
 
@@ -257,7 +257,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = success,
-                    Message = success ? "Thêm bình luận thành công" : "Thêm bình luận thất bại",
+                    Message = success ? "Successfully added comment" : "Failed to add comment",
                     Data = success
                 };
             }
@@ -266,7 +266,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = false,
-                    Message = "Lỗi khi thêm bình luận",
+                    Message = "Error adding comment",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -282,7 +282,7 @@ namespace ivan_api.Services.SupportRequestServ
                     return new ApiResponseDTO<bool>
                     {
                         Success = false,
-                        Message = "Không tìm thấy yêu cầu hỗ trợ"
+                        Message = "Support request not found"
                     };
                 }
 
@@ -302,7 +302,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = success,
-                    Message = success ? "Thêm bình luận thành công" : "Thêm bình luận thất bại",
+                    Message = success ? "Successfully added comment" : "Failed to add comment",
                     Data = success
                 };
             }
@@ -311,7 +311,7 @@ namespace ivan_api.Services.SupportRequestServ
                 return new ApiResponseDTO<bool>
                 {
                     Success = false,
-                    Message = "Lỗi khi thêm bình luận",
+                    Message = "Error adding comment",
                     Errors = new List<string> { ex.Message }
                 };
             }
@@ -323,7 +323,7 @@ namespace ivan_api.Services.SupportRequestServ
             {
                 RequestId = request.RequestId,
                 UserId = request.UserId,
-                UserName = request.User?.UserProfiles?.FirstOrDefault()?.FullName ?? request.User?.Email ?? "Người dùng ẩn danh",
+                UserName = request.User?.UserProfiles?.FirstOrDefault()?.FullName ?? request.User?.Email ?? "Anonymous user",
                 UserEmail = request.User?.Email ?? "",
                 CategoryId = request.CategoryId,
                 CategoryName = request.Category?.CategoryName ?? "",
@@ -351,7 +351,7 @@ namespace ivan_api.Services.SupportRequestServ
                 {
                     CommentId = c.CommentId,
                     UserId = c.UserId,
-                    UserName = c.User?.UserProfiles?.FirstOrDefault()?.FullName ?? c.User?.Email ?? "Người dùng ẩn danh",
+                    UserName = c.User?.UserProfiles?.FirstOrDefault()?.FullName ?? c.User?.Email ?? "Anonymous user",
                     Comment = c.Comment,
                     IsInternal = c.IsInternal ?? false,
                     AttachmentUrls = !string.IsNullOrEmpty(c.AttachmentUrls) 

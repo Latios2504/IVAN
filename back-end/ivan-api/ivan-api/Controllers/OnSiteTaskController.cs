@@ -1,13 +1,10 @@
-using DocumentFormat.OpenXml.Office2010.Excel;
 using ivan_api.Constants;
 using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.OnSiteTasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace ivan_api.Controllers
 {
@@ -23,8 +20,10 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -49,7 +48,8 @@ namespace ivan_api.Controllers
 
         /// Get on-site task details by ID (Coordinator and Volunteer can view)
         [HttpGet("get/{id}")]
-        [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Details(int id)
         {
             try

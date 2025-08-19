@@ -5,7 +5,6 @@ using ivan_api.Services.VolunteerCoordinatorServ;
 using ivan_api.Constants;
 using System.Security.Claims;
 using ivan_api.DTOs.Common;
-using ivan_api.DTOs;
 using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers;
@@ -31,21 +30,24 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpPost("getCoordinatorsByOrganization/{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<IActionResult> GetCoordinatorsByOrganization(int organizationId, [FromBody] VolunteerCoordinatorFilterDto filter)
+    public async Task<IActionResult> GetCoordinatorsByOrganization(int organizationId,
+        [FromBody] VolunteerCoordinatorFilterDto filter)
     {
         try
         {
-        // For organization role, ensure they can only access their own coordinators
-        if (User.IsInRole(AuthenticationConstants.Roles.Organization))
-        {
-            var userId = _authenticationService.GetUserIdFromClaims(User);
-            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-            
-            if (!userInfo.OrganizationId.HasValue || userInfo.OrganizationId.Value != organizationId)
+            // For organization role, ensure they can only access their own coordinators
+            if (User.IsInRole(AuthenticationConstants.Roles.Organization))
             {
-                return Forbid("You can only access coordinators from your own organization");
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+
+                if (!userInfo.OrganizationId.HasValue || userInfo.OrganizationId.Value != organizationId)
+                {
+                    return Forbid("You can only access coordinators from your own organization");
+                }
             }
-        }            var result = await _coordinatorService.GetCoordinatorsByOrganizationAsync(organizationId, filter);
+
+            var result = await _coordinatorService.GetCoordinatorsByOrganizationAsync(organizationId, filter);
             return Ok(new ApiResponseDTO<object>
             {
                 Success = true,
@@ -68,7 +70,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// Get coordinator by ID
     /// </summary>
     [HttpGet("{coordinatorId}")]
-    [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+    [Authorize(Roles =
+        $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> GetCoordinatorById(int coordinatorId)
     {
         try
@@ -78,7 +81,7 @@ public class VolunteerCoordinatorController : ControllerBase
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 // Get coordinator and verify it belongs to the organization
                 var coordinator = await _coordinatorService.GetCoordinatorByIdAsync(coordinatorId);
                 if (coordinator == null)
@@ -103,13 +106,13 @@ public class VolunteerCoordinatorController : ControllerBase
                     Message = "Coordinator retrieved successfully"
                 });
             }
-            
+
             // For VolunteerCoordinator role, ensure they can only access their own profile
             if (User.IsInRole(AuthenticationConstants.Roles.VolunteerCoordinator))
             {
                 var currentUserId = _authenticationService.GetUserIdFromClaims(User);
                 var coordinator = await _coordinatorService.GetCoordinatorByUserIdAsync(currentUserId);
-                
+
                 if (coordinator == null || GetCoordinatorId(coordinator) != coordinatorId)
                 {
                     return Forbid("You can only access your own coordinator profile");
@@ -155,7 +158,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// Get coordinator by user ID
     /// </summary>
     [HttpGet("byUser/{userId}")]
-    [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+    [Authorize(Roles =
+        $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> GetCoordinatorByUserId(int userId)
     {
         try
@@ -192,7 +196,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpPost("{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<object>>> CreateCoordinator(int organizationId, [FromBody] CreateVolunteerCoordinatorDto createDto)
+    public async Task<ActionResult<ApiResponseDTO<object>>> CreateCoordinator(int organizationId,
+        [FromBody] CreateVolunteerCoordinatorDto createDto)
     {
         try
         {
@@ -213,10 +218,11 @@ public class VolunteerCoordinatorController : ControllerBase
 
             var currentUserId = _authenticationService.GetUserIdFromClaims(User);
 
-            var coordinator = await _coordinatorService.CreateCoordinatorAsync(organizationId, createDto, currentUserId);
+            var coordinator =
+                await _coordinatorService.CreateCoordinatorAsync(organizationId, createDto, currentUserId);
             return CreatedAtAction(
-                nameof(GetCoordinatorById), 
-                new { coordinatorId = coordinator.CoordinatorId }, 
+                nameof(GetCoordinatorById),
+                new { coordinatorId = coordinator.CoordinatorId },
                 new ApiResponseDTO<object>
                 {
                     Success = true,
@@ -258,7 +264,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpPut("{coordinatorId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> UpdateCoordinator(int coordinatorId, [FromBody] UpdateVolunteerCoordinatorDto updateDto)
+    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorDto>>> UpdateCoordinator(int coordinatorId,
+        [FromBody] UpdateVolunteerCoordinatorDto updateDto)
     {
         try
         {
@@ -351,11 +358,11 @@ public class VolunteerCoordinatorController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new 
-            { 
-                success = false, 
-                message = "Error removing coordinator", 
-                errors = new[] { ex.Message } 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Error removing coordinator",
+                errors = new[] { ex.Message }
             });
         }
     }
@@ -365,7 +372,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("stats/{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorStatsDto>>> GetCoordinatorStats(int organizationId)
+    public async Task<ActionResult<ApiResponseDTO<VolunteerCoordinatorStatsDto>>> GetCoordinatorStats(
+        int organizationId)
     {
         try
         {
@@ -393,7 +401,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// </summary>
     [HttpGet("managers/{organizationId}")]
     [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<List<VolunteerCoordinatorDto>>>> GetAvailableManagers(int organizationId)
+    public async Task<ActionResult<ApiResponseDTO<List<VolunteerCoordinatorDto>>>> GetAvailableManagers(
+        int organizationId)
     {
         try
         {
@@ -420,8 +429,10 @@ public class VolunteerCoordinatorController : ControllerBase
     /// Check if user is coordinator for organization
     /// </summary>
     [HttpGet("check/{userId}/{organizationId}")]
-    [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
-    public async Task<ActionResult<ApiResponseDTO<bool>>> IsUserCoordinatorForOrganization(int userId, int organizationId)
+    [Authorize(Roles =
+        $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+    public async Task<ActionResult<ApiResponseDTO<bool>>> IsUserCoordinatorForOrganization(int userId,
+        int organizationId)
     {
         try
         {
@@ -455,7 +466,7 @@ public class VolunteerCoordinatorController : ControllerBase
         {
             return coordinatorDto.OrganizationId;
         }
-        
+
         throw new InvalidOperationException("Coordinator object is not of expected type VolunteerCoordinatorDto");
     }
 
@@ -468,7 +479,7 @@ public class VolunteerCoordinatorController : ControllerBase
         {
             return coordinatorDto.CoordinatorId;
         }
-        
+
         throw new InvalidOperationException("Coordinator object is not of expected type VolunteerCoordinatorDto");
     }
 

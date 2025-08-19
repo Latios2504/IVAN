@@ -1,4 +1,5 @@
 using ivan_api.DTOs.VolunteerCoordinator;
+using ivan_api.DTOs.Common;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +14,7 @@ public class VolunteerCoordinatorRepository : IVolunteerCoordinatorRepository
         _context = context;
     }
 
-    public async Task<VolunteerCoordinatorListResponseDto> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter)
+    public async Task<PagedResultDto<VolunteerCoordinatorDto>> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter)
     {
         var query = _context.VolunteerCoordinators
             .Include(vc => vc.User)
@@ -138,13 +139,12 @@ public class VolunteerCoordinatorRepository : IVolunteerCoordinatorRepository
             })
             .ToListAsync();
 
-        return new VolunteerCoordinatorListResponseDto
+        return new PagedResultDto<VolunteerCoordinatorDto>
         {
-            Coordinators = coordinators,
+            Items = coordinators,
             TotalCount = totalCount,
-            Page = filter.Page,
-            Size = filter.Size,
-            TotalPages = totalPages
+            PageNumber = filter.Page,
+            PageSize = filter.Size
         };
     }
 

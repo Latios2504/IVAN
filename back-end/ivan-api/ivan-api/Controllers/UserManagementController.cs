@@ -4,7 +4,6 @@ using ivan_api.Services.UserManagement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.Common;
-using ivan_api.DTOs;
 
 namespace ivan_api.Controllers
 {
@@ -132,7 +131,8 @@ namespace ivan_api.Controllers
         // Update user account status (admin only)
         [HttpPut("{userId}/status")]
         [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
-        public async Task<ActionResult<ApiResponseDTO<bool>>> UpdateUserStatus(int userId, [FromBody] UserStatusUpdateDTO statusUpdate)
+        public async Task<ActionResult<ApiResponseDTO<bool>>> UpdateUserStatus(int userId,
+            [FromBody] UserStatusUpdateDTO statusUpdate)
         {
             try
             {
@@ -158,7 +158,8 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                _logger.LogInformation("Updated user status for user {UserId} to {IsActive}", userId, statusUpdate.IsActive);
+                _logger.LogInformation("Updated user status for user {UserId} to {IsActive}", userId,
+                    statusUpdate.IsActive);
 
                 return Ok(new ApiResponseDTO<bool>
                 {

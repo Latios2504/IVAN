@@ -4,7 +4,6 @@ using ivan_api.Models;
 using ivan_api.Repository.FeedbackRepo;
 using ivan_api.Services.FeedbackServ;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -17,7 +16,9 @@ namespace ivan_api.Controllers
         private readonly IFeedbackService _feedbackService;
         private readonly ILogger<FeedbackController> _logger;
         private readonly IFeedbackRepository _feedbackRepository;
-        public FeedbackController(IFeedbackService feedbackService, ILogger<FeedbackController> logger, IFeedbackRepository feedbackRepository)
+
+        public FeedbackController(IFeedbackService feedbackService, ILogger<FeedbackController> logger,
+            IFeedbackRepository feedbackRepository)
         {
             _feedbackService = feedbackService;
             this._logger = logger;
@@ -49,7 +50,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("listFeedbackByEvent")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetListFeedbackByEvent(int eventId, int PageNumber, int PageSize)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetListFeedbackByEvent(int eventId, int PageNumber,
+            int PageSize)
         {
             try
             {
@@ -73,7 +75,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("listFeedbackByUser")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetListFeedbackByUser(int userId, int PageNumber, int PageSize)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetListFeedbackByUser(int userId, int PageNumber,
+            int PageSize)
         {
             try
             {

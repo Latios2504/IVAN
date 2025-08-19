@@ -127,12 +127,3 @@ public class DepartmentStatsDto
     public string Department { get; set; } = null!;
     public int Count { get; set; }
 }
-
-public class VolunteerCoordinatorListResponseDto
-{
-    public List<VolunteerCoordinatorDto> Coordinators { get; set; } = new();
-    public int TotalCount { get; set; }
-    public int Page { get; set; }
-    public int Size { get; set; }
-    public int TotalPages { get; set; }
-}

@@ -3,7 +3,6 @@ using ivan_api.DTOs.Common;
 using ivan_api.Services.ModerationEventServ;
 using ivan_api.Constants;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ivan_api.Controllers
@@ -21,7 +20,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetEventsForModeration([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetEventsForModeration([FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -93,7 +93,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("{eventId}/reject")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> RejectEvent(int eventId, [FromBody] RejectEventRequestDto request)
+        public async Task<ActionResult<ApiResponseDTO<object>>> RejectEvent(int eventId,
+            [FromBody] RejectEventRequestDto request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Reason))
             {
@@ -125,6 +126,5 @@ namespace ivan_api.Controllers
                 });
             }
         }
-
     }
 }

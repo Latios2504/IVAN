@@ -1,5 +1,4 @@
 using ivan_api.Services.Certificates;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ivan_api.DTOs.Certificates;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +19,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -44,7 +44,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("by-organization/{organizationId}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetByOrganization(int organizationId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetByOrganization(int organizationId,
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -68,7 +69,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("filter")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetFilteredCertificates([FromBody] CertificateFilterModel filter)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetFilteredCertificates(
+            [FromBody] CertificateFilterModel filter)
         {
             try
             {
@@ -181,7 +183,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id, [FromBody] CertificateUpdateModel updateModel)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id,
+            [FromBody] CertificateUpdateModel updateModel)
         {
             if (updateModel == null)
             {
@@ -287,7 +290,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("approve/{id}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Approve(int id, [FromBody] CertificateApprovalModel approvalModel)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Approve(int id,
+            [FromBody] CertificateApprovalModel approvalModel)
         {
             if (approvalModel == null)
             {
@@ -343,7 +347,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("reject/{id}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Reject(int id, [FromBody] CertificateRejectionModel rejectionModel)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Reject(int id,
+            [FromBody] CertificateRejectionModel rejectionModel)
         {
             if (rejectionModel == null)
             {
@@ -414,7 +419,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("bulk-approve")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> BulkApprove([FromBody] BulkCertificateActionModel bulkActionModel)
+        public async Task<ActionResult<ApiResponseDTO<object>>> BulkApprove(
+            [FromBody] BulkCertificateActionModel bulkActionModel)
         {
             if (bulkActionModel == null || !bulkActionModel.CertificateIds.Any())
             {
@@ -459,7 +465,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("bulk-revoke")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> BulkRevoke([FromBody] BulkCertificateActionModel bulkActionModel)
+        public async Task<ActionResult<ApiResponseDTO<object>>> BulkRevoke(
+            [FromBody] BulkCertificateActionModel bulkActionModel)
         {
             if (bulkActionModel == null || !bulkActionModel.CertificateIds.Any())
             {

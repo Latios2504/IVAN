@@ -1,12 +1,9 @@
 using ivan_api.Constants;
 using ivan_api.Services.OrganizationProfiles;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using ivan_api.DTOs.OrganizationProfiles;
-using ivan_api.DTOs;
 using ivan_api.DTOs.Common;
-using System.Security.Claims;
 using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers
@@ -55,7 +52,7 @@ namespace ivan_api.Controllers
                 };
 
                 var result = await _service.GetPublicOrganizationsAsync(filters);
-                
+
                 return Ok(new ApiResponseDTO<PagedResultDto<PublicOrganizationDTO>>
                 {
                     Success = true,
@@ -83,7 +80,7 @@ namespace ivan_api.Controllers
             try
             {
                 var organization = await _service.GetPublicOrganizationAsync(id);
-                
+
                 if (organization == null)
                 {
                     return NotFound(new ApiResponseDTO<PublicOrganizationDTO>
@@ -148,7 +145,8 @@ namespace ivan_api.Controllers
         // Get organization profiles list (Admin only)
         [HttpGet]
         [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
-        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<OrganizationProfileViewModel>>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<OrganizationProfileViewModel>>>> GetList(
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -207,7 +205,7 @@ namespace ivan_api.Controllers
                     Message = "Organization profile retrieved successfully"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving organization profile for UserId: {UserId}", userId);
                 return StatusCode(500, new ApiResponseDTO<OrganizationProfileViewModel>
@@ -222,7 +220,8 @@ namespace ivan_api.Controllers
         // Create new organization profile (Admin only)
         [HttpPost("add")]
         [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
-        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Add([FromBody] OrganizationProfileCreateDto input)
+        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Add(
+            [FromBody] OrganizationProfileCreateDto input)
         {
             if (input == null)
             {
@@ -278,7 +277,7 @@ namespace ivan_api.Controllers
                     }
                 );
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating organization profile");
                 return StatusCode(500, new ApiResponseDTO<OrganizationProfileViewModel>
@@ -293,7 +292,8 @@ namespace ivan_api.Controllers
         // Update organization profile
         [HttpPut("update/{id}")]
         [Authorize(Roles = "Organization,Admin")]
-        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Update([FromBody] OrganizationProfileUpdateDto input, int id)
+        public async Task<ActionResult<ApiResponseDTO<OrganizationProfileViewModel>>> Update(
+            [FromBody] OrganizationProfileUpdateDto input, int id)
         {
             if (input == null)
             {
@@ -420,18 +420,30 @@ namespace ivan_api.Controllers
             var missingFields = new List<string>();
 
             // Check required fields
-            if (!string.IsNullOrEmpty(profile.OrganizationName)) completedFields++; else missingFields.Add("Organization Name");
-            if (!string.IsNullOrEmpty(profile.ShortName)) completedFields++; else missingFields.Add("Short Name");
-            if (profile.TypeId > 0) completedFields++; else missingFields.Add("Organization Type");
-            if (!string.IsNullOrEmpty(profile.Description)) completedFields++; else missingFields.Add("Description");
-            if (!string.IsNullOrEmpty(profile.Mission)) completedFields++; else missingFields.Add("Mission");
-            if (!string.IsNullOrEmpty(profile.Vision)) completedFields++; else missingFields.Add("Vision");
-            if (!string.IsNullOrEmpty(profile.Address)) completedFields++; else missingFields.Add("Address");
-            if (!string.IsNullOrEmpty(profile.Province)) completedFields++; else missingFields.Add("Province");
-            if (!string.IsNullOrEmpty(profile.ContactPersonName)) completedFields++; else missingFields.Add("Contact Person Name");
-            if (!string.IsNullOrEmpty(profile.ContactEmail)) completedFields++; else missingFields.Add("Contact Email");
-            if (!string.IsNullOrEmpty(profile.ContactPhone)) completedFields++; else missingFields.Add("Contact Phone");
-            if (!string.IsNullOrEmpty(profile.Website)) completedFields++; else missingFields.Add("Website");
+            if (!string.IsNullOrEmpty(profile.OrganizationName)) completedFields++;
+            else missingFields.Add("Organization Name");
+            if (!string.IsNullOrEmpty(profile.ShortName)) completedFields++;
+            else missingFields.Add("Short Name");
+            if (profile.TypeId > 0) completedFields++;
+            else missingFields.Add("Organization Type");
+            if (!string.IsNullOrEmpty(profile.Description)) completedFields++;
+            else missingFields.Add("Description");
+            if (!string.IsNullOrEmpty(profile.Mission)) completedFields++;
+            else missingFields.Add("Mission");
+            if (!string.IsNullOrEmpty(profile.Vision)) completedFields++;
+            else missingFields.Add("Vision");
+            if (!string.IsNullOrEmpty(profile.Address)) completedFields++;
+            else missingFields.Add("Address");
+            if (!string.IsNullOrEmpty(profile.Province)) completedFields++;
+            else missingFields.Add("Province");
+            if (!string.IsNullOrEmpty(profile.ContactPersonName)) completedFields++;
+            else missingFields.Add("Contact Person Name");
+            if (!string.IsNullOrEmpty(profile.ContactEmail)) completedFields++;
+            else missingFields.Add("Contact Email");
+            if (!string.IsNullOrEmpty(profile.ContactPhone)) completedFields++;
+            else missingFields.Add("Contact Phone");
+            if (!string.IsNullOrEmpty(profile.Website)) completedFields++;
+            else missingFields.Add("Website");
 
             var completionPercentage = (int)Math.Round((double)completedFields / totalFields * 100);
 
@@ -443,6 +455,5 @@ namespace ivan_api.Controllers
         }
 
         #endregion
-
     }
 }

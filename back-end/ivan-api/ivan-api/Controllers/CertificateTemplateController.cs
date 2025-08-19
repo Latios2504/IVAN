@@ -3,7 +3,6 @@ using ivan_api.DTOs.Common;
 using ivan_api.Services.AuthenticationSer;
 using ivan_api.Services.CertificateTemplates;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ivan_api.Controllers
@@ -15,14 +14,16 @@ namespace ivan_api.Controllers
         private readonly ICertificateTemplateService _service;
         private readonly IAuthenticationService _authenticationService;
 
-        public CertificateTemplateController(ICertificateTemplateService service, IAuthenticationService authenticationService)
+        public CertificateTemplateController(ICertificateTemplateService service,
+            IAuthenticationService authenticationService)
         {
             _service = service;
             _authenticationService = authenticationService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -81,16 +82,17 @@ namespace ivan_api.Controllers
 
         [HttpPost("filter")]
         [Authorize]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetFilteredCertificateTemplates([FromBody] CertificateTemplateFilterModel filter)
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetFilteredCertificateTemplates(
+            [FromBody] CertificateTemplateFilterModel filter)
         {
             try
             {
                 // Get the authenticated user's ID
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                
+
                 // Get the user's profile information including organization ID
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 // Set the organization ID from authenticated user for organization-specific filtering
                 // Only filter by organization if the user is not an admin and has an organization
                 if (userInfo != null && userInfo.OrganizationId.HasValue && userInfo.RoleName.ToLower() != "admin")
@@ -120,7 +122,8 @@ namespace ivan_api.Controllers
 
         [HttpPost("add")]
         [Authorize]
-        public async Task<ActionResult<ApiResponseDTO<CertificateTemplateViewModel>>> Add([FromBody] CertificateTemplateInputModel input)
+        public async Task<ActionResult<ApiResponseDTO<CertificateTemplateViewModel>>> Add(
+            [FromBody] CertificateTemplateInputModel input)
         {
             if (input == null)
             {
@@ -138,7 +141,7 @@ namespace ivan_api.Controllers
                     .SelectMany(v => v.Errors)
                     .Select(e => e.ErrorMessage)
                     .ToList();
-                    
+
                 return BadRequest(new ApiResponseDTO<CertificateTemplateViewModel>
                 {
                     Success = false,
@@ -151,16 +154,16 @@ namespace ivan_api.Controllers
             {
                 // Get the authenticated user's ID
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                
+
                 // Get the user's profile information including organization ID
                 var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
+
                 // Set the organization ID from authenticated user (don't rely on frontend input)
                 if (userInfo != null && userInfo.OrganizationId.HasValue)
                 {
                     input.OrganizationId = userInfo.OrganizationId.Value;
                 }
-                
+
                 var result = await _service.AddCertificateTemplate(input, userId);
 
                 if (result == null)
@@ -196,7 +199,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id, [FromBody] CertificateTemplateUpdateModel updateModel)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id,
+            [FromBody] CertificateTemplateUpdateModel updateModel)
         {
             if (updateModel == null)
             {
