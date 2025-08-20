@@ -38,7 +38,7 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         Task<bool> BulkDeleteAsync(int organizationId, List<int> scheduleIds);
 
         // Conflict Detection
-        Task<List<CoordinatorScheduleDto>> CheckScheduleConflictsAsync(
+        Task<List<CoordinatorScheduleSummaryDto>> CheckScheduleConflictsAsync(
             int coordinatorId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null);
 
         // Helper Methods

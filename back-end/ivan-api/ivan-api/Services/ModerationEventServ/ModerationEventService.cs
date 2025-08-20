@@ -87,9 +87,9 @@ namespace ivan_api.Services.ModerationEventServ
             };
 
             var response = await _notificationService.SendNotificationAsync(notificationDto);
-            if (!response.Success)
+            if (!response)
             {
-                Console.WriteLine($"Failed to send notification: {response.Message}");
+                Console.WriteLine("Failed to send notification");
             }
         }
 
@@ -109,9 +109,9 @@ namespace ivan_api.Services.ModerationEventServ
                 Content = $"Sự kiện của bạn đã bị từ chối. Lý do: {reason}"
             };
             var response = await _notificationService.SendNotificationAsync(notificationDto);
-            if (!response.Success)
+            if (!response)
             {
-                Console.WriteLine($"Failed to send notification: {response.Message}");
+                Console.WriteLine("Failed to send notification");
             }
         }
     }

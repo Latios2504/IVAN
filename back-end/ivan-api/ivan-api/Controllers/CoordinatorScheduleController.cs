@@ -322,5 +322,272 @@ namespace ivan_api.Controllers
                 Data = updatedSchedule
             });
         }
+
+        // GET: api/CoordinatorSchedule/stats - Get schedule statistics
+        [HttpGet("stats")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<CoordinatorScheduleStatsDto>>> GetScheduleStats()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+            {
+                return Unauthorized(new ApiResponseDTO<CoordinatorScheduleStatsDto>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            if (!int.TryParse(claim.Value, out var userId))
+            {
+                return BadRequest(new ApiResponseDTO<CoordinatorScheduleStatsDto>
+                {
+                    Success = false,
+                    Message = "Invalid user ID format"
+                });
+            }
+
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.OrganizationId == null)
+            {
+                return BadRequest(new ApiResponseDTO<CoordinatorScheduleStatsDto>
+                {
+                    Success = false,
+                    Message = "Organization not found for this user"
+                });
+            }
+
+            var stats = await _coordinatorScheduleService.GetScheduleStatsAsync(userInfo.OrganizationId.Value);
+            return Ok(new ApiResponseDTO<CoordinatorScheduleStatsDto>
+            {
+                Success = true,
+                Message = "Schedule statistics retrieved successfully",
+                Data = stats
+            });
+        }
+
+        // GET: api/CoordinatorSchedule/calendar - Get calendar view
+        [HttpGet("calendar")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>>> GetCalendarView(
+            [FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] int? coordinatorId = null)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+            {
+                return Unauthorized(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            if (!int.TryParse(claim.Value, out var userId))
+            {
+                return BadRequest(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
+                {
+                    Success = false,
+                    Message = "Invalid user ID format"
+                });
+            }
+
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.OrganizationId == null)
+            {
+                return BadRequest(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
+                {
+                    Success = false,
+                    Message = "Organization not found for this user"
+                });
+            }
+
+            var calendarData = await _coordinatorScheduleService.GetCalendarViewAsync(
+                userInfo.OrganizationId.Value, startDate, endDate, coordinatorId);
+            
+            return Ok(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
+            {
+                Success = true,
+                Message = "Calendar view retrieved successfully",
+                Data = calendarData
+            });
+        }
+
+        // PATCH: api/CoordinatorSchedule/{id}/status - Update schedule status
+        [HttpPatch("{scheduleId}/status")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> UpdateScheduleStatus(
+            int scheduleId, [FromBody] UpdateScheduleStatusDto request)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            if (!int.TryParse(claim.Value, out var userId))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid user ID format"
+                });
+            }
+
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.OrganizationId == null)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Organization not found for this user"
+                });
+            }
+
+            var result = await _coordinatorScheduleService.UpdateScheduleStatusAsync(
+                userInfo.OrganizationId.Value, scheduleId, request.Status, userId);
+            
+            if (!result)
+            {
+                return NotFound(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to update schedule status",
+                    Errors = new List<string> { "Schedule not found" }
+                });
+            }
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Schedule status updated successfully"
+            });
+        }
+
+        // PATCH: api/CoordinatorSchedule/bulk/status - Bulk update status
+        [HttpPatch("bulk/status")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> BulkUpdateStatus([FromBody] BulkUpdateStatusDto request)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            if (!int.TryParse(claim.Value, out var userId))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid user ID format"
+                });
+            }
+
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.OrganizationId == null)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Organization not found for this user"
+                });
+            }
+
+            var result = await _coordinatorScheduleService.BulkUpdateStatusAsync(
+                userInfo.OrganizationId.Value, request.ScheduleIds, request.Status, userId);
+            
+            if (!result)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to bulk update schedule status"
+                });
+            }
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = $"Successfully updated status for {request.ScheduleIds.Count} schedules"
+            });
+        }
+
+        // DELETE: api/CoordinatorSchedule/bulk - Bulk delete schedules
+        [HttpDelete("bulk")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> BulkDelete([FromBody] BulkDeleteDto request)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            if (!int.TryParse(claim.Value, out var userId))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid user ID format"
+                });
+            }
+
+            var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.OrganizationId == null)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Organization not found for this user"
+                });
+            }
+
+            var result = await _coordinatorScheduleService.BulkDeleteAsync(
+                userInfo.OrganizationId.Value, request.ScheduleIds);
+            
+            if (!result)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to bulk delete schedules"
+                });
+            }
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = $"Successfully deleted {request.ScheduleIds.Count} schedules"
+            });
+        }
+
+        // POST: api/CoordinatorSchedule/conflicts - Check for schedule conflicts
+        [HttpPost("conflicts")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>>> CheckConflicts(
+            [FromBody] CheckConflictsDto request)
+        {
+            var conflicts = await _coordinatorScheduleService.CheckScheduleConflictsAsync(
+                request.CoordinatorId, request.StartDateTime, request.EndDateTime, request.ExcludeScheduleId);
+            
+            return Ok(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
+            {
+                Success = true,
+                Message = conflicts.Any() ? "Schedule conflicts found" : "No conflicts found",
+                Data = conflicts
+            });
+        }
     }
 }

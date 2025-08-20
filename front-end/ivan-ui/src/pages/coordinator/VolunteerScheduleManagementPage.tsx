@@ -48,14 +48,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 import { useModal, useModalWithData } from "@/hooks/useModal";
-import {
-  volunteerScheduleService,
-  type VolunteerScheduleDTO,
-  type VolunteerScheduleFilterDTO,
-  type VolunteerScheduleRequestDTO,
-} from "@/services/volunteerScheduleService";
-import { eventService } from "@/services/eventService";
-import type { EventDto } from "@/types/event";
+import { volunteerScheduleService } from "@/services/volunteerScheduleService";
+import type {
+  VolunteerScheduleDto,
+  VolunteerScheduleFilterDto,
+  VolunteerScheduleRequestDto,
+} from "@/types/volunteerSchedule";
+import { eventsService } from "@/services/eventsService";
+import type { EventDto } from "@/types/events";
 
 interface VolunteerOption {
   volunteerId: number;
@@ -97,14 +97,14 @@ const initialFormData: ScheduleFormData = {
 
 export default function VolunteerScheduleManagementPage() {
   // State management
-  const [schedules, setSchedules] = useState<VolunteerScheduleDTO[]>([]);
+  const [schedules, setSchedules] = useState<VolunteerScheduleDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [events, setEvents] = useState<EventDto[]>([]);
   const [volunteers, setVolunteers] = useState<VolunteerOption[]>([]);
 
   // Filter states
-  const [filters, setFilters] = useState<VolunteerScheduleFilterDTO>({
+  const [filters, setFilters] = useState<VolunteerScheduleFilterDto>({
     page: 1,
     size: 20,
     sortBy: "StartDateTime",
@@ -113,8 +113,8 @@ export default function VolunteerScheduleManagementPage() {
 
   // Modal states
   const createModal = useModal();
-  const editModal = useModalWithData<VolunteerScheduleDTO>();
-  const deleteModal = useModalWithData<VolunteerScheduleDTO>();
+  const editModal = useModalWithData<VolunteerScheduleDto>();
+  const deleteModal = useModalWithData<VolunteerScheduleDto>();
 
   // Form state
   const [formData, setFormData] = useState<ScheduleFormData>(initialFormData);
@@ -133,7 +133,7 @@ export default function VolunteerScheduleManagementPage() {
     try {
       setLoading(true);
       const result =
-        await volunteerScheduleService.getOrganizationVolunteerSchedules(
+        await volunteerScheduleService.getCoordinatorVolunteerSchedules(
           filters
         );
       setSchedules(result.items);
@@ -148,7 +148,7 @@ export default function VolunteerScheduleManagementPage() {
 
   const loadEvents = async () => {
     try {
-      const eventsResult = await eventService.getOrganizationEvents({
+      const eventsResult = await eventsService.getEvents({
         page: 1,
         size: 100,
         sortBy: "startDate",
@@ -186,7 +186,7 @@ export default function VolunteerScheduleManagementPage() {
         return;
       }
 
-      const request: VolunteerScheduleRequestDTO = {
+      const request: VolunteerScheduleRequestDto = {
         volunteerId: formData.volunteerId,
         eventId: formData.eventId || undefined,
         title: formData.title,
@@ -227,7 +227,7 @@ export default function VolunteerScheduleManagementPage() {
         return;
       }
 
-      const request: VolunteerScheduleRequestDTO = {
+      const request: VolunteerScheduleRequestDto = {
         volunteerId: formData.volunteerId,
         eventId: formData.eventId || undefined,
         title: formData.title,
@@ -278,7 +278,7 @@ export default function VolunteerScheduleManagementPage() {
     setFormData(initialFormData);
   };
 
-  const openEditModal = (schedule: VolunteerScheduleDTO) => {
+  const openEditModal = (schedule: VolunteerScheduleDto) => {
     setFormData({
       volunteerId: schedule.volunteerId,
       eventId: schedule.eventId || null,
@@ -330,14 +330,14 @@ export default function VolunteerScheduleManagementPage() {
   };
 
   const handleFilterChange = (
-    key: keyof VolunteerScheduleFilterDTO,
+    key: keyof VolunteerScheduleFilterDto,
     value: any
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+    setFilters((prev: VolunteerScheduleFilterDto) => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const handlePageChange = (newPage: number) => {
-    setFilters((prev) => ({ ...prev, page: newPage }));
+    setFilters((prev: VolunteerScheduleFilterDto) => ({ ...prev, page: newPage }));
   };
 
   return (

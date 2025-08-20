@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { useModal, useModalWithData } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  coordinatorScheduleService,
-  type CoordinatorScheduleDto,
-  type CoordinatorScheduleFilterDto,
-} from "@/services/coordinatorScheduleService";
-import { eventService } from "@/services/eventService";
+import { coordinatorScheduleService } from "@/services/coordinatorScheduleService";
+import type {
+  CoordinatorScheduleDto,
+  CoordinatorScheduleFilterDto,
+} from "@/types/coordinatorSchedule";
+import { eventsService } from "@/services/eventsService";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
-import type { EventDto } from "@/types/event";
-import type { VolunteerCoordinatorDto } from "@/types/volunteer-coordinator";
+import type { EventDto } from "@/types/events";
+import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 import { toast } from "sonner";
 import {
   Card,
@@ -120,13 +120,13 @@ export default function CoordinatorSchedulePage() {
     try {
       setLoading(true);
       const filters: CoordinatorScheduleFilterDto = {
-        page: currentPage,
-        size: pageSize,
+        pageNumber: currentPage,
+        pageSize: pageSize,
         search: searchTerm || undefined,
         status: selectedTab !== "all" ? selectedTab : undefined,
       };
 
-      const result = await coordinatorScheduleService.getOrganizationSchedules(
+      const result = await coordinatorScheduleService.listSchedules(
         filters
       );
       setSchedules(result.items);
@@ -167,11 +167,12 @@ export default function CoordinatorSchedulePage() {
   const loadEvents = async () => {
     try {
       setEventsLoading(true);
-      const result = await eventService.getOrganizationEvents({
+      const result = await eventsService.getEvents({
         page: 1,
         size: 100,
         sortBy: "eventName",
         sortDirection: "asc",
+        organizationId: user?.organizationId || undefined,
       });
       setEvents(result.items);
     } catch (error) {
@@ -193,7 +194,7 @@ export default function CoordinatorSchedulePage() {
     loadEvents();
   }, []);
 
-  const getStatusBadge = (status?: string) => {
+  const getStatusBadge = (status?: string | null) => {
     switch (status) {
       case "Scheduled":
         return (
@@ -233,7 +234,7 @@ export default function CoordinatorSchedulePage() {
     }
   };
 
-  const getPriorityBadge = (priority?: string) => {
+  const getPriorityBadge = (priority?: string | null) => {
     switch (priority) {
       case "High":
         return <Badge variant="destructive">Cao</Badge>;
@@ -520,7 +521,7 @@ export default function CoordinatorSchedulePage() {
                         key={coordinator.coordinatorId}
                         value={coordinator.coordinatorId.toString()}
                       >
-                        {coordinator.fullName}
+                        {coordinator.user?.fullName || coordinator.user?.email || 'Unknown'}
                       </SelectItem>
                     ))
                   )}

@@ -1,4 +1,4 @@
-// User Management Types - Matching backend DTOs
+// User Management Types
 
 export interface UserListDto {
   userId: number;
@@ -9,10 +9,8 @@ export interface UserListDto {
   isEmailVerified: boolean;
   lastLoginAt: string | null;
   createdAt: string;
-
   // Basic display info only - no detailed profile for user list
   displayName?: string; // Simple display name for the list
-
   // Role-specific identifier for quick reference only
   roleSpecificInfo?: string; // e.g., "Student ID: 123", "Organization: ABC", "Company: XYZ"
 }

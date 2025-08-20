@@ -3,7 +3,7 @@ using ivan_api.DTOs.SupportRequest;
 using ivan_api.Models;
 using System.Text.Json;
 
-namespace ivan_api.Mapping.Profiles
+namespace ivan_api.Mapping
 {
     public class SupportRequestProfile : Profile
     {

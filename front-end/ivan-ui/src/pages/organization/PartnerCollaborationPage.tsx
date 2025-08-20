@@ -115,7 +115,7 @@ export default function PartnerCollaborationPage() {
         pageSize
       );
       setCollaborations(result.items);
-      setTotalPages(result.totalPages);
+      setTotalPages(result.totalPages || Math.ceil(result.totalCount / pageSize));
       setTotalItems(result.totalCount);
     } catch (err) {
       const errorMessage =
@@ -132,7 +132,7 @@ export default function PartnerCollaborationPage() {
       setLoadingLookupData(true);
       const [typesResult, partnersResult] = await Promise.all([
         partnerCollaborationService.getCollaborationTypes(),
-        partnerCollaborationService.getPartners(),
+        partnerCollaborationService.getPartnersForSelection(),
       ]);
       setCollaborationTypes(typesResult);
       setPartners(partnersResult);
@@ -146,7 +146,7 @@ export default function PartnerCollaborationPage() {
 
   const loadCollaborationDetail = async (id: number) => {
     try {
-      const detail = await partnerCollaborationService.getDetail(id);
+      const detail = await partnerCollaborationService.getCollaborationDetail(id);
       setSelectedCollaboration(detail);
       setIsDetailDialogOpen(true);
     } catch (err) {
@@ -168,7 +168,7 @@ export default function PartnerCollaborationPage() {
 
     try {
       setSubmitting(true);
-      await partnerCollaborationService.create(createForm);
+      await partnerCollaborationService.createCollaboration(createForm);
       toast.success("Collaboration created successfully!");
       setIsCreateDialogOpen(false);
       resetCreateForm();
@@ -186,7 +186,7 @@ export default function PartnerCollaborationPage() {
     if (!confirm("Are you sure you want to delete this collaboration?")) return;
 
     try {
-      await partnerCollaborationService.delete(id);
+      await partnerCollaborationService.deleteCollaboration(id);
       toast.success("Collaboration deleted successfully!");
       loadCollaborations();
     } catch (err) {

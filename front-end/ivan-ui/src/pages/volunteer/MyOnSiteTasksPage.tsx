@@ -28,17 +28,17 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-// import { toast } from "sonner"; // Commented out for now
+import { toast } from "sonner";
 import { onSiteTaskService } from "@/services/onSiteTaskService";
 import type {
-  OnSiteTaskViewModel,
-  PagedOnSiteTaskResult,
+  OnSiteTaskDto,
 } from "@/types/onSiteTask";
+import type { PagedResultDto } from "@/types/common";
 
 const MyOnSiteTasksPage: React.FC = () => {
-  const [tasks, setTasks] = useState<OnSiteTaskViewModel[]>([]);
+  const [tasks, setTasks] = useState<OnSiteTaskDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<OnSiteTaskViewModel | null>(
+  const [selectedTask, setSelectedTask] = useState<OnSiteTaskDto | null>(
     null
   );
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -55,12 +55,12 @@ const MyOnSiteTasksPage: React.FC = () => {
   const loadMyTasks = async () => {
     try {
       setLoading(true);
-      const result: PagedOnSiteTaskResult = await onSiteTaskService.getMyTasks(
+      const result: PagedResultDto<OnSiteTaskDto> = await onSiteTaskService.getOnSiteTasks(
         currentPage,
         10
       );
       setTasks(result.items);
-      setTotalPages(result.totalPages);
+      setTotalPages(Math.ceil(result.totalCount / 10));
     } catch (error) {
       toast.error("Failed to load your tasks");
     } finally {
@@ -70,7 +70,11 @@ const MyOnSiteTasksPage: React.FC = () => {
 
   const handleStartTask = async (taskId: number) => {
     try {
-      await onSiteTaskService.updateTaskStatus(taskId, 2); // Status: In Progress
+      const task = await onSiteTaskService.getOnSiteTaskById(taskId);
+      await onSiteTaskService.updateOnSiteTask(taskId, {
+        ...task,
+        statusId: 2 // Status: In Progress
+      });
       toast.success("Task started successfully");
       loadMyTasks();
     } catch (error) {
@@ -82,11 +86,12 @@ const MyOnSiteTasksPage: React.FC = () => {
     if (!selectedTask) return;
 
     try {
-      await onSiteTaskService.completeTask(
-        selectedTask.taskId,
-        completionNotes,
-        actualHours ? parseFloat(actualHours) : undefined
-      );
+      await onSiteTaskService.updateOnSiteTask(selectedTask.taskId, {
+        ...selectedTask,
+        statusId: 3, // Status: Completed
+        actualHours: actualHours ? parseFloat(actualHours) : undefined,
+        notes: completionNotes || selectedTask.notes
+      });
       toast.success("Task completed successfully");
       setIsCompleteDialogOpen(false);
       setCompletionNotes("");
@@ -166,11 +171,11 @@ const MyOnSiteTasksPage: React.FC = () => {
     return <Badge className={colorClass}>{difficulty || "Medium"}</Badge>;
   };
 
-  const canStartTask = (task: OnSiteTaskViewModel) => {
+  const canStartTask = (task: OnSiteTaskDto) => {
     return task.statusId === 1; // Pending
   };
 
-  const canCompleteTask = (task: OnSiteTaskViewModel) => {
+  const canCompleteTask = (task: OnSiteTaskDto) => {
     return task.statusId === 2; // In Progress
   };
 

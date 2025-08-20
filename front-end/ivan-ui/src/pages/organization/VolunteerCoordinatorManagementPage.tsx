@@ -31,7 +31,7 @@ const VolunteerCoordinatorManagementPage = () => {
           organizationId,
           {} // empty filters for initial load
         );
-      return result.coordinators || [];
+      return result.items || [];
     },
   };
 

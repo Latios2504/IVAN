@@ -29,20 +29,20 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  volunteerScheduleService,
-  type VolunteerScheduleDTO,
-  type VolunteerScheduleFilterDTO,
-} from "@/services/volunteerScheduleService";
+import { volunteerScheduleService } from "@/services/volunteerScheduleService";
+import type {
+  VolunteerScheduleDto,
+  VolunteerScheduleFilterDto,
+} from "@/types/volunteerSchedule";
 
 export default function VolunteerSchedulePage() {
   // State management
-  const [schedules, setSchedules] = useState<VolunteerScheduleDTO[]>([]);
+  const [schedules, setSchedules] = useState<VolunteerScheduleDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
 
   // Filter states
-  const [filters, setFilters] = useState<VolunteerScheduleFilterDTO>({
+  const [filters, setFilters] = useState<VolunteerScheduleFilterDto>({
     page: 1,
     size: 20,
     sortBy: "StartDateTime",
@@ -58,10 +58,10 @@ export default function VolunteerSchedulePage() {
     try {
       setLoading(true);
       const result = await volunteerScheduleService.getPersonalSchedules(
-        filters
-      );
-      setSchedules(result.items);
-      setTotalItems(result.totalCount);
+      filters
+    );
+    setSchedules(result.items);
+    setTotalItems(result.totalCount);
     } catch (error) {
       console.error("Failed to load personal schedules:", error);
       toast.error("Không thể tải lịch trình cá nhân");
@@ -114,14 +114,14 @@ export default function VolunteerSchedulePage() {
   };
 
   const handleFilterChange = (
-    key: keyof VolunteerScheduleFilterDTO,
+    key: keyof VolunteerScheduleFilterDto,
     value: any
   ) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+    setFilters((prev: VolunteerScheduleFilterDto) => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const handlePageChange = (newPage: number) => {
-    setFilters((prev) => ({ ...prev, page: newPage }));
+    setFilters((prev: VolunteerScheduleFilterDto) => ({ ...prev, page: newPage }));
   };
 
   const getUpcomingSchedules = () => {

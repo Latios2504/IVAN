@@ -40,20 +40,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { onSiteTaskService } from "@/services/onSiteTaskService";
-import { eventService } from "@/services/eventService";
+import { eventsService } from "@/services/eventsService";
 import type {
-  OnSiteTaskViewModel,
-  OnSiteTaskInput,
-  PagedOnSiteTaskResult,
+  OnSiteTaskDto,
+  OnSiteTaskInputDto,
 } from "@/types/onSiteTask";
-import type { EventDto } from "@/types/event";
+import type { PagedResultDto } from "@/types/common";
+import type { EventDto } from "@/types/events";
 
 const OnSiteTaskManagementPage: React.FC = () => {
-  const [tasks, setTasks] = useState<OnSiteTaskViewModel[]>([]);
+  const [tasks, setTasks] = useState<OnSiteTaskDto[]>([]);
   const [events, setEvents] = useState<EventDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<OnSiteTaskViewModel | null>(
+  const [selectedTask, setSelectedTask] = useState<OnSiteTaskDto | null>(
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,7 +61,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [formData, setFormData] = useState<OnSiteTaskInput>({
+  const [formData, setFormData] = useState<OnSiteTaskInputDto>({
     eventId: 0,
     categoryId: 1,
     statusId: 1,
@@ -88,10 +88,10 @@ const OnSiteTaskManagementPage: React.FC = () => {
   const loadTasks = async () => {
     try {
       setLoading(true);
-      const result: PagedOnSiteTaskResult =
+      const result: PagedResultDto<OnSiteTaskDto> =
         await onSiteTaskService.getOnSiteTasks(currentPage, 10);
       setTasks(result.items);
-      setTotalPages(result.totalPages);
+      setTotalPages(Math.ceil(result.totalCount / 10));
     } catch (error) {
       toast.error("Failed to load tasks");
     } finally {
@@ -101,7 +101,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
 
   const loadEvents = async () => {
     try {
-      const eventResult = await eventService.getOrganizationEvents({
+      const eventResult = await eventsService.getEvents({
         page: 1,
         size: 50,
         sortBy: "startDate",

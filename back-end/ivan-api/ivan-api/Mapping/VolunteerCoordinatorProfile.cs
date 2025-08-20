@@ -2,7 +2,7 @@ using AutoMapper;
 using ivan_api.DTOs.VolunteerCoordinator;
 using ivan_api.Models;
 
-namespace ivan_api.Mapping.Profiles;
+namespace ivan_api.Mapping;
 
 public class VolunteerCoordinatorProfile : Profile
 {

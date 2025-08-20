@@ -1,12 +1,12 @@
 // Volunteer Coordinator Service - Matching backend VolunteerCoordinatorController
 import { apiClient } from "./apiClient";
+import type { PagedResultDto } from "../types/common";
 import type {
   VolunteerCoordinatorDto,
   CreateVolunteerCoordinatorDto,
   UpdateVolunteerCoordinatorDto,
   VolunteerCoordinatorFilterDto,
   VolunteerCoordinatorStatsDto,
-  VolunteerCoordinatorListResponseDto,
   ManagementLevelDto,
   SpecializationDto,
 } from "../types/volunteerCoordinator";
@@ -30,45 +30,47 @@ class VolunteerCoordinatorService {
   async getCoordinatorsByOrganization(
     organizationId: number,
     filter: Partial<VolunteerCoordinatorFilterDto> = {}
-  ): Promise<VolunteerCoordinatorListResponseDto> {
+  ): Promise<PagedResultDto<VolunteerCoordinatorDto>> {
     const filterWithDefaults = { ...DEFAULT_COORDINATOR_FILTER, ...filter };
 
-    const response = await apiClient.post<VolunteerCoordinatorListResponseDto>(
+    const response = await apiClient.post<PagedResultDto<VolunteerCoordinatorDto>>(
       `${this.baseUrl}/getCoordinatorsByOrganization/${organizationId}`,
       filterWithDefaults
     );
 
     if (!response.data) {
       return {
-        coordinators: [],
+        items: [],
         totalCount: 0,
-        page: 1,
-        size: 20,
+        pageNumber: 1,
+        pageSize: 20,
         totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
       };
     }
 
     // Handle .NET JSON serialization format
     const extractedData = this.extractDataFromNetResponse(response.data);
 
-    // If coordinators array is wrapped in $values, extract it
+    // If items array is wrapped in $values, extract it
     if (
       extractedData &&
       typeof extractedData === "object" &&
-      "coordinators" in extractedData
+      "items" in extractedData
     ) {
-      const listResponse = extractedData as VolunteerCoordinatorListResponseDto;
+      const pagedResult = extractedData as PagedResultDto<VolunteerCoordinatorDto>;
       if (
-        listResponse.coordinators &&
-        typeof listResponse.coordinators === "object" &&
-        "$values" in listResponse.coordinators
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
       ) {
-        listResponse.coordinators = (listResponse.coordinators as any).$values;
+        pagedResult.items = (pagedResult.items as any).$values;
       }
-      return listResponse;
+      return pagedResult;
     }
 
-    return extractedData as VolunteerCoordinatorListResponseDto;
+    return extractedData as PagedResultDto<VolunteerCoordinatorDto>;
   }
 
   // GET /api/VolunteerCoordinator/{coordinatorId} - Get Coordinator by ID
@@ -261,24 +263,11 @@ class VolunteerCoordinatorService {
   async getOrganizationCoordinators(
     filter: Partial<VolunteerCoordinatorFilterDto>,
     organizationId: number
-  ): Promise<VolunteerCoordinatorListResponseDto> {
+  ): Promise<PagedResultDto<VolunteerCoordinatorDto>> {
     return this.getCoordinatorsByOrganization(organizationId, filter);
   }
 
-  // Helper method to get current user's coordinator profile
-  async getCurrentUserCoordinator(): Promise<VolunteerCoordinatorDto | null> {
-    try {
-      // This would typically get current user ID from auth context
-      // For now, we'll let the backend handle the authorization
-      const response = await apiClient.get<VolunteerCoordinatorDto>(
-        `${this.baseUrl}/current`
-      );
-      return response.data || null;
-    } catch (error) {
-      // If coordinator doesn't exist or user is not authorized, return null
-      return null;
-    }
-  }
+  // Note: getCurrentUserCoordinator method removed - no corresponding backend endpoint
 
   // Helper method to validate coordinator data before creation/update
   validateCoordinatorData(

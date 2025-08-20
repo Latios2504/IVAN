@@ -2,7 +2,7 @@
 using ivan_api.DTOs.PartnerCollaboration;
 using ivan_api.Models;
 
-namespace ivan_api.Mapping.Profiles
+namespace ivan_api.Mapping
 {
     public class PartnerCollaborationProfile : Profile
     {

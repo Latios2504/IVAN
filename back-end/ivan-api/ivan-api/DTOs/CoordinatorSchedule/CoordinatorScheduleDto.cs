@@ -128,4 +128,29 @@ namespace ivan_api.DTOs.CoordinatorSchedule
         public string? CoordinatorName { get; set; }
         public string? EventName { get; set; }
     }
+
+    // Additional DTOs for new endpoints
+    public class UpdateScheduleStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
+    }
+
+    public class BulkUpdateStatusDto
+    {
+        public List<int> ScheduleIds { get; set; } = new();
+        public string Status { get; set; } = string.Empty;
+    }
+
+    public class BulkDeleteDto
+    {
+        public List<int> ScheduleIds { get; set; } = new();
+    }
+
+    public class CheckConflictsDto
+    {
+        public int CoordinatorId { get; set; }
+        public DateTime StartDateTime { get; set; }
+        public DateTime EndDateTime { get; set; }
+        public int? ExcludeScheduleId { get; set; }
+    }
 }

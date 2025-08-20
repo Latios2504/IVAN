@@ -1,4 +1,4 @@
-// Volunteer Coordinator API Types - Matching backend VolunteerCoordinatorController
+// Volunteer Coordinator API Types
 
 // Core DTOs
 export interface VolunteerCoordinatorDto {
@@ -87,14 +87,6 @@ export interface VolunteerCoordinatorStatsDto {
 export interface DepartmentStatsDto {
   department: string;
   count: number;
-}
-
-export interface VolunteerCoordinatorListResponseDto {
-  coordinators: VolunteerCoordinatorDto[];
-  totalCount: number;
-  page: number;
-  size: number;
-  totalPages: number;
 }
 
 // Additional types for management levels and specializations

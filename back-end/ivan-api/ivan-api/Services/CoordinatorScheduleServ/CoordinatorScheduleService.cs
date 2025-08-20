@@ -186,11 +186,11 @@ namespace ivan_api.Services.CoordinatorScheduleServ
             return await _repository.BulkDeleteAsync(organizationId, scheduleIds);
         }
 
-        public async Task<List<CoordinatorScheduleDto>> CheckScheduleConflictsAsync(
+        public async Task<List<CoordinatorScheduleSummaryDto>> CheckScheduleConflictsAsync(
             int coordinatorId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
         {
             var conflicts = await _repository.CheckConflictsAsync(coordinatorId, startDateTime, endDateTime, excludeScheduleId);
-            return _mapper.Map<List<CoordinatorScheduleDto>>(conflicts);
+            return _mapper.Map<List<CoordinatorScheduleSummaryDto>>(conflicts);
         }
 
         public async Task<VolunteerCoordinator?> GetCoordinatorByIdAsync(int coordinatorId)

@@ -2,7 +2,7 @@
 using ivan_api.DTOs.Feedback;
 using ivan_api.Models;
 
-namespace ivan_api.Mapping.Profiles
+namespace ivan_api.Mapping
 {
     public class FeedbackProfileMapping : Profile
     {

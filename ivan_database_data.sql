@@ -67,10 +67,10 @@ INSERT INTO EventCategories (CategoryName, Description) VALUES
 (N'Công nghệ', N'Cuộc thi lập trình, hackathon');
 
 INSERT INTO EventStatus (StatusName, Description, Color) VALUES
-(N'Pending Approval', N'Chờ xác nhận tổ chức', '#00b894'),
-(N'Scheduled', N'Sự kiện đã lên lịch', '#4287f5'),
-(N'Ongoing', N'Sự kiện đang tiến hành', '#2ecc71'),
-(N'Completed', N'Sự kiện đã hoàn thành', '#888888'),
+(N'Pending Approval', N'Chờ admin duyệt', '#00b894'),
+(N'Published', N'Đã duyệt, hiển thị công khai', '#4287f5'),
+(N'Ongoing', N'Sự kiện đang diễn ra', '#2ecc71'),
+(N'Completed', N'Sự kiện hoàn tất', '#888888'),
 (N'Cancelled', N'Sự kiện bị huỷ', '#ff3333');
 
 INSERT INTO VolunteerProfiles (UserId, StudentId, University, Major, YearOfStudy, Motivation, Experience, Availability, VolunteerHours, IsVerified)
@@ -156,13 +156,13 @@ VALUES
 
 -- Insert Support Categories
 INSERT INTO SupportCategories (CategoryName, Description, Priority, ExpectedResponseTime) VALUES
-(N'Lỗi hệ thống', N'Báo lỗi giao diện, chức năng không hoạt động', N'High', 4),
-(N'Tài khoản & Đăng nhập', N'Vấn đề về đăng nhập, quên mật khẩu, khóa tài khoản', N'High', 6),
-(N'Đăng ký sự kiện', N'Hỗ trợ đăng ký tham gia sự kiện, thay đổi thông tin', N'Medium', 12),
-(N'Quản lý hồ sơ', N'Cập nhật thông tin cá nhân, chứng chỉ', N'Medium', 24),
-(N'Hướng dẫn sử dụng', N'Hướng dẫn các tính năng, cách thức hoạt động', N'Low', 48),
-(N'Phản hồi & góp ý', N'Ý kiến cải thiện hệ thống, báo cáo trải nghiệm', N'Low', 72),
-(N'Kỹ thuật khác', N'Các vấn đề kỹ thuật không thuộc danh mục trên', N'Medium', 24);
+(N'Yêu cầu khẩn cấp', N'Cứu trợ khẩn cấp (tai nạn, bệnh nặng, thiếu nhu yếu phẩm tức thời)', N'High', 4),
+(N'Hỗ trợ y tế cá nhân', N'Chi phí khám/chữa bệnh, vật tư y tế', N'High', 24),
+(N'Hỗ trợ giáo dục', N'Học bổng, dụng cụ học tập, học phí', N'Medium', 72),
+(N'Hỗ trợ thực phẩm', N'Gạo, nhu yếu phẩm cho hộ khó khăn', N'High', 24),
+(N'Hỗ trợ nhà ở', N'Sửa chữa nhà, nhà tình thương', N'Medium', 168),
+(N'Hỗ trợ thiên tai', N'Cứu trợ lũ lụt, hạn hán, sạt lở...', N'High', 12),
+(N'Kêu gọi hiến máu', N'Đề nghị tổ chức/đồng hành hiến máu', N'Medium', 48);
 
 -- Insert User Profiles
 INSERT INTO UserProfiles (UserId, FirstName, LastName, PhoneNumber, DateOfBirth, Gender, Address, District, Province, EmergencyContactName, EmergencyContactPhone) VALUES
@@ -223,17 +223,17 @@ INSERT INTO TaskStatus (StatusName, Description, Color) VALUES
 
 -- Insert On-Site Tasks
 INSERT INTO OnSiteTasks (EventId, CategoryId, StatusId, TaskName, Description, StartTime, EndTime, EstimatedHours, Location, RequiredVolunteers, Priority, Difficulty, Instructions) VALUES
-(1, 1, 1, N'Chuẩn bị bàn ghế', N'Sắp xếp bàn ghế cho khu vực tiếp đón', '2025-07-20 07:00:00', '2025-07-20 08:00:00', 1.0, N'Hội trường A1', 4, N'Cao', N'Dễ', N'Sắp xếp theo sơ đồ đã có'),
-(1, 2, 1, N'Đón tiếp người hiến máu', N'Hướng dẫn và đón tiếp người đến hiến máu', '2025-07-20 08:00:00', '2025-07-20 17:00:00', 9.0, N'Lễ tân', 6, N'Cao', N'Trung bình', N'Thân thiện, nhiệt tình, hướng dẫn rõ ràng'),
-(2, 1, 1, N'Chuẩn bị dụng cụ dọn rác', N'Phát găng tay, túi rác cho tình nguyện viên', '2025-08-10 06:30:00', '2025-08-10 07:30:00', 1.0, N'Điểm tập trung', 2, N'Cao', N'Dễ', N'Kiểm tra đủ số lượng dụng cụ'),
-(2, 9, 1, N'Hướng dẫn dọn rác', N'Hướng dẫn cách phân loại và thu gom rác', '2025-08-10 07:30:00', '2025-08-10 11:30:00', 4.0, N'Khu vực bờ kè', 3, N'Cao', N'Trung bình', N'Chú ý an toàn, phân loại đúng cách'),
-(3, 9, 1, N'Hướng dẫn hoạt động team building', N'Tổ chức các trò chơi nhóm cho trẻ', '2025-07-25 14:00:00', '2025-07-25 17:00:00', 3.0, N'Khu vực sân chơi', 5, N'Trung bình', N'Trung bình', N'Tương tác tích cực với trẻ em'),
-(4, 7, 1, N'Hỗ trợ y tế', N'Đo huyết áp, kiểm tra sức khỏe cơ bản', '2025-07-30 08:00:00', '2025-07-30 16:00:00', 8.0, N'Khu khám bệnh', 4, N'Cao', N'Khó', N'Yêu cầu có kiến thức y tế cơ bản'),
-(5, 9, 1, N'Huấn luyện bóng đá cơ bản', N'Dạy kỹ thuật cơ bản cho trẻ em', '2025-07-18 15:00:00', '2025-07-18 18:00:00', 3.0, N'Sân bóng', 3, N'Trung bình', N'Trung bình', N'Cần có kinh nghiệm chơi bóng đá'),
-(6, 4, 1, N'Quay phim chương trình', N'Ghi lại các tiết mục biểu diễn', '2025-08-05 19:00:00', '2025-08-05 22:00:00', 3.0, N'Sân khấu', 2, N'Trung bình', N'Trung bình', N'Cần biết sử dụng camera'),
-(7, 2, 1, N'Đón tiếp học sinh', N'Hướng dẫn học sinh đến các gian tư vấn', '2025-07-27 08:00:00', '2025-07-27 17:00:00', 9.0, N'Sảnh chính', 8, N'Cao', N'Dễ', N'Thân thiện, am hiểu thông tin sự kiện'),
-(8, 3, 1, N'Hỗ trợ máy chiếu', N'Cài đặt và vận hành thiết bị chiếu', '2025-08-12 13:00:00', '2025-08-12 17:00:00', 4.0, N'Phòng 201', 2, N'Trung bình', N'Trung bình', N'Cần biết sử dụng thiết bị AV'),
-(9, 3, 1, N'Hỗ trợ kỹ thuật máy tính', N'Thiết lập máy tính cho thí sinh', '2025-07-19 08:00:00', '2025-07-19 09:00:00', 1.0, N'Lab CNTT', 4, N'Cao', N'Khó', N'Cần kiến thức IT tốt');
+(1, 1, 1, N'Chuẩn bị bàn ghế', N'Sắp xếp bàn ghế cho khu vực tiếp đón', '2025-07-20 07:00:00', '2025-07-20 08:00:00', 1.0, N'Hội trường A1', 4, N'High', N'Dễ', N'Sắp xếp theo sơ đồ đã có'),
+(1, 2, 1, N'Đón tiếp người hiến máu', N'Hướng dẫn và đón tiếp người đến hiến máu', '2025-07-20 08:00:00', '2025-07-20 17:00:00', 9.0, N'Lễ tân', 6, N'High', N'Medium', N'Thân thiện, nhiệt tình, hướng dẫn rõ ràng'),
+(2, 1, 1, N'Chuẩn bị dụng cụ dọn rác', N'Phát găng tay, túi rác cho tình nguyện viên', '2025-08-10 06:30:00', '2025-08-10 07:30:00', 1.0, N'Điểm tập trung', 2, N'High', N'Dễ', N'Kiểm tra đủ số lượng dụng cụ'),
+(2, 9, 1, N'Hướng dẫn dọn rác', N'Hướng dẫn cách phân loại và thu gom rác', '2025-08-10 07:30:00', '2025-08-10 11:30:00', 4.0, N'Khu vực bờ kè', 3, N'High', N'Medium', N'Chú ý an toàn, phân loại đúng cách'),
+(3, 9, 1, N'Hướng dẫn hoạt động team building', N'Tổ chức các trò chơi nhóm cho trẻ', '2025-07-25 14:00:00', '2025-07-25 17:00:00', 3.0, N'Khu vực sân chơi', 5, N'Medium', N'Medium', N'Tương tác tích cực với trẻ em'),
+(4, 7, 1, N'Hỗ trợ y tế', N'Đo huyết áp, kiểm tra sức khỏe cơ bản', '2025-07-30 08:00:00', '2025-07-30 16:00:00', 8.0, N'Khu khám bệnh', 4, N'High', N'Khó', N'Yêu cầu có kiến thức y tế cơ bản'),
+(5, 9, 1, N'Huấn luyện bóng đá cơ bản', N'Dạy kỹ thuật cơ bản cho trẻ em', '2025-07-18 15:00:00', '2025-07-18 18:00:00', 3.0, N'Sân bóng', 3, N'Medium', N'Medium', N'Cần có kinh nghiệm chơi bóng đá'),
+(6, 4, 1, N'Quay phim chương trình', N'Ghi lại các tiết mục biểu diễn', '2025-08-05 19:00:00', '2025-08-05 22:00:00', 3.0, N'Sân khấu', 2, N'Medium', N'Medium', N'Cần biết sử dụng camera'),
+(7, 2, 1, N'Đón tiếp học sinh', N'Hướng dẫn học sinh đến các gian tư vấn', '2025-07-27 08:00:00', '2025-07-27 17:00:00', 9.0, N'Sảnh chính', 8, N'High', N'Dễ', N'Thân thiện, am hiểu thông tin sự kiện'),
+(8, 3, 1, N'Hỗ trợ máy chiếu', N'Cài đặt và vận hành thiết bị chiếu', '2025-08-12 13:00:00', '2025-08-12 17:00:00', 4.0, N'Phòng 201', 2, N'Medium', N'Medium', N'Cần biết sử dụng thiết bị AV'),
+(9, 3, 1, N'Hỗ trợ kỹ thuật máy tính', N'Thiết lập máy tính cho thí sinh', '2025-07-19 08:00:00', '2025-07-19 09:00:00', 1.0, N'Lab CNTT', 4, N'High', N'Khó', N'Cần kiến thức IT tốt');
 
 -- Insert Task Assignments
 INSERT INTO TaskAssignments (TaskId, VolunteerId, AssignedBy, Status) VALUES
@@ -332,17 +332,10 @@ INSERT INTO Notifications (UserId, Title, Content, SendDate, IsRead) VALUES
 (10, N'Chúc mừng hoàn thành sự kiện', N'Chúc mừng bạn đã hoàn thành xuất sắc workshop thiết kế CV. Chúc bạn thành công trong công việc!', '2025-08-12 17:50:00', 1);
 
 -- Insert Support Requests
-INSERT INTO SupportRequests (UserId, CategoryId, Subject, Description, Priority, Status) VALUES
-(1, 1, N'Lỗi không thể đăng nhập', N'Tôi không thể đăng nhập vào hệ thống bằng tài khoản của mình. Đã thử reset mật khẩu nhưng không nhận được email.', N'High', N'Open'),
-(3, 3, N'Không thể hủy đăng ký sự kiện', N'Tôi muốn hủy đăng ký sự kiện nhưng không tìm thấy nút hủy trong hệ thống.', N'Medium', N'In Progress'),
-(5, 4, N'Cập nhật thông tin cá nhân', N'Làm thế nào để thay đổi số điện thoại trong hồ sơ cá nhân?', N'Low', N'Resolved'),
-(7, 2, N'Quên mật khẩu', N'Tôi quên mật khẩu đăng nhập và không nhận được email reset.', N'High', N'Resolved'),
-(9, 5, N'Hướng dẫn sử dụng tính năng', N'Tôi cần hướng dẫn cách đăng ký tham gia nhiều sự kiện cùng lúc.', N'Low', N'Open'),
-(2, 6, N'Góp ý cải thiện giao diện', N'Giao diện ứng dụng trên điện thoại hơi khó sử dụng, nên cải thiện để thân thiện hơn.', N'Low', N'Open'),
-(4, 1, N'Lỗi hiển thị chứng chỉ', N'Chứng chỉ của tôi không hiển thị đúng định dạng khi tải về PDF.', N'Medium', N'In Progress'),
-(6, 3, N'Thay đổi thời gian tham gia', N'Tôi muốn thay đổi ca làm việc trong sự kiện đã đăng ký.', N'Medium', N'Resolved'),
-(8, 2, N'Tài khoản bị khóa', N'Tài khoản của tôi bị khóa mà không rõ lý do. Xin hỗ trợ mở lại.', N'High', N'Open'),
-(10, 4, N'Cập nhật kỹ năng', N'Làm thế nào để thêm kỹ năng mới vào hồ sơ tình nguyện viên?', N'Low', N'Resolved');
+INSERT INTO SupportRequests (UserId, CategoryId, Subject, Description, Priority, Status, AttachmentUrls) VALUES
+(1, (SELECT CategoryId FROM SupportCategories WHERE CategoryName=N'Hỗ trợ y tế cá nhân'), N'[SR-0001] Hỗ trợ phẫu thuật tim cho bé H.', N'Gia đình khó khăn, cần hỗ trợ 40 triệu cho ca phẫu thuật tim. Đính kèm hồ sơ bệnh án.', N'High', N'Submitted', N'["/evidence/medical_report_0001.pdf","/evidence/family_cert_0001.jpg"]'),
+(2, (SELECT CategoryId FROM SupportCategories WHERE CategoryName=N'Hỗ trợ thực phẩm'), N'[SR-0002] Gạo & nhu yếu phẩm cho 20 hộ nghèo phường 8', N'Tổ dân phố đề nghị hỗ trợ 20 suất quà (gạo, dầu ăn, sữa) cho các hộ khó khăn.', N'High', N'Under Review', N'["/evidence/list_households_p8.xlsx"]'),
+(3, (SELECT CategoryId FROM SupportCategories WHERE CategoryName=N'Kêu gọi hiến máu'), N'[SR-0003] Tổ chức ngày hội hiến máu tại quận 10', N'Đề xuất phối hợp tổ chức hiến máu tại Nhà văn hoá phường, dự kiến 200 người tham gia.', N'Medium', N'Approved', NULL);
 
 -- Insert AI Custom Instructions
 INSERT INTO AiCustomInstructions (InstructionName, SystemPrompt, BehaviorInstructions, IsActive) VALUES
@@ -362,3 +355,82 @@ INSERT INTO AiCustomInstructions (InstructionName, SystemPrompt, BehaviorInstruc
 - Giải thích logic query
 - Tối ưu hiệu suất truy vấn', 1);
 
+INSERT INTO VolunteerSchedules (VolunteerId, EventId, Title, Description, StartDateTime, EndDateTime, Location, ScheduleType, Priority, Status, IsAllDay, ReminderMinutes, Notes, CreatedBy)
+VALUES
+(1, 1, N'Ca sáng hiến máu', N'Chuẩn bị khu vực tiếp đón', '2025-07-20 08:00:00', '2025-07-20 12:00:00', N'BK HCM', N'Onsite', N'High', N'Scheduled', 0, 30, N'Có mặt trước 15 phút', 2),
+(2, 1, N'Ca chiều hiến máu', N'Hỗ trợ hướng dẫn quy trình', '2025-07-20 13:00:00', '2025-07-20 17:00:00', N'BK HCM', N'Onsite', N'High', N'Scheduled', 0, 30, N'Liên hệ điều phối viên khi đến', 2),
+(3, 2, N'Dọn rác bờ kè - Ca sáng', N'Chuẩn bị dụng cụ và phân nhóm', '2025-07-26 07:30:00', '2025-07-26 11:30:00', N'Bờ kè Xanh', N'Onsite', N'Medium', N'Scheduled', 0, 60, N'Đem theo găng tay', 2),
+(4, 8, N'Workshop CV - check-in', N'Điểm danh và phát tài liệu', '2025-08-12 08:00:00', '2025-08-12 12:00:00', N'Phòng 201, ĐH Mở', N'Onsite', N'High', N'Scheduled', 0, 30, N'Kiểm tra máy chiếu', 5),
+(5, 9, N'Hackathon AI - hỗ trợ kỹ thuật', N'Hỗ trợ setup máy và IDE', '2025-07-19 08:00:00', '2025-07-19 20:00:00', N'Lab CNTT, ĐH BK', N'Onsite', N'High', N'Scheduled', 0, 15, N'Checklist cài đặt', 5);
+
+INSERT INTO CoordinatorSchedules (CoordinatorId, EventId, Title, Description, StartDateTime, EndDateTime, Location, ScheduleType, Priority, Status, IsAllDay, ReminderMinutes, Notes, CreatedBy)
+VALUES
+((SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), 1, N'Briefing đầu ngày', N'Phân công công việc cho TNV', '2025-07-20 07:30:00', '2025-07-20 08:00:00', N'BK HCM', N'Meeting', N'High', N'Planned', 0, 30, N'Chuẩn bị danh sách', 2),
+((SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), 1, N'Rút kinh nghiệm', N'Họp nhanh tổng kết', '2025-07-20 17:15:00', '2025-07-20 17:45:00', N'BK HCM', N'Meeting', N'Low', N'Planned', 0, 10, N'Ghi chú sự cố', 2),
+((SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E002'), 8, N'Chuẩn bị Workshop', N'Kiểm tra CSVC và tài liệu', '2025-08-12 07:30:00', '2025-08-12 08:30:00', N'Phòng 201, ĐH Mở', N'Meeting', N'High', N'Planned', 0, 15, N'In thêm phiếu khảo sát', 2);
+
+INSERT INTO CoordinatorTasks (EventId, CoordinatorId, TaskName, Description, DueDate, Priority, Status, Category, EstimatedHours, Notes, CreatedBy)
+VALUES
+(1, (SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), N'Lập kế hoạch phân luồng', N'Xác định khu vực đón tiếp, hiến và nghỉ', '2025-07-18 18:00:00', N'High', N'Not Started', N'Planning', 3.5, N'Dùng sơ đồ nhà thi đấu', 2),
+(1, (SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), N'Liên hệ nhà tài trợ', N'Xác nhận nước uống và snack', '2025-07-19 12:00:00', N'Medium', N'In Progress', N'Logistics', 2.0, N'Nhà tài trợ Orion', 2),
+(8, (SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E002'), N'Chuẩn bị thiết bị', N'Máy chiếu, micro, wifi', '2025-08-11 17:00:00', N'High', N'Not Started', N'Operations', 1.5, N'Kiểm tra dây HDMI', 2);
+
+INSERT INTO ChatbotInteractions (UserId, Question, Response, InteractionDate)
+VALUES
+(1, N'Làm sao đăng ký sự kiện hiến máu?', N'Bạn vào mục Sự kiện, chọn \"Ngày hội hiến máu BK\" và nhấn Đăng ký.', '2025-07-09 09:45:00'),
+(3, N'Làm thế nào để nhận chứng chỉ?', N'Sau khi sự kiện kết thúc và được đánh dấu Attended, chứng chỉ sẽ được cấp tự động.', '2025-07-21 10:00:00'),
+(5, N'Tôi có thể đổi ca làm không?', N'Bạn có thể gửi yêu cầu đổi ca trong phần Lịch làm việc.', '2025-07-26 15:20:00');
+
+INSERT INTO Reports (ReportType, Content, GeneratedDate, CreatedBy)
+VALUES
+(N'EventSummary', N'Tổng hợp sự kiện tháng 7: 10 sự kiện, 540 lượt đăng ký, 480 tham gia.', '2025-08-01 08:00:00', 2),
+(N'VolunteerHours', N'Tổng giờ tình nguyện tháng 7: 1,250 giờ.', '2025-08-01 08:10:00', 2);
+
+-- Use role names to remain robust against identity values
+INSERT INTO RolePermissions (RoleId, PermissionName, Description)
+SELECT RoleId, 'ManageEvents', N'Tạo, cập nhật, hủy sự kiện' FROM UserRoles WHERE RoleName = 'Admin';
+INSERT INTO RolePermissions (RoleId, PermissionName, Description)
+SELECT RoleId, 'ApproveRegistrations', N'Duyệt đăng ký sự kiện' FROM UserRoles WHERE RoleName = 'Admin';
+INSERT INTO RolePermissions (RoleId, PermissionName, Description)
+SELECT RoleId, 'ViewReports', N'Xem báo cáo' FROM UserRoles WHERE RoleName IN ('Admin', 'Organization');
+INSERT INTO RolePermissions (RoleId, PermissionName, Description)
+SELECT RoleId, 'RegisterEvents', N'Đăng ký tham gia sự kiện' FROM UserRoles WHERE RoleName = 'Volunteer';
+INSERT INTO RolePermissions (RoleId, PermissionName, Description)
+SELECT RoleId, 'ManageCollaborations', N'Quản lý hợp tác' FROM UserRoles WHERE RoleName = 'Organization';
+
+
+-- ===== Add-on seed for Reports =====
+
+/* Seed sample completion reports (EventCompletion) using JSON content, without changing schema */
+DECLARE @AnyEvent INT = (SELECT TOP 1 EventId FROM Events ORDER BY EventId);
+DECLARE @AnyCoordinator INT = (
+    SELECT TOP 1 VC.CoordinatorId 
+    FROM VolunteerCoordinators VC
+    ORDER BY VC.CoordinatorId
+);
+IF @AnyEvent IS NOT NULL
+BEGIN
+    INSERT INTO Reports (ReportType, Content, CreatedBy)
+    VALUES
+    (N'EventCompletion', 
+     N'{
+        "eventId": ' + CAST(@AnyEvent AS NVARCHAR(20)) + N',
+        "summary": "Completion checklist & outcomes",
+        "totals": {
+            "tasksCompleted": 18,
+            "tasksCancelled": 1,
+            "volunteersCheckedIn": 32,
+            "volunteerHours": 112.5
+        },
+        "artifacts": {
+            "taskClosureSnapshot": true,
+            "attendanceExport": "/exports/attendance_event_' + CAST(@AnyEvent AS NVARCHAR(20)) + N'.csv"
+        },
+        "approvals": {
+            "coordinatorVerified": true,
+            "organizationApproved": false
+        }
+     }',
+     (SELECT TOP 1 UserId FROM Users ORDER BY UserId));
+END
+GO
