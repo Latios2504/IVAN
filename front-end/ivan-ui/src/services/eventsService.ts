@@ -8,6 +8,7 @@ import type {
   UpdateEventDto,
   EventCategoryDto,
   EventStatusDto,
+  CreateEventFromSupportRequestDto,
 } from "../types/events";
 
 class EventsService {
@@ -44,6 +45,20 @@ class EventsService {
     );
     if (!response.data) {
       throw new Error("Failed to create event");
+    }
+    return response.data;
+  }
+
+  // POST /api/Events/from-support-request - Create Event from Support Request (Organization role only)
+  async createEventFromSupportRequest(
+    eventData: CreateEventFromSupportRequestDto
+  ): Promise<{ eventId: number }> {
+    const response = await apiClient.post<{ eventId: number }>(
+      `${this.baseUrl}/from-support-request`,
+      eventData
+    );
+    if (!response.data) {
+      throw new Error("Failed to create event from support request");
     }
     return response.data;
   }

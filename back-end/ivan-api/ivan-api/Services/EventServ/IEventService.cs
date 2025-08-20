@@ -1,4 +1,4 @@
-﻿using ivan_api.DTOs.EventManage;
+using ivan_api.DTOs.EventManage;
 using ivan_api.DTOs.Common;
 
 namespace ivan_api.Services.EventServ
@@ -7,6 +7,7 @@ namespace ivan_api.Services.EventServ
     {
         // Core CRUD methods
         Task<int> CreateAsync(CreateEventDto dto);
+        Task<int> CreateEventFromSupportRequestAsync(CreateEventFromSupportRequestDto dto, int organizationId);
         Task<bool> UpdateAsync(int id, UpdateEventDto dto);
         Task<bool> DeleteAsync(int id, int organizationId);
 

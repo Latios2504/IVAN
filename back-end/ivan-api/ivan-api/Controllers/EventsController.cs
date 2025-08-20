@@ -117,6 +117,57 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Create event from support request (Organizations only)
+        [HttpPost("from-support-request")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> CreateEventFromSupportRequest([FromBody] CreateEventFromSupportRequestDto dto)
+        {
+            try
+            {
+                var organizationId = await GetOrganizationIdFromClaimsAsync();
+                
+                var newId = await _eventService.CreateEventFromSupportRequestAsync(dto, organizationId);
+                
+                return CreatedAtAction(nameof(GetEvent), new { id = newId }, 
+                    new ApiResponseDTO<object>
+                    {
+                        Success = true,
+                        Data = new { EventId = newId },
+                        Message = "Event created from support request successfully"
+                    });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized access when creating event from support request");
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Errors = new List<string> { "Authorization failed" }
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid support request when creating event");
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Errors = new List<string> { "Invalid support request" }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating event from support request");
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to create event from support request",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
         // Create new event (Organizations only)
         [HttpPost]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]

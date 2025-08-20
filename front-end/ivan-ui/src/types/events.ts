@@ -133,3 +133,36 @@ export interface EventStatusDto {
   description?: string;
   isActive: boolean;
 }
+
+export interface CreateEventFromSupportRequestDto {
+  supportRequestId: number;
+  eventName: string;
+  categoryId: number;
+  statusId: number;
+  shortDescription?: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  registrationStartDate?: string;
+  registrationEndDate?: string;
+  location?: string;
+  detailedAddress?: string;
+  province?: string;
+  district?: string;
+  maxVolunteers?: number;
+  minVolunteers: number;
+  requiredSkills?: string;
+  ageRequirement?: string;
+  genderRequirement?: string;
+  requirements?: string;
+  benefits?: string;
+  contactPerson?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  bannerImageUrl?: string;
+  galleryImages?: string;
+  isFeatured: boolean;
+  isUrgent: boolean;
+  linkToSupportRequest: boolean;
+  notes?: string;
+}
