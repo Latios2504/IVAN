@@ -646,6 +646,11 @@ export default function PublicEventsPage() {
           <Button 
             className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300" 
             disabled={eventStatus === 'closed' || eventStatus === 'full'}
+            onClick={() => {
+              if (eventStatus !== 'closed' && eventStatus !== 'full' && selectedEvent) {
+                navigate(`/volunteer/events/${selectedEvent.eventId}/register`);
+              }
+            }}
           >
             <Heart className="h-4 w-4 mr-2" />
             {eventStatus === 'closed' ? 'Đã đóng' : 

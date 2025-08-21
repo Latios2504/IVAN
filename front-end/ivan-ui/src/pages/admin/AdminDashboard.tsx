@@ -132,34 +132,6 @@ export default function AdminDashboard() {
                   </Button>
                 </CardContent>
               </Card>
-
-              {/* Certificate & Templates */}
-              <Card className="bg-gradient-to-br from-orange-50/80 via-amber-50/80 to-yellow-50/80 dark:from-orange-950/30 dark:via-amber-950/30 dark:to-yellow-950/30 border border-orange-200/50 dark:border-orange-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="border-b border-orange-200/50 dark:border-orange-800/50">
-                  <CardTitle className="text-orange-800 dark:text-orange-200 flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Quản lý chứng chỉ
-                  </CardTitle>
-                  <CardDescription className="text-orange-700/80 dark:text-orange-300/80">
-                    Mẫu chứng chỉ hệ thống
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-4">
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/admin/certificate-templates"
-                      className="flex items-center gap-2"
-                    >
-                      <Award className="w-4 h-4" />
-                      Mẫu chứng chỉ
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 
