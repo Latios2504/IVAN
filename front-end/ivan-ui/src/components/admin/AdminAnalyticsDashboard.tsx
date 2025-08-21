@@ -22,20 +22,37 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { TrendingUp, RefreshCw, Calendar, Users, Building2, UserCheck } from "lucide-react";
+import {
+  TrendingUp,
+  RefreshCw,
+  Calendar,
+  Users,
+  Building2,
+  UserCheck,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { toast } from "sonner";
 import { analyticsService } from "../../services/analyticsService";
 import type { AdminDashboardDto } from "../../types/analytics";
 import { TimePeriod } from "../../types/analytics";
-import { StatsCard } from "../dashboard/StatsCard";
+import { StatsCard } from "../common/StatsCard";
 
 const AdminAnalyticsDashboard: React.FC = () => {
-  const [dashboardData, setDashboardData] = useState<AdminDashboardDto | null>(null);
+  const [dashboardData, setDashboardData] = useState<AdminDashboardDto | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>(TimePeriod.Last30Days);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>(
+    TimePeriod.Last30Days
+  );
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -191,9 +208,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-blue-950/40 min-h-screen">
+    <div className="relative isolate space-y-6 p-6 bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-blue-950/40 min-h-screen">
       {/* Hero Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-100/20 via-transparent to-indigo-100/20 dark:from-violet-900/10 dark:via-transparent dark:to-indigo-900/10" />
+      <div className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-br from-violet-100/20 via-transparent to-indigo-100/20 dark:from-violet-900/10 dark:via-transparent dark:to-indigo-900/10" />
       {/* Dashboard Header */}
       <div className="relative z-10 flex justify-between items-start bg-gradient-to-r from-white/80 via-violet-50/50 to-indigo-50/50 dark:from-slate-900/80 dark:via-violet-950/50 dark:to-indigo-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 rounded-2xl p-6 shadow-xl shadow-violet-200/30 dark:shadow-violet-900/30">
         <div>
@@ -205,15 +222,28 @@ const AdminAnalyticsDashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Select value={timePeriod.toString()} onValueChange={(value) => handleTimePeriodChange(parseInt(value) as TimePeriod)}>
+          <Select
+            value={timePeriod.toString()}
+            onValueChange={(value) =>
+              handleTimePeriodChange(parseInt(value) as TimePeriod)
+            }
+          >
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TimePeriod.Last7Days.toString()}>Week</SelectItem>
-              <SelectItem value={TimePeriod.Last30Days.toString()}>Month</SelectItem>
-              <SelectItem value={TimePeriod.Last3Months.toString()}>Quarter</SelectItem>
-              <SelectItem value={TimePeriod.LastYear.toString()}>Year</SelectItem>
+              <SelectItem value={TimePeriod.Last7Days.toString()}>
+                Week
+              </SelectItem>
+              <SelectItem value={TimePeriod.Last30Days.toString()}>
+                Month
+              </SelectItem>
+              <SelectItem value={TimePeriod.Last3Months.toString()}>
+                Quarter
+              </SelectItem>
+              <SelectItem value={TimePeriod.LastYear.toString()}>
+                Year
+              </SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" onClick={refreshData} disabled={loading}>
@@ -229,29 +259,29 @@ const AdminAnalyticsDashboard: React.FC = () => {
       {dashboardData && (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
-              title="Total Users"
-              value={dashboardData.totalUsers}
-              icon={Users}
-              description="All users in the system"
-            />
-            <StatsCard
-              title="Total Events"
-              value={dashboardData.totalEvents}
-              icon={Calendar}
-              description={`${dashboardData.totalRegistrations} registrations`}
-            />
-            <StatsCard
-              title="Organizations"
-              value={dashboardData.totalOrganizations}
-              icon={Building2}
-              description="Active organizations"
-            />
-            <StatsCard
-              title="Volunteers"
-              value={dashboardData.totalVolunteers}
-              icon={UserCheck}
-              description="Registered volunteers"
-            />
+            title="Total Users"
+            value={dashboardData.totalUsers}
+            icon={Users}
+            description="All users in the system"
+          />
+          <StatsCard
+            title="Total Events"
+            value={dashboardData.totalEvents}
+            icon={Calendar}
+            description={`${dashboardData.totalRegistrations} registrations`}
+          />
+          <StatsCard
+            title="Organizations"
+            value={dashboardData.totalOrganizations}
+            icon={Building2}
+            description="Active organizations"
+          />
+          <StatsCard
+            title="Volunteers"
+            value={dashboardData.totalVolunteers}
+            icon={UserCheck}
+            description="Registered volunteers"
+          />
         </div>
       )}
 
@@ -269,7 +299,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* User Growth Chart */}
               <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">User Growth Trends</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    User Growth Trends
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     Monthly user registration and growth patterns
                   </CardDescription>
@@ -311,7 +343,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* User Role Distribution */}
               <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">User Role Distribution</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    User Role Distribution
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     Distribution of users by role type
                   </CardDescription>
@@ -324,12 +358,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
                     <PieChart width={500} height={300}>
                       <Pie
                         data={dashboardData.roleDistribution.map(
-                           (item, index) => ({
-                             name: item.roleName,
-                             value: item.userCount,
-                             fill: CHART_COLORS[index % CHART_COLORS.length],
-                           })
-                         )}
+                          (item, index) => ({
+                            name: item.roleName,
+                            value: item.userCount,
+                            fill: CHART_COLORS[index % CHART_COLORS.length],
+                          })
+                        )}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -348,7 +382,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* Geographic Distribution */}
               <Card className="lg:col-span-2 bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Geographic Distribution</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    Geographic Distribution
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     User distribution by location
                   </CardDescription>
@@ -360,11 +396,27 @@ const AdminAnalyticsDashboard: React.FC = () => {
                   >
                     <BarChart
                       data={[
-                         { location: "Hà Nội", userCount: Math.floor(dashboardData.totalUsers * 0.3) },
-                         { location: "TP.HCM", userCount: Math.floor(dashboardData.totalUsers * 0.25) },
-                         { location: "Đà Nẵng", userCount: Math.floor(dashboardData.totalUsers * 0.15) },
-                         { location: "Khác", userCount: Math.floor(dashboardData.totalUsers * 0.3) },
-                       ]}
+                        {
+                          location: "Hà Nội",
+                          userCount: Math.floor(dashboardData.totalUsers * 0.3),
+                        },
+                        {
+                          location: "TP.HCM",
+                          userCount: Math.floor(
+                            dashboardData.totalUsers * 0.25
+                          ),
+                        },
+                        {
+                          location: "Đà Nẵng",
+                          userCount: Math.floor(
+                            dashboardData.totalUsers * 0.15
+                          ),
+                        },
+                        {
+                          location: "Khác",
+                          userCount: Math.floor(dashboardData.totalUsers * 0.3),
+                        },
+                      ]}
                       width={500}
                       height={300}
                     >
@@ -392,7 +444,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* Event Trends */}
               <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Event Trends</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    Event Trends
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     Monthly event creation and participation trends
                   </CardDescription>
@@ -434,7 +488,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* Event Status Distribution */}
               <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Event Status Distribution</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    Event Status Distribution
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     Distribution of events by current status
                   </CardDescription>
@@ -447,10 +503,22 @@ const AdminAnalyticsDashboard: React.FC = () => {
                     <PieChart width={500} height={300}>
                       <Pie
                         data={[
-                           { name: "Active", value: Math.floor(dashboardData.totalEvents * 0.3), fill: CHART_COLORS[0] },
-                           { name: "Upcoming", value: Math.floor(dashboardData.totalEvents * 0.4), fill: CHART_COLORS[1] },
-                           { name: "Completed", value: Math.floor(dashboardData.totalEvents * 0.3), fill: CHART_COLORS[2] },
-                         ]}
+                          {
+                            name: "Active",
+                            value: Math.floor(dashboardData.totalEvents * 0.3),
+                            fill: CHART_COLORS[0],
+                          },
+                          {
+                            name: "Upcoming",
+                            value: Math.floor(dashboardData.totalEvents * 0.4),
+                            fill: CHART_COLORS[1],
+                          },
+                          {
+                            name: "Completed",
+                            value: Math.floor(dashboardData.totalEvents * 0.3),
+                            fill: CHART_COLORS[2],
+                          },
+                        ]}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -475,7 +543,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* Organization Growth */}
               <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Organization Growth</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    Organization Growth
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     Monthly organization registration trends
                   </CardDescription>
@@ -486,11 +556,11 @@ const AdminAnalyticsDashboard: React.FC = () => {
                     className="h-[300px]"
                   >
                     <LineChart
-                      data={dashboardData.monthlyGrowth.map(item => ({
-                         month: item.month,
-                         organizations: Math.floor(item.users * 0.1),
-                         newOrganizations: Math.floor(item.users * 0.02),
-                       }))}
+                      data={dashboardData.monthlyGrowth.map((item) => ({
+                        month: item.month,
+                        organizations: Math.floor(item.users * 0.1),
+                        newOrganizations: Math.floor(item.users * 0.02),
+                      }))}
                       width={500}
                       height={300}
                     >
@@ -521,7 +591,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
               {/* Organization Type Distribution */}
               <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Organization Types</CardTitle>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                    Organization Types
+                  </CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">
                     Distribution by organization type
                   </CardDescription>
@@ -534,10 +606,28 @@ const AdminAnalyticsDashboard: React.FC = () => {
                     <PieChart width={500} height={300}>
                       <Pie
                         data={[
-                           { name: "Non-profit", value: Math.floor(dashboardData.totalOrganizations * 0.6), fill: CHART_COLORS[0] },
-                           { name: "Educational", value: Math.floor(dashboardData.totalOrganizations * 0.25), fill: CHART_COLORS[1] },
-                           { name: "Government", value: Math.floor(dashboardData.totalOrganizations * 0.15), fill: CHART_COLORS[2] },
-                         ]}
+                          {
+                            name: "Non-profit",
+                            value: Math.floor(
+                              dashboardData.totalOrganizations * 0.6
+                            ),
+                            fill: CHART_COLORS[0],
+                          },
+                          {
+                            name: "Educational",
+                            value: Math.floor(
+                              dashboardData.totalOrganizations * 0.25
+                            ),
+                            fill: CHART_COLORS[1],
+                          },
+                          {
+                            name: "Government",
+                            value: Math.floor(
+                              dashboardData.totalOrganizations * 0.15
+                            ),
+                            fill: CHART_COLORS[2],
+                          },
+                        ]}
                         cx="50%"
                         cy="50%"
                         labelLine={false}

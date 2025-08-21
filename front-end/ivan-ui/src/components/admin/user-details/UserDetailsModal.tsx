@@ -10,8 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { User } from "lucide-react";
 import { toast } from "sonner";
 import { userManagementService } from "@/services/userManagementService";
-import { UserBasicInfo } from "./user-details/UserBasicInfo";
-import { UserProfileTabs } from "./user-details/UserProfileTabs";
+import { UserProfileTabs } from "./UserProfileTabs";
 import type { UserDetailsDto } from "@/types/userManagement";
 
 interface UserDetailsModalProps {
@@ -76,7 +75,9 @@ function UserDetailsModal({
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-                <p className="text-blue-600 dark:text-blue-400">Đang tải thông tin...</p>
+                <p className="text-blue-600 dark:text-blue-400">
+                  Đang tải thông tin...
+                </p>
               </div>
             </div>
           ) : user ? (

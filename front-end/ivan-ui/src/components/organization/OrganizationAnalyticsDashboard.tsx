@@ -44,7 +44,7 @@ import { toast } from "sonner";
 import { analyticsService } from "../../services/analyticsService";
 import type { OrganizationDashboardDto } from "../../types/analytics";
 import { TimePeriod } from "../../types/analytics";
-import { StatsCard } from "../dashboard/StatsCard";
+import { StatsCard } from "../common/StatsCard";
 
 const CHART_COLORS = [
   "#3b82f6", // blue

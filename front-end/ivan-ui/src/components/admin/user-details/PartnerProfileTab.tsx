@@ -15,11 +15,11 @@ import {
   Users,
 } from "lucide-react";
 import { partnerProfileService } from "@/services/partnerProfileService";
-import type { UserListDto } from "@/types/userManagement";
+import type { UserDetailsDto } from "@/types/userManagement";
 import type { PartnerProfileViewModel } from "@/types/partnerProfile";
 
 interface PartnerProfileTabProps {
-  user: UserListDto;
+  user: UserDetailsDto;
 }
 
 export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
@@ -32,6 +32,9 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
     const fetchPartnerProfile = async () => {
       try {
         setLoading(true);
+        if (!user.userId) {
+          throw new Error("User ID is required");
+        }
         const profile = await partnerProfileService.getPartnerProfile(
           user.userId
         );
@@ -43,7 +46,7 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
       }
     };
 
-    if (user.roleName?.toLowerCase() === "partner") {
+    if (user.roleName?.toLowerCase() === "partner" && user.userId) {
       fetchPartnerProfile();
     } else {
       setLoading(false);

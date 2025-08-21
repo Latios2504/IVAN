@@ -17,11 +17,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { organizationProfileService } from "@/services/organizationProfileService";
-import type { UserListDto } from "@/types/userManagement";
+import type { UserDetailsDto } from "@/types/userManagement";
 import type { OrganizationProfileViewModel } from "@/types/organizationProfile";
 
 interface OrganizationProfileTabProps {
-  user: UserListDto;
+  user: UserDetailsDto;
 }
 
 export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
@@ -34,6 +34,9 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
     const fetchOrgProfile = async () => {
       try {
         setLoading(true);
+        if (!user.userId) {
+          throw new Error("User ID is required");
+        }
         const profile = await organizationProfileService.getOrganizationProfile(
           user.userId
         );
@@ -45,7 +48,7 @@ export function OrganizationProfileTab({ user }: OrganizationProfileTabProps) {
       }
     };
 
-    if (user.roleName?.toLowerCase() === "organization") {
+    if (user.roleName?.toLowerCase() === "organization" && user.userId) {
       fetchOrgProfile();
     } else {
       setLoading(false);

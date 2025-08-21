@@ -122,7 +122,7 @@ class EventRegistrationService {
       ...(filters.status && { status: filters.status }),
     };
     const response = await apiClient.get<PagedResultDto<RegistrationDTO>>(
-      `/api/volunteer/registrations`,
+      `/volunteer/registrations`,
       params
     );
     return response.data!;

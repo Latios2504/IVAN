@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { StatsCard } from "../dashboard/StatsCard";
+import { StatsCard } from "../common/StatsCard";
 import {
   LineChart,
   Line,

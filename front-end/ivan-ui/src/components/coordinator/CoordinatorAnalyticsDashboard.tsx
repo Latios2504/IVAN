@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { StatsCard } from '../dashboard/StatsCard';
+import { StatsCard } from '../common/StatsCard';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Users, Calendar, ClipboardList, CheckCircle, TrendingUp, RefreshCw } from 'lucide-react';
 import type { CoordinatorDashboardDto } from '../../types/analytics';

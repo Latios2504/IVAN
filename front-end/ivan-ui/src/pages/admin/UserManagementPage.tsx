@@ -30,7 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
 import type { TableColumn, TableAction } from "@/components/common/DataTable";
-import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
+import { UserDetailsModal } from "@/components/admin/user-details/UserDetailsModal";
 import { LoadingState } from "@/components/common/LoadingState";
 
 // Define UserListItem type based on UserListDto
@@ -235,7 +235,6 @@ export default function UserManagementPageNew() {
   const [modals, setModals] = useState({
     userDetails: false,
     coordinatorDialog: false,
-    createCoordinator: false,
   });
 
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
@@ -360,7 +359,6 @@ export default function UserManagementPageNew() {
     setModals({
       userDetails: false,
       coordinatorDialog: false,
-      createCoordinator: false,
     });
     setSelectedUserId(null);
     setSelectedUser(null);
@@ -535,22 +533,17 @@ export default function UserManagementPageNew() {
     <div className="container mx-auto px-4 py-8 space-y-6 bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-indigo-950/40 min-h-screen">
       {/* Hero Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-100/20 via-transparent to-indigo-100/20 dark:from-violet-900/10 dark:via-transparent dark:to-indigo-900/10" />
-      
+
       {/* Header */}
       <div className="relative z-10 flex justify-between items-center p-6 bg-gradient-to-r from-white/80 via-violet-50/50 to-purple-50/50 dark:from-slate-900/80 dark:via-violet-950/50 dark:to-purple-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 rounded-2xl shadow-xl">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">User Management</h1>
-          <p className="text-violet-700 dark:text-violet-300">Quản lý người dùng trong hệ thống</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
+            User Management
+          </h1>
+          <p className="text-violet-700 dark:text-violet-300">
+            Quản lý người dùng trong hệ thống
+          </p>
         </div>
-        <Button
-          onClick={() =>
-            setModals((prev) => ({ ...prev, createCoordinator: true }))
-          }
-          className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          <UserPlus className="w-4 h-4 mr-2" />
-          Tạo Coordinator
-        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -558,7 +551,9 @@ export default function UserManagementPageNew() {
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Tổng người dùng</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
+                Tổng người dùng
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
@@ -568,7 +563,9 @@ export default function UserManagementPageNew() {
           </Card>
           <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Đang hoạt động</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
+                Đang hoạt động
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
@@ -578,7 +575,9 @@ export default function UserManagementPageNew() {
           </Card>
           <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Vô hiệu hóa</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
+                Vô hiệu hóa
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
@@ -588,7 +587,9 @@ export default function UserManagementPageNew() {
           </Card>
           <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Chưa xác thực</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
+                Chưa xác thực
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400 bg-clip-text text-transparent">
@@ -610,7 +611,9 @@ export default function UserManagementPageNew() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">Tìm kiếm</label>
+              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">
+                Tìm kiếm
+              </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-400 w-4 h-4" />
                 <Input
@@ -622,7 +625,9 @@ export default function UserManagementPageNew() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">Vai trò</label>
+              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">
+                Vai trò
+              </label>
               <Select value={filters.role} onValueChange={handleRoleFilter}>
                 <SelectTrigger className="border-violet-200 dark:border-violet-700 focus:border-violet-500 dark:focus:border-violet-400">
                   <SelectValue placeholder="Chọn vai trò" />
@@ -688,7 +693,12 @@ export default function UserManagementPageNew() {
               <p className="text-violet-600 dark:text-violet-400 mb-4">
                 Thử điều chỉnh bộ lọc để xem kết quả khác
               </p>
-              <Button onClick={handleResetFilters} className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white">Đặt lại bộ lọc</Button>
+              <Button
+                onClick={handleResetFilters}
+                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+              >
+                Đặt lại bộ lọc
+              </Button>
             </div>
           )}
         </CardContent>

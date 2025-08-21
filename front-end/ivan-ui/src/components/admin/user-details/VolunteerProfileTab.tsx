@@ -12,11 +12,11 @@ import {
   User,
 } from "lucide-react";
 import { volunteerProfileService } from "@/services/volunteerProfileService";
-import type { UserListDto } from "@/types/userManagement";
+import type { UserDetailsDto } from "@/types/userManagement";
 import type { VolunteerProfileViewModel } from "@/types/volunteerProfile";
 
 interface VolunteerProfileTabProps {
-  user: UserListDto;
+  user: UserDetailsDto;
 }
 
 export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
@@ -29,6 +29,9 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
     const fetchVolunteerProfile = async () => {
       try {
         setLoading(true);
+        if (!user.userId) {
+          throw new Error("User ID is required");
+        }
         const profile = await volunteerProfileService.getVolunteerProfile(
           user.userId
         );
@@ -40,7 +43,7 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
       }
     };
 
-    if (user.roleName?.toLowerCase() === "volunteer") {
+    if (user.roleName?.toLowerCase() === "volunteer" && user.userId) {
       fetchVolunteerProfile();
     } else {
       setLoading(false);

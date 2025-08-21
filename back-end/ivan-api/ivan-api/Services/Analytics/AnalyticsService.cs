@@ -112,9 +112,10 @@ namespace ivan_api.Services.Analytics
                     .ToListAsync();
 
                 // Performance metrics
-                var avgRating = await _context.Events
+                var eventsWithRatings = await _context.Events
                     .Where(e => e.OrganizationId == organizationId && e.Rating.HasValue)
-                    .AverageAsync(e => e.Rating ?? 0);
+                    .ToListAsync();
+                var avgRating = eventsWithRatings.Any() ? eventsWithRatings.Average(e => e.Rating ?? 0) : 0;
 
                 // Calculate total volunteer hours from approved registrations
                 var totalVolunteerHours = (int)Math.Round(await _context.EventRegistrations
@@ -259,9 +260,10 @@ namespace ivan_api.Services.Analytics
                     .CountAsync(r => eventsWithCoordinator.Contains(r.EventId) && r.Status.StatusName == "Pending");
 
                 // Performance metrics
-                var avgEventRating = await _context.Events
+                var coordinatorEventsWithRatings = await _context.Events
                     .Where(e => eventsWithCoordinator.Contains(e.EventId) && e.Rating.HasValue)
-                    .AverageAsync(e => e.Rating ?? 0);
+                    .ToListAsync();
+                var avgEventRating = coordinatorEventsWithRatings.Any() ? coordinatorEventsWithRatings.Average(e => e.Rating ?? 0) : 0;
 
                 // Recent tasks (simplified) - OnSiteTasks don't have AssignedCoordinatorId, using CoordinatorTasks instead
                 var recentTasks = await _context.CoordinatorTasks
