@@ -237,11 +237,11 @@ export default function SupportRequestManagementPage() {
   });
 
   return (
-    <div className="container mx-auto py-6">
-      <Card>
-        <CardHeader>
+    <div className="container mx-auto py-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 min-h-screen">
+      <Card className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           <CardTitle>Yêu cầu Từ thiện đã duyệt</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-600 dark:text-gray-300">
             Xem các yêu cầu từ thiện đã được admin xét duyệt để lên kế hoạch tổ
             chức sự kiện hỗ trợ
           </CardDescription>
@@ -256,12 +256,12 @@ export default function SupportRequestManagementPage() {
                   placeholder="Tìm kiếm theo tiêu đề, người gửi hoặc danh mục..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
+                  className="pl-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-blue-200 dark:border-blue-700 focus:border-blue-400 dark:focus:border-blue-500 shadow-lg"
                 />
               </div>
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-blue-200 dark:border-blue-700 focus:border-blue-400 dark:focus:border-blue-500 shadow-lg">
                 <SelectValue placeholder="Lọc theo danh mục" />
               </SelectTrigger>
               <SelectContent>
@@ -333,6 +333,7 @@ export default function SupportRequestManagementPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewDetails(request.requestId)}
+                          className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           Xem
@@ -349,12 +350,12 @@ export default function SupportRequestManagementPage() {
 
       {/* Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 shadow-2xl">
+          <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             <DialogTitle>
               Chi tiết Yêu cầu Từ thiện #{selectedRequest?.requestId}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               Thông tin chi tiết về hoàn cảnh cần hỗ trợ từ thiện đã được xét
               duyệt
             </DialogDescription>
@@ -542,12 +543,13 @@ export default function SupportRequestManagementPage() {
                 </div>
 
                 {/* Add Comment */}
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 space-y-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 rounded-lg border border-blue-200 dark:border-blue-700">
                   <Textarea
                     placeholder="Thêm bình luận nội bộ..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={3}
+                    className="border-blue-200 dark:border-blue-700 focus:border-blue-400 dark:focus:border-blue-500 bg-white/80 dark:bg-gray-800/80"
                   />
 
                   {/* File Upload */}
@@ -566,6 +568,7 @@ export default function SupportRequestManagementPage() {
                         onClick={() =>
                           document.getElementById("file-upload")?.click()
                         }
+                        className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
                       >
                         <Upload className="h-4 w-4 mr-1" />
                         {uploadingFiles ? "Đang tải lên..." : "Chọn tệp"}
@@ -611,6 +614,7 @@ export default function SupportRequestManagementPage() {
                     onClick={handleAddComment}
                     disabled={!comment.trim() || isUpdating}
                     size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <MessageCircle className="h-4 w-4 mr-1" />
                     {isUpdating ? "Đang thêm..." : "Thêm bình luận"}
@@ -624,6 +628,7 @@ export default function SupportRequestManagementPage() {
             <Button
               variant="outline"
               onClick={() => setShowDetailDialog(false)}
+              className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
             >
               Đóng
             </Button>

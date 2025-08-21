@@ -89,10 +89,10 @@ export function PartnerAnalyticsDashboard() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+              <div key={i} className="h-32 bg-gradient-to-br from-gray-200/80 to-gray-300/80 dark:from-gray-700/80 dark:to-gray-600/80 rounded-xl shadow-sm"></div>
             ))}
           </div>
         </div>
@@ -103,10 +103,10 @@ export function PartnerAnalyticsDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-lg">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Partnership Analytics</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">Partnership Analytics</h2>
+          <p className="bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-300 dark:to-purple-300 bg-clip-text text-transparent font-medium">
             Monitor your partnerships and collaboration performance
           </p>
         </div>
@@ -115,23 +115,23 @@ export function PartnerAnalyticsDashboard() {
             value={timePeriod.toString()}
             onValueChange={(value) => setTimePeriod(parseInt(value) as TimePeriod)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-900/80 dark:to-blue-900/80 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-md transition-all duration-200">
               <SelectValue placeholder="Select time period" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={TimePeriod.Last7Days.toString()}>
+            <SelectContent className="bg-gradient-to-br from-white/95 to-blue-50/95 dark:from-gray-900/95 dark:to-blue-900/95 border border-blue-200/50 dark:border-blue-800/50">
+              <SelectItem value={TimePeriod.Last7Days.toString()} className="hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50">
                 Last 7 Days
               </SelectItem>
-              <SelectItem value={TimePeriod.Last30Days.toString()}>
+              <SelectItem value={TimePeriod.Last30Days.toString()} className="hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50">
                 Last 30 Days
               </SelectItem>
-              <SelectItem value={TimePeriod.Last3Months.toString()}>
+              <SelectItem value={TimePeriod.Last3Months.toString()} className="hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50">
                 Last 3 Months
               </SelectItem>
-              <SelectItem value={TimePeriod.Last6Months.toString()}>
+              <SelectItem value={TimePeriod.Last6Months.toString()} className="hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50">
                 Last 6 Months
               </SelectItem>
-              <SelectItem value={TimePeriod.LastYear.toString()}>
+              <SelectItem value={TimePeriod.LastYear.toString()} className="hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50">
                 Last Year
               </SelectItem>
             </SelectContent>
@@ -141,8 +141,9 @@ export function PartnerAnalyticsDashboard() {
             size="icon"
             onClick={fetchDashboardData}
             disabled={loading}
+            className="bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-900/80 dark:to-blue-900/80 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-md transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""} text-blue-600 dark:text-blue-400`} />
           </Button>
         </div>
       </div>
@@ -177,19 +178,19 @@ export function PartnerAnalyticsDashboard() {
 
       {/* Analytics Tabs */}
       <Tabs defaultValue="collaborations" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="collaborations">Collaboration Analytics</TabsTrigger>
-          <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
-          <TabsTrigger value="industry">Industry Comparison</TabsTrigger>
+        <TabsList className="bg-gradient-to-r from-gray-100/80 to-blue-100/80 dark:from-gray-800/80 dark:to-blue-800/80 border border-gray-200/50 dark:border-gray-700/50">
+          <TabsTrigger value="collaborations" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Collaboration Analytics</TabsTrigger>
+          <TabsTrigger value="performance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Performance Metrics</TabsTrigger>
+          <TabsTrigger value="industry" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Industry Comparison</TabsTrigger>
         </TabsList>
 
         <TabsContent value="collaborations" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Collaborations by Type */}
-            <Card>
+            <Card className="bg-gradient-to-br from-green-50/80 via-emerald-50/80 to-teal-50/80 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-teal-950/30 border border-green-200/50 dark:border-green-800/50 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
-                <CardTitle>Collaborations by Type</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="bg-gradient-to-r from-green-600 to-teal-600 dark:from-green-400 dark:to-teal-400 bg-clip-text text-transparent">Collaborations by Type</CardTitle>
+                <p className="text-sm bg-gradient-to-r from-green-700 to-teal-700 dark:from-green-300 dark:to-teal-300 bg-clip-text text-transparent font-medium">
                   Distribution of partnership types
                 </p>
               </CardHeader>
@@ -217,10 +218,10 @@ export function PartnerAnalyticsDashboard() {
             </Card>
 
             {/* Investment by Collaboration Type */}
-            <Card>
+            <Card className="bg-gradient-to-br from-yellow-50/80 via-orange-50/80 to-red-50/80 dark:from-yellow-950/30 dark:via-orange-950/30 dark:to-red-950/30 border border-yellow-200/50 dark:border-yellow-800/50 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
-                <CardTitle>Investment by Type</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="bg-gradient-to-r from-yellow-600 to-red-600 dark:from-yellow-400 dark:to-red-400 bg-clip-text text-transparent">Investment by Type</CardTitle>
+                <p className="text-sm bg-gradient-to-r from-yellow-700 to-red-700 dark:from-yellow-300 dark:to-red-300 bg-clip-text text-transparent font-medium">
                   Financial commitment across partnership types
                 </p>
               </CardHeader>
@@ -242,10 +243,10 @@ export function PartnerAnalyticsDashboard() {
         <TabsContent value="performance" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Partnership Rating */}
-            <Card>
+            <Card className="bg-gradient-to-br from-purple-50/80 via-pink-50/80 to-rose-50/80 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-rose-950/30 border border-purple-200/50 dark:border-purple-800/50 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
-                <CardTitle>Partnership Rating</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="bg-gradient-to-r from-purple-600 to-rose-600 dark:from-purple-400 dark:to-rose-400 bg-clip-text text-transparent">Partnership Rating</CardTitle>
+                <p className="text-sm bg-gradient-to-r from-purple-700 to-rose-700 dark:from-purple-300 dark:to-rose-300 bg-clip-text text-transparent font-medium">
                   Average rating from partner organizations
                 </p>
               </CardHeader>
@@ -255,10 +256,10 @@ export function PartnerAnalyticsDashboard() {
                     <div className="flex items-center justify-center mb-4">
                       <Star className="h-12 w-12 text-yellow-500 fill-current" />
                     </div>
-                    <div className="text-4xl font-bold text-yellow-600">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 dark:from-yellow-400 dark:to-orange-400 bg-clip-text text-transparent">
                       {dashboardData?.averagePartnerRating?.toFixed(1) || "0.0"}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-sm bg-gradient-to-r from-yellow-600 to-orange-600 dark:from-yellow-400 dark:to-orange-400 bg-clip-text text-transparent font-medium mt-2">
                       out of 5.0 stars
                     </p>
                   </div>
@@ -267,34 +268,34 @@ export function PartnerAnalyticsDashboard() {
             </Card>
 
             {/* Partnership Summary */}
-            <Card>
+            <Card className="bg-gradient-to-br from-cyan-50/80 via-blue-50/80 to-indigo-50/80 dark:from-cyan-950/30 dark:via-blue-950/30 dark:to-indigo-950/30 border border-cyan-200/50 dark:border-cyan-800/50 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
-                <CardTitle>Partnership Summary</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="bg-gradient-to-r from-cyan-600 to-indigo-600 dark:from-cyan-400 dark:to-indigo-400 bg-clip-text text-transparent">Partnership Summary</CardTitle>
+                <p className="text-sm bg-gradient-to-r from-cyan-700 to-indigo-700 dark:from-cyan-300 dark:to-indigo-300 bg-clip-text text-transparent font-medium">
                   Key performance indicators
                 </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Success Rate</span>
-                    <span className="text-lg font-bold text-green-600">
+                    <span className="text-sm font-medium bg-gradient-to-r from-gray-700 to-blue-700 dark:from-gray-300 dark:to-blue-300 bg-clip-text text-transparent">Success Rate</span>
+                    <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                       {dashboardData?.activeCollaborations && dashboardData?.totalCollaborations
                         ? Math.round((dashboardData.activeCollaborations / dashboardData.totalCollaborations) * 100)
                         : 0}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Average Investment</span>
-                    <span className="text-lg font-bold">
+                    <span className="text-sm font-medium bg-gradient-to-r from-gray-700 to-blue-700 dark:from-gray-300 dark:to-blue-300 bg-clip-text text-transparent">Average Investment</span>
+                    <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
                       {dashboardData?.totalCollaborations
                         ? formatCurrency((dashboardData.totalSponsorshipAmount || 0) / dashboardData.totalCollaborations)
                         : formatCurrency(0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Events per Partnership</span>
-                    <span className="text-lg font-bold">
+                    <span className="text-sm font-medium bg-gradient-to-r from-gray-700 to-blue-700 dark:from-gray-300 dark:to-blue-300 bg-clip-text text-transparent">Events per Partnership</span>
+                    <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
                       {dashboardData?.totalCollaborations
                         ? Math.round((dashboardData.sponsoredEvents || 0) / dashboardData.totalCollaborations * 10) / 10
                         : 0}
@@ -309,10 +310,10 @@ export function PartnerAnalyticsDashboard() {
         <TabsContent value="industry" className="space-y-4">
           <div className="grid grid-cols-1 gap-6">
             {/* Industry Comparison */}
-            <Card>
+            <Card className="bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-zinc-50/80 dark:from-slate-950/30 dark:via-gray-950/30 dark:to-zinc-950/30 border border-slate-200/50 dark:border-slate-800/50 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
-                <CardTitle>Industry Comparison</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle className="bg-gradient-to-r from-slate-600 to-zinc-600 dark:from-slate-400 dark:to-zinc-400 bg-clip-text text-transparent">Industry Comparison</CardTitle>
+                <p className="text-sm bg-gradient-to-r from-slate-700 to-zinc-700 dark:from-slate-300 dark:to-zinc-300 bg-clip-text text-transparent font-medium">
                   Compare your partnerships across different industries
                 </p>
               </CardHeader>
@@ -330,9 +331,9 @@ export function PartnerAnalyticsDashboard() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-12">
-                    <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
+                  <div className="text-center py-12 bg-gradient-to-br from-gray-50/50 to-slate-50/50 dark:from-gray-900/30 dark:to-slate-900/30 rounded-xl border border-gray-200/30 dark:border-gray-700/30">
+                    <TrendingUp className="h-12 w-12 mx-auto mb-4 bg-gradient-to-r from-gray-400 to-slate-400 dark:from-gray-500 dark:to-slate-500 bg-clip-text text-transparent" />
+                    <p className="bg-gradient-to-r from-gray-600 to-slate-600 dark:from-gray-400 dark:to-slate-400 bg-clip-text text-transparent">
                       Industry comparison data will be available as you build more partnerships
                     </p>
                   </div>

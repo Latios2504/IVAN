@@ -152,7 +152,7 @@ export default function VolunteerEventRegistrationPage() {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <LoadingState loading={true} />
-        <p className="text-center text-gray-600 mt-4">
+        <p className="text-center text-gray-600 dark:text-gray-300 mt-4">
           Loading event details...
         </p>
       </div>
@@ -162,11 +162,11 @@ export default function VolunteerEventRegistrationPage() {
   if (error && !event) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 border-red-200 dark:border-red-800">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <Button onClick={loadEvent} className="mt-4" variant="outline">
+        <Button onClick={loadEvent} className="mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-700 dark:to-indigo-700 dark:hover:from-blue-800 dark:hover:to-indigo-800 text-white border-0 shadow-lg" variant="outline">
           Try Again
         </Button>
       </div>
@@ -176,22 +176,22 @@ export default function VolunteerEventRegistrationPage() {
   if (success) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-teal-950/30 border-gradient-to-r border-green-200 dark:border-green-800 shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-green-700 mb-2">
+              <CheckCircle className="h-16 w-16 text-green-500 dark:text-green-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-green-700 dark:text-green-300 mb-2">
                 Registration Submitted Successfully!
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 Your registration for "{event?.eventName}" has been submitted.
                 You will be notified about the approval status.
               </p>
               <div className="space-x-4">
-                <Button onClick={() => navigate("/volunteer/dashboard")}>
+                <Button onClick={() => navigate("/volunteer/dashboard")} className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 dark:from-green-700 dark:to-emerald-700 dark:hover:from-green-800 dark:hover:to-emerald-800 text-white border-0 shadow-lg">
                   Go to Dashboard
                 </Button>
-                <Button variant="outline" onClick={() => navigate("/events")}>
+                <Button variant="outline" onClick={() => navigate("/events")} className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-600 dark:hover:to-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                   Browse More Events
                 </Button>
               </div>
@@ -206,39 +206,39 @@ export default function VolunteerEventRegistrationPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Event Information */}
       {event && (
-        <Card>
-          <CardHeader>
+        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-gradient-to-r border-blue-200 dark:border-blue-800 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 text-white rounded-t-lg">
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-2xl mb-2">
+                <CardTitle className="text-2xl mb-2 text-white">
                   {event.eventName}
                 </CardTitle>
-                <Badge variant="outline">{event.statusName}</Badge>
+                <Badge variant="outline" className="bg-white/20 text-white border-white/30 hover:bg-white/30">{event.statusName}</Badge>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">{event.description}</p>
+            <p className="text-gray-700 dark:text-gray-300">{event.description}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30">
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   {formatDate(event.startDate)} - {formatDate(event.endDate)}
                 </span>
               </div>
 
               {event.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">{event.location}</span>
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
+                  <MapPin className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{event.location}</span>
                 </div>
               )}
 
               {event.registrationEndDate && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30">
+                  <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     Registration deadline:{" "}
                     {formatDate(event.registrationEndDate)}
                   </span>
@@ -250,9 +250,9 @@ export default function VolunteerEventRegistrationPage() {
       )}
 
       {/* Registration Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-teal-950/30 border-gradient-to-r border-green-200 dark:border-green-800 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2 text-white">
             <Users className="h-5 w-5" />
             Register for Event
           </CardTitle>
@@ -289,7 +289,7 @@ export default function VolunteerEventRegistrationPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="motivationLetter">
+              <Label htmlFor="motivationLetter" className="text-gray-700 dark:text-gray-300 font-medium">
                 Motivation Letter <span className="text-red-500">*</span>
               </Label>
               <Textarea
@@ -299,18 +299,18 @@ export default function VolunteerEventRegistrationPage() {
                 onChange={(e) =>
                   handleInputChange("motivationLetter", e.target.value)
                 }
-                className="mt-2"
+                className="mt-2 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-green-200 dark:border-green-700 focus:border-green-400 dark:focus:border-green-500 focus:ring-green-200 dark:focus:ring-green-800"
                 rows={4}
                 maxLength={2000}
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {formData.motivationLetter.length}/2000 characters
               </p>
             </div>
 
             <div>
-              <Label htmlFor="additionalInfo">Additional Information</Label>
+              <Label htmlFor="additionalInfo" className="text-gray-700 dark:text-gray-300 font-medium">Additional Information</Label>
               <Textarea
                 id="additionalInfo"
                 placeholder="Any additional information you'd like to share (skills, experience, etc.)"
@@ -318,11 +318,11 @@ export default function VolunteerEventRegistrationPage() {
                 onChange={(e) =>
                   handleInputChange("additionalInfo", e.target.value)
                 }
-                className="mt-2"
+                className="mt-2 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-green-200 dark:border-green-700 focus:border-green-400 dark:focus:border-green-500 focus:ring-green-200 dark:focus:ring-green-800"
                 rows={3}
                 maxLength={1000}
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {formData.additionalInfo.length}/1000 characters
               </p>
             </div>
@@ -331,7 +331,7 @@ export default function VolunteerEventRegistrationPage() {
               <Button
                 type="submit"
                 disabled={submitting || !isRegistrationOpen()}
-                className="flex-1"
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 dark:from-green-700 dark:to-emerald-700 dark:hover:from-green-800 dark:hover:to-emerald-800 text-white border-0 shadow-lg"
               >
                 {submitting ? "Submitting..." : "Submit Registration"}
               </Button>
@@ -339,6 +339,7 @@ export default function VolunteerEventRegistrationPage() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate(-1)}
+                className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-600 dark:hover:to-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
               >
                 Cancel
               </Button>

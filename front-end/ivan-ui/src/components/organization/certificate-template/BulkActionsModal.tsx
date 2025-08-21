@@ -119,13 +119,13 @@ export default function BulkActionsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+      <DialogContent className="max-w-md bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800 shadow-xl">
+        <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 -m-6 mb-4 p-6 rounded-t-lg border-b border-blue-200 dark:border-blue-700">
+          <DialogTitle className="flex items-center gap-2 text-gray-800 dark:text-gray-200 font-bold">
+            <Users className="h-5 w-5 text-blue-600" />
             Thao tác hàng loạt
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600 dark:text-gray-300">
             Thực hiện thao tác cho {selectedTemplates.length} mẫu đã chọn
           </DialogDescription>
         </DialogHeader>
@@ -133,16 +133,16 @@ export default function BulkActionsModal({
         <div className="space-y-4">
           {/* Selected Templates */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Mẫu đã chọn ({selectedTemplates.length})
             </h4>
-            <div className="max-h-32 overflow-y-auto space-y-1">
+            <div className="max-h-32 overflow-y-auto space-y-1 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
               {selectedTemplates.map((template) => (
                 <div
                   key={template.templateId}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm"
+                  className="flex items-center gap-2 p-2 bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-600 rounded text-sm border border-gray-200 dark:border-gray-600 shadow-sm"
                 >
-                  <span className="flex-1 truncate">
+                  <span className="flex-1 truncate text-gray-800 dark:text-gray-200">
                     {template.templateName}
                   </span>
                   {template.isDefault && (
@@ -162,12 +162,12 @@ export default function BulkActionsModal({
 
           {/* Action Selection */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Chọn thao tác</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Chọn thao tác</h4>
             <Select
               value={selectedAction}
               onValueChange={(value) => setSelectedAction(value as BulkAction)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600">
                 <SelectValue placeholder="Chọn thao tác cần thực hiện" />
               </SelectTrigger>
               <SelectContent>
@@ -195,14 +195,14 @@ export default function BulkActionsModal({
 
           {/* Action Description */}
           {currentConfig && (
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-3 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 {Icon && <Icon className={`h-4 w-4 ${currentConfig.color}`} />}
-                <span className="font-medium text-sm">
+                <span className="font-medium text-sm text-gray-800 dark:text-gray-200">
                   {currentConfig.label}
                 </span>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 {currentConfig.description}
               </p>
 
@@ -220,12 +220,13 @@ export default function BulkActionsModal({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={processing}
+            className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
           >
             Hủy
           </Button>
@@ -234,7 +235,7 @@ export default function BulkActionsModal({
             disabled={
               !selectedAction || processing || effectiveTemplates.length === 0
             }
-            className={currentConfig?.buttonColor}
+            className={`${currentConfig?.buttonColor} shadow-lg hover:shadow-xl transition-all duration-200`}
           >
             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {Icon && <Icon className="mr-2 h-4 w-4" />}

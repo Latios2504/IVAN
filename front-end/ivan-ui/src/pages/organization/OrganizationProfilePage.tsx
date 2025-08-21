@@ -160,21 +160,21 @@ export default function OrganizationProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gradient-to-r from-blue-600 to-purple-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-gray-900 dark:via-red-950/30 dark:to-orange-950/30">
+        <div className="text-center bg-gradient-to-br from-white/80 to-red-50/80 dark:from-gray-800/80 dark:to-red-900/80 p-8 rounded-xl border border-red-200/50 dark:border-red-800/50 shadow-lg">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mb-2">
             Lỗi tải hồ sơ
           </h2>
-          <p className="text-gray-600">{error}</p>
-          <Button onClick={loadProfile} className="mt-4">
+          <p className="text-gray-600 dark:text-gray-300">{error}</p>
+          <Button onClick={loadProfile} className="mt-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white">
             Thử lại
           </Button>
         </div>
@@ -184,12 +184,12 @@ export default function OrganizationProfilePage() {
 
   if (!profile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-950/30">
+        <div className="text-center bg-gradient-to-br from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/80 p-8 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-lg">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Không tìm thấy hồ sơ
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             {isCurrentUser
               ? "Hãy tạo hồ sơ tổ chức của bạn"
               : "Hồ sơ không tồn tại"}
@@ -197,7 +197,7 @@ export default function OrganizationProfilePage() {
           {isCurrentUser && (
             <Button
               onClick={() => navigate("/organization/profile/create")}
-              className="mt-4"
+              className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               Tạo hồ sơ
             </Button>
@@ -208,19 +208,19 @@ export default function OrganizationProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30 dark:from-gray-900 dark:via-blue-950/20 dark:to-purple-950/20 min-h-screen">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 bg-gradient-to-r from-white/60 to-blue-50/60 dark:from-gray-800/60 dark:to-blue-900/60 p-6 rounded-xl border border-blue-200/30 dark:border-blue-800/30 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                 <Building2 className="w-10 h-10 text-white" />
               </div>
               {isCurrentUser && (
                 <Button
                   size="sm"
-                  className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                  className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
                   variant="secondary"
                 >
                   <Camera className="w-4 h-4" />
@@ -228,20 +228,20 @@ export default function OrganizationProfilePage() {
               )}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {profile.organizationName}
               </h1>
-              <p className="text-gray-600 flex items-center mt-1">
+              <p className="text-gray-600 dark:text-gray-300 flex items-center mt-1">
                 <Mail className="w-4 h-4 mr-2" />
                 {profile.contactEmail || "Chưa cập nhật"}
               </p>
               <div className="flex items-center mt-2">
-                <Badge variant="secondary" className="mr-2">
+                <Badge variant="secondary" className="mr-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
                   <Building2 className="w-3 h-3 mr-1" />
                   Tổ chức
                 </Badge>
                 {profile.isVerified && (
-                  <Badge variant="default">
+                  <Badge variant="default" className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
                     <Shield className="w-3 h-3 mr-1" />
                     Đã xác thực
                   </Badge>
@@ -251,7 +251,7 @@ export default function OrganizationProfilePage() {
           </div>
           {isCurrentUser && (
             <div className="mt-4 md:mt-0">
-              <Button onClick={handleEditClick}>
+              <Button onClick={handleEditClick} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
                 <Edit className="w-4 h-4 mr-2" />
                 Chỉnh sửa hồ sơ
               </Button>
@@ -265,22 +265,22 @@ export default function OrganizationProfilePage() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList>
-          <TabsTrigger value="info">Thông tin tổ chức</TabsTrigger>
-          <TabsTrigger value="contact">Liên hệ</TabsTrigger>
-          <TabsTrigger value="activities">Hoạt động</TabsTrigger>
-          {isCurrentUser && <TabsTrigger value="settings">Cài đặt</TabsTrigger>}
+        <TabsList className="bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/80 border border-blue-200/30 dark:border-blue-800/30 shadow-lg">
+          <TabsTrigger value="info" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/50 dark:hover:to-purple-900/50">Thông tin tổ chức</TabsTrigger>
+          <TabsTrigger value="contact" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-blue-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-green-50 hover:to-blue-50 dark:hover:from-green-900/50 dark:hover:to-blue-900/50">Liên hệ</TabsTrigger>
+          <TabsTrigger value="activities" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50">Hoạt động</TabsTrigger>
+          {isCurrentUser && <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-orange-900/50 dark:hover:to-red-900/50">Cài đặt</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Organization Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin cơ bản</CardTitle>
-                <CardDescription>Thông tin chính về tổ chức</CardDescription>
+            <Card className="bg-gradient-to-br from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/80 border border-blue-200/50 dark:border-blue-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
+              <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/50 dark:to-purple-950/50 border-b border-blue-200/30 dark:border-blue-800/30">
+                <CardTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Thông tin cơ bản</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">Thông tin chính về tổ chức</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <div className="flex items-center space-x-3">
                   <Building2 className="w-5 h-5 text-gray-500" />
                   <div>
@@ -335,14 +335,14 @@ export default function OrganizationProfilePage() {
             </Card>
 
             {/* Additional Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin bổ sung</CardTitle>
-                <CardDescription>
+            <Card className="bg-gradient-to-br from-white/80 to-purple-50/80 dark:from-gray-800/80 dark:to-purple-900/80 border border-purple-200/50 dark:border-purple-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
+              <CardHeader className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/50 dark:to-pink-950/50 border-b border-purple-200/30 dark:border-purple-800/30">
+                <CardTitle className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Thông tin bổ sung</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
                   Chi tiết về hoạt động và mục tiêu
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <div>
                   <p className="text-sm font-medium mb-2">Mô tả</p>
                   <p className="text-gray-600 text-sm">
@@ -383,12 +383,12 @@ export default function OrganizationProfilePage() {
         <TabsContent value="contact" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin liên hệ</CardTitle>
-                <CardDescription>Chi tiết liên hệ của tổ chức</CardDescription>
+            <Card className="bg-gradient-to-br from-white/80 to-green-50/80 dark:from-gray-800/80 dark:to-green-900/80 border border-green-200/50 dark:border-green-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
+              <CardHeader className="bg-gradient-to-r from-green-50/50 to-blue-50/50 dark:from-green-950/50 dark:to-blue-950/50 border-b border-green-200/30 dark:border-green-800/30">
+                <CardTitle className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Thông tin liên hệ</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">Chi tiết liên hệ của tổ chức</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <div className="flex items-center space-x-3">
                   <Mail className="w-5 h-5 text-gray-500" />
                   <div>
@@ -420,12 +420,12 @@ export default function OrganizationProfilePage() {
             </Card>
 
             {/* Representative Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin người đại diện</CardTitle>
-                <CardDescription>Thông tin người liên hệ chính</CardDescription>
+            <Card className="bg-gradient-to-br from-white/80 to-teal-50/80 dark:from-gray-800/80 dark:to-teal-900/80 border border-teal-200/50 dark:border-teal-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
+              <CardHeader className="bg-gradient-to-r from-teal-50/50 to-cyan-50/50 dark:from-teal-950/50 dark:to-cyan-950/50 border-b border-teal-200/30 dark:border-teal-800/30">
+                <CardTitle className="bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Thông tin người đại diện</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">Thông tin người liên hệ chính</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <div className="flex items-center space-x-3">
                   <Users className="w-5 h-5 text-gray-500" />
                   <div>
@@ -461,21 +461,21 @@ export default function OrganizationProfilePage() {
         </TabsContent>
 
         <TabsContent value="activities" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hoạt động tổ chức</CardTitle>
-              <CardDescription>
+          <Card className="bg-gradient-to-br from-white/80 to-amber-50/80 dark:from-gray-800/80 dark:to-amber-900/80 border border-amber-200/50 dark:border-amber-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
+            <CardHeader className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-950/50 dark:to-orange-950/50 border-b border-amber-200/30 dark:border-amber-800/30">
+              <CardTitle className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Hoạt động tổ chức</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-300">
                 Các sự kiện và hoạt động đã tổ chức
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Award className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Chưa có hoạt động nào</p>
+            <CardContent className="p-6">
+              <div className="text-center py-8 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-900/50 dark:to-orange-900/50 rounded-lg border border-amber-200/30 dark:border-amber-800/30">
+                <Award className="w-12 h-12 text-amber-400 dark:text-amber-500 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-300">Chưa có hoạt động nào</p>
                 <Button
                   variant="outline"
                   onClick={() => navigate("/organization/events")}
-                  className="mt-4"
+                  className="mt-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white border-none"
                 >
                   Tạo sự kiện mới
                 </Button>
@@ -486,27 +486,27 @@ export default function OrganizationProfilePage() {
 
         {isCurrentUser && (
           <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cài đặt tài khoản</CardTitle>
-                <CardDescription>
+            <Card className="bg-gradient-to-br from-white/80 to-red-50/80 dark:from-gray-800/80 dark:to-red-900/80 border border-red-200/50 dark:border-red-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
+              <CardHeader className="bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-950/50 dark:to-pink-950/50 border-b border-red-200/30 dark:border-red-800/30">
+                <CardTitle className="bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">Cài đặt tài khoản</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
                   Quản lý tài khoản và cài đặt tổ chức
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Button variant="outline" className="w-full justify-start">
+              <CardContent className="space-y-4 p-6">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
                   <Settings className="w-4 h-4 mr-2" />
                   Thay đổi mật khẩu
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
                   <Shield className="w-4 h-4 mr-2" />
                   Cài đặt quyền riêng tư
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
                   <Mail className="w-4 h-4 mr-2" />
                   Cài đặt thông báo
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
                   <FileText className="w-4 h-4 mr-2" />
                   Quản lý chứng nhận
                 </Button>
@@ -519,20 +519,20 @@ export default function OrganizationProfilePage() {
       {/* Edit Profile Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent
-          className="w-[80vw] max-w-5xl max-h-[85vh] overflow-y-auto"
+          className="w-[80vw] max-w-5xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-white/95 to-blue-50/95 dark:from-gray-900/95 dark:to-blue-950/95 border border-blue-200/50 dark:border-blue-800/50"
           style={{ width: "80vw", maxWidth: "64rem" }}
         >
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa hồ sơ tổ chức</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/50 dark:to-indigo-950/50 border-b border-blue-200/30 dark:border-blue-800/30 pb-4">
+            <DialogTitle className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Chỉnh sửa hồ sơ tổ chức</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               Cập nhật thông tin tổ chức và chi tiết liên hệ
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Organization Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Thông tin tổ chức</h3>
+            <div className="space-y-4 p-4 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200/20 dark:border-blue-800/20">
+              <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Thông tin tổ chức</h3>
 
               <div>
                 <Label htmlFor="organizationName">Tên tổ chức</Label>
@@ -629,8 +629,8 @@ export default function OrganizationProfilePage() {
             </div>
 
             {/* Contact Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Thông tin liên hệ</h3>
+            <div className="space-y-4 p-4 bg-gradient-to-br from-green-50/30 to-teal-50/30 dark:from-green-900/30 dark:to-teal-900/30 rounded-lg border border-green-200/20 dark:border-green-800/20">
+              <h3 className="text-lg font-semibold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">Thông tin liên hệ</h3>
 
               <div>
                 <Label htmlFor="contactPersonName">Tên người đại diện</Label>
@@ -732,8 +732,8 @@ export default function OrganizationProfilePage() {
             </div>
 
             {/* Mission & Vision */}
-            <div className="md:col-span-2 space-y-4">
-              <h3 className="text-lg font-semibold">Tầm nhìn & Sứ mệnh</h3>
+            <div className="md:col-span-2 space-y-4 p-4 bg-gradient-to-br from-purple-50/30 to-pink-50/30 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200/20 dark:border-purple-800/20">
+              <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Tầm nhìn & Sứ mệnh</h3>
 
               <div>
                 <Label htmlFor="description">Mô tả tổ chức</Label>
@@ -794,15 +794,16 @@ export default function OrganizationProfilePage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="bg-gradient-to-r from-gray-50/50 to-blue-50/50 dark:from-gray-900/50 dark:to-blue-950/50 border-t border-blue-200/30 dark:border-blue-800/30 pt-4">
             <Button
               variant="outline"
               onClick={() => setIsEditModalOpen(false)}
               disabled={isUpdating}
+              className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600"
             >
               Hủy
             </Button>
-            <Button onClick={handleUpdateProfile} disabled={isUpdating}>
+            <Button onClick={handleUpdateProfile} disabled={isUpdating} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
               {isUpdating ? "Đang cập nhật..." : "Cập nhật hồ sơ"}
             </Button>
           </DialogFooter>

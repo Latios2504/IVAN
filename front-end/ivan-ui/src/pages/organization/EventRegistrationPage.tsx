@@ -100,17 +100,17 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
+    <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/50 dark:via-emerald-950/50 dark:to-teal-950/50 border-green-200/50 dark:border-green-800/50 shadow-lg backdrop-blur-sm">
+      <CardHeader className="bg-gradient-to-r from-green-100/80 via-emerald-100/80 to-teal-100/80 dark:from-green-900/50 dark:via-emerald-900/50 dark:to-teal-900/50 border-b border-green-200/50 dark:border-green-800/50">
+        <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
+          <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
           Select Event
         </CardTitle>
       </CardHeader>
       <CardContent>
         {eventsError ? (
-          <div className="text-center py-4">
-            <p className="text-red-600 text-sm">{eventsError}</p>
+          <div className="text-center py-4 bg-gradient-to-r from-red-50 via-rose-50 to-pink-50 dark:from-red-950/50 dark:via-rose-950/50 dark:to-pink-950/50 rounded-lg border border-red-200/50 dark:border-red-800/50">
+            <p className="text-red-600 dark:text-red-400 text-sm font-medium">{eventsError}</p>
           </div>
         ) : (
           <>
@@ -153,17 +153,17 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         )}
 
         {selectedEvent && (
-          <div className="mt-4 p-4 bg-muted rounded-lg">
-            <h4 className="font-medium">{selectedEvent.eventName}</h4>
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950/50 dark:via-amber-950/50 dark:to-orange-950/50 rounded-lg border border-yellow-200/50 dark:border-yellow-800/50 shadow-sm">
+            <h4 className="font-medium text-yellow-900 dark:text-yellow-100">{selectedEvent.eventName}</h4>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
               {selectedEvent.description}
             </p>
             <div className="flex items-center gap-4 mt-2 text-sm">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+              <span className="flex items-center gap-1 text-yellow-800 dark:text-yellow-200">
+                <Calendar className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                 {new Date(selectedEvent.startDate).toLocaleDateString()}
               </span>
-              <Badge variant="outline">{selectedEvent.statusName}</Badge>
+              <Badge variant="outline" className="border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300">{selectedEvent.statusName}</Badge>
             </div>
           </div>
         )}
@@ -198,13 +198,13 @@ const EventRegistrationManagement: React.FC = () => {
   }, [selectedEvent]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-6 space-y-6 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30">
+      <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-100/80 via-indigo-100/80 to-purple-100/80 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-purple-900/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-lg backdrop-blur-sm">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-blue-900 dark:text-blue-100">
             Event Registration Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-blue-700 dark:text-blue-300">
             Manage volunteer registrations for your events
           </p>
         </div>
@@ -228,9 +228,9 @@ const EventRegistrationManagement: React.FC = () => {
           />
         </div>
       ) : (
-        <Card>
+        <Card className="bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-950/50 dark:via-slate-950/50 dark:to-zinc-950/50 border-gray-200/50 dark:border-gray-800/50 shadow-lg">
           <CardContent className="text-center py-8">
-            <p className="text-muted-foreground">
+            <p className="text-gray-600 dark:text-gray-400 font-medium">
               Please select an event to view and manage registrations.
             </p>
           </CardContent>

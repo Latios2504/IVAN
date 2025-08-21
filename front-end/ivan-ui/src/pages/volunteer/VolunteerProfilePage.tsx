@@ -210,9 +210,9 @@ export default function VolunteerProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-6xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 min-h-screen">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-800/80 backdrop-blur-sm rounded-2xl p-8 border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -265,9 +265,9 @@ export default function VolunteerProfilePage() {
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="space-y-6"
+        className="space-y-6 bg-gradient-to-r from-white/90 to-indigo-50/90 dark:from-gray-800/90 dark:to-indigo-800/90 backdrop-blur-sm rounded-xl border border-indigo-200/50 dark:border-indigo-700/50 shadow-lg p-6"
       >
-        <TabsList>
+        <TabsList className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 border-b border-blue-200/50 dark:border-blue-700/50">
           <TabsTrigger value="info">Thông tin cá nhân</TabsTrigger>
           <TabsTrigger value="skills">Kỹ năng</TabsTrigger>
           <TabsTrigger value="activities">Hoạt động</TabsTrigger>
@@ -277,9 +277,12 @@ export default function VolunteerProfilePage() {
         <TabsContent value="info" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Personal Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin cá nhân</CardTitle>
+            <Card className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900 border-blue-200/50 dark:border-blue-700/50 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 dark:from-blue-800/50 dark:to-indigo-800/50 border-b border-blue-200/30 dark:border-blue-700/30">
+                <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                  <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  Thông tin cá nhân
+                </CardTitle>
                 <CardDescription>
                   Thông tin cơ bản về tình nguyện viên
                 </CardDescription>
@@ -334,9 +337,12 @@ export default function VolunteerProfilePage() {
             </Card>
 
             {/* Additional Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin bổ sung</CardTitle>
+            <Card className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-900 border-purple-200/50 dark:border-purple-700/50 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-purple-100/50 to-pink-100/50 dark:from-purple-800/50 dark:to-pink-800/50 border-b border-purple-200/30 dark:border-purple-700/30">
+                <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
+                  <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  Thông tin bổ sung
+                </CardTitle>
                 <CardDescription>
                   Chi tiết về hoạt động tình nguyện
                 </CardDescription>
@@ -366,9 +372,12 @@ export default function VolunteerProfilePage() {
         </TabsContent>
 
         <TabsContent value="skills" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Kỹ năng và chuyên môn</CardTitle>
+          <Card className="bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-900 border-green-200/50 dark:border-green-700/50 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-green-100/50 to-emerald-100/50 dark:from-green-800/50 dark:to-emerald-800/50 border-b border-green-200/30 dark:border-green-700/30">
+              <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
+                Kỹ năng và chuyên môn
+              </CardTitle>
               <CardDescription>Danh sách kỹ năng của bạn</CardDescription>
             </CardHeader>
             <CardContent>
@@ -408,9 +417,12 @@ export default function VolunteerProfilePage() {
         </TabsContent>
 
         <TabsContent value="activities" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Lịch sử hoạt động</CardTitle>
+          <Card className="bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-900 border-orange-200/50 dark:border-orange-700/50 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-orange-100/50 to-amber-100/50 dark:from-orange-800/50 dark:to-amber-800/50 border-b border-orange-200/30 dark:border-orange-700/30">
+              <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
+                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                Lịch sử hoạt động
+              </CardTitle>
               <CardDescription>
                 Các hoạt động tình nguyện đã tham gia
               </CardDescription>
@@ -433,9 +445,12 @@ export default function VolunteerProfilePage() {
 
         {isCurrentUser && (
           <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cài đặt tài khoản</CardTitle>
+            <Card className="bg-gradient-to-br from-white to-red-50 dark:from-gray-800 dark:to-red-900 border-red-200/50 dark:border-red-700/50 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-red-100/50 to-rose-100/50 dark:from-red-800/50 dark:to-rose-800/50 border-b border-red-200/30 dark:border-red-700/30">
+                <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                  <Settings className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  Cài đặt tài khoản
+                </CardTitle>
                 <CardDescription>
                   Quản lý tài khoản và quyền riêng tư
                 </CardDescription>
@@ -462,20 +477,20 @@ export default function VolunteerProfilePage() {
       {/* Edit Profile Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent
-          className="w-[80vw] max-w-5xl max-h-[85vh] overflow-y-auto"
+          className="w-[80vw] max-w-5xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900 border-blue-200/50 dark:border-blue-700/50"
           style={{ width: "80vw", maxWidth: "64rem" }}
         >
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa hồ sơ tình nguyện viên</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 dark:from-blue-800/50 dark:to-indigo-800/50 rounded-t-lg p-4 -m-6 mb-6 border-b border-blue-200/30 dark:border-blue-700/30">
+            <DialogTitle className="text-blue-800 dark:text-blue-200">Chỉnh sửa hồ sơ tình nguyện viên</DialogTitle>
+            <DialogDescription className="text-blue-600 dark:text-blue-300">
               Cập nhật thông tin cá nhân và chi tiết hồ sơ của bạn
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Personal Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Thông tin cá nhân</h3>
+            <div className="space-y-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/30 dark:to-indigo-900/30 p-4 rounded-lg border border-blue-200/30 dark:border-blue-700/30">
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">Thông tin cá nhân</h3>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -584,8 +599,8 @@ export default function VolunteerProfilePage() {
             </div>
 
             {/* Academic & Professional Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">
+            <div className="space-y-4 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-900/30 dark:to-emerald-900/30 p-4 rounded-lg border border-green-200/30 dark:border-green-700/30">
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
                 Thông tin học tập & nghề nghiệp
               </h3>
 
@@ -665,8 +680,8 @@ export default function VolunteerProfilePage() {
             </div>
 
             {/* Additional Information */}
-            <div className="md:col-span-2 space-y-4">
-              <h3 className="text-lg font-semibold">Thông tin bổ sung</h3>
+            <div className="md:col-span-2 space-y-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-900/30 dark:to-pink-900/30 p-4 rounded-lg border border-purple-200/30 dark:border-purple-700/30">
+              <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">Thông tin bổ sung</h3>
 
               <div>
                 <Label htmlFor="motivation">Động lực tham gia</Label>
@@ -745,15 +760,20 @@ export default function VolunteerProfilePage() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="bg-gradient-to-r from-gray-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-800/50 rounded-b-lg p-4 -m-6 mt-6 border-t border-blue-200/30 dark:border-blue-700/30">
             <Button
               variant="outline"
               onClick={() => setIsEditModalOpen(false)}
               disabled={isUpdating}
+              className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500"
             >
               Hủy
             </Button>
-            <Button onClick={handleUpdateProfile} disabled={isUpdating}>
+            <Button 
+              onClick={handleUpdateProfile} 
+              disabled={isUpdating}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white border-0 hover:from-blue-600 hover:to-indigo-700 dark:hover:from-blue-700 dark:hover:to-indigo-800 shadow-lg"
+            >
               {isUpdating ? "Đang cập nhật..." : "Cập nhật hồ sơ"}
             </Button>
           </DialogFooter>

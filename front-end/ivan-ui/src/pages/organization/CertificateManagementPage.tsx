@@ -210,103 +210,103 @@ export default function CertificateManagementPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-950 dark:via-pink-950 dark:to-rose-950 rounded-xl border border-purple-200 dark:border-purple-800 shadow-lg backdrop-blur-sm">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 bg-gradient-to-r from-purple-100 via-pink-100 to-rose-100 dark:from-purple-900 dark:via-pink-900 dark:to-rose-900 rounded-lg p-4 border border-purple-200 dark:border-purple-800 shadow-md">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-purple-900 dark:text-purple-100 mb-2">
             Quản lý Chứng chỉ
           </h1>
-          <p className="text-gray-600">
+          <p className="text-purple-700 dark:text-purple-300">
             Tạo, cấp phát và quản lý chứng chỉ cho tình nguyện viên
           </p>
         </div>
-        <Button className="mt-4 md:mt-0" onClick={handleOpenCreateModal}>
+        <Button className="mt-4 md:mt-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg" onClick={handleOpenCreateModal}>
           <Plus className="mr-2 h-4 w-4" />
           Tạo chứng chỉ mới
         </Button>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="mb-6 bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900 rounded-lg p-4 border border-indigo-200 dark:border-indigo-800 shadow-md">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-indigo-500 dark:text-indigo-400" />
           <Input
             placeholder="Tìm kiếm theo tên, người nhận hoặc mã số..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-indigo-300 dark:border-indigo-700 focus:border-indigo-500 dark:focus:border-indigo-400"
           />
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 border border-blue-200 dark:border-blue-800 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-t-lg border-b border-blue-200 dark:border-blue-800">
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
               Tổng chứng chỉ
             </CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+            <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Tất cả chứng chỉ</p>
+            <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">{stats.total}</div>
+            <p className="text-xs text-blue-600 dark:text-blue-400">Tất cả chứng chỉ</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đã cấp</CardTitle>
+        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950 border border-green-200 dark:border-green-800 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-t-lg border-b border-green-200 dark:border-green-800">
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Đã cấp</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {stats.approved}
             </div>
-            <p className="text-xs text-muted-foreground">Chứng chỉ hợp lệ</p>
+            <p className="text-xs text-green-600 dark:text-green-400">Chứng chỉ hợp lệ</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chờ phê duyệt</CardTitle>
+        <Card className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950 border border-yellow-200 dark:border-yellow-800 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900 dark:to-amber-900 rounded-t-lg border-b border-yellow-200 dark:border-yellow-800">
+            <CardTitle className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Chờ phê duyệt</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
               {stats.pending}
             </div>
-            <p className="text-xs text-muted-foreground">Cần xử lý</p>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400">Cần xử lý</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lượt tải</CardTitle>
+        <Card className="bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-950 border border-cyan-200 dark:border-cyan-800 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 rounded-t-lg border-b border-cyan-200 dark:border-cyan-800">
+            <CardTitle className="text-sm font-medium text-cyan-900 dark:text-cyan-100">Lượt tải</CardTitle>
             <Download className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
               {stats.totalDownloads}
             </div>
-            <p className="text-xs text-muted-foreground">Tổng download</p>
+            <p className="text-xs text-cyan-600 dark:text-cyan-400">Tổng download</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Error State */}
       {error && (
-        <Card className="mb-6">
+        <Card className="mb-6 bg-gradient-to-r from-red-50 via-rose-50 to-pink-50 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 border border-red-200 dark:border-red-800 shadow-lg">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600">
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertCircle className="h-4 w-4" />
               <span>{error}</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={loadCertificates}
-                className="ml-auto"
+                className="ml-auto border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900"
               >
                 Thử lại
               </Button>
@@ -321,31 +321,31 @@ export default function CertificateManagementPage() {
         onValueChange={setSelectedTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="Draft">Bản nháp</TabsTrigger>
-          <TabsTrigger value="Pending">Chờ duyệt</TabsTrigger>
-          <TabsTrigger value="Approved">Đã cấp</TabsTrigger>
-          <TabsTrigger value="Rejected">Bị từ chối</TabsTrigger>
-          <TabsTrigger value="Revoked">Đã thu hồi</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900 dark:via-violet-900 dark:to-indigo-900 border border-purple-200 dark:border-purple-800 shadow-md">
+          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white">Tất cả</TabsTrigger>
+          <TabsTrigger value="Draft" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white">Bản nháp</TabsTrigger>
+          <TabsTrigger value="Pending" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">Chờ duyệt</TabsTrigger>
+          <TabsTrigger value="Approved" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">Đã cấp</TabsTrigger>
+          <TabsTrigger value="Rejected" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white">Bị từ chối</TabsTrigger>
+          <TabsTrigger value="Revoked" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white">Đã thu hồi</TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
-          <Card>
-            <CardHeader>
+          <Card className="bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-950 dark:via-gray-950 dark:to-zinc-950 border border-slate-200 dark:border-slate-800 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-900 dark:to-gray-900 rounded-t-lg border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>
+                  <CardTitle className="text-slate-900 dark:text-slate-100">
                     {selectedTab === "all"
                       ? "Tất cả chứng chỉ"
                       : statusConfig[selectedTab as keyof typeof statusConfig]
                           ?.label}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Quản lý và theo dõi chứng chỉ đã cấp cho tình nguyện viên
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900">
                   <Filter className="mr-2 h-4 w-4" />
                   Lọc
                 </Button>
@@ -354,9 +354,9 @@ export default function CertificateManagementPage() {
             <CardContent>
               {/* Loading State */}
               {loading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">
+                <div className="flex items-center justify-center py-12 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+                  <span className="ml-2 text-blue-700 dark:text-blue-300">
                     Đang tải...
                   </span>
                 </div>
@@ -364,12 +364,12 @@ export default function CertificateManagementPage() {
 
               {/* Empty State */}
               {!loading && filteredCertificates.length === 0 && (
-                <div className="text-center py-12">
-                  <Award className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <div className="text-center py-12 bg-gradient-to-r from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-950 dark:via-slate-950 dark:to-zinc-950 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <Award className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                     Không tìm thấy chứng chỉ
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-400">
                     {searchTerm
                       ? "Thử thay đổi từ khóa tìm kiếm"
                       : "Chưa có chứng chỉ nào được tạo"}
@@ -383,16 +383,16 @@ export default function CertificateManagementPage() {
                   {filteredCertificates.map((certificate) => (
                     <div
                       key={certificate.certificateId}
-                      className="border rounded-lg p-6 hover:shadow-md transition-shadow"
+                      className="bg-gradient-to-r from-white via-gray-50 to-slate-50 dark:from-gray-900 dark:via-slate-900 dark:to-zinc-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-lg hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-200 shadow-md"
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="flex-1 space-y-3">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h3 className="text-lg font-semibold mb-1">
+                              <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">
                                 {certificate.certificateName}
                               </h3>
-                              <p className="text-gray-600 text-sm">
+                              <p className="text-gray-600 dark:text-gray-400 text-sm">
                                 {certificate.description}
                               </p>
                             </div>
@@ -409,13 +409,13 @@ export default function CertificateManagementPage() {
                             </Badge>
                           </div>
 
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              Volunteer ID: {certificate.volunteerId}
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 px-2 py-1 rounded-md">
+                              <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              <span className="text-blue-700 dark:text-blue-300">Volunteer ID: {certificate.volunteerId}</span>
                             </div>
                             {certificate.issueDate && (
-                              <div>
+                              <div className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 px-2 py-1 rounded-md text-green-700 dark:text-green-300">
                                 Ngày cấp:{" "}
                                 {new Date(
                                   certificate.issueDate
@@ -423,7 +423,7 @@ export default function CertificateManagementPage() {
                               </div>
                             )}
                             {certificate.expiryDate && (
-                              <div>
+                              <div className="bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900 dark:to-amber-900 px-2 py-1 rounded-md text-orange-700 dark:text-orange-300">
                                 Hết hạn:{" "}
                                 {new Date(
                                   certificate.expiryDate
@@ -431,9 +431,9 @@ export default function CertificateManagementPage() {
                               </div>
                             )}
                             {certificate.certificateNumber && (
-                              <div>Mã số: {certificate.certificateNumber}</div>
+                              <div className="bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900 dark:to-violet-900 px-2 py-1 rounded-md text-purple-700 dark:text-purple-300">Mã số: {certificate.certificateNumber}</div>
                             )}
-                            <div>{certificate.downloadCount || 0} lượt tải</div>
+                            <div className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 px-2 py-1 rounded-md text-cyan-700 dark:text-cyan-300">{certificate.downloadCount || 0} lượt tải</div>
                           </div>
 
                           <div className="flex flex-wrap gap-2">

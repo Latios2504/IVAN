@@ -297,32 +297,32 @@ export default function CertificateTemplateManagementPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-rose-950/30">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 p-6 bg-gradient-to-r from-purple-100/80 via-pink-100/80 to-rose-100/80 dark:from-purple-900/50 dark:via-pink-900/50 dark:to-rose-900/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50 shadow-lg backdrop-blur-sm">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-purple-900 dark:text-purple-100 mb-2">
             Quản lý Mẫu Chứng chỉ
           </h1>
-          <p className="text-gray-600">
+          <p className="text-purple-700 dark:text-purple-300">
             Tạo và quản lý các mẫu chứng chỉ cho tổ chức của bạn
           </p>
         </div>
-        <Button className="mt-4 md:mt-0" onClick={handleCreateTemplate}>
+        <Button className="mt-4 md:mt-0 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg" onClick={handleCreateTemplate}>
           <Plus className="mr-2 h-4 w-4" />
           Tạo mẫu mới
         </Button>
       </div>
 
       {/* Search and Bulk Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/50 dark:via-purple-950/50 dark:to-pink-950/50 rounded-lg border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-indigo-500 dark:text-indigo-400" />
           <Input
             placeholder="Tìm kiếm mẫu chứng chỉ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-white/80 dark:bg-gray-900/80 border-indigo-200 dark:border-indigo-700 focus:border-indigo-400 dark:focus:border-indigo-500"
           />
         </div>
 
@@ -354,44 +354,44 @@ export default function CertificateTemplateManagementPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50 border-blue-200/50 dark:border-blue-800/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng mẫu</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Tổng mẫu</CardTitle>
+            <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">Tất cả mẫu</p>
+            <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</div>
+            <p className="text-xs text-blue-600 dark:text-blue-400">Tất cả mẫu</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/50 dark:via-emerald-950/50 dark:to-teal-950/50 border-green-200/50 dark:border-green-800/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">
               Đang hoạt động
             </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {stats.active}
             </div>
-            <p className="text-xs text-muted-foreground">Mẫu có thể sử dụng</p>
+            <p className="text-xs text-green-600 dark:text-green-400">Mẫu có thể sử dụng</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/50 dark:via-amber-950/50 dark:to-yellow-950/50 border-orange-200/50 dark:border-orange-800/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium text-orange-900 dark:text-orange-100">
               {isAdmin ? "Mẫu hiện tại" : "Mẫu của tổ chức"}
             </CardTitle>
-            <Building2 className="h-4 w-4 text-blue-600" />
+            <Building2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
               {stats.myTemplates}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-orange-600 dark:text-orange-400">
               {isAdmin ? "Hiển thị" : "Mẫu riêng"}
             </p>
           </CardContent>
@@ -400,16 +400,16 @@ export default function CertificateTemplateManagementPage() {
 
       {/* Error State */}
       {error && (
-        <Card className="mb-6">
+        <Card className="mb-6 bg-gradient-to-r from-red-50 via-rose-50 to-pink-50 dark:from-red-950/50 dark:via-rose-950/50 dark:to-pink-950/50 border-red-200/50 dark:border-red-800/50 shadow-lg">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600">
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
+              <span className="font-medium">{error}</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={loadTemplates}
-                className="ml-auto"
+                className="ml-auto border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50"
               >
                 Thử lại
               </Button>
@@ -425,37 +425,37 @@ export default function CertificateTemplateManagementPage() {
         className="space-y-6"
       >
         <TabsList
-          className={`grid w-full ${isAdmin ? "grid-cols-2" : "grid-cols-1"}`}
+          className={`grid w-full ${isAdmin ? "grid-cols-2" : "grid-cols-1"} bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/50 dark:via-violet-900/50 dark:to-indigo-900/50 border border-purple-200/50 dark:border-purple-800/50 shadow-sm`}
         >
           {!isAdmin && (
-            <TabsTrigger value="my-templates">Mẫu của tổ chức</TabsTrigger>
+            <TabsTrigger value="my-templates" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800 data-[state=active]:text-purple-900 dark:data-[state=active]:text-purple-100">Mẫu của tổ chức</TabsTrigger>
           )}
           {isAdmin && (
             <>
-              <TabsTrigger value="my-templates">Mẫu theo tổ chức</TabsTrigger>
-              <TabsTrigger value="all-templates">Tất cả mẫu</TabsTrigger>
+              <TabsTrigger value="my-templates" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800 data-[state=active]:text-purple-900 dark:data-[state=active]:text-purple-100">Mẫu theo tổ chức</TabsTrigger>
+              <TabsTrigger value="all-templates" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-200 data-[state=active]:to-blue-200 dark:data-[state=active]:from-indigo-800 dark:data-[state=active]:to-blue-800 data-[state=active]:text-indigo-900 dark:data-[state=active]:text-indigo-100">Tất cả mẫu</TabsTrigger>
             </>
           )}
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
-          <Card>
+          <Card className="bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-950/50 dark:via-gray-950/50 dark:to-zinc-950/50 border-slate-200/50 dark:border-slate-800/50 shadow-lg">
             <CardContent className="pt-6">
               {loading ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="h-8 w-8 mx-auto mb-2 animate-spin" />
-                  <p>Đang tải...</p>
+                <div className="text-center py-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50 rounded-lg border border-blue-200/50 dark:border-blue-800/50">
+                  <CheckCircle className="h-8 w-8 mx-auto mb-2 animate-spin text-blue-600 dark:text-blue-400" />
+                  <p className="text-blue-700 dark:text-blue-300 font-medium">Đang tải...</p>
                 </div>
               ) : templates.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <div className="text-center py-12 bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-950/50 dark:via-slate-950/50 dark:to-zinc-950/50 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                     Chưa có mẫu chứng chỉ
                   </h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
                     Bắt đầu bằng cách tạo mẫu chứng chỉ đầu tiên
                   </p>
-                  <Button onClick={handleCreateTemplate}>
+                  <Button onClick={handleCreateTemplate} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg">
                     <Plus className="mr-2 h-4 w-4" />
                     Tạo mẫu mới
                   </Button>
@@ -463,7 +463,7 @@ export default function CertificateTemplateManagementPage() {
               ) : (
                 <div className="space-y-4">
                   {/* Header with select all */}
-                  <div className="flex items-center justify-between border-b pb-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4 bg-gradient-to-r from-slate-100/50 via-gray-100/50 to-zinc-100/50 dark:from-slate-900/50 dark:via-gray-900/50 dark:to-zinc-900/50 rounded-t-lg px-4 py-3">
                     <div className="flex items-center space-x-4">
                       <Checkbox
                         checked={
@@ -473,8 +473,9 @@ export default function CertificateTemplateManagementPage() {
                         onCheckedChange={(checked) =>
                           handleSelectAll(checked as boolean)
                         }
+                        className="border-slate-400 dark:border-slate-600"
                       />
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                         Chọn tất cả ({templates.length} mẫu)
                       </span>
                     </div>
@@ -493,8 +494,8 @@ export default function CertificateTemplateManagementPage() {
                       return (
                         <div
                           key={template.templateId}
-                          className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                            isSelected ? "ring-2 ring-blue-500" : ""
+                          className={`border border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-gradient-to-r from-white via-slate-50 to-gray-50 dark:from-slate-900/50 dark:via-slate-800/50 dark:to-gray-900/50 hover:shadow-lg hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 dark:hover:from-blue-950/30 dark:hover:via-indigo-950/30 dark:hover:to-purple-950/30 transition-all duration-200 ${
+                            isSelected ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50" : ""
                           }`}
                         >
                           <div className="flex items-center justify-between">
@@ -507,32 +508,33 @@ export default function CertificateTemplateManagementPage() {
                                     checked as boolean
                                   )
                                 }
+                                className="border-slate-400 dark:border-slate-600"
                               />
 
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-2">
-                                  <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">
                                     {template.templateName}
                                   </h3>
                                   <Badge
-                                    className={`text-xs ${typeInfo.color}`}
+                                    className={`text-xs ${typeInfo.color} border border-current/20`}
                                     variant="secondary"
                                   >
                                     {typeInfo.label}
                                   </Badge>
                                   {template.isDefault && (
                                     <Badge
-                                      className="text-xs bg-yellow-100 text-yellow-800"
+                                      className="text-xs bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/50 dark:to-amber-900/50 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700"
                                       variant="secondary"
                                     >
                                       Mặc định
                                     </Badge>
                                   )}
                                   <Badge
-                                    className={`text-xs ${
+                                    className={`text-xs border ${
                                       template.isActive
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-gray-100 text-gray-800"
+                                        ? "bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700"
+                                        : "bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-900/50 dark:to-slate-900/50 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-700"
                                     }`}
                                     variant="secondary"
                                   >
@@ -543,23 +545,27 @@ export default function CertificateTemplateManagementPage() {
                                 </div>
 
                                 {template.description && (
-                                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 line-clamp-2">
                                     {template.description}
                                   </p>
                                 )}
 
-                                <div className="flex items-center gap-4 text-xs text-gray-500">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {template.createdAt
-                                      ? new Date(
-                                          template.createdAt
-                                        ).toLocaleDateString("vi-VN")
-                                      : "N/A"}
+                                <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                                  <div className="flex items-center gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 px-2 py-1 rounded border border-blue-200/50 dark:border-blue-800/50">
+                                    <Calendar className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                    <span className="text-blue-700 dark:text-blue-300">
+                                      {template.createdAt
+                                        ? new Date(
+                                            template.createdAt
+                                          ).toLocaleDateString("vi-VN")
+                                        : "N/A"}
+                                    </span>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <User className="h-3 w-3" />
-                                    ID: {template.templateId}
+                                  <div className="flex items-center gap-1 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 px-2 py-1 rounded border border-purple-200/50 dark:border-purple-800/50">
+                                    <User className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                                    <span className="text-purple-700 dark:text-purple-300">
+                                      ID: {template.templateId}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -573,7 +579,7 @@ export default function CertificateTemplateManagementPage() {
                                 onClick={() =>
                                   handlePreviewTemplate(template.templateId)
                                 }
-                                className="text-blue-600 hover:text-blue-700"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/30 dark:hover:to-indigo-950/30 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200"
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -583,7 +589,7 @@ export default function CertificateTemplateManagementPage() {
                                 onClick={() =>
                                   handleEditTemplate(template.templateId)
                                 }
-                                className="text-green-600 hover:text-green-700"
+                                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950/30 dark:hover:to-emerald-950/30 border border-transparent hover:border-green-200 dark:hover:border-green-800 transition-all duration-200"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -593,7 +599,7 @@ export default function CertificateTemplateManagementPage() {
                                 onClick={() =>
                                   handleDuplicateTemplate(template)
                                 }
-                                className="text-orange-600 hover:text-orange-700"
+                                className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 dark:hover:from-orange-950/30 dark:hover:to-amber-950/30 border border-transparent hover:border-orange-200 dark:hover:border-orange-800 transition-all duration-200"
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
@@ -606,7 +612,7 @@ export default function CertificateTemplateManagementPage() {
                                     template.templateName
                                   )
                                 }
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30 border border-transparent hover:border-red-200 dark:hover:border-red-800 transition-all duration-200"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -619,9 +625,11 @@ export default function CertificateTemplateManagementPage() {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <div className="text-sm text-gray-600">
-                        Trang {currentPage} / {totalPages}
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900/30 dark:via-gray-900/30 dark:to-zinc-900/30 px-4 py-3 rounded-b-lg">
+                      <div className="text-sm text-slate-600 dark:text-slate-400 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 px-3 py-1 rounded border border-blue-200/50 dark:border-blue-800/50">
+                        <span className="text-blue-700 dark:text-blue-300 font-medium">
+                          Trang {currentPage} / {totalPages}
+                        </span>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -629,6 +637,7 @@ export default function CertificateTemplateManagementPage() {
                           size="sm"
                           disabled={currentPage === 1}
                           onClick={() => setCurrentPage(currentPage - 1)}
+                          className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/30 dark:hover:to-indigo-950/30 hover:border-blue-300 dark:hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         >
                           Trước
                         </Button>
@@ -637,6 +646,7 @@ export default function CertificateTemplateManagementPage() {
                           size="sm"
                           disabled={currentPage === totalPages}
                           onClick={() => setCurrentPage(currentPage + 1)}
+                          className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/30 dark:hover:to-indigo-950/30 hover:border-blue-300 dark:hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         >
                           Sau
                         </Button>

@@ -197,17 +197,17 @@ export default function PartnerProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-2xl p-8 border border-blue-100 dark:border-blue-800/30">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
                 <Handshake className="w-10 h-10 text-white" />
               </div>
               {isCurrentUser && (
                 <Button
                   size="sm"
-                  className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                  className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 border-2 border-white dark:border-gray-800"
                   variant="secondary"
                 >
                   <Camera className="w-4 h-4" />
@@ -215,20 +215,20 @@ export default function PartnerProfilePage() {
               )}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 {profile.companyName}
               </h1>
-              <p className="text-gray-600 flex items-center mt-1">
+              <p className="text-gray-600 dark:text-gray-300 flex items-center mt-1">
                 <Mail className="w-4 h-4 mr-2" />
                 {profile.contactEmail || "Chưa cập nhật"}
               </p>
               <div className="flex items-center mt-2">
-                <Badge variant="secondary" className="mr-2">
+                <Badge variant="secondary" className="mr-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700">
                   <Handshake className="w-3 h-3 mr-1" />
                   Đối tác
                 </Badge>
                 {profile.isVerified && (
-                  <Badge variant="default">
+                  <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
                     <Shield className="w-3 h-3 mr-1" />
                     Đã xác thực
                   </Badge>
@@ -238,7 +238,7 @@ export default function PartnerProfilePage() {
           </div>
           {isCurrentUser && (
             <div className="mt-4 md:mt-0">
-              <Button onClick={handleEditClick}>
+              <Button onClick={handleEditClick} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg">
                 <Edit className="w-4 h-4 mr-2" />
                 Chỉnh sửa hồ sơ
               </Button>
@@ -252,20 +252,20 @@ export default function PartnerProfilePage() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList>
-          <TabsTrigger value="info">Thông tin công ty</TabsTrigger>
-          <TabsTrigger value="business">Kinh doanh</TabsTrigger>
-          <TabsTrigger value="partnerships">Hợp tác</TabsTrigger>
-          {isCurrentUser && <TabsTrigger value="settings">Cài đặt</TabsTrigger>}
+        <TabsList className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border border-blue-200 dark:border-blue-800/50">
+          <TabsTrigger value="info" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Thông tin công ty</TabsTrigger>
+          <TabsTrigger value="business" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Kinh doanh</TabsTrigger>
+          <TabsTrigger value="partnerships" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Hợp tác</TabsTrigger>
+          {isCurrentUser && <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 transition-all duration-200">Cài đặt</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Company Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin công ty</CardTitle>
-                <CardDescription>
+            <Card className="bg-gradient-to-br from-blue-50/50 via-indigo-50/50 to-purple-50/50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800/30">
+              <CardHeader className="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-t-lg">
+                <CardTitle className="text-blue-800 dark:text-blue-200">Thông tin công ty</CardTitle>
+                <CardDescription className="text-blue-600 dark:text-blue-300">
                   Thông tin cơ bản về công ty đối tác
                 </CardDescription>
               </CardHeader>
@@ -315,10 +315,10 @@ export default function PartnerProfilePage() {
             </Card>
 
             {/* Additional Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin bổ sung</CardTitle>
-                <CardDescription>
+            <Card className="bg-gradient-to-br from-purple-50/50 via-pink-50/50 to-rose-50/50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-rose-950/20 border-purple-200 dark:border-purple-800/30">
+              <CardHeader className="bg-gradient-to-r from-purple-100/50 to-pink-100/50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-t-lg">
+                <CardTitle className="text-purple-800 dark:text-purple-200">Thông tin bổ sung</CardTitle>
+                <CardDescription className="text-purple-600 dark:text-purple-300">
                   Chi tiết về hoạt động và cam kết
                 </CardDescription>
               </CardHeader>
@@ -351,10 +351,10 @@ export default function PartnerProfilePage() {
         <TabsContent value="business" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin liên hệ</CardTitle>
-                <CardDescription>Chi tiết liên hệ kinh doanh</CardDescription>
+            <Card className="bg-gradient-to-br from-green-50/50 via-emerald-50/50 to-teal-50/50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20 border-green-200 dark:border-green-800/30">
+              <CardHeader className="bg-gradient-to-r from-green-100/50 to-emerald-100/50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-t-lg">
+                <CardTitle className="text-green-800 dark:text-green-200">Thông tin liên hệ</CardTitle>
+                <CardDescription className="text-green-600 dark:text-green-300">Chi tiết liên hệ kinh doanh</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center space-x-3">
@@ -388,10 +388,10 @@ export default function PartnerProfilePage() {
             </Card>
 
             {/* Business Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Chi tiết kinh doanh</CardTitle>
-                <CardDescription>
+            <Card className="bg-gradient-to-br from-orange-50/50 via-amber-50/50 to-yellow-50/50 dark:from-orange-950/20 dark:via-amber-950/20 dark:to-yellow-950/20 border-orange-200 dark:border-orange-800/30">
+              <CardHeader className="bg-gradient-to-r from-orange-100/50 to-amber-100/50 dark:from-orange-900/30 dark:to-amber-900/30 rounded-t-lg">
+                <CardTitle className="text-orange-800 dark:text-orange-200">Chi tiết kinh doanh</CardTitle>
+                <CardDescription className="text-orange-600 dark:text-orange-300">
                   Thông tin pháp lý và kinh doanh
                 </CardDescription>
               </CardHeader>
@@ -422,10 +422,10 @@ export default function PartnerProfilePage() {
         </TabsContent>
 
         <TabsContent value="partnerships" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quan hệ hợp tác</CardTitle>
-              <CardDescription>
+          <Card className="bg-gradient-to-br from-rose-50/50 via-pink-50/50 to-purple-50/50 dark:from-rose-950/20 dark:via-pink-950/20 dark:to-purple-950/20 border-rose-200 dark:border-rose-800/30">
+            <CardHeader className="bg-gradient-to-r from-rose-100/50 to-pink-100/50 dark:from-rose-900/30 dark:to-pink-900/30 rounded-t-lg">
+              <CardTitle className="text-rose-800 dark:text-rose-200">Quan hệ hợp tác</CardTitle>
+              <CardDescription className="text-rose-600 dark:text-rose-300">
                 Các mối quan hệ đối tác hiện tại
               </CardDescription>
             </CardHeader>
@@ -436,7 +436,7 @@ export default function PartnerProfilePage() {
                 <Button
                   variant="outline"
                   onClick={() => navigate("/partner/collaborations")}
-                  className="mt-4"
+                  className="mt-4 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-none shadow-lg"
                 >
                   Tìm kiếm cơ hội hợp tác
                 </Button>
@@ -447,27 +447,27 @@ export default function PartnerProfilePage() {
 
         {isCurrentUser && (
           <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cài đặt tài khoản</CardTitle>
-                <CardDescription>
+            <Card className="bg-gradient-to-br from-slate-50/50 via-gray-50/50 to-zinc-50/50 dark:from-slate-950/20 dark:via-gray-950/20 dark:to-zinc-950/20 border-slate-200 dark:border-slate-800/30">
+              <CardHeader className="bg-gradient-to-r from-slate-100/50 to-gray-100/50 dark:from-slate-900/30 dark:to-gray-900/30 rounded-t-lg">
+                <CardTitle className="text-slate-800 dark:text-slate-200">Cài đặt tài khoản</CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-300">
                   Quản lý tài khoản và cài đặt đối tác
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800/50 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 text-blue-700 dark:text-blue-300">
                   <Settings className="w-4 h-4 mr-2" />
                   Thay đổi mật khẩu
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800/50 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50 text-green-700 dark:text-green-300">
                   <Shield className="w-4 h-4 mr-2" />
                   Cài đặt quyền riêng tư
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-purple-200 dark:border-purple-800/50 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 text-purple-700 dark:text-purple-300">
                   <Mail className="w-4 h-4 mr-2" />
                   Cài đặt thông báo
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 border-orange-200 dark:border-orange-800/50 hover:from-orange-100 hover:to-amber-100 dark:hover:from-orange-900/50 dark:hover:to-amber-900/50 text-orange-700 dark:text-orange-300">
                   <FileText className="w-4 h-4 mr-2" />
                   Quản lý hợp đồng
                 </Button>

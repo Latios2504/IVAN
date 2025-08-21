@@ -345,10 +345,10 @@ export default function VolunteerScheduleManagementPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400">
             Quản lý lịch trình tình nguyện viên
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300 bg-gradient-to-r from-gray-600 to-gray-500 bg-clip-text text-transparent dark:from-gray-300 dark:to-gray-400">
             Phân công và quản lý lịch trình làm việc của tình nguyện viên
           </p>
         </div>
@@ -359,11 +359,11 @@ export default function VolunteerScheduleManagementPage() {
       </div>
 
       {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Bộ lọc</CardTitle>
+      <Card className="mb-6 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-gradient-to-r border-blue-200/50 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 dark:border-blue-800/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg border-b border-blue-100 dark:border-blue-800/50">
+          <CardTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Bộ lọc</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-gradient-to-br from-white/80 to-blue-50/50 dark:from-gray-900/80 dark:to-blue-950/50">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Sự kiện</Label>
@@ -460,12 +460,12 @@ export default function VolunteerScheduleManagementPage() {
       </Card>
 
       {/* Schedules Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách lịch trình</CardTitle>
-          <CardDescription>Tổng cộng {totalItems} lịch trình</CardDescription>
+      <Card className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-gradient-to-r border-blue-200/50 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 dark:border-blue-800/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg border-b border-blue-100 dark:border-blue-800/50">
+          <CardTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Danh sách lịch trình</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-300">Tổng cộng {totalItems} lịch trình</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-gradient-to-br from-white/80 to-blue-50/50 dark:from-gray-900/80 dark:to-blue-950/50">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -497,7 +497,7 @@ export default function VolunteerScheduleManagementPage() {
                   </TableRow>
                 ) : (
                   schedules.map((schedule) => (
-                    <TableRow key={schedule.scheduleId}>
+                    <TableRow key={schedule.scheduleId} className="bg-gradient-to-r from-white via-blue-50/20 to-purple-50/20 hover:from-blue-50/40 hover:via-purple-50/30 hover:to-indigo-50/40 dark:from-gray-900/50 dark:via-blue-950/20 dark:to-purple-950/20 dark:hover:from-blue-950/40 dark:hover:via-purple-950/30 dark:hover:to-indigo-950/40 transition-all duration-300 border-b border-blue-100/50 dark:border-blue-800/30">
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-muted-foreground" />
@@ -639,10 +639,10 @@ export default function VolunteerScheduleManagementPage() {
 
       {/* Create Schedule Modal */}
       <Dialog open={createModal.isOpen} onOpenChange={createModal.close}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Tạo lịch trình mới</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 border-gradient-to-r border-blue-200/50 dark:border-blue-800/30">
+          <DialogHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg p-6 -m-6 mb-4">
+            <DialogTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Tạo lịch trình mới</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               Tạo lịch trình mới cho tình nguyện viên
             </DialogDescription>
           </DialogHeader>
@@ -852,10 +852,10 @@ export default function VolunteerScheduleManagementPage() {
 
       {/* Edit Schedule Modal */}
       <Dialog open={editModal.isOpen} onOpenChange={editModal.close}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa lịch trình</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 border-gradient-to-r border-blue-200/50 dark:border-blue-800/30">
+          <DialogHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg p-6 -m-6 mb-4">
+            <DialogTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Chỉnh sửa lịch trình</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               Cập nhật thông tin lịch trình tình nguyện viên
             </DialogDescription>
           </DialogHeader>
@@ -1066,10 +1066,10 @@ export default function VolunteerScheduleManagementPage() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={deleteModal.isOpen} onOpenChange={deleteModal.close}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Xác nhận xóa</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="bg-gradient-to-br from-white via-red-50/30 to-orange-50/30 dark:from-gray-900 dark:via-red-950/30 dark:to-orange-950/30 border-gradient-to-r border-red-200/50 dark:border-red-800/30">
+          <DialogHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/50 dark:to-orange-950/50 rounded-t-lg p-6 -m-6 mb-4">
+            <DialogTitle className="bg-gradient-to-r from-red-700 to-orange-700 bg-clip-text text-transparent dark:from-red-300 dark:to-orange-300">Xác nhận xóa</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               Bạn có chắc chắn muốn xóa lịch trình "{deleteModal.data?.title}"?
               Hành động này không thể hoàn tác.
             </DialogDescription>

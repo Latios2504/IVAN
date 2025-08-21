@@ -115,19 +115,19 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 border-gradient-to-r border-blue-200 dark:border-blue-800 shadow-2xl">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6 -m-6 mb-6">
+          <DialogTitle className="text-xl font-bold">Create New Event</DialogTitle>
+          <DialogDescription className="text-blue-100">
             Create a new volunteer event for your organization
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 p-2">
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="eventName">
+              <Label htmlFor="eventName" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Event Name <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -135,12 +135,13 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 value={formData.eventName || ""}
                 onChange={(e) => handleInputChange("eventName", e.target.value)}
                 placeholder="Enter event name"
+                className="bg-gradient-to-r from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">
+              <Label htmlFor="category" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Category <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -149,14 +150,15 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                   handleInputChange("categoryId", parseInt(value))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-green-200 dark:border-green-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all duration-200 shadow-sm hover:shadow-md">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700 shadow-xl">
                   {categories.map((category) => (
                     <SelectItem
                       key={category.categoryId}
                       value={category.categoryId.toString()}
+                      className="hover:bg-green-50 dark:hover:bg-green-900/20"
                     >
                       {category.categoryName}
                     </SelectItem>
@@ -168,7 +170,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">
+            <Label htmlFor="description" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Description <span className="text-red-500">*</span>
             </Label>
             <Textarea
@@ -177,12 +179,13 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
               onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Describe the event details..."
               rows={4}
+              className="bg-gradient-to-r from-white to-purple-50 dark:from-gray-800 dark:to-purple-900/20 border-purple-200 dark:border-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="shortDescription">Short Description</Label>
+            <Label htmlFor="shortDescription" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Short Description</Label>
             <Input
               id="shortDescription"
               value={formData.shortDescription || ""}
@@ -190,12 +193,13 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 handleInputChange("shortDescription", e.target.value)
               }
               placeholder="Brief description (optional)"
+              className="bg-gradient-to-r from-white to-amber-50 dark:from-gray-800 dark:to-amber-900/20 border-amber-200 dark:border-amber-700 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-800 transition-all duration-200 shadow-sm hover:shadow-md"
             />
           </div>
 
           {/* Location */}
           <div className="space-y-2">
-            <Label htmlFor="location">
+            <Label htmlFor="location" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Location <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -203,6 +207,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
               value={formData.location || ""}
               onChange={(e) => handleInputChange("location", e.target.value)}
               placeholder="Event location"
+              className="bg-gradient-to-r from-white to-teal-50 dark:from-gray-800 dark:to-teal-900/20 border-teal-200 dark:border-teal-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800 transition-all duration-200 shadow-sm hover:shadow-md"
               required
             />
           </div>
@@ -289,7 +294,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
           {/* Volunteers */}
           <div className="space-y-2">
-            <Label htmlFor="maxVolunteers">
+            <Label htmlFor="maxVolunteers" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Maximum Volunteers <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -300,20 +305,26 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
               onChange={(e) =>
                 handleInputChange("maxVolunteers", parseInt(e.target.value))
               }
+              className="bg-gradient-to-r from-white to-cyan-50 dark:from-gray-800 dark:to-cyan-900/20 border-cyan-200 dark:border-cyan-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 shadow-sm hover:shadow-md"
               required
             />
           </div>
 
-          <DialogFooter className="flex gap-2">
+          <DialogFooter className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={loading}
+              className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-md hover:shadow-lg transition-all duration-200"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Event
             </Button>

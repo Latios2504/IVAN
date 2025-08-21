@@ -113,21 +113,21 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
+    <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950 border border-green-200 dark:border-green-800 shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-t-lg border-b border-green-200 dark:border-green-800">
+        <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
+          <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
           Chọn sự kiện đã hoàn thành để xem phản hồi
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-green-700 dark:text-green-300">
           Chỉ hiển thị các sự kiện đã hoàn thành vì chỉ có thể quản lý phản hồi
           từ những sự kiện đã kết thúc.
         </p>
       </CardHeader>
       <CardContent>
         {eventsError ? (
-          <div className="text-center py-4">
-            <p className="text-red-600 text-sm">{eventsError}</p>
+          <div className="text-center py-4 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950 rounded-lg border border-red-200 dark:border-red-800">
+            <p className="text-red-600 dark:text-red-400 text-sm">{eventsError}</p>
           </div>
         ) : (
           <>
@@ -170,14 +170,14 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         )}
 
         {selectedEvent && (
-          <div className="mt-4 p-4 bg-muted rounded-lg">
-            <h4 className="font-medium">{selectedEvent.eventName}</h4>
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950 rounded-lg border border-yellow-200 dark:border-yellow-800 shadow-md">
+            <h4 className="font-medium text-yellow-900 dark:text-yellow-100">{selectedEvent.eventName}</h4>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
               {selectedEvent.description}
             </p>
             <div className="flex items-center gap-4 mt-2 text-sm">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+              <span className="flex items-center gap-1 text-yellow-700 dark:text-yellow-300">
+                <Calendar className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                 {new Date(selectedEvent.startDate).toLocaleDateString("vi-VN")}
                 {selectedEvent.endDate !== selectedEvent.startDate && (
                   <>
@@ -190,13 +190,13 @@ const EventSelector: React.FC<EventSelectorProps> = ({
               </span>
               <Badge
                 variant="outline"
-                className="bg-green-50 text-green-700 border-green-200"
+                className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700"
               >
                 {selectedEvent.statusName}
               </Badge>
             </div>
             {selectedEvent.location && (
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                 📍 {selectedEvent.location}
               </p>
             )}
@@ -231,26 +231,26 @@ const EventFeedbackManagementPage: React.FC = () => {
   }, [selectedEvent]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-6 space-y-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-xl border border-blue-200 dark:border-blue-800 shadow-lg backdrop-blur-sm">
+      <div className="flex items-center justify-between bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 shadow-md">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-blue-900 dark:text-blue-100">
             Quản lý phản hồi sự kiện
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-blue-700 dark:text-blue-300">
             Xem và quản lý phản hồi từ người tham gia sự kiện của tổ chức bạn
           </p>
         </div>
       </div>
 
       {/* Information about filtering */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-950 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4 shadow-md">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <MessageSquare className="h-5 w-5 text-blue-400" />
+            <MessageSquare className="h-5 w-5 text-cyan-500 dark:text-cyan-400" />
           </div>
           <div className="ml-3">
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-cyan-800 dark:text-cyan-200">
               <strong>Lưu ý:</strong> Chỉ hiển thị các sự kiện đã hoàn thành.
               Phản hồi chỉ có thể được thu thập và quản lý từ những sự kiện đã
               kết thúc.
@@ -277,13 +277,13 @@ const EventFeedbackManagementPage: React.FC = () => {
           />
         </div>
       ) : (
-        <Card>
+        <Card className="bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-950 dark:via-slate-950 dark:to-zinc-950 border border-gray-200 dark:border-gray-800 shadow-lg">
           <CardContent className="text-center py-8">
-            <MessageSquare className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <MessageSquare className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               Chọn sự kiện đã hoàn thành để xem phản hồi
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-gray-600 dark:text-gray-400">
               Vui lòng chọn một sự kiện đã hoàn thành từ danh sách trên để xem
               các phản hồi từ người tham gia. Chỉ có thể quản lý phản hồi cho
               những sự kiện đã kết thúc.

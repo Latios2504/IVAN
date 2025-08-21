@@ -373,28 +373,30 @@ export default function CoordinatorPersonalSchedulePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Lịch trình cá nhân
-          </h1>
-          <p className="text-muted-foreground">
-            Quản lý lịch trình cá nhân của bạn với tư cách điều phối viên
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setViewMode(viewMode === "list" ? "calendar" : "list")}
-            className="flex items-center gap-2"
-          >
-            <CalendarDays className="h-4 w-4" />
-            {viewMode === "list" ? "Xem lịch" : "Xem danh sách"}
-          </Button>
-          <Button onClick={createDialog.open} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Tạo lịch trình mới
-          </Button>
+      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-2xl p-8 border border-indigo-100 dark:border-indigo-800/30">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Lịch trình cá nhân
+            </h1>
+            <p className="text-indigo-600 dark:text-indigo-300 mt-2">
+              Quản lý lịch trình cá nhân của bạn với tư cách điều phối viên
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setViewMode(viewMode === "list" ? "calendar" : "list")}
+              className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            >
+              <CalendarDays className="h-4 w-4" />
+              {viewMode === "list" ? "Xem lịch" : "Xem danh sách"}
+            </Button>
+            <Button onClick={createDialog.open} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg">
+              <Plus className="h-4 w-4" />
+              Tạo lịch trình mới
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -405,7 +407,7 @@ export default function CoordinatorPersonalSchedulePage() {
               placeholder="Tìm kiếm lịch trình..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
+              className="w-64 bg-gradient-to-r from-white to-indigo-50/50 dark:from-gray-900 dark:to-indigo-950/30 border-indigo-200 dark:border-indigo-800/50 focus:border-indigo-400 dark:focus:border-indigo-600 focus:ring-indigo-200 dark:focus:ring-indigo-800/30"
             />
           </div>
         </div>
@@ -415,6 +417,7 @@ export default function CoordinatorPersonalSchedulePage() {
             size="sm"
             onClick={loadPersonalSchedules}
             disabled={loading}
+            className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Làm mới
@@ -427,19 +430,19 @@ export default function CoordinatorPersonalSchedulePage() {
         onValueChange={setSelectedTab}
         className="w-full"
       >
-        <TabsList>
-          <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="Scheduled">Đã lên lịch</TabsTrigger>
-          <TabsTrigger value="In Progress">Đang thực hiện</TabsTrigger>
-          <TabsTrigger value="Completed">Hoàn thành</TabsTrigger>
-          <TabsTrigger value="Cancelled">Đã hủy</TabsTrigger>
+        <TabsList className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200 dark:border-indigo-800/50">
+          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Tất cả</TabsTrigger>
+          <TabsTrigger value="Scheduled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Đã lên lịch</TabsTrigger>
+          <TabsTrigger value="In Progress" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Đang thực hiện</TabsTrigger>
+          <TabsTrigger value="Completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Hoàn thành</TabsTrigger>
+          <TabsTrigger value="Cancelled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Đã hủy</TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Lịch trình cá nhân</CardTitle>
-              <CardDescription>
+          <Card className="bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
+            <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 border-b border-indigo-100 dark:border-indigo-800/30">
+              <CardTitle className="text-indigo-900 dark:text-indigo-100">Lịch trình cá nhân</CardTitle>
+              <CardDescription className="text-indigo-600 dark:text-indigo-300">
                 Tổng cộng {totalCount} lịch trình
               </CardDescription>
             </CardHeader>
@@ -525,10 +528,10 @@ export default function CoordinatorPersonalSchedulePage() {
 
       {/* Create Schedule Dialog */}
       <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Tạo lịch trình mới</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
+          <DialogHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-t-lg p-6 -m-6 mb-4 border-b border-indigo-100 dark:border-indigo-800/30">
+            <DialogTitle className="text-indigo-900 dark:text-indigo-100">Tạo lịch trình mới</DialogTitle>
+            <DialogDescription className="text-indigo-600 dark:text-indigo-300">
               Tạo lịch trình cá nhân mới cho bạn
             </DialogDescription>
           </DialogHeader>
@@ -704,13 +707,14 @@ export default function CoordinatorPersonalSchedulePage() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={createDialog.close}>
+          <DialogFooter className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-b-lg p-6 -m-6 mt-4 border-t border-indigo-100 dark:border-indigo-800/30">
+            <Button variant="outline" onClick={createDialog.close} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
               Hủy
             </Button>
             <Button
               onClick={handleCreateSchedule}
               disabled={loading || !formData.title || !formData.startDateTime || !formData.endDateTime}
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg disabled:from-gray-400 disabled:to-gray-500"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Tạo lịch trình
@@ -721,10 +725,10 @@ export default function CoordinatorPersonalSchedulePage() {
 
       {/* Edit Schedule Dialog */}
       <Dialog open={editDialog.isOpen} onOpenChange={editDialog.close}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa lịch trình</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
+          <DialogHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-t-lg p-6 -m-6 mb-4 border-b border-indigo-100 dark:border-indigo-800/30">
+            <DialogTitle className="text-indigo-900 dark:text-indigo-100">Chỉnh sửa lịch trình</DialogTitle>
+            <DialogDescription className="text-indigo-600 dark:text-indigo-300">
               Cập nhật thông tin lịch trình của bạn
             </DialogDescription>
           </DialogHeader>
@@ -901,13 +905,14 @@ export default function CoordinatorPersonalSchedulePage() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={editDialog.close}>
+          <DialogFooter className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-b-lg p-6 -m-6 mt-4 border-t border-indigo-100 dark:border-indigo-800/30">
+            <Button variant="outline" onClick={editDialog.close} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
               Hủy
             </Button>
             <Button
               onClick={handleUpdateSchedule}
               disabled={loading || !formData.title || !formData.startDateTime || !formData.endDateTime}
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg disabled:from-gray-400 disabled:to-gray-500"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Cập nhật
@@ -918,9 +923,9 @@ export default function CoordinatorPersonalSchedulePage() {
 
       {/* View Schedule Dialog */}
       <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Chi tiết lịch trình</DialogTitle>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
+          <DialogHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-t-lg p-6 -m-6 mb-4 border-b border-indigo-100 dark:border-indigo-800/30">
+            <DialogTitle className="text-indigo-900 dark:text-indigo-100">Chi tiết lịch trình</DialogTitle>
           </DialogHeader>
           {viewModal.data && (
             <div className="grid gap-4 py-4">
@@ -1038,8 +1043,8 @@ export default function CoordinatorPersonalSchedulePage() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={viewModal.close}>
+          <DialogFooter className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-b-lg p-6 -m-6 mt-4 border-t border-indigo-100 dark:border-indigo-800/30">
+            <Button variant="outline" onClick={viewModal.close} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
               Đóng
             </Button>
           </DialogFooter>

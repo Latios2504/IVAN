@@ -200,76 +200,76 @@ export default function CoordinatorTasksPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="mb-8 p-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-lg border border-indigo-200 dark:border-indigo-800/50">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
           Điều phối viên - Quản lý nhiệm vụ
         </h1>
-        <p className="text-gray-600">
+        <p className="text-indigo-600 dark:text-indigo-300">
           Quản lý các nhiệm vụ và tổ chức được phân công
         </p>
       </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng nhiệm vụ</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Tổng nhiệm vụ</CardTitle>
+            <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTasks}</div>
-            <p className="text-xs text-muted-foreground">Được giao</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.totalTasks}</div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">Được giao</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
               Nhiệm vụ chờ xử lý
             </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            <AlertTriangle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingTasks}</div>
-            <p className="text-xs text-muted-foreground">Cần thực hiện</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.pendingTasks}</div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">Cần thực hiện</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
               Đang thực hiện
             </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgressTasks}</div>
-            <p className="text-xs text-muted-foreground">Đang tiến hành</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.inProgressTasks}</div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">Đang tiến hành</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hoàn thành</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Hoàn thành</CardTitle>
+            <CheckCircle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completedTasks}</div>
-            <p className="text-xs text-muted-foreground">Đã xong</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.completedTasks}</div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">Đã xong</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="tasks" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="tasks">Nhiệm vụ của tôi</TabsTrigger>
-          <TabsTrigger value="completed">Đã hoàn thành</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-900/50 dark:via-purple-900/50 dark:to-pink-900/50 border-indigo-200 dark:border-indigo-800/50">
+          <TabsTrigger value="tasks" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800 dark:hover:to-purple-800 transition-all duration-300">Nhiệm vụ của tôi</TabsTrigger>
+          <TabsTrigger value="completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800 dark:hover:to-purple-800 transition-all duration-300">Đã hoàn thành</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-6">
           {/* Search and Filters */}
-          <Card>
-            <CardContent className="p-4">
+          <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+            <CardContent className="p-4 bg-gradient-to-r from-indigo-100/30 to-purple-100/30 dark:from-indigo-900/20 dark:to-purple-900/20">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -310,9 +310,9 @@ export default function CoordinatorTasksPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Danh sách nhiệm vụ ({filteredTasks.length})</CardTitle>
+          <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+            <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+              <CardTitle className="text-indigo-700 dark:text-indigo-300">Danh sách nhiệm vụ ({filteredTasks.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -329,7 +329,7 @@ export default function CoordinatorTasksPage() {
                   filteredTasks.map((task) => (
                     <div
                       key={`${task.eventId}-${task.coordinatorId}`}
-                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="border border-indigo-200 dark:border-indigo-800/50 rounded-lg p-4 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 hover:bg-gradient-to-br hover:from-indigo-100/70 hover:via-purple-100/70 hover:to-pink-100/70 dark:hover:from-indigo-900/30 dark:hover:via-purple-900/30 dark:hover:to-pink-900/30 cursor-pointer transition-all duration-300"
                       onClick={() =>
                         setSelectedTask(
                           selectedTask ===
@@ -450,9 +450,9 @@ export default function CoordinatorTasksPage() {
         </TabsContent>
 
         <TabsContent value="completed" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Nhiệm vụ đã hoàn thành</CardTitle>
+          <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+            <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+              <CardTitle className="text-indigo-700 dark:text-indigo-300">Nhiệm vụ đã hoàn thành</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -461,7 +461,7 @@ export default function CoordinatorTasksPage() {
                   .map((task) => (
                     <div
                       key={`${task.eventId}-${task.coordinatorId}`}
-                      className="border rounded-lg p-4 bg-green-50"
+                      className="border border-green-200 dark:border-green-800/50 rounded-lg p-4 bg-gradient-to-br from-green-50/70 via-emerald-50/70 to-teal-50/70 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-teal-950/30"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

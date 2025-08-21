@@ -133,14 +133,29 @@ export const EventList: React.FC<EventListProps> = ({
     }
   };
 
+  const getStatusGradient = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md hover:shadow-lg";
+      case "planning":
+        return "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg";
+      case "cancelled":
+        return "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md hover:shadow-lg";
+      case "completed":
+        return "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md hover:shadow-lg";
+      default:
+        return "bg-gradient-to-r from-gray-500 to-slate-500 text-white shadow-md hover:shadow-lg";
+    }
+  };
+
   const columns: TableColumn<EventDto>[] = [
     {
       key: "eventName",
       header: "Event Name",
       render: (value: string, event: EventDto) => (
-        <div>
-          <div className="font-medium">{event.eventName}</div>
-          <div className="text-sm text-gray-500">{event.categoryName}</div>
+        <div className="space-y-1">
+          <div className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">{event.eventName}</div>
+          <div className="text-sm px-2 py-1 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-full inline-block">{event.categoryName}</div>
         </div>
       ),
     },
@@ -148,7 +163,7 @@ export const EventList: React.FC<EventListProps> = ({
       key: "statusName",
       header: "Status",
       render: (value: string, event: EventDto) => (
-        <Badge variant={getStatusVariant(event.statusName)}>
+        <Badge className={`${getStatusGradient(event.statusName)} transition-all duration-200 hover:scale-105`}>
           {event.statusName}
         </Badge>
       ),
@@ -156,26 +171,33 @@ export const EventList: React.FC<EventListProps> = ({
     {
       key: "startDate",
       header: "Start Date",
-      render: (value: string) =>
-        new Date(value).toLocaleDateString("vi-VN", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }),
+      render: (value: string) => (
+        <div className="px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-800 dark:text-amber-200 rounded-lg text-sm font-medium shadow-sm">
+          {new Date(value).toLocaleDateString("vi-VN", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      ),
     },
     {
       key: "volunteers",
       header: "Volunteers",
-      render: (_, event: EventDto) => `0/${event.maxVolunteers || 0}`,
+      render: (_, event: EventDto) => (
+        <div className="px-3 py-1 bg-gradient-to-r from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 text-teal-800 dark:text-teal-200 rounded-lg text-sm font-semibold shadow-sm">
+          0/{event.maxVolunteers || 0}
+        </div>
+      ),
     },
     {
       key: "location",
       header: "Location",
       render: (value: string, event: EventDto) => (
-        <div className="text-sm">
-          <div className="truncate max-w-[200px]">{event.location}</div>
+        <div className="text-sm space-y-1">
+          <div className="truncate max-w-[200px] font-medium text-gray-900 dark:text-gray-100">{event.location}</div>
           {event.province && (
-            <div className="text-gray-500 truncate">{event.province}</div>
+            <div className="text-xs px-2 py-1 bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-800 dark:to-slate-800 text-gray-600 dark:text-gray-400 rounded-md truncate inline-block">{event.province}</div>
           )}
         </div>
       ),
@@ -184,8 +206,8 @@ export const EventList: React.FC<EventListProps> = ({
       key: "isFeatured",
       header: "Featured",
       render: (value: boolean) => (
-        <Badge variant={value ? "default" : "outline"}>
-          {value ? "Yes" : "No"}
+        <Badge className={value ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105" : "bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md transition-all duration-200"}>
+          {value ? "⭐ Yes" : "No"}
         </Badge>
       ),
     },

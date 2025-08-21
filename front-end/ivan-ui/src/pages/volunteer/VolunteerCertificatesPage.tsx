@@ -196,13 +196,13 @@ export default function VolunteerCertificatesPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <Award className="h-8 w-8 text-blue-600" />
+        <div className="flex items-center gap-3 mb-4 bg-gradient-to-r from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-purple-950/40 rounded-xl p-6 border border-blue-200/50 dark:border-blue-800/50">
+          <Award className="h-8 w-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 text-transparent bg-clip-text" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
               Chứng chỉ của tôi
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Quản lý và tải xuống các chứng chỉ tình nguyện của bạn
             </p>
           </div>
@@ -224,52 +224,52 @@ export default function VolunteerCertificatesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
+        <Card className="bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-zinc-50/80 dark:from-slate-950/50 dark:via-gray-950/50 dark:to-zinc-950/50 border-slate-200/50 dark:border-slate-800/50 hover:shadow-lg transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-slate-600 to-gray-600 dark:from-slate-400 dark:to-gray-400 bg-clip-text text-transparent">
               Tổng chứng chỉ
             </CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+            <Award className="h-4 w-4 text-slate-500 dark:text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold bg-gradient-to-r from-slate-700 to-gray-700 dark:from-slate-300 dark:to-gray-300 bg-clip-text text-transparent">{stats.total}</div>
             <p className="text-xs text-muted-foreground">Tất cả chứng chỉ</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50/80 via-emerald-50/80 to-teal-50/80 dark:from-green-950/50 dark:via-emerald-950/50 dark:to-teal-950/50 border-green-200/50 dark:border-green-800/50 hover:shadow-lg transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Có hiệu lực</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">Có hiệu lực</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
               {stats.issued}
             </div>
             <p className="text-xs text-muted-foreground">Chứng chỉ hợp lệ</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-yellow-50/80 via-amber-50/80 to-orange-50/80 dark:from-yellow-950/50 dark:via-amber-950/50 dark:to-orange-950/50 border-yellow-200/50 dark:border-yellow-800/50 hover:shadow-lg transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chờ duyệt</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent">Chờ duyệt</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent">
               {stats.pending}
             </div>
             <p className="text-xs text-muted-foreground">Đang xử lý</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-red-50/80 via-rose-50/80 to-pink-50/80 dark:from-red-950/50 dark:via-rose-950/50 dark:to-pink-950/50 border-red-200/50 dark:border-red-800/50 hover:shadow-lg transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hết hạn</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">Hết hạn</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
               {stats.expired}
             </div>
             <p className="text-xs text-muted-foreground">Cần gia hạn</p>
@@ -303,30 +303,30 @@ export default function VolunteerCertificatesPage() {
         onValueChange={setSelectedTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="issued">Có hiệu lực</TabsTrigger>
-          <TabsTrigger value="pending">Chờ duyệt</TabsTrigger>
-          <TabsTrigger value="expired">Hết hạn</TabsTrigger>
-          <TabsTrigger value="rejected">Bị từ chối</TabsTrigger>
-          <TabsTrigger value="revoked">Đã thu hồi</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-slate-100/80 via-gray-100/80 to-zinc-100/80 dark:from-slate-900/50 dark:via-gray-900/50 dark:to-zinc-900/50 border border-slate-200/50 dark:border-slate-800/50">
+          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white transition-all duration-300">Tất cả</TabsTrigger>
+          <TabsTrigger value="issued" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white transition-all duration-300">Có hiệu lực</TabsTrigger>
+          <TabsTrigger value="pending" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white transition-all duration-300">Chờ duyệt</TabsTrigger>
+          <TabsTrigger value="expired" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white transition-all duration-300">Hết hạn</TabsTrigger>
+          <TabsTrigger value="rejected" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white transition-all duration-300">Bị từ chối</TabsTrigger>
+          <TabsTrigger value="revoked" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300">Đã thu hồi</TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>
+          <Card className="bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-zinc-50/80 dark:from-slate-950/50 dark:via-gray-950/50 dark:to-zinc-950/50 border-slate-200/50 dark:border-slate-800/50">
+            <CardHeader className="bg-gradient-to-r from-blue-50/60 via-indigo-50/60 to-purple-50/60 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-t-lg border-b border-slate-200/50 dark:border-slate-800/50">
+              <CardTitle className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
                 {selectedTab === "all"
                   ? "Tất cả chứng chỉ"
                   : statusConfig[selectedTab as keyof typeof statusConfig]
                       ?.label}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-600 dark:text-gray-300">
                 Danh sách chứng chỉ tình nguyện của bạn từ các hoạt động đã tham
                 gia
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-gradient-to-br from-white/50 via-slate-50/50 to-gray-50/50 dark:from-slate-950/30 dark:via-gray-950/30 dark:to-zinc-950/30">
               {/* Loading State */}
               {loading && (
                 <div className="flex items-center justify-center py-12">
@@ -375,30 +375,30 @@ export default function VolunteerCertificatesPage() {
                     return (
                       <Card
                         key={certificate.certificateId}
-                        className="hover:shadow-lg transition-shadow duration-200"
+                        className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white/80 via-slate-50/80 to-gray-50/80 dark:from-slate-900/50 dark:via-gray-900/50 dark:to-zinc-900/50 border-slate-200/50 dark:border-slate-800/50"
                       >
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 bg-gradient-to-r from-blue-50/40 via-indigo-50/40 to-purple-50/40 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 rounded-t-lg border-b border-slate-200/30 dark:border-slate-800/30">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-lg mb-1">
+                              <CardTitle className="text-lg mb-1 bg-gradient-to-r from-slate-700 via-gray-700 to-zinc-700 dark:from-slate-300 dark:via-gray-300 dark:to-zinc-300 bg-clip-text text-transparent">
                                 {certificate.certificateName}
                               </CardTitle>
                               <div className="flex items-center gap-2 mb-2">
                                 <StatusIcon
                                   className={`h-4 w-4 ${statusInfo?.color}`}
                                 />
-                                <Badge variant={statusInfo?.variant}>
+                                <Badge variant={statusInfo?.variant} className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-slate-200/50 dark:border-slate-700/50">
                                   {statusInfo?.label}
                                 </Badge>
                               </div>
                             </div>
                           </div>
-                          <CardDescription className="text-sm">
+                          <CardDescription className="text-sm text-gray-600 dark:text-gray-300">
                             {certificate.description || statusInfo?.description}
                           </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-4 bg-gradient-to-br from-white/60 via-slate-50/60 to-gray-50/60 dark:from-slate-950/40 dark:via-gray-950/40 dark:to-zinc-950/40">
                           {/* Certificate Details */}
                           <div className="space-y-2 text-sm">
                             {certificate.certificateNumber && (
@@ -465,7 +465,7 @@ export default function VolunteerCertificatesPage() {
                                       "certificate"
                                   )
                                 }
-                                className="flex-1"
+                                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600 hover:from-blue-600 hover:to-indigo-600 dark:hover:from-blue-700 dark:hover:to-indigo-700 text-white border-0 transition-all duration-300"
                               >
                                 <Download className="mr-2 h-4 w-4" />
                                 Tải xuống
@@ -478,7 +478,7 @@ export default function VolunteerCertificatesPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleShare(certificate)}
-                                className="flex-1"
+                                className="flex-1 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950/50 dark:to-slate-950/50 border-gray-200/50 dark:border-gray-800/50 hover:from-gray-100 hover:to-slate-100 dark:hover:from-gray-900/50 dark:hover:to-slate-900/50 text-gray-700 dark:text-gray-300 transition-all duration-300"
                               >
                                 <Share2 className="mr-2 h-4 w-4" />
                                 Chia sẻ
@@ -490,7 +490,7 @@ export default function VolunteerCertificatesPage() {
                                 variant="outline"
                                 size="sm"
                                 disabled
-                                className="flex-1"
+                                className="flex-1 bg-gradient-to-r from-yellow-50/50 to-amber-50/50 dark:from-yellow-950/30 dark:to-amber-950/30 border-yellow-200/50 dark:border-yellow-800/50 text-yellow-600 dark:text-yellow-400 transition-all duration-300"
                               >
                                 <Clock className="mr-2 h-4 w-4" />
                                 Đang chờ duyệt

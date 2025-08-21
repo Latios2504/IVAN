@@ -291,8 +291,10 @@ export default function PartnerCollaborationPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Quản lý Hợp tác Đối tác</h1>
+    <div className="container mx-auto p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 min-h-screen">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold mb-6">Quản lý Hợp tác Đối tác</h1>
+      </div>
 
       <div className="flex justify-between items-center mb-6">
         <div className="w-1/2">
@@ -300,22 +302,25 @@ export default function PartnerCollaborationPage() {
             placeholder="Tìm kiếm hợp tác..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
+            className="max-w-md bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-blue-200 dark:border-blue-700 focus:border-blue-400 dark:focus:border-blue-500 shadow-lg"
           />
         </div>
 
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Button 
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Thêm hợp tác mới
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 shadow-2xl">
             <form onSubmit={handleCreateSubmit}>
-              <DialogHeader>
+              <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 <DialogTitle>Thêm hợp tác đối tác mới</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-gray-600 dark:text-gray-300">
                   Tạo quan hệ hợp tác mới với đối tác.
                 </DialogDescription>
               </DialogHeader>
@@ -436,10 +441,15 @@ export default function PartnerCollaborationPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsCreateDialogOpen(false)}
+                  className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
                   Hủy
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                >
                   {submitting && (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   )}
@@ -451,10 +461,10 @@ export default function PartnerCollaborationPage() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           <CardTitle>Danh sách hợp tác đối tác</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-600 dark:text-gray-300">
             Quản lý tất cả các hợp tác với các đối tác của tổ chức.
           </CardDescription>
         </CardHeader>
@@ -516,6 +526,7 @@ export default function PartnerCollaborationPage() {
                                   collaboration.collaborationId
                                 )
                               }
+                              className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -528,6 +539,7 @@ export default function PartnerCollaborationPage() {
                                   "Chức năng chỉnh sửa đang được phát triển"
                                 );
                               }}
+                              className="border-green-200 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 hover:border-green-300 dark:hover:border-green-600 transition-all duration-200"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -539,6 +551,7 @@ export default function PartnerCollaborationPage() {
                                   collaboration.collaborationId
                                 )
                               }
+                              className="border-red-200 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-600 transition-all duration-200"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -566,6 +579,7 @@ export default function PartnerCollaborationPage() {
                         setCurrentPage((prev) => Math.max(1, prev - 1))
                       }
                       disabled={currentPage === 1}
+                      className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 transition-all duration-200"
                     >
                       Trước
                     </Button>
@@ -576,6 +590,7 @@ export default function PartnerCollaborationPage() {
                         setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                       }
                       disabled={currentPage === totalPages}
+                      className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 transition-all duration-200"
                     >
                       Sau
                     </Button>
@@ -589,8 +604,8 @@ export default function PartnerCollaborationPage() {
 
       {/* Detail Dialog */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 shadow-2xl">
+          <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             <DialogTitle>Chi tiết hợp tác</DialogTitle>
           </DialogHeader>
           {selectedCollaboration && (
@@ -663,6 +678,7 @@ export default function PartnerCollaborationPage() {
             <Button
               variant="outline"
               onClick={() => setIsDetailDialogOpen(false)}
+              className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
             >
               Đóng
             </Button>

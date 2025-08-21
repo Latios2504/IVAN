@@ -90,11 +90,11 @@ export default function CoordinatorProfilePage() {
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Profile Header */}
-        <Card>
+        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="relative">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
+                <div className="w-32 h-32 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-800/50 dark:via-purple-800/50 dark:to-pink-800/50 rounded-full flex items-center justify-center border-2 border-indigo-200 dark:border-indigo-700/50">
                   {profile.profilePicture ? (
                     <img
                       src={profile.profilePicture}
@@ -102,13 +102,13 @@ export default function CoordinatorProfilePage() {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <User className="w-16 h-16 text-purple-600" />
+                    <User className="w-16 h-16 text-indigo-600 dark:text-indigo-300" />
                   )}
                 </div>
                 {isCurrentUser && (
                   <Button
                     size="sm"
-                    className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0"
+                    className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg"
                   >
                     <Camera className="w-4 h-4" />
                   </Button>
@@ -117,26 +117,26 @@ export default function CoordinatorProfilePage() {
 
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold text-gray-900">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                     {profile.fullName}
                   </h1>
                   <Badge
                     variant="secondary"
-                    className="bg-purple-100 text-purple-700"
+                    className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-800/50 dark:to-purple-800/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/50"
                   >
                     <Briefcase className="w-3 h-3 mr-1" />
                     Điều phối viên
                   </Badge>
                   {profile.isActive && (
-                    <Badge variant="default" className="bg-green-600">
+                    <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
                       Đang hoạt động
                     </Badge>
                   )}
                 </div>
-                <p className="text-gray-600">
+                <p className="text-indigo-600 dark:text-indigo-300">
                   {profile.position} tại {profile.organizationName}
                 </p>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                <div className="flex flex-wrap gap-4 text-sm text-indigo-600 dark:text-indigo-300">
                   <div className="flex items-center gap-1">
                     <Mail className="w-4 h-4" />
                     {profile.email}
@@ -157,7 +157,7 @@ export default function CoordinatorProfilePage() {
               </div>
 
               {isCurrentUser && (
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300">
                   <Edit className="w-4 h-4" />
                   Chỉnh sửa hồ sơ
                 </Button>
@@ -172,24 +172,24 @@ export default function CoordinatorProfilePage() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="info">Thông tin</TabsTrigger>
-            <TabsTrigger value="tasks">Nhiệm vụ</TabsTrigger>
-            <TabsTrigger value="schedule">Lịch trình</TabsTrigger>
-            <TabsTrigger value="performance">Hiệu suất</TabsTrigger>
-            <TabsTrigger value="team">Nhóm</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-indigo-200 dark:border-indigo-800/50">
+            <TabsTrigger value="info" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Thông tin</TabsTrigger>
+            <TabsTrigger value="tasks" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Nhiệm vụ</TabsTrigger>
+            <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Lịch trình</TabsTrigger>
+            <TabsTrigger value="performance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Hiệu suất</TabsTrigger>
+            <TabsTrigger value="team" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Nhóm</TabsTrigger>
             {isCurrentUser && (
-              <TabsTrigger value="settings">Cài đặt</TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Cài đặt</TabsTrigger>
             )}
           </TabsList>
 
           <TabsContent value="info" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Basic Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Thông tin cá nhân</CardTitle>
-                  <CardDescription>
+              <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+                <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                  <CardTitle className="text-indigo-700 dark:text-indigo-300">Thông tin cá nhân</CardTitle>
+                  <CardDescription className="text-indigo-600 dark:text-indigo-400">
                     Thông tin cơ bản của điều phối viên
                   </CardDescription>
                 </CardHeader>
@@ -230,10 +230,10 @@ export default function CoordinatorProfilePage() {
               </Card>
 
               {/* Contact Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Thông tin liên hệ</CardTitle>
-                  <CardDescription>
+              <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+                <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                  <CardTitle className="text-indigo-700 dark:text-indigo-300">Thông tin liên hệ</CardTitle>
+                  <CardDescription className="text-indigo-600 dark:text-indigo-400">
                     Thông tin liên lạc và tổ chức
                   </CardDescription>
                 </CardHeader>
@@ -274,10 +274,10 @@ export default function CoordinatorProfilePage() {
               </Card>
 
               {/* Statistics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Thống kê hoạt động</CardTitle>
-                  <CardDescription>
+              <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+                <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                  <CardTitle className="text-indigo-700 dark:text-indigo-300">Thống kê hoạt động</CardTitle>
+                  <CardDescription className="text-indigo-600 dark:text-indigo-400">
                     Số liệu về hiệu suất làm việc
                   </CardDescription>
                 </CardHeader>
@@ -312,10 +312,10 @@ export default function CoordinatorProfilePage() {
               </Card>
 
               {/* Specializations */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Chuyên môn</CardTitle>
-                  <CardDescription>
+              <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+                <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                  <CardTitle className="text-indigo-700 dark:text-indigo-300">Chuyên môn</CardTitle>
+                  <CardDescription className="text-indigo-600 dark:text-indigo-400">
                     Lĩnh vực chuyên môn và kỹ năng
                   </CardDescription>
                 </CardHeader>
@@ -334,13 +334,13 @@ export default function CoordinatorProfilePage() {
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
                   <ClipboardList className="w-5 h-5" />
                   Quản lý nhiệm vụ
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-indigo-600 dark:text-indigo-400">
                   Danh sách và trạng thái các nhiệm vụ được giao
                 </CardDescription>
               </CardHeader>
@@ -353,13 +353,13 @@ export default function CoordinatorProfilePage() {
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
                   <Calendar className="w-5 h-5" />
                   Lịch trình làm việc
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-indigo-600 dark:text-indigo-400">
                   Quản lý lịch trình và ca làm việc
                 </CardDescription>
               </CardHeader>
@@ -372,13 +372,13 @@ export default function CoordinatorProfilePage() {
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
                   <BarChart3 className="w-5 h-5" />
                   Báo cáo hiệu suất
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-indigo-600 dark:text-indigo-400">
                   Phân tích và đánh giá hiệu suất làm việc
                 </CardDescription>
               </CardHeader>
@@ -391,13 +391,13 @@ export default function CoordinatorProfilePage() {
           </TabsContent>
 
           <TabsContent value="team" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
                   <Users className="w-5 h-5" />
                   Quản lý nhóm
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-indigo-600 dark:text-indigo-400">
                   Thông tin về nhóm tình nguyện viên được quản lý
                 </CardDescription>
               </CardHeader>
@@ -411,13 +411,13 @@ export default function CoordinatorProfilePage() {
 
           {isCurrentUser && (
             <TabsContent value="settings" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+              <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+                <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+                  <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
                     <Settings className="w-5 h-5" />
                     Cài đặt tài khoản
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-indigo-600 dark:text-indigo-400">
                     Cấu hình cá nhân và thông báo
                   </CardDescription>
                 </CardHeader>

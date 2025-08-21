@@ -28,11 +28,11 @@ export const VolunteerCoordinatorList: React.FC<
 
   const getStatusColor = (isActive?: boolean) => {
     if (isActive === true) {
-      return "bg-green-100 text-green-800";
+      return "bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-800 dark:to-green-800 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-600";
     } else if (isActive === false) {
-      return "bg-red-100 text-red-800";
+      return "bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-800 dark:to-rose-800 text-red-800 dark:text-red-200 border-red-300 dark:border-red-600";
     } else {
-      return "bg-gray-100 text-gray-800";
+      return "bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-800 dark:to-slate-800 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600";
     }
   };
 
@@ -107,7 +107,7 @@ export const VolunteerCoordinatorList: React.FC<
       key: "position",
       header: "Position",
       render: (_, coordinator) => (
-        <Badge variant="outline">
+        <Badge variant="outline" className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-600">
           {coordinator.position || "Not specified"}
         </Badge>
       ),
@@ -116,7 +116,7 @@ export const VolunteerCoordinatorList: React.FC<
       key: "department",
       header: "Department",
       render: (_, coordinator) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-sm bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 dark:from-purple-300 dark:via-indigo-300 dark:to-blue-300 bg-clip-text text-transparent font-medium">
           {coordinator.department || "General"}
         </span>
       ),
@@ -128,13 +128,13 @@ export const VolunteerCoordinatorList: React.FC<
         <div className="text-sm">
           {coordinator.manager ? (
             <div>
-              <div className="font-medium text-gray-900">
+              <div className="font-medium bg-gradient-to-r from-orange-700 via-amber-700 to-yellow-700 dark:from-orange-300 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent">
                 {coordinator.manager.fullName || coordinator.manager.email}
               </div>
-              <div className="text-gray-500">Manager</div>
+              <div className="text-gray-500 dark:text-gray-400">Manager</div>
             </div>
           ) : (
-            <span className="text-gray-400">No manager assigned</span>
+            <span className="text-gray-400 dark:text-gray-500">No manager assigned</span>
           )}
         </div>
       ),
@@ -152,7 +152,7 @@ export const VolunteerCoordinatorList: React.FC<
       key: "hireDate",
       header: "Hire Date",
       render: (_, coordinator) => (
-        <span className="text-sm text-gray-900">
+        <span className="text-sm bg-gradient-to-r from-teal-700 via-cyan-700 to-blue-700 dark:from-teal-300 dark:via-cyan-300 dark:to-blue-300 bg-clip-text text-transparent font-medium">
           {coordinator.hireDate
             ? new Date(coordinator.hireDate).toLocaleDateString()
             : coordinator.createdAt
@@ -167,29 +167,30 @@ export const VolunteerCoordinatorList: React.FC<
       render: (_, coordinator) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-800 dark:hover:to-indigo-800 transition-all duration-300">
               <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleViewDetails(coordinator)}>
-              <Eye className="mr-2 h-4 w-4" />
-              View Details
+          <DropdownMenuContent align="end" className="bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 dark:from-slate-800 dark:via-slate-700/50 dark:to-slate-600/30 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm">
+            <DropdownMenuItem onClick={() => handleViewDetails(coordinator)} className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-800 dark:hover:to-indigo-800 transition-all duration-200">
+              <Eye className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-blue-700 dark:text-blue-300">View Details</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleEditCoordinator(coordinator)}
+              className="hover:bg-gradient-to-r hover:from-orange-100 hover:to-amber-100 dark:hover:from-orange-800 dark:hover:to-amber-800 transition-all duration-200"
             >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
+              <Edit className="mr-2 h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <span className="text-orange-700 dark:text-orange-300">Edit</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-gradient-to-r from-gray-200 via-slate-200 to-gray-200 dark:from-gray-600 dark:via-slate-600 dark:to-gray-600" />
             <DropdownMenuItem
               onClick={() => handleDeleteCoordinator(coordinator)}
-              className="text-red-600"
+              className="hover:bg-gradient-to-r hover:from-red-100 hover:to-rose-100 dark:hover:from-red-800 dark:hover:to-rose-800 transition-all duration-200"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              <Trash2 className="mr-2 h-4 w-4 text-red-600 dark:text-red-400" />
+              <span className="text-red-600 dark:text-red-400">Delete</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -198,7 +199,7 @@ export const VolunteerCoordinatorList: React.FC<
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-800/30 dark:via-blue-900/10 dark:to-indigo-900/20 rounded-lg p-4 backdrop-blur-sm">
       <DataTable data={coordinators} columns={columns} loading={loading} />
     </div>
   );

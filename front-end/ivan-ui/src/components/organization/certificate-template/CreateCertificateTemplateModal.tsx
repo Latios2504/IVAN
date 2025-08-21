@@ -241,13 +241,13 @@ export default function CreateCertificateTemplateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 border-gradient-to-r border-blue-200 dark:border-blue-800 shadow-2xl">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6 -m-6 mb-6">
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            <FileText className="h-6 w-6" />
             Tạo mẫu chứng chỉ mới
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-blue-100">
             Tạo mẫu chứng chỉ tùy chỉnh cho tổ chức của bạn
           </DialogDescription>
         </DialogHeader>
@@ -255,7 +255,7 @@ export default function CreateCertificateTemplateModal({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
+            className="space-y-6 p-2"
           >
             {/* Template Name */}
             <FormField
@@ -263,7 +263,7 @@ export default function CreateCertificateTemplateModal({
               name="templateName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
+                  <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Tên mẫu chứng chỉ <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
@@ -271,6 +271,7 @@ export default function CreateCertificateTemplateModal({
                       placeholder="Nhập tên mẫu chứng chỉ..."
                       {...field}
                       disabled={isSubmitting}
+                      className="bg-gradient-to-r from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
                     />
                   </FormControl>
                   <FormDescription>
@@ -287,13 +288,14 @@ export default function CreateCertificateTemplateModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mô tả</FormLabel>
+                  <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300">Mô tả</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Mô tả mẫu chứng chỉ..."
                       rows={3}
                       {...field}
                       disabled={isSubmitting}
+                      className="bg-gradient-to-r from-white to-purple-50 dark:from-gray-800 dark:to-purple-900/20 border-purple-200 dark:border-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
                     />
                   </FormControl>
                   <FormDescription>
@@ -310,22 +312,22 @@ export default function CreateCertificateTemplateModal({
               name="templateType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loại chứng chỉ</FormLabel>
+                  <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300">Loại chứng chỉ</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                     disabled={isSubmitting}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-green-200 dark:border-green-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all duration-200 shadow-sm hover:shadow-md">
                         <SelectValue placeholder="Chọn loại chứng chỉ" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700 shadow-xl">
                       {TEMPLATE_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
+                        <SelectItem key={type.value} value={type.value} className="hover:bg-green-50 dark:hover:bg-green-900/20">
                           <div className="flex items-center gap-2">
-                            <Badge className={type.color}>{type.label}</Badge>
+                            <Badge className={`${type.color} shadow-sm`}>{type.label}</Badge>
                           </div>
                         </SelectItem>
                       ))}
@@ -341,29 +343,29 @@ export default function CreateCertificateTemplateModal({
 
             {/* Template Design */}
             <div className="space-y-4">
-              <FormLabel>Thiết kế mẫu</FormLabel>
+              <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300">Thiết kế mẫu</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {DEFAULT_DESIGNS.map((design) => (
                   <div
                     key={design.value}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md ${
                       selectedDesign === design.value
-                        ? "border-primary bg-primary/5"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md"
+                        : "border-gray-200 dark:border-gray-700 hover:border-primary/50 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700"
                     }`}
                     onClick={() => setSelectedDesign(design.value)}
                   >
-                    <h4 className="font-medium mb-2">{design.name}</h4>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <h4 className="font-medium mb-2 text-gray-800 dark:text-gray-200">{design.name}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       {design.description}
                     </p>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 dark:text-gray-500">
                       {design.preview}
                     </div>
                   </div>
                 ))}
               </div>
-              <FormDescription>
+              <FormDescription className="text-gray-600 dark:text-gray-400">
                 Chọn thiết kế mẫu cho chứng chỉ. Bạn có thể tùy chỉnh sau khi
                 tạo.
               </FormDescription>
@@ -371,16 +373,16 @@ export default function CreateCertificateTemplateModal({
 
             {/* Required Fields */}
             <div className="space-y-4">
-              <FormLabel>Trường bắt buộc</FormLabel>
+              <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300">Trường bắt buộc</FormLabel>
 
               {/* Selected Fields */}
               {selectedFields.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
+                <div className="flex flex-wrap gap-2 p-3 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-lg border border-gray-200 dark:border-gray-700">
                   {selectedFields.map((field) => (
                     <Badge
                       key={field}
                       variant="secondary"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700 shadow-sm"
                     >
                       {getFieldLabel(field)}
                       <X
@@ -406,7 +408,7 @@ export default function CreateCertificateTemplateModal({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="justify-start"
+                    className="justify-start bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-green-200 dark:border-green-700 hover:border-green-400 hover:shadow-md transition-all duration-200 text-green-700 dark:text-green-300"
                     onClick={() => addRequiredField(field.value)}
                     disabled={isSubmitting}
                   >
@@ -416,7 +418,7 @@ export default function CreateCertificateTemplateModal({
                 ))}
               </div>
 
-              <FormDescription>
+              <FormDescription className="text-gray-600 dark:text-gray-400">
                 Chọn các trường thông tin bắt buộc sẽ xuất hiện trên chứng chỉ
               </FormDescription>
             </div>
@@ -427,10 +429,10 @@ export default function CreateCertificateTemplateModal({
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 dark:border-blue-700 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 shadow-sm">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Kích hoạt mẫu</FormLabel>
-                      <FormDescription>
+                      <FormLabel className="text-base font-semibold text-gray-700 dark:text-gray-300">Kích hoạt mẫu</FormLabel>
+                      <FormDescription className="text-gray-600 dark:text-gray-400">
                         Mẫu có thể được sử dụng ngay sau khi tạo
                       </FormDescription>
                     </div>
@@ -449,10 +451,10 @@ export default function CreateCertificateTemplateModal({
                 control={form.control}
                 name="isDefault"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-purple-200 dark:border-purple-700 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 shadow-sm">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Mẫu mặc định</FormLabel>
-                      <FormDescription>
+                      <FormLabel className="text-base font-semibold text-gray-700 dark:text-gray-300">Mẫu mặc định</FormLabel>
+                      <FormDescription className="text-gray-600 dark:text-gray-400">
                         Có thể được sử dụng bởi tất cả tổ chức
                       </FormDescription>
                     </div>
@@ -468,16 +470,17 @@ export default function CreateCertificateTemplateModal({
               />
             </div>
 
-            <DialogFooter className="gap-2">
+            <DialogFooter className="gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
                 disabled={isSubmitting}
+                className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
                 {isSubmitting ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

@@ -204,12 +204,12 @@ const OnSiteTaskManagementPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 rounded-lg p-6 border border-indigo-200 dark:border-indigo-800/50">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             On-Site Task Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-indigo-600 dark:text-indigo-400">
             Manage tasks for events and assign volunteers
           </p>
         </div>
@@ -383,14 +383,14 @@ const OnSiteTaskManagementPage: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="mr-2 h-4 w-4" />
+      <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
+        <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
+          <CardTitle className="flex items-center text-indigo-700 dark:text-indigo-300">
+            <Filter className="mr-2 h-4 w-4 text-indigo-600 dark:text-indigo-400" />
             Filters
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-gradient-to-r from-indigo-100/30 to-purple-100/30 dark:from-indigo-900/20 dark:to-purple-900/20">
           <div className="flex space-x-4">
             <div className="flex-1">
               <Input
@@ -442,21 +442,21 @@ const OnSiteTaskManagementPage: React.FC = () => {
           {filteredTasks.map((task) => (
             <Card
               key={task.taskId}
-              className="hover:shadow-lg transition-shadow"
+              className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50 hover:shadow-lg hover:shadow-indigo-200/50 dark:hover:shadow-indigo-900/50 transition-all duration-300"
             >
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{task.taskName}</CardTitle>
+                  <CardTitle className="text-lg text-indigo-700 dark:text-indigo-300">{task.taskName}</CardTitle>
                   <div className="flex space-x-1">
                     {getStatusBadge(task.statusId)}
                     {getPriorityBadge(task.priority)}
                   </div>
                 </div>
-                <CardDescription className="line-clamp-2">
+                <CardDescription className="line-clamp-2 text-indigo-600 dark:text-indigo-400">
                   {task.description || "No description provided"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="mr-2 h-4 w-4" />
                   {task.startTime

@@ -254,9 +254,9 @@ export default function MyEventRegistrationsPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">My Event Registrations</h1>
-        <p className="text-gray-600">
+      <div className="mb-6 bg-gradient-to-r from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40 rounded-xl p-6 border border-emerald-200/50 dark:border-emerald-800/50">
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">My Event Registrations</h1>
+        <p className="text-muted-foreground">
           Manage your event registrations and track their status
         </p>
       </div>
@@ -281,16 +281,16 @@ export default function MyEventRegistrationsPage() {
       ) : (
         <div className="grid gap-6">
           {registrations.map((registration) => (
-            <Card key={registration.registrationId}>
-              <CardHeader>
+            <Card key={registration.registrationId} className="bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-zinc-50/80 dark:from-slate-950/50 dark:via-gray-950/50 dark:to-zinc-950/50 border-slate-200/50 dark:border-slate-800/50 hover:shadow-lg transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-blue-50/60 via-indigo-50/60 to-purple-50/60 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-t-lg border-b border-blue-200/30 dark:border-blue-800/30">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-xl">
+                    <CardTitle className="text-xl text-foreground">
                       {registration.event?.eventName || "Event Name"}
                     </CardTitle>
                     <div className="flex items-center gap-4 mt-2">
                       {getStatusBadge(registration.statusName)}
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-muted-foreground">
                         Applied:{" "}
                         {registration.applicationDate
                           ? formatDate(registration.applicationDate.toString())
@@ -305,6 +305,7 @@ export default function MyEventRegistrationsPage() {
                         size="sm"
                         onClick={() => handleEditRegistration(registration)}
                         disabled={actionLoading === registration.registrationId}
+                        className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-green-200/50 dark:border-green-800/50 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50 text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 transition-all duration-300"
                       >
                         <Edit3 className="w-4 h-4 mr-1" />
                         Edit
@@ -316,7 +317,7 @@ export default function MyEventRegistrationsPage() {
                         size="sm"
                         onClick={() => handleCancelRegistration(registration)}
                         disabled={actionLoading === registration.registrationId}
-                        className="text-red-600 hover:text-red-700"
+                        className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 border-red-200/50 dark:border-red-800/50 hover:from-red-100 hover:to-rose-100 dark:hover:from-red-900/50 dark:hover:to-rose-900/50 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-all duration-300"
                       >
                         <X className="w-4 h-4 mr-1" />
                         Cancel
@@ -325,20 +326,20 @@ export default function MyEventRegistrationsPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="bg-gradient-to-br from-white/50 via-slate-50/30 to-gray-50/30 dark:from-slate-900/30 dark:via-gray-900/30 dark:to-zinc-900/30">
                 {registration.event && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">
                         {formatDate(registration.event.startDate)} -{" "}
                         {formatDate(registration.event.endDate)}
                       </span>
                     </div>
                     {registration.event.location && (
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
                           {registration.event.location}
                         </span>
                       </div>
@@ -348,10 +349,10 @@ export default function MyEventRegistrationsPage() {
 
                 {registration.motivationLetter && (
                   <div className="mb-3">
-                    <h4 className="font-medium text-sm text-gray-700 mb-1">
+                    <h4 className="font-medium text-sm text-foreground mb-1">
                       Motivation Letter
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       {registration.motivationLetter}
                     </p>
                   </div>
@@ -359,10 +360,10 @@ export default function MyEventRegistrationsPage() {
 
                 {registration.additionalInfo && (
                   <div>
-                    <h4 className="font-medium text-sm text-gray-700 mb-1">
+                    <h4 className="font-medium text-sm text-foreground mb-1">
                       Additional Information
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       {registration.additionalInfo}
                     </p>
                   </div>
@@ -378,10 +379,10 @@ export default function MyEventRegistrationsPage() {
         open={!!editingRegistration}
         onOpenChange={(open) => !open && setEditingRegistration(null)}
       >
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle>Edit Registration</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[525px] bg-gradient-to-br from-slate-50/95 via-gray-50/95 to-zinc-50/95 dark:from-slate-950/95 dark:via-gray-950/95 dark:to-zinc-950/95 border-slate-200/50 dark:border-slate-800/50">
+          <DialogHeader className="bg-gradient-to-r from-green-50/80 via-emerald-50/80 to-teal-50/80 dark:from-green-950/40 dark:via-emerald-950/40 dark:to-teal-950/40 rounded-lg p-4 border border-green-200/50 dark:border-green-800/50">
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">Edit Registration</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Update your registration details for "
               {editingRegistration?.event?.eventName}"
             </DialogDescription>
@@ -444,12 +445,14 @@ export default function MyEventRegistrationsPage() {
             <Button
               variant="outline"
               onClick={() => setEditingRegistration(null)}
+              className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950/50 dark:to-slate-950/50 border-gray-200/50 dark:border-gray-800/50 hover:from-gray-100 hover:to-slate-100 dark:hover:from-gray-900/50 dark:hover:to-slate-900/50 text-gray-700 dark:text-gray-300 transition-all duration-300"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdateRegistration}
               disabled={actionLoading === editingRegistration?.registrationId}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 hover:from-green-600 hover:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700 text-white border-0 transition-all duration-300"
             >
               {actionLoading === editingRegistration?.registrationId
                 ? "Updating..."
