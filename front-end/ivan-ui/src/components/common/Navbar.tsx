@@ -89,16 +89,16 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-background border-b sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-white/95 via-slate-50/95 to-white/95 dark:from-slate-900/95 dark:via-slate-800/95 dark:to-slate-900/95 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 sticky top-0 z-50 shadow-sm shadow-slate-200/20 dark:shadow-slate-900/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-violet-500 via-indigo-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-violet-200/50 dark:shadow-violet-900/50">
                 <span className="text-white font-bold text-sm">I</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-xl font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
                 IVAN
               </span>
             </Link>
@@ -115,7 +115,7 @@ export default function Navbar() {
                       to="/volunteers"
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        "text-gray-700 dark:text-gray-300"
+                        "text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
                       )}
                     >
                       <Users className="w-4 h-4 mr-2" />
@@ -130,7 +130,7 @@ export default function Navbar() {
                       to="/organizations"
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        "text-gray-700 dark:text-gray-300"
+                        "text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                       )}
                     >
                       <Building2 className="w-4 h-4 mr-2" />
@@ -145,7 +145,7 @@ export default function Navbar() {
                       to="/partners"
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        "text-gray-700 dark:text-gray-300"
+                        "text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       )}
                     >
                       <Handshake className="w-4 h-4 mr-2" />
@@ -161,7 +161,7 @@ export default function Navbar() {
                       to="/events"
                       className={cn(
                         navigationMenuTriggerStyle(),
-                        "text-gray-700 dark:text-gray-300"
+                        "text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                       )}
                     >
                       <Calendar className="w-4 h-4 mr-2" />
@@ -178,7 +178,7 @@ export default function Navbar() {
                         to={getDashboardUrl()}
                         className={cn(
                           navigationMenuTriggerStyle(),
-                          "text-gray-700 dark:text-gray-300"
+                          "text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                         )}
                       >
                         {user?.role === "admin" ? (

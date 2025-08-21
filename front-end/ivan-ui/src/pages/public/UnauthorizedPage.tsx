@@ -15,46 +15,46 @@ export default function UnauthorizedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 dark:from-red-950/40 dark:via-orange-950/40 dark:to-amber-950/40 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        <Card className="border-2 border-destructive/25 bg-destructive/5">
+        <Card className="bg-gradient-to-br from-white/90 via-red-50/50 to-orange-50/50 dark:from-slate-900/90 dark:via-red-950/50 dark:to-orange-950/50 backdrop-blur-sm border-2 border-red-300/50 dark:border-red-700/50 shadow-2xl shadow-red-200/30 dark:shadow-red-900/30">
           <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
-              <Shield className="w-12 h-12 text-destructive" />
+            <div className="mx-auto w-24 h-24 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/50 dark:to-orange-900/50 rounded-full flex items-center justify-center mb-4 border-2 border-red-200/50 dark:border-red-800/50">
+              <Shield className="w-12 h-12 text-red-500 dark:text-red-400" />
             </div>
-            <CardTitle className="text-4xl font-bold text-destructive">
+            <CardTitle className="text-4xl font-bold bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 dark:from-red-400 dark:via-orange-400 dark:to-amber-400 bg-clip-text text-transparent">
               403
             </CardTitle>
-            <h2 className="text-xl font-semibold text-destructive">
+            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">
               Truy cập bị từ chối
             </h2>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
-              <p className="text-muted-foreground">
+              <p className="text-slate-600 dark:text-slate-400">
                 Bạn không có quyền truy cập trang này.
               </p>
             </div>
 
             {user && (
-              <div className="p-3 bg-muted/50 rounded-lg text-sm">
-                <p className="text-muted-foreground">
+              <div className="p-3 bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-950/50 dark:to-orange-950/50 rounded-lg text-sm border border-amber-200/50 dark:border-amber-800/30">
+                <p className="text-slate-600 dark:text-slate-400">
                   Đăng nhập với vai trò:{" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
                     {user.role}
                   </span>
                 </p>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-slate-600 dark:text-slate-400 mt-1">
                   Email:{" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
                     {user.email}
                   </span>
                 </p>
               </div>
             )}
 
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là lỗi.
             </p>
 
@@ -79,12 +79,12 @@ export default function UnauthorizedPage() {
             </div>
 
             {user && (
-              <div className="pt-4 border-t border-muted">
+              <div className="pt-4 border-t border-red-200/50 dark:border-red-800/50">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
                 >
                   Đăng xuất và đăng nhập tài khoản khác
                 </Button>

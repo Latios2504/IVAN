@@ -184,29 +184,29 @@ export default function CustomInstructionBuilder({
   const isEditing = !!editingInstruction;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-100 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-900 p-6 rounded-xl border border-cyan-200 dark:border-cyan-800 shadow-lg">
+      <div className="flex items-center justify-between bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 p-4 rounded-lg border border-cyan-200 dark:border-cyan-700 shadow-md">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold bg-gradient-to-r from-cyan-700 to-blue-700 dark:from-cyan-300 dark:to-blue-300 bg-clip-text text-transparent">
             {isEditing ? "Chỉnh sửa Hướng dẫn AI" : "Tạo Hướng dẫn AI Mới"}
           </h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-cyan-600 dark:text-cyan-400 mt-1">
             {isEditing
               ? "Cập nhật thông tin hướng dẫn AI hiện tại"
               : "Xây dựng hướng dẫn AI tùy chỉnh cho tổ chức của bạn"}
           </p>
         </div>
         {hasChanges && (
-          <Badge variant="outline" className="text-amber-600 border-amber-600">
+          <Badge variant="outline" className="text-amber-600 border-amber-600 bg-amber-50 dark:bg-amber-950 shadow-sm">
             <Info className="h-3 w-3 mr-1" />
             Có thay đổi
           </Badge>
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+      <Card className="bg-gradient-to-br from-white to-cyan-50 dark:from-gray-900 dark:to-cyan-950 border-cyan-200 dark:border-cyan-800 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900 dark:to-blue-900 border-b border-cyan-200 dark:border-cyan-700">
+          <CardTitle className="flex items-center space-x-2 text-cyan-700 dark:text-cyan-300">
             <FileText className="h-5 w-5" />
             <span>Thông tin cơ bản</span>
           </CardTitle>
@@ -244,13 +244,13 @@ export default function CustomInstructionBuilder({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+      <Card className="bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-blue-950 border-blue-200 dark:border-blue-800 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 border-b border-blue-200 dark:border-blue-700">
+          <CardTitle className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
             <Wand2 className="h-5 w-5" />
             <span>System Prompt</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-blue-600 dark:text-blue-400">
             Định nghĩa vai trò và nhiệm vụ chính của AI. Đây là phần quan trọng
             nhất quyết định hành vi của AI.
           </CardDescription>
@@ -276,10 +276,10 @@ export default function CustomInstructionBuilder({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Hướng dẫn hành vi</CardTitle>
-          <CardDescription>
+      <Card className="bg-gradient-to-br from-white to-indigo-50 dark:from-gray-900 dark:to-indigo-950 border-indigo-200 dark:border-indigo-800 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900 dark:to-purple-900 border-b border-indigo-200 dark:border-indigo-700">
+          <CardTitle className="text-indigo-700 dark:text-indigo-300">Hướng dẫn hành vi</CardTitle>
+          <CardDescription className="text-indigo-600 dark:text-indigo-400">
             Định nghĩa phong cách giao tiếp và cách thức AI tương tác với người
             dùng.
           </CardDescription>
@@ -305,7 +305,7 @@ export default function CustomInstructionBuilder({
 
       {/* Validation Messages */}
       {(validation.errors.length > 0 || validation.warnings.length > 0) && (
-        <Card>
+        <Card className="bg-gradient-to-br from-red-50 to-amber-50 dark:from-red-950 dark:to-amber-950 border-red-200 dark:border-red-800 shadow-lg">
           <CardContent className="pt-6">
             {validation.errors.length > 0 && (
               <div className="space-y-2">
@@ -343,7 +343,7 @@ export default function CustomInstructionBuilder({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between pt-6 border-t">
+      <div className="flex items-center justify-between pt-6 border-t border-cyan-200 dark:border-cyan-700 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900 dark:to-blue-900 p-4 rounded-lg shadow-md">
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -381,7 +381,7 @@ export default function CustomInstructionBuilder({
       </div>
 
       {validation.isValid && hasChanges && (
-        <div className="flex items-center space-x-2 text-green-600 text-sm">
+        <div className="flex items-center space-x-2 text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-950 p-3 rounded-lg border border-green-200 dark:border-green-800 shadow-sm">
           <CheckCircle className="h-4 w-4" />
           <span>
             Hướng dẫn AI đã sẵn sàng để {isEditing ? "cập nhật" : "lưu"}

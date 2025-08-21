@@ -100,44 +100,51 @@ export default function PasswordResetPage() {
   // If no email, show error
   if (!formData.email) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 dark:from-purple-950/40 dark:via-violet-950/40 dark:to-indigo-950/40 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-transparent to-violet-100/20 dark:from-purple-900/10 dark:via-transparent dark:to-violet-900/10" />
+        <div className="relative z-10 w-full max-w-md">
+          <Card className="bg-gradient-to-br from-white/90 via-purple-50/30 to-violet-50/30 dark:from-slate-900/90 dark:via-purple-950/30 dark:to-violet-950/30 backdrop-blur-sm border-2 border-purple-200/50 dark:border-purple-700/50 shadow-2xl shadow-purple-200/30 dark:shadow-purple-900/30">
           {" "}
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center text-red-600">
+            <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 dark:from-red-400 dark:via-rose-400 dark:to-pink-400 bg-clip-text text-transparent">
               Email không hợp lệ
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-slate-600 dark:text-slate-400">
               Email để đặt lại mật khẩu không được cung cấp
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex flex-col space-y-4">
             <Link to="/forgot-password">
-              <Button className="w-full">Yêu cầu đặt lại mật khẩu mới</Button>
+              <Button className="w-full bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-200/50 dark:shadow-purple-900/50">Yêu cầu đặt lại mật khẩu mới</Button>
             </Link>
 
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
               <Link
                 to="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
               >
                 Quay lại đăng nhập
               </Link>
             </div>
           </CardFooter>
-        </Card>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 dark:from-purple-950/40 dark:via-violet-950/40 dark:to-indigo-950/40 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 via-transparent to-violet-100/20 dark:from-purple-900/10 dark:via-transparent dark:to-violet-900/10" />
+      <div className="relative z-10 w-full max-w-md">
+        <Card className="bg-gradient-to-br from-white/90 via-purple-50/30 to-violet-50/30 dark:from-slate-900/90 dark:via-purple-950/30 dark:to-violet-950/30 backdrop-blur-sm border-2 border-purple-200/50 dark:border-purple-700/50 shadow-2xl shadow-purple-200/30 dark:shadow-purple-900/30">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
             Đặt lại mật khẩu
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-slate-600 dark:text-slate-400">
             Nhập mật khẩu mới cho tài khoản của bạn
           </CardDescription>
         </CardHeader>
@@ -146,13 +153,13 @@ export default function PasswordResetPage() {
           {" "}
           <CardContent className="space-y-4">
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-gradient-to-r from-red-50/80 to-rose-50/80 dark:from-red-950/50 dark:to-rose-950/50 border border-red-200/50 dark:border-red-800/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
                 {errors.general}
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 font-medium">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -162,15 +169,15 @@ export default function PasswordResetPage() {
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 required
                 disabled={isLoading}
-                className={errors.email ? "border-red-300" : ""}
+                className={errors.email ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
               />
               {errors.email && (
-                <p className="text-sm text-red-600">{errors.email}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="resetCode">Mã xác nhận (6 ký tự)</Label>
+              <Label htmlFor="resetCode" className="text-slate-700 dark:text-slate-300 font-medium">Mã xác nhận (6 ký tự)</Label>
               <Input
                 id="resetCode"
                 name="resetCode"
@@ -181,15 +188,15 @@ export default function PasswordResetPage() {
                 required
                 maxLength={6}
                 disabled={isLoading}
-                className={errors.resetCode ? "border-red-300" : ""}
+                className={errors.resetCode ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
               />
               {errors.resetCode && (
-                <p className="text-sm text-red-600">{errors.resetCode}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.resetCode}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu mới</Label>
+              <Label htmlFor="password" className="text-slate-700 dark:text-slate-300 font-medium">Mật khẩu mới</Label>
               <Input
                 id="password"
                 name="password"
@@ -199,15 +206,15 @@ export default function PasswordResetPage() {
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 required
                 disabled={isLoading}
-                className={errors.password ? "border-red-300" : ""}
+                className={errors.password ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
               />
               {errors.password && (
-                <p className="text-sm text-red-600">{errors.password}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.password}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+              <Label htmlFor="confirmPassword" className="text-slate-700 dark:text-slate-300 font-medium">Xác nhận mật khẩu mới</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -219,29 +226,30 @@ export default function PasswordResetPage() {
                 }
                 required
                 disabled={isLoading}
-                className={errors.confirmPassword ? "border-red-300" : ""}
+                className={errors.confirmPassword ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
               )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-200/50 dark:shadow-purple-900/50" disabled={isLoading}>
               {isLoading ? "Đang cập nhật..." : "Đặt lại mật khẩu"}
             </Button>
 
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
               <Link
                 to="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
               >
                 Quay lại đăng nhập
               </Link>
             </div>
           </CardFooter>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

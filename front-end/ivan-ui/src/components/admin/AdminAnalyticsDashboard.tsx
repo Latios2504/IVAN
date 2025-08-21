@@ -191,14 +191,16 @@ const AdminAnalyticsDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-blue-950/40 min-h-screen">
+      {/* Hero Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-100/20 via-transparent to-indigo-100/20 dark:from-violet-900/10 dark:via-transparent dark:to-indigo-900/10" />
       {/* Dashboard Header */}
-      <div className="flex justify-between items-start">
+      <div className="relative z-10 flex justify-between items-start bg-gradient-to-r from-white/80 via-violet-50/50 to-indigo-50/50 dark:from-slate-900/80 dark:via-violet-950/50 dark:to-indigo-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 rounded-2xl p-6 shadow-xl shadow-violet-200/30 dark:shadow-violet-900/30">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
             Admin Analytics Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-slate-600 dark:text-slate-400 mt-2">
             Comprehensive system analytics and insights
           </p>
         </div>
@@ -225,7 +227,7 @@ const AdminAnalyticsDashboard: React.FC = () => {
 
       {/* Overview Stats */}
       {dashboardData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
               title="Total Users"
               value={dashboardData.totalUsers}
@@ -254,8 +256,8 @@ const AdminAnalyticsDashboard: React.FC = () => {
       )}
 
       {/* Charts Tabs */}
-      <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="users" className="relative z-10 space-y-4">
+        <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-white/90 via-violet-50/50 to-indigo-50/50 dark:from-slate-900/90 dark:via-violet-950/50 dark:to-indigo-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 shadow-lg">
           <TabsTrigger value="users">User Analytics</TabsTrigger>
           <TabsTrigger value="events">Event Analytics</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
@@ -265,10 +267,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
           {dashboardData && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* User Growth Chart */}
-              <Card>
+              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>User Growth Trends</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">User Growth Trends</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Monthly user registration and growth patterns
                   </CardDescription>
                 </CardHeader>
@@ -307,10 +309,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* User Role Distribution */}
-              <Card>
+              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>User Role Distribution</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">User Role Distribution</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Distribution of users by role type
                   </CardDescription>
                 </CardHeader>
@@ -344,10 +346,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* Geographic Distribution */}
-              <Card className="lg:col-span-2">
+              <Card className="lg:col-span-2 bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>Geographic Distribution</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Geographic Distribution</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     User distribution by location
                   </CardDescription>
                 </CardHeader>
@@ -388,10 +390,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
           {dashboardData && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Event Trends */}
-              <Card>
+              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>Event Trends</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Event Trends</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Monthly event creation and participation trends
                   </CardDescription>
                 </CardHeader>
@@ -430,10 +432,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* Event Status Distribution */}
-              <Card>
+              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>Event Status Distribution</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Event Status Distribution</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Distribution of events by current status
                   </CardDescription>
                 </CardHeader>
@@ -471,10 +473,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
           {dashboardData && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Organization Growth */}
-              <Card>
+              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>Organization Growth</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Organization Growth</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Monthly organization registration trends
                   </CardDescription>
                 </CardHeader>
@@ -517,10 +519,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* Organization Type Distribution */}
-              <Card>
+              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
                 <CardHeader>
-                  <CardTitle>Organization Types</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">Organization Types</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">
                     Distribution by organization type
                   </CardDescription>
                 </CardHeader>

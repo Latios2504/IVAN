@@ -170,8 +170,23 @@ export default function CreateSupportRequestPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 max-w-2xl">
-      <Card>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-blue-950/40">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30 border-b border-emerald-200/50 dark:border-emerald-800/30">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
+              Gửi Yêu cầu Từ thiện
+            </h1>
+            <p className="text-lg text-slate-600 dark:text-slate-300 mb-6">
+              Gửi yêu cầu từ thiện hoặc trợ giúp. Yêu cầu của bạn sẽ được xem xét và phê duyệt trước khi hiển thị cho các tổ chức
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto py-8 max-w-2xl px-4">
+      <Card className="bg-gradient-to-br from-white/80 via-blue-50/50 to-purple-50/50 dark:from-slate-900/80 dark:via-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm border-2 border-blue-200/50 dark:border-blue-800/30 shadow-xl shadow-blue-200/20 dark:shadow-blue-900/20">
         <CardHeader>
           <CardTitle>Gửi Yêu cầu Từ thiện</CardTitle>
           <CardDescription>
@@ -236,7 +251,7 @@ export default function CreateSupportRequestPage() {
                 className="mt-1"
                 maxLength={300}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {formData.subject.length}/300 ký tự
               </p>
             </div>
@@ -254,7 +269,7 @@ export default function CreateSupportRequestPage() {
                 className="mt-1"
                 rows={6}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Vui lòng mô tả chi tiết tình huống để các tổ chức có thể hiểu và
                 hỗ trợ tốt nhất
               </p>
@@ -292,7 +307,7 @@ export default function CreateSupportRequestPage() {
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Hỗ trợ: JPG, PNG, GIF, PDF, DOC, DOCX, TXT (tối đa 10MB)
                 </p>
 
@@ -304,7 +319,7 @@ export default function CreateSupportRequestPage() {
                       {attachments.map((file, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                          className="flex items-center justify-between p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-md border border-blue-200/50 dark:border-blue-800/30"
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-blue-500" />
@@ -369,14 +384,14 @@ export default function CreateSupportRequestPage() {
       </Card>
 
       {/* Help Section */}
-      <Card className="mt-6">
+      <Card className="mt-6 bg-gradient-to-br from-rose-50/80 via-pink-50/80 to-fuchsia-50/80 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-fuchsia-950/30 backdrop-blur-sm border-2 border-rose-200/50 dark:border-rose-800/30 shadow-xl shadow-rose-200/20 dark:shadow-rose-900/20">
         <CardHeader>
           <CardTitle className="text-lg">Quy trình xử lý yêu cầu</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 text-sm text-gray-600">
+          <div className="space-y-4 text-sm text-slate-600 dark:text-slate-400">
             <div>
-              <h4 className="font-medium text-gray-900">
+              <h4 className="font-medium text-slate-900 dark:text-slate-100">
                 Các bước xử lý yêu cầu từ thiện:
               </h4>
               <ul className="mt-1 list-disc list-inside space-y-1">
@@ -388,7 +403,7 @@ export default function CreateSupportRequestPage() {
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-900">
+              <h4 className="font-medium text-slate-900 dark:text-slate-100">
                 Để yêu cầu được phê duyệt nhanh chóng:
               </h4>
               <ul className="mt-1 list-disc list-inside space-y-1">
@@ -401,6 +416,7 @@ export default function CreateSupportRequestPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

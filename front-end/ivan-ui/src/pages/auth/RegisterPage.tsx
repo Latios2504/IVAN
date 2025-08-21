@@ -121,13 +121,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-8">
-      <Card className="w-full max-w-lg">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40 flex items-center justify-center px-4 py-8">
+      {/* Hero Section */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/20 via-transparent to-cyan-100/20 dark:from-emerald-900/10 dark:via-transparent dark:to-cyan-900/10" />
+      <div className="relative z-10 w-full max-w-lg">
+        <Card className="bg-gradient-to-br from-white/90 via-emerald-50/30 to-teal-50/30 dark:from-slate-900/90 dark:via-emerald-950/30 dark:to-teal-950/30 backdrop-blur-sm border-2 border-emerald-200/50 dark:border-emerald-700/50 shadow-2xl shadow-emerald-200/30 dark:shadow-emerald-900/30">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">
+          <CardTitle className="text-2xl text-center bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent font-bold">
             Đăng ký tài khoản
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-slate-600 dark:text-slate-400">
             Tạo tài khoản mới để tham gia vào cộng đồng tình nguyện
           </CardDescription>
         </CardHeader>
@@ -136,7 +139,7 @@ export default function RegisterPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Tên</Label>
+                <Label htmlFor="firstName" className="text-slate-700 dark:text-slate-300 font-medium">Tên</Label>
                 <Input
                   id="firstName"
                   name="firstName"
@@ -148,15 +151,15 @@ export default function RegisterPage() {
                   }
                   required
                   disabled={isLoading}
-                  className={errors.firstName ? "border-destructive" : ""}
+                  className={errors.firstName ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
                   autoComplete="given-name"
                 />
                 {errors.firstName && (
-                  <p className="text-sm text-destructive">{errors.firstName}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.firstName}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Họ</Label>
+                <Label htmlFor="lastName" className="text-slate-700 dark:text-slate-300 font-medium">Họ</Label>
                 <Input
                   id="lastName"
                   name="lastName"
@@ -168,17 +171,17 @@ export default function RegisterPage() {
                   }
                   required
                   disabled={isLoading}
-                  className={errors.lastName ? "border-destructive" : ""}
+                  className={errors.lastName ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
                   autoComplete="family-name"
                 />
                 {errors.lastName && (
-                  <p className="text-sm text-destructive">{errors.lastName}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.lastName}</p>
                 )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 font-medium">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -188,16 +191,16 @@ export default function RegisterPage() {
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 required
                 disabled={isLoading}
-                className={errors.email ? "border-destructive" : ""}
+                className={errors.email ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
                 autoComplete="email"
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu</Label>
+              <Label htmlFor="password" className="text-slate-700 dark:text-slate-300 font-medium">Mật khẩu</Label>
               <Input
                 id="password"
                 name="password"
@@ -207,16 +210,16 @@ export default function RegisterPage() {
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 required
                 disabled={isLoading}
-                className={errors.password ? "border-destructive" : ""}
+                className={errors.password ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
                 autoComplete="new-password"
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.password}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+              <Label htmlFor="confirmPassword" className="text-slate-700 dark:text-slate-300 font-medium">Xác nhận mật khẩu</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -226,18 +229,18 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className={errors.confirmPassword ? "border-destructive" : ""}
+                className={errors.confirmPassword ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
                 autoComplete="new-password"
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-red-600 dark:text-red-400">
                   {errors.confirmPassword}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Vai trò</Label>
+              <Label htmlFor="role" className="text-slate-700 dark:text-slate-300 font-medium">Vai trò</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value) =>
@@ -246,7 +249,7 @@ export default function RegisterPage() {
                 disabled={isLoading}
               >
                 <SelectTrigger
-                  className={errors.role ? "border-destructive" : ""}
+                  className={errors.role ? "border-red-300 dark:border-red-600" : "border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50"}
                 >
                   <SelectValue placeholder="Chọn vai trò của bạn" />
                 </SelectTrigger>
@@ -254,7 +257,7 @@ export default function RegisterPage() {
                   <SelectItem value="volunteer">
                     <div className="flex flex-col">
                       <span className="font-medium">Tình nguyện viên</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-slate-500 dark:text-slate-400">
                         Tham gia các hoạt động tình nguyện
                       </span>
                     </div>
@@ -278,31 +281,32 @@ export default function RegisterPage() {
                 </SelectContent>
               </Select>
               {errors.role && (
-                <p className="text-sm text-destructive">{errors.role}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.role}</p>
               )}
             </div>
 
             {errors.submit && (
-              <p className="text-sm text-destructive text-center">
+              <div className="bg-gradient-to-r from-red-50/80 to-rose-50/80 dark:from-red-950/50 dark:to-rose-950/50 border border-red-200/50 dark:border-red-800/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-center">
                 {errors.submit}
-              </p>
+              </div>
             )}
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/50" disabled={isLoading}>
               {isLoading ? "Đang tạo tài khoản..." : "Đăng ký"}
             </Button>
 
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-slate-600 dark:text-slate-400">
               Đã có tài khoản?{" "}
-              <Link to="/login" className="text-primary hover:underline">
+              <Link to="/login" className="font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
                 Đăng nhập ngay
               </Link>
             </p>
           </CardFooter>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

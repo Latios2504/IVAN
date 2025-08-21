@@ -204,9 +204,9 @@ export function CoordinatorCreationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Coordinator</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white/95 via-emerald-50/30 to-teal-50/30 dark:from-slate-900/95 dark:via-emerald-950/30 dark:to-teal-950/30 backdrop-blur-sm border-2 border-emerald-200/50 dark:border-emerald-700/50 shadow-2xl shadow-emerald-200/30 dark:shadow-emerald-900/30">
+        <DialogHeader className="bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-cyan-50/50 dark:from-emerald-950/50 dark:via-teal-950/30 dark:to-cyan-950/50 backdrop-blur-sm border border-emerald-200/30 dark:border-emerald-700/30 rounded-lg p-4 mb-4">
+          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">Create New Coordinator</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -218,8 +218,8 @@ export function CoordinatorCreationDialog({
           )}
 
           {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Basic Information</h3>
+          <div className="space-y-4 bg-gradient-to-r from-white/80 via-emerald-50/40 to-teal-50/40 dark:from-slate-900/80 dark:via-emerald-950/40 dark:to-teal-950/40 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 rounded-xl p-4 shadow-lg shadow-emerald-200/20 dark:shadow-emerald-900/20">
+            <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200">Basic Information</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">
@@ -279,8 +279,8 @@ export function CoordinatorCreationDialog({
           </div>
 
           {/* Responsibilities */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">
+          <div className="space-y-4 bg-gradient-to-r from-white/80 via-emerald-50/40 to-teal-50/40 dark:from-slate-900/80 dark:via-emerald-950/40 dark:to-teal-950/40 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 rounded-xl p-4 shadow-lg shadow-emerald-200/20 dark:shadow-emerald-900/20">
+            <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200">
               Responsibilities <span className="text-red-500">*</span>
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -308,8 +308,8 @@ export function CoordinatorCreationDialog({
           </div>
 
           {/* Departments */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">
+          <div className="space-y-4 bg-gradient-to-r from-white/80 via-emerald-50/40 to-teal-50/40 dark:from-slate-900/80 dark:via-emerald-950/40 dark:to-teal-950/40 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 rounded-xl p-4 shadow-lg shadow-emerald-200/20 dark:shadow-emerald-900/20">
+            <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200">
               Departments <span className="text-red-500">*</span>
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -331,8 +331,8 @@ export function CoordinatorCreationDialog({
           </div>
 
           {/* Permissions */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Permissions</h3>
+          <div className="space-y-4 bg-gradient-to-r from-white/80 via-emerald-50/40 to-teal-50/40 dark:from-slate-900/80 dark:via-emerald-950/40 dark:to-teal-950/40 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 rounded-xl p-4 shadow-lg shadow-emerald-200/20 dark:shadow-emerald-900/20">
+            <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200">Permissions</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -389,11 +389,11 @@ export function CoordinatorCreationDialog({
           </div>
         </form>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose}>
+        <DialogFooter className="bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-cyan-50/50 dark:from-emerald-950/50 dark:via-teal-950/30 dark:to-cyan-950/50 backdrop-blur-sm border border-emerald-200/30 dark:border-emerald-700/30 rounded-lg p-4 mt-4">
+          <Button type="button" variant="outline" onClick={handleClose} className="border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50">
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading} className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-500 dark:via-teal-500 dark:to-cyan-500 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 dark:hover:from-emerald-600 dark:hover:via-teal-600 dark:hover:to-cyan-600 text-white shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/50">
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

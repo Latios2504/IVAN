@@ -532,17 +532,21 @@ export default function UserManagementPageNew() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6 bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-indigo-950/40 min-h-screen">
+      {/* Hero Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-100/20 via-transparent to-indigo-100/20 dark:from-violet-900/10 dark:via-transparent dark:to-indigo-900/10" />
+      
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="relative z-10 flex justify-between items-center p-6 bg-gradient-to-r from-white/80 via-violet-50/50 to-purple-50/50 dark:from-slate-900/80 dark:via-violet-950/50 dark:to-purple-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 rounded-2xl shadow-xl">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Quản lý người dùng trong hệ thống</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">User Management</h1>
+          <p className="text-violet-700 dark:text-violet-300">Quản lý người dùng trong hệ thống</p>
         </div>
         <Button
           onClick={() =>
             setModals((prev) => ({ ...prev, createCoordinator: true }))
           }
+          className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <UserPlus className="w-4 h-4 mr-2" />
           Tạo Coordinator
@@ -551,43 +555,43 @@ export default function UserManagementPageNew() {
 
       {/* Statistics Cards */}
       {stats.length > 0 && stats[0] && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Tổng người dùng</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Tổng người dùng</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
                 {(stats[0] as any).totalUsers}
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Đang hoạt động</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Đang hoạt động</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                 {(stats[0] as any).activeUsers}
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Vô hiệu hóa</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Vô hiệu hóa</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
                 {(stats[0] as any).inactiveUsers}
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Chưa xác thực</CardTitle>
+              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">Chưa xác thực</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400 bg-clip-text text-transparent">
                 {(stats[0] as any).unverifiedUsers}
               </div>
             </CardContent>
@@ -596,9 +600,9 @@ export default function UserManagementPageNew() {
       )}
 
       {/* Filters */}
-      <Card>
+      <Card className="relative z-10 bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-violet-800 dark:text-violet-200 font-semibold">
             <Filter className="w-5 h-5 mr-2" />
             Bộ lọc
           </CardTitle>
@@ -606,21 +610,21 @@ export default function UserManagementPageNew() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Tìm kiếm</label>
+              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">Tìm kiếm</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-400 w-4 h-4" />
                 <Input
                   placeholder="Tìm theo tên hoặc email..."
                   value={filters.searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-violet-200 dark:border-violet-700 focus:border-violet-500 dark:focus:border-violet-400"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Vai trò</label>
+              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">Vai trò</label>
               <Select value={filters.role} onValueChange={handleRoleFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="border-violet-200 dark:border-violet-700 focus:border-violet-500 dark:focus:border-violet-400">
                   <SelectValue placeholder="Chọn vai trò" />
                 </SelectTrigger>
                 <SelectContent>
@@ -633,11 +637,11 @@ export default function UserManagementPageNew() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">
+              <label className="text-sm font-medium mb-2 block text-violet-700 dark:text-violet-300">
                 Trạng thái
               </label>
               <Select value={filters.status} onValueChange={handleStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="border-violet-200 dark:border-violet-700 focus:border-violet-500 dark:focus:border-violet-400">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
@@ -651,7 +655,7 @@ export default function UserManagementPageNew() {
               <Button
                 variant="outline"
                 onClick={handleResetFilters}
-                className="w-full"
+                className="w-full border-violet-200 dark:border-violet-700 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/50"
               >
                 Đặt lại bộ lọc
               </Button>
@@ -661,9 +665,9 @@ export default function UserManagementPageNew() {
       </Card>
 
       {/* Users Table */}
-      <Card>
+      <Card className="relative z-10 bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-violet-800 dark:text-violet-200 font-semibold">
             <Users className="w-5 h-5 mr-2" />
             Danh sách người dùng ({filteredUsers.length})
           </CardTitle>
@@ -677,14 +681,14 @@ export default function UserManagementPageNew() {
             />
           ) : (
             <div className="text-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Users className="h-12 w-12 text-violet-400 dark:text-violet-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-violet-900 dark:text-violet-100 mb-2">
                 Không tìm thấy người dùng
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-violet-600 dark:text-violet-400 mb-4">
                 Thử điều chỉnh bộ lọc để xem kết quả khác
               </p>
-              <Button onClick={handleResetFilters}>Đặt lại bộ lọc</Button>
+              <Button onClick={handleResetFilters} className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white">Đặt lại bộ lọc</Button>
             </div>
           )}
         </CardContent>
