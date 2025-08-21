@@ -146,7 +146,7 @@ export function FilterSection({
   return (
     <div
       className={cn(
-        "bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 mb-8",
+        "bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/30 p-6 mb-8",
         className
       )}
     >
@@ -157,12 +157,12 @@ export function FilterSection({
             <Popover>
               <PopoverTrigger asChild>
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5 z-10" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 z-10" />
                   <Input
                     placeholder={searchPlaceholder}
                     value={searchValue}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="pl-12 pr-4 h-12 text-base border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl cursor-pointer"
+                    className="pl-12 pr-4 h-12 text-base border-border focus:border-primary focus:ring-primary/20 rounded-xl cursor-pointer bg-background"
                     onFocus={(e) => e.target.blur()} // Prevent normal input focus, use popover instead
                   />
                 </div>
@@ -243,12 +243,12 @@ export function FilterSection({
             </Popover>
           ) : (
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 placeholder={searchPlaceholder}
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-12 pr-4 h-12 text-base border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                className="pl-12 pr-4 h-12 text-base border-border focus:border-primary focus:ring-primary/20 rounded-xl bg-background"
               />
             </div>
           )}
@@ -266,7 +266,7 @@ export function FilterSection({
                   value={filter.value}
                   onValueChange={filter.onChange}
                 >
-                  <SelectTrigger className="w-[180px] h-10 rounded-lg border-slate-200 focus:border-blue-500">
+                  <SelectTrigger className="w-[180px] h-10 rounded-lg border-border focus:border-primary bg-background">
                     {filter.icon && <span className="mr-2">{filter.icon}</span>}
                     <SelectValue placeholder={filter.label} />
                   </SelectTrigger>

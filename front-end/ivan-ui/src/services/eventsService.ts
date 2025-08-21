@@ -37,6 +37,8 @@ class EventsService {
     return response.data;
   }
 
+
+
   // POST /api/Events - Create Event (Organization role only)
   async createEvent(event: CreateEventDto): Promise<{ eventId: number }> {
     const response = await apiClient.post<{ eventId: number }>(

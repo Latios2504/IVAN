@@ -363,49 +363,54 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-muted/40">
       {/* Hero Section */}
-      <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="text-center">
-          <Badge variant="secondary" className="mb-4 text-sm px-3 py-1">
-            🎉 Chào mừng đến với IVAN
-          </Badge>
+      <section className="px-4 py-20 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div className="text-center space-y-10">
+          <div className="space-y-6">
+            <Badge variant="secondary" className="mb-4 text-sm px-4 py-2 bg-gradient-to-r from-primary/10 to-primary/20 border-primary/20">
+              🎉 Chào mừng đến với IVAN
+            </Badge>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 whitespace-nowrap">
-            {isAuthenticated ? (
-              <>
-                Chào mừng trở lại,
-                <span className="text-primary">
-                  {" "}
-                  {user?.fullName || user?.email}{" "}
-                </span>
-              </>
-            ) : (
-              <>
-                Nền tảng quản lý
-                <span className="text-primary"> tình nguyện viên </span>hàng đầu
-              </>
-            )}
-          </h1>
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+              {isAuthenticated ? (
+                <>
+                  Chào mừng trở lại,
+                  <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                    {" "}
+                    {user?.fullName || user?.email}{" "}
+                  </span>
+                </>
+              ) : (
+                <>
+                  Nền tảng quản lý
+                  <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent"> tình nguyện viên </span>hàng đầu
+                </>
+              )}
+            </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            {isAuthenticated ? (
-              <>
-                Tiếp tục hành trình tình nguyện của bạn
-                <br />
-                và tạo ra những tác động tích cực cho cộng đồng.
-              </>
-            ) : (
-              "Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của bạn."
-            )}
-          </p>
+            <p className="text-lg md:text-xl text-foreground/80 dark:text-foreground/90 mb-8 max-w-3xl mx-auto leading-relaxed">
+              {isAuthenticated ? (
+                <>
+                  Tiếp tục hành trình tình nguyện của bạn
+                  <br />
+                  và tạo ra những tác động tích cực cho cộng đồng.
+                </>
+              ) : (
+                "Kết nối tình nguyện viên, tổ chức và cộng đồng để tạo ra những tác động tích cực. Tham gia ngay để bắt đầu hành trình tình nguyện của bạn."
+              )}
+            </p>
+          </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             {isAuthenticated ? (
               <>
                 <Link to={getDashboardUrl()}>
-                  <Button size="lg" className="w-full sm:w-auto">
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <LayoutDashboard className="w-5 h-5 mr-3" />
                     Đi tới Dashboard
                   </Button>
                 </Link>
@@ -413,9 +418,9 @@ export default function HomePage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto border-2 border-primary/30 text-primary hover:bg-primary/10 px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300 hover:border-primary/50"
                   >
-                    <Calendar className="w-4 h-4 mr-2" />
+                    <Calendar className="w-5 h-5 mr-3" />
                     Xem sự kiện
                   </Button>
                 </Link>
@@ -423,7 +428,10 @@ export default function HomePage() {
             ) : (
               <>
                 <Link to="/register">
-                  <Button size="lg" className="w-full sm:w-auto">
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
                     Đăng ký ngay
                   </Button>
                 </Link>
@@ -431,7 +439,7 @@ export default function HomePage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto border-2 border-primary/30 text-primary hover:bg-primary/10 px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300 hover:border-primary/50"
                   >
                     Đăng nhập
                   </Button>
@@ -444,27 +452,36 @@ export default function HomePage() {
 
       {/* Stats Section - Only show for authenticated users */}
       {isAuthenticated && user && (
-        <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <section className="px-4 py-20 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-6 text-sm px-4 py-2 bg-gradient-to-r from-primary/10 to-primary/20 border-primary/20">
+              📊 Thống kê cá nhân
+            </Badge>
+            <h2 className="text-4xl font-bold text-foreground mb-6">Hoạt động của bạn</h2>
+            <p className="text-xl text-foreground/80 dark:text-foreground/90 max-w-3xl mx-auto leading-relaxed">
+              Theo dõi tác động và đóng góp của bạn trong cộng đồng tình nguyện
+            </p>
+          </div>
           {error && (
             <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-center">
               Không thể tải thông tin thống kê. Hiển thị dữ liệu mẫu.
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {statsConfig.map((stat, index) => (
               <Card
                 key={index}
                 className={`text-center hover:shadow-xl transition-all duration-300 hover:scale-105 bg-gradient-to-br ${stat.gradient} border-0 shadow-lg`}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-center mb-3">{stat.icon}</div>
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                <CardHeader className="pb-4">
+                  <div className="flex justify-center mb-4">{stat.icon}</div>
+                  <CardTitle className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
                     {stat.count}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="font-semibold text-foreground text-lg">{stat.label}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                <CardContent className="px-6">
+                  <p className="font-semibold text-foreground text-lg mb-2">{stat.label}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {stat.description}
                   </p>
                 </CardContent>
@@ -475,31 +492,33 @@ export default function HomePage() {
       )}
 
       {/* Features Section */}
-      <section className="px-4 py-16 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+      <section className="px-4 py-20 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <Badge variant="secondary" className="mb-6 text-sm px-4 py-2 bg-gradient-to-r from-primary/10 to-primary/20 border-primary/20">
+            ✨ Tính năng nổi bật
+          </Badge>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Tại sao chọn IVAN?
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Chúng tôi cung cấp những công cụ tốt nhất để quản lý và tham gia
-            hoạt động tình nguyện
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Chúng tôi cung cấp những công cụ tốt nhất để quản lý và tham gia hoạt động tình nguyện một cách hiệu quả
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
             <Card
               key={index}
-              className={`bg-gradient-to-br ${feature.bgGradient} border-0 hover:shadow-xl transition-all duration-300 hover:scale-105 shadow-lg`}
+              className={`bg-gradient-to-br ${feature.bgGradient} border-0 hover:shadow-xl transition-all duration-300 hover:scale-105 shadow-lg group`}
             >
-              <CardHeader className="text-center">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg`}>
+              <CardHeader className="text-center pb-6">
+                <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
                 </div>
-                <CardTitle className="text-xl font-bold">{feature.title}</CardTitle>
+                <CardTitle className="text-xl font-bold mb-3">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent className="text-center">
-                <CardDescription className="text-muted-foreground text-base">
+              <CardContent className="text-center px-6">
+                <CardDescription className="text-muted-foreground text-base leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardContent>
@@ -591,7 +610,7 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Tình nguyện viên xuất sắc
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-foreground/80 dark:text-foreground/90 max-w-2xl mx-auto">
               Gặp gỡ những tình nguyện viên tận tâm và có kinh nghiệm trong cộng đồng
             </p>
           </div>
@@ -620,7 +639,7 @@ export default function HomePage() {
                   </div>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-4 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-center gap-4 mb-4 text-sm text-foreground/70 dark:text-foreground/80">
                     {volunteer.province && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
@@ -633,7 +652,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   {volunteer.motivation && (
-                    <CardDescription className="text-muted-foreground mb-4 line-clamp-2">
+                    <CardDescription className="text-foreground/70 dark:text-foreground/80 mb-4 line-clamp-2">
                       {volunteer.motivation}
                     </CardDescription>
                   )}
@@ -872,7 +891,7 @@ export default function HomePage() {
               </Badge>
             </div>
             
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white leading-tight">
               {isAuthenticated
                 ? "Tiếp tục tạo tác động tích cực"
                 : "Bắt đầu hành trình tình nguyện của bạn"}
@@ -913,7 +932,7 @@ export default function HomePage() {
                     <Button
                       variant="secondary"
                       size="lg"
-                      className="w-full sm:w-auto bg-white text-primary font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all duration-300 shadow-lg"
+                      className="w-full sm:w-auto bg-white text-primary hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all duration-300 shadow-lg border border-gray-200 dark:border-gray-600"
                     >
                       <Users className="w-5 h-5 mr-2" />
                       Khám phá tình nguyện viên
@@ -923,7 +942,7 @@ export default function HomePage() {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all duration-300 backdrop-blur-sm"
+                      className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-primary dark:border-gray-300 dark:text-gray-100 dark:hover:bg-gray-200 dark:hover:text-gray-900 font-semibold px-8 py-3 rounded-full hover:scale-105 transition-all duration-300 backdrop-blur-sm bg-black/10"
                     >
                       <Building2 className="w-5 h-5 mr-2" />
                       Xem các tổ chức
@@ -933,22 +952,7 @@ export default function HomePage() {
               )}
             </div>
             
-            <div className="mt-8 flex justify-center items-center gap-8 text-white/80">
-              <div className="text-center">
-                <div className="text-2xl font-bold">1000+</div>
-                <div className="text-sm">Tình nguyện viên</div>
-              </div>
-              <div className="w-px h-12 bg-white/30"></div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">500+</div>
-                <div className="text-sm">Sự kiện</div>
-              </div>
-              <div className="w-px h-12 bg-white/30"></div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">50+</div>
-                <div className="text-sm">Tổ chức</div>
-              </div>
-            </div>
+
           </div>
         </div>
       </section>

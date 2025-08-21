@@ -20,6 +20,13 @@ const PublicOrganizationsPage = lazy(
   () => import("@/pages/public/PublicOrganizationsPage")
 );
 const PublicEventsPage = lazy(() => import("@/pages/public/PublicEventsPage"));
+const PublicPartnersPage = lazy(
+  () => import("@/pages/public/PublicPartnersPage")
+);
+const PublicVolunteersPage = lazy(
+  () => import("@/pages/public/PublicVolunteersPage")
+);
+
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const OrganizationDashboard = lazy(
   () => import("@/pages/organization/OrganizationDashboard")
@@ -30,24 +37,6 @@ const VolunteerDashboard = lazy(
 );
 const CoordinatorDashboard = lazy(
   () => import("@/pages/coordinator/CoordinatorDashboard")
-);
-const PublicPartnersPage = lazy(
-  () => import("@/pages/public/PublicPartnersPage")
-);
-const PublicOrganizationDetailPage = lazy(
-  () => import("@/pages/public/PublicOrganizationDetailPage")
-);
-const PublicEventDetailPage = lazy(
-  () => import("@/pages/public/PublicEventDetailPage")
-);
-const PublicPartnerDetailPage = lazy(
-  () => import("@/pages/public/PublicPartnerDetailPage")
-);
-const PublicVolunteersPage = lazy(
-  () => import("@/pages/public/PublicVolunteersPage")
-);
-const PublicVolunteerDetailPage = lazy(
-  () => import("@/pages/public/PublicVolunteerDetailPage")
 );
 const EventManagementPage = lazy(
   () => import("@/pages/organization/EventManagementPage")
@@ -161,17 +150,18 @@ export default function AppRoutes() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/password-reset" element={<PasswordResetPage />} />
+        {/* Combined layout routes */}
         <Route path="/organizations" element={<PublicOrganizationsPage />} />
         <Route
           path="/organizations/:id"
-          element={<PublicOrganizationDetailPage />}
+          element={<PublicOrganizationsPage />}
         />
         <Route path="/partners" element={<PublicPartnersPage />} />
-        <Route path="/partners/:id" element={<PublicPartnerDetailPage />} />
+        <Route path="/partners/:id" element={<PublicPartnersPage />} />
         <Route path="/events" element={<PublicEventsPage />} />
-        <Route path="/events/:id" element={<PublicEventDetailPage />} />
+        <Route path="/events/:id" element={<PublicEventsPage />} />
         <Route path="/volunteers" element={<PublicVolunteersPage />} />
-        <Route path="/volunteers/:id" element={<PublicVolunteerDetailPage />} />
+        <Route path="/volunteers/:id" element={<PublicVolunteersPage />} />
         {/* Support Request routes */}
         <Route
           path="/support-request/create"

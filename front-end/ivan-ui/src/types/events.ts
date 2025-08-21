@@ -21,6 +21,7 @@ export interface EventDto {
   district?: string;
   maxVolunteers?: number;
   minVolunteers: number;
+  volunteersRegistered?: number;
   requiredSkills?: string;
   ageRequirement?: string;
   genderRequirement?: string;
