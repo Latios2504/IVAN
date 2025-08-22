@@ -99,7 +99,7 @@ namespace ivan_api.Services.OnSiteTasks
                 return false;
 
             //add assignment
-            var eventRegList = await _eventRegistrationRepository.GetAllEventRegistrationsAsync();
+            var eventRegList = (await _eventRegistrationRepository.GetAllEventRegistrationsAsync()).ToList();
             var validVolunnteerIdList = new List<int>();
 
             foreach (var eventRegistration in eventRegList)//get volunnteers for current event
@@ -121,14 +121,23 @@ namespace ivan_api.Services.OnSiteTasks
                 throw new Exception("No valid volunteer available");
             }
 
-            var count = 0;//success count
+            //var count = 0;//success count
 
             foreach(var volunteer in validVolunnteerIdList)
             {
+                var existingAssignment = await _taskAssignmentRepository
+                    .SearchTaskAssignment(id, volunteer);
+
+                if (existingAssignment != null)//check dpplicate
+                {
+                    // Skip or update instead of inserting duplicate
+                    continue;
+                }
+
                 var assignment = new TaskAssignmentInputModel
                 {
                     VolunteerId = volunteer,
-                    TaskId = existingTask.TaskId,
+                    TaskId = id,
                     Status = "Assigned",
                     AssignedDate = DateTime.Now
                 };
@@ -136,14 +145,15 @@ namespace ivan_api.Services.OnSiteTasks
                 var input = _mapper.Map<TaskAssignment>(assignment);
                 var assginmentResult = await _taskAssignmentRepository.AddTaskAssignment(input);
 
-                if (assginmentResult)
-                    count++;
-                else
+                //if (assginmentResult)
+                //    count++;
+                //else
+                if (!assginmentResult)
                     throw new Exception("Failed to assign task to volunter id:" + volunteer);
             }
 
-            if (count != validVolunnteerIdList.Count)
-                throw new Exception("Not all tasks assigned successfully");
+            //if (count != validVolunnteerIdList.Count)
+            //    throw new Exception("Not all tasks assigned successfully");
             return true;
 
         }
@@ -162,7 +172,7 @@ namespace ivan_api.Services.OnSiteTasks
 
             var result = await _repository.UpdateOnSiteTask(existingTask);
 
-            var assignmentList = await _taskAssignmentRepository.SearchTaskAssignmentsByTaskId(existingTask.TaskId);
+            var assignmentList = (await _taskAssignmentRepository.SearchTaskAssignmentsByTaskId(existingTask.TaskId)).ToList();
 
             int count = 0;
 
@@ -197,7 +207,7 @@ namespace ivan_api.Services.OnSiteTasks
 
             var result = await _repository.UpdateOnSiteTask(existingTask);
 
-            var assignmentList = await _taskAssignmentRepository.SearchTaskAssignmentsByTaskId(existingTask.TaskId);
+            var assignmentList = (await _taskAssignmentRepository.SearchTaskAssignmentsByTaskId(existingTask.TaskId)).ToList();
 
             int count = 0;
 

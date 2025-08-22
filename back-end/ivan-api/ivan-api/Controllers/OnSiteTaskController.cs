@@ -445,7 +445,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpDelete("{id}/complete/{volunteerId}")]
+        [HttpPut("{id}/complete/{volunteerId}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Complete(int id, int volunteerId)
         {
             try
