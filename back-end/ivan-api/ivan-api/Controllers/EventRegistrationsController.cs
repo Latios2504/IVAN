@@ -1,4 +1,4 @@
-using ivan_api.Constants;
+﻿using ivan_api.Constants;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
 using ivan_api.Extensions;
@@ -6,6 +6,8 @@ using ivan_api.Services.EventRegistrationSer;
 using ivan_api.Services.AuthenticationSer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ivan_api.Services.EventServ;
+using ivan_api.Models;
 
 namespace ivan_api.Controllers
 {
@@ -15,16 +17,20 @@ namespace ivan_api.Controllers
     {
         private readonly IEventRegistrationService _registrationService;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IEventService _eventService;
         private readonly ILogger<EventRegistrationsController> _logger;
+        private readonly VolunteerManagementSystemContext _context;
 
         public EventRegistrationsController(
             IEventRegistrationService registrationService,
             IAuthenticationService authenticationService,
-            ILogger<EventRegistrationsController> logger)
+            ILogger<EventRegistrationsController> logger, IEventService eventService, VolunteerManagementSystemContext context)
         {
             _registrationService = registrationService;
             _authenticationService = authenticationService;
             _logger = logger;
+            _eventService = eventService;
+            _context = context;
         }
 
         [HttpPost]
@@ -44,6 +50,48 @@ namespace ivan_api.Controllers
                         Errors = errors
                     });
                 }
+
+                var eventInfo = await _eventService.GetEventAsync(eventId);
+                if (eventInfo == null)
+                {
+                    return NotFound(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Event not found"
+                    });
+                }
+
+                 //Kiểm tra cửa sổ đăng ký
+                var now = DateTime.UtcNow;
+                if (eventInfo.RegistrationStartDate.HasValue && now < eventInfo.RegistrationStartDate.Value)
+                {
+                    return BadRequest(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Registration has not started yet"
+                    });
+                }
+
+                if (eventInfo.RegistrationEndDate.HasValue && now > eventInfo.RegistrationEndDate.Value)
+                {
+                    return BadRequest(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Registration period has ended"
+                    });
+                }
+
+                var eventRaw = await _eventService.GetEventNotDTO(eventId);
+                var currentVolunteers =  eventRaw.CurrentVolunteers;
+                if (eventRaw.MaxVolunteers.HasValue && currentVolunteers >= eventRaw.MaxVolunteers.Value)
+                {
+                    return BadRequest(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Maximum number of volunteers for this event has been reached"
+                    });
+                }
+
 
                 var userId = _authenticationService.GetUserIdFromClaims(User);
                 var registration = await _registrationService.AddRegistrationAsync(eventId, userId, request);
@@ -117,6 +165,36 @@ namespace ivan_api.Controllers
                 }
 
                 var userId = _authenticationService.GetUserIdFromClaims(User);
+                var eventInfo = await _eventService.GetEventAsync(eventId);
+                if (eventInfo == null)
+                {
+                    return NotFound(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Event not found"
+                    });
+                }
+
+                // Kiểm tra cửa sổ đăng ký
+                var now = DateTime.UtcNow;
+                if (eventInfo.RegistrationStartDate.HasValue && now < eventInfo.RegistrationStartDate.Value)
+                {
+                    return BadRequest(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Registration has not started yet"
+                    });
+                }
+
+                if (eventInfo.RegistrationEndDate.HasValue && now > eventInfo.RegistrationEndDate.Value)
+                {
+                    return BadRequest(new ApiResponseDTO<RegistrationDTO>
+                    {
+                        Success = false,
+                        Message = "Registration period has ended"
+                    });
+                }
+
                 var success =
                     await _registrationService.UpdateRegistrationAsync(eventId, registrationId, userId, request);
 
