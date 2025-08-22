@@ -47,6 +47,31 @@ namespace ivan_api.DTOs.EventRegistration
         public string? StatusColor { get; set; }
     }
 
+    public class CheckInRequestDTO
+    {
+        public string? Notes { get; set; }
+        public string? Location { get; set; }
+    }
+
+    public class CheckOutRequestDTO
+    {
+        public string? Notes { get; set; }
+        public string? Feedback { get; set; }
+    }
+
+    public class AttendanceDTO
+    {
+        public int RegistrationId { get; set; }
+        public int EventId { get; set; }
+        public int VolunteerId { get; set; }
+        public string? VolunteerName { get; set; }
+        public string AttendanceStatus { get; set; } = string.Empty;
+        public DateTime? CheckInTime { get; set; }
+        public DateTime? CheckOutTime { get; set; }
+        public decimal? ActualHours { get; set; }
+        public string StatusName { get; set; } = string.Empty;
+    }
+
     public class ApproveRegistrationRequestDTO
     {
         public string? Notes { get; set; }
@@ -55,7 +80,7 @@ namespace ivan_api.DTOs.EventRegistration
     public class RejectRegistrationRequestDTO
     {
         [Required(ErrorMessage = "Rejection reason is required")]
-        [StringLength(500, ErrorMessage = "Reason cannot exceed 500 characters")]
+        [StringLength(1000, ErrorMessage = "Reason cannot exceed 1000 characters")]
         public string Reason { get; set; } = string.Empty;
     }
 }

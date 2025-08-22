@@ -16,6 +16,8 @@ namespace ivan_api.Repository.EventRegistrationRepo
 
         // Status and validation helpers
         Task<RegistrationStatus?> GetRegistrationStatusAsync(string statusName);
+        Task<RegistrationStatus?> GetRegistrationStatusByNameAsync(string statusName);
+        Task<Event?> GetEventAsync(int eventId);
         Task<bool> CheckDuplicateRegistrationAsync(int eventId, int volunteerId);
         Task<Event?> GetEventWithOrganizationAsync(int eventId);
         Task<VolunteerProfile?> GetVolunteerByUserIdAsync(int userId);

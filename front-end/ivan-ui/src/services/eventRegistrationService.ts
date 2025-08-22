@@ -6,6 +6,8 @@ import type {
   RegistrationStatusDTO,
   ApproveRegistrationRequestDTO,
   RejectRegistrationRequestDTO,
+  CheckInRequestDTO,
+  CheckOutRequestDTO,
 } from "../types/eventRegistration";
 
 class EventRegistrationService {
@@ -128,6 +130,29 @@ class EventRegistrationService {
     return response.data!;
   }
 
+  // Check-in/Check-out endpoints
+  async checkIn(
+    eventId: number,
+    registrationId: number,
+    request: CheckInRequestDTO
+  ): Promise<void> {
+    await apiClient.post(
+      `${this.baseUrl}/${eventId}/registrations/${registrationId}/checkin`,
+      request
+    );
+  }
+
+  async checkOut(
+    eventId: number,
+    registrationId: number,
+    request: CheckOutRequestDTO
+  ): Promise<void> {
+    await apiClient.post(
+      `${this.baseUrl}/${eventId}/registrations/${registrationId}/checkout`,
+      request
+    );
+  }
+
   // Utility methods for validation
   validateRegistrationRequest(request: RegistrationRequestDTO): string[] {
     const errors: string[] = [];
@@ -150,8 +175,8 @@ class EventRegistrationService {
       errors.push("Rejection reason is required");
     }
 
-    if (request.reason && request.reason.length > 500) {
-      errors.push("Reason cannot exceed 500 characters");
+    if (request.reason && request.reason.length > 1000) {
+      errors.push("Reason cannot exceed 1000 characters");
     }
 
     return errors;

@@ -30,6 +30,42 @@ export interface RejectRegistrationRequestDTO {
   reason: string;
 }
 
+export interface EventDTO {
+  eventId: number;
+  eventName: string;
+  description: string;
+  shortDescription: string;
+  startDate: Date;
+  endDate: Date;
+  registrationStartDate?: Date;
+  registrationEndDate?: Date;
+  location: string;
+  categoryName: string;
+  statusName: string;
+}
+
+export interface CheckInRequestDTO {
+  notes?: string;
+  location?: string;
+}
+
+export interface CheckOutRequestDTO {
+  notes?: string;
+  feedback?: string;
+}
+
+export interface AttendanceDTO {
+  registrationId: number;
+  eventId: number;
+  volunteerId: number;
+  volunteerName?: string;
+  attendanceStatus: string;
+  checkInTime?: Date;
+  checkOutTime?: Date;
+  actualHours?: number;
+  statusName: string;
+}
+
 export interface RegistrationFilters {
   status?: string;
   page?: number;

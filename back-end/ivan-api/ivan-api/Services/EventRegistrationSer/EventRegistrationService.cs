@@ -3,6 +3,8 @@ using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
 using ivan_api.Models;
 using ivan_api.Repository.EventRegistrationRepo;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ivan_api.Services.EventRegistrationSer
 {
@@ -11,15 +13,18 @@ namespace ivan_api.Services.EventRegistrationSer
         private readonly IEventRegistrationRepository _repository;
         private readonly IMapper _mapper;
         private readonly ILogger<EventRegistrationService> _logger;
+        private readonly VolunteerManagementSystemContext _context;
         
         public EventRegistrationService(
             IEventRegistrationRepository repository, 
             IMapper mapper, 
-            ILogger<EventRegistrationService> logger)
+            ILogger<EventRegistrationService> logger,
+            VolunteerManagementSystemContext context)
         {
             _repository = repository;
             _mapper = mapper;
             _logger = logger;
+            _context = context;
         }
 
         public async Task<RegistrationDTO> AddRegistrationAsync(int eventId, int userId, RegistrationRequestDTO request)
@@ -44,11 +49,19 @@ namespace ivan_api.Services.EventRegistrationSer
                 throw new InvalidOperationException("Registration period has ended");
             }
 
-            // Check for duplicate registration
+            // Check for duplicate registration - validate unique constraint (EventId, VolunteerProfileId)
             var duplicateExists = await _repository.CheckDuplicateRegistrationAsync(eventId, volunteer.VolunteerId);
             if (duplicateExists)
             {
-                throw new InvalidOperationException("Already registered for this event");
+                throw new InvalidOperationException("Already registered for this event. Duplicate registrations are not allowed.");
+            }
+
+            // Additional validation: Check database constraint directly
+            var existingRegistration = await _context.EventRegistrations
+                .FirstOrDefaultAsync(r => r.EventId == eventId && r.VolunteerId == volunteer.VolunteerId);
+            if (existingRegistration != null)
+            {
+                throw new InvalidOperationException("Registration already exists for this volunteer and event");
             }
 
             // Get pending status
@@ -281,6 +294,24 @@ namespace ivan_api.Services.EventRegistrationSer
                 throw new InvalidOperationException("Only pending registrations can be approved");
             }
 
+            // Check event capacity before approving
+            var eventEntity = await _repository.GetEventAsync(eventId);
+            if (eventEntity == null)
+            {
+                throw new InvalidOperationException("Event not found");
+            }
+
+            // Count current approved registrations
+            var currentApprovedCount = await _context.EventRegistrations
+                .Include(r => r.Status)
+                .CountAsync(r => r.EventId == eventId && r.Status.StatusName == "Approved");
+
+            // Check if approving this registration would exceed capacity
+            if (eventEntity.MaxVolunteers.HasValue && currentApprovedCount >= eventEntity.MaxVolunteers.Value)
+            {
+                throw new InvalidOperationException($"Cannot approve registration: Event has reached maximum capacity of {eventEntity.MaxVolunteers.Value} volunteers");
+            }
+
             // Get approved status
             var approvedStatus = await _repository.GetRegistrationStatusAsync("Approved");
             if (approvedStatus == null)
@@ -400,6 +431,173 @@ namespace ivan_api.Services.EventRegistrationSer
                 _logger.LogError(ex, "Error getting registrations for volunteer {VolunteerId}", volunteerId);
                 throw;
             }
+        }
+
+        public async Task<AttendanceDTO> CheckInAsync(int eventId, int registrationId, int userId, CheckInRequestDTO request)
+        {
+            // Get volunteer profile
+            var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
+            if (volunteer == null)
+            {
+                throw new InvalidOperationException("Volunteer profile not found");
+            }
+
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null)
+            {
+                throw new InvalidOperationException("Registration not found");
+            }
+
+            // Verify ownership
+            if (registration.VolunteerId != volunteer.VolunteerId)
+            {
+                throw new UnauthorizedAccessException("Access denied: You can only check-in for your own registration");
+            }
+
+            // Check if registration is approved
+            var approvedStatus = await _repository.GetRegistrationStatusByNameAsync("Approved");
+            if (approvedStatus == null || registration.StatusId != approvedStatus.StatusId)
+            {
+                throw new InvalidOperationException("Only approved registrations can be checked in");
+            }
+
+            // Check if already checked in
+            if (registration.CheckInTime.HasValue)
+            {
+                throw new InvalidOperationException("Already checked in");
+            }
+
+            // Get event to validate timing
+            var eventEntity = await _repository.GetEventAsync(eventId);
+            if (eventEntity == null)
+            {
+                throw new InvalidOperationException("Event not found");
+            }
+
+            // Check if event is ongoing or about to start (allow check-in 30 minutes before)
+            var now = DateTime.UtcNow;
+            var allowedCheckInTime = eventEntity.StartDate.AddMinutes(-30);
+            if (now < allowedCheckInTime)
+            {
+                throw new InvalidOperationException("Check-in is not yet available for this event");
+            }
+
+            // Update registration with check-in info
+            registration.CheckInTime = now;
+            registration.AttendanceStatus = "Attended";
+            registration.UpdatedAt = now;
+
+            // Get attended status and update
+            var attendedStatus = await _repository.GetRegistrationStatusByNameAsync("Attended");
+            if (attendedStatus != null)
+            {
+                registration.StatusId = attendedStatus.StatusId;
+            }
+
+            var success = await _repository.UpdateRegistrationAsync(registration);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to check in");
+            }
+
+            _logger.LogInformation("Volunteer {VolunteerId} checked in for event {EventId} at {CheckInTime}", 
+                volunteer.VolunteerId, eventId, now);
+
+            return new AttendanceDTO
+            {
+                RegistrationId = registration.RegistrationId,
+                EventId = registration.EventId,
+                VolunteerId = registration.VolunteerId,
+                VolunteerName = volunteer.User?.UserProfiles?.FirstOrDefault()?.FirstName + " " + volunteer.User?.UserProfiles?.FirstOrDefault()?.LastName ?? "Unknown",
+                AttendanceStatus = registration.AttendanceStatus,
+                CheckInTime = registration.CheckInTime,
+                CheckOutTime = registration.CheckOutTime,
+                ActualHours = registration.ActualHours,
+                StatusName = attendedStatus?.StatusName ?? "Attended"
+            };
+        }
+
+        public async Task<AttendanceDTO> CheckOutAsync(int eventId, int registrationId, int userId, CheckOutRequestDTO request)
+        {
+            // Get volunteer profile
+            var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
+            if (volunteer == null)
+            {
+                throw new InvalidOperationException("Volunteer profile not found");
+            }
+
+            // Get registration
+            var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
+            if (registration == null)
+            {
+                throw new InvalidOperationException("Registration not found");
+            }
+
+            // Verify ownership
+            if (registration.VolunteerId != volunteer.VolunteerId)
+            {
+                throw new UnauthorizedAccessException("Access denied: You can only check-out for your own registration");
+            }
+
+            // Check if checked in
+            if (!registration.CheckInTime.HasValue)
+            {
+                throw new InvalidOperationException("Must check-in before checking out");
+            }
+
+            // Check if already checked out
+            if (registration.CheckOutTime.HasValue)
+            {
+                throw new InvalidOperationException("Already checked out");
+            }
+
+            // Update registration with check-out info
+            var now = DateTime.UtcNow;
+            registration.CheckOutTime = now;
+            registration.UpdatedAt = now;
+
+            // Calculate actual hours
+            var timeSpan = now - registration.CheckInTime.Value;
+            registration.ActualHours = (decimal)timeSpan.TotalHours;
+
+            // Update to completed status
+            var completedStatus = await _repository.GetRegistrationStatusByNameAsync("Completed");
+            if (completedStatus != null)
+            {
+                registration.StatusId = completedStatus.StatusId;
+            }
+
+            // Add feedback if provided
+            if (!string.IsNullOrEmpty(request.Feedback))
+            {
+                registration.Review = request.Feedback;
+            }
+
+            var success = await _repository.UpdateRegistrationAsync(registration);
+            if (!success)
+            {
+                throw new InvalidOperationException("Failed to check out");
+            }
+
+            // Update event statistics
+            await _repository.UpdateEventStatisticsAsync(eventId);
+
+            _logger.LogInformation("Volunteer {VolunteerId} checked out from event {EventId} at {CheckOutTime} with {ActualHours} hours", 
+                volunteer.VolunteerId, eventId, now, registration.ActualHours);
+
+            return new AttendanceDTO
+            {
+                RegistrationId = registration.RegistrationId,
+                EventId = registration.EventId,
+                VolunteerId = registration.VolunteerId,
+                VolunteerName = volunteer.User?.UserProfiles?.FirstOrDefault()?.FirstName + " " + volunteer.User?.UserProfiles?.FirstOrDefault()?.LastName ?? "Unknown",
+                AttendanceStatus = registration.AttendanceStatus,
+                CheckInTime = registration.CheckInTime,
+                CheckOutTime = registration.CheckOutTime,
+                ActualHours = registration.ActualHours,
+                StatusName = completedStatus?.StatusName ?? "Completed"
+            };
         }
     }
 }

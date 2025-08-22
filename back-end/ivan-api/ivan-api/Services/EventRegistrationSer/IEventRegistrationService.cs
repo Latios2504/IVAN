@@ -1,4 +1,4 @@
-﻿using ivan_api.DTOs.Common;
+using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
 
 namespace ivan_api.Services.EventRegistrationSer
@@ -16,5 +16,9 @@ namespace ivan_api.Services.EventRegistrationSer
         
         // New method for volunteers to get their own registrations
         Task<PagedResultDto<RegistrationDTO>> GetVolunteerRegistrationsAsync(int volunteerId, string? status, int page, int size);
+        
+        // Check-in/Check-out methods
+        Task<AttendanceDTO> CheckInAsync(int eventId, int registrationId, int userId, CheckInRequestDTO request);
+        Task<AttendanceDTO> CheckOutAsync(int eventId, int registrationId, int userId, CheckOutRequestDTO request);
     }
 }

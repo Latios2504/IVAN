@@ -119,6 +119,8 @@ namespace ivan_api.Repository.EventRegistrationRepo
         public async Task<VolunteerProfile?> GetVolunteerByUserIdAsync(int userId)
         {
             return await _context.VolunteerProfiles
+                .Include(v => v.User)
+                    .ThenInclude(u => u.UserProfiles)
                 .FirstOrDefaultAsync(v => v.UserId == userId);
         }
 
@@ -201,6 +203,18 @@ namespace ivan_api.Repository.EventRegistrationRepo
 
             // Save changes
             return await SaveChangesAsync();
+        }
+
+        public async Task<RegistrationStatus?> GetRegistrationStatusByNameAsync(string statusName)
+        {
+            return await _context.RegistrationStatuses
+                .FirstOrDefaultAsync(s => s.StatusName == statusName && (s.IsActive == null || s.IsActive == true));
+        }
+
+        public async Task<Event?> GetEventAsync(int eventId)
+        {
+            return await _context.Events
+                .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == null || e.IsActive == true));
         }
     }
 }
