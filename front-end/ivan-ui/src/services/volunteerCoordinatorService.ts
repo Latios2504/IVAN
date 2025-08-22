@@ -278,6 +278,8 @@ class VolunteerCoordinatorService {
     if ("email" in data) {
       // Validation for CreateVolunteerCoordinatorDto
       const createData = data as CreateVolunteerCoordinatorDto;
+      
+      // Required fields validation
       if (!createData.email?.trim()) {
         errors.push("Email is required");
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(createData.email)) {
@@ -288,6 +290,49 @@ class VolunteerCoordinatorService {
       }
       if (!createData.lastName?.trim()) {
         errors.push("Last name is required");
+      }
+      
+      // Personal information validation
+      if (createData.firstName && createData.firstName.length > 100) {
+        errors.push("First name must be 100 characters or less");
+      }
+      if (createData.lastName && createData.lastName.length > 100) {
+        errors.push("Last name must be 100 characters or less");
+      }
+      if (createData.phoneNumber && !/^[0-9+\-\s()]{10,20}$/.test(createData.phoneNumber)) {
+        errors.push("Phone number format is invalid");
+      }
+      if (createData.dateOfBirth) {
+        const birthDate = new Date(createData.dateOfBirth);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        if (age < 16 || age > 100) {
+          errors.push("Age must be between 16 and 100 years");
+        }
+      }
+      if (createData.gender && !['Nam', 'Nữ', 'Khác'].includes(createData.gender)) {
+        errors.push("Gender must be 'Nam', 'Nữ', or 'Khác'");
+      }
+      if (createData.address && createData.address.length > 500) {
+        errors.push("Address must be 500 characters or less");
+      }
+      if (createData.wardCommune && createData.wardCommune.length > 100) {
+        errors.push("Ward/Commune must be 100 characters or less");
+      }
+      if (createData.district && createData.district.length > 100) {
+        errors.push("District must be 100 characters or less");
+      }
+      if (createData.province && createData.province.length > 100) {
+        errors.push("Province must be 100 characters or less");
+      }
+      if (createData.postalCode && createData.postalCode.length > 10) {
+        errors.push("Postal code must be 10 characters or less");
+      }
+      if (createData.emergencyContactName && createData.emergencyContactName.length > 200) {
+        errors.push("Emergency contact name must be 200 characters or less");
+      }
+      if (createData.emergencyContactPhone && !/^[0-9+\-\s()]{10,20}$/.test(createData.emergencyContactPhone)) {
+        errors.push("Emergency contact phone format is invalid");
       }
     }
 
@@ -306,6 +351,16 @@ class VolunteerCoordinatorService {
     }
     if (data.notes && data.notes.length > 1000) {
       errors.push("Notes must be 1000 characters or less");
+    }
+    if (data.hireDate) {
+      const hireDate = new Date(data.hireDate);
+      const today = new Date();
+      if (hireDate > today) {
+        errors.push("Hire date cannot be in the future");
+      }
+    }
+    if (data.salary && (data.salary < 0 || data.salary > 999999999)) {
+      errors.push("Salary must be between 0 and 999,999,999");
     }
 
     return errors;

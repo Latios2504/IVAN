@@ -62,6 +62,15 @@ public class EmailService : IEmailService
         _logger.LogInformation($"Event reminder email sent to: {email}");
     }
 
+    public async Task SendTemporaryPasswordEmailAsync(string email, string userName, string temporaryPassword)
+    {
+        var subject = "Tài khoản Volunteer Coordinator - IVAN Volunteer System";
+        var body = CreateTemporaryPasswordEmailBody(userName, temporaryPassword);
+        
+        await SendEmailAsync(email, subject, body);
+        _logger.LogInformation($"Temporary password email sent to: {email}");
+    }
+
     public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = true)
     {
         try
@@ -316,6 +325,57 @@ public class EmailService : IEmailService
                         <p>Đây là lời nhắc nhở về sự kiện tình nguyện mà bạn đã đăng ký tham gia.</p>
                         <p>Sự kiện sẽ diễn ra vào {eventDate:dd/MM/yyyy} lúc {eventDate:HH:mm}.</p>
                         <p>Vui lòng chuẩn bị và đến đúng giờ. Cảm ơn bạn đã tham gia!</p>
+                        <p>Trân trọng,<br>Đội ngũ IVAN Volunteer System</p>
+                    </div>
+                    <div class='footer'>
+                        <p>© 2024 IVAN Volunteer System. Tất cả quyền được bảo lưu.</p>
+                    </div>
+                </div>
+            </body>
+            </html>";
+    }
+
+    private string CreateTemporaryPasswordEmailBody(string userName, string temporaryPassword)
+    {
+        return $@"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                <title>Tài khoản Volunteer Coordinator</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; }}
+                    .content {{ padding: 20px; background-color: #f9f9f9; }}
+                    .password-box {{ background-color: #e8f5e8; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0; text-align: center; }}
+                    .warning-box {{ background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }}
+                    .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h1>🎉 Chào mừng đến với IVAN Volunteer System</h1>
+                    </div>
+                    <div class='content'>
+                        <p>Xin chào <strong>{userName}</strong>,</p>
+                        <p>Tài khoản Volunteer Coordinator của bạn đã được tạo thành công trong hệ thống IVAN Volunteer System.</p>
+                        <div class='password-box'>
+                            <h3>Mật khẩu tạm thời của bạn:</h3>
+                            <h2 style='color: #4CAF50; letter-spacing: 2px; font-family: monospace;'>{temporaryPassword}</h2>
+                        </div>
+                        <div class='warning-box'>
+                            <h4>⚠️ Lưu ý quan trọng:</h4>
+                            <ul style='text-align: left; margin: 10px 0;'>
+                                <li>Đây là mật khẩu tạm thời, bạn <strong>BẮT BUỘC</strong> phải thay đổi khi đăng nhập lần đầu</li>
+                                <li>Vui lòng bảo mật thông tin này và không chia sẻ với người khác</li>
+                                <li>Mật khẩu tạm thời sẽ hết hạn sau 24 giờ nếu không được sử dụng</li>
+                            </ul>
+                        </div>
+                        <p>Để đăng nhập vào hệ thống, vui lòng truy cập trang web và sử dụng email cùng mật khẩu tạm thời ở trên.</p>
+                        <p>Sau khi đăng nhập thành công, hệ thống sẽ yêu cầu bạn tạo mật khẩu mới để bảo mật tài khoản.</p>
+                        <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với quản trị viên của tổ chức.</p>
                         <p>Trân trọng,<br>Đội ngũ IVAN Volunteer System</p>
                     </div>
                     <div class='footer'>

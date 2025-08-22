@@ -7,5 +7,6 @@ public interface IEmailService
     Task SendWelcomeEmailAsync(string email, string userName);
     Task SendEventNotificationAsync(string email, string eventName, string eventDetails);
     Task SendEventReminderAsync(string email, string eventName, DateTime eventDate);
+    Task SendTemporaryPasswordEmailAsync(string email, string userName, string temporaryPassword);
     Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = true);
 }

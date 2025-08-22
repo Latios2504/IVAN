@@ -3,6 +3,7 @@ using ivan_api.DTOs.Common;
 using ivan_api.Models;
 using ivan_api.Repository.VolunteerCoordinatorRepo;
 using ivan_api.Constants;
+ using ivan_api.Services.EmailSer;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,13 +14,16 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
 {
     private readonly IVolunteerCoordinatorRepository _coordinatorRepository;
     private readonly VolunteerManagementSystemContext _context;
+    private readonly IEmailService _emailService;
 
     public VolunteerCoordinatorService(
         IVolunteerCoordinatorRepository coordinatorRepository,
-        VolunteerManagementSystemContext context)
+        VolunteerManagementSystemContext context,
+        IEmailService emailService)
     {
         _coordinatorRepository = coordinatorRepository;
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<PagedResultDto<VolunteerCoordinatorDto>> GetCoordinatorsByOrganizationAsync(int organizationId, VolunteerCoordinatorFilterDto filter)
@@ -91,7 +95,18 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
                 UserId = user.UserId,
                 FirstName = createDto.FirstName,
                 LastName = createDto.LastName,
+                FullName = $"{createDto.FirstName} {createDto.LastName}",
                 PhoneNumber = createDto.PhoneNumber,
+                DateOfBirth = createDto.DateOfBirth,
+                Gender = createDto.Gender,
+                Avatar = createDto.Avatar,
+                Address = createDto.Address,
+                WardCommune = createDto.WardCommune,
+                District = createDto.District,
+                Province = createDto.Province,
+                PostalCode = createDto.PostalCode,
+                EmergencyContactName = createDto.EmergencyContactName,
+                EmergencyContactPhone = createDto.EmergencyContactPhone,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -99,7 +114,9 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
             _context.UserProfiles.Add(userProfile);
             await _context.SaveChangesAsync();
 
-            // TODO: Send email with temporary password
+            // Send email with temporary password
+            var fullName = $"{createDto.FirstName} {createDto.LastName}";
+            await _emailService.SendTemporaryPasswordEmailAsync(user.Email, fullName, tempPassword);
         }
 
         // Validate employee ID uniqueness

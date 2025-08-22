@@ -36,10 +36,25 @@ export interface UserInformationDto {
 }
 
 export interface CreateVolunteerCoordinatorDto {
+  // User account information
   email: string;
+  
+  // Personal information (UserProfile fields)
   firstName: string;
   lastName: string;
   phoneNumber?: string;
+  dateOfBirth?: string; // Date -> string in TS
+  gender?: string;
+  avatar?: string;
+  address?: string;
+  wardCommune?: string;
+  district?: string;
+  province?: string;
+  postalCode?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  
+  // Employment information (VolunteerCoordinator fields)
   employeeId?: string;
   position?: string;
   department?: string;

@@ -481,7 +481,7 @@ export default function CoordinatorSchedulePage() {
       </Tabs>
 
       {/* Create Schedule Dialog */}
-      <Dialog open={createModal.isOpen} onOpenChange={createModal.close}>
+      <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogContent className="max-w-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl">
             <DialogHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 -m-6 mb-6 p-6 rounded-t-lg border-b border-indigo-200/50 dark:border-indigo-800/50">
               <DialogTitle className="text-indigo-900 dark:text-indigo-100 text-xl font-bold">Tạo lịch trình mới</DialogTitle>
@@ -660,7 +660,7 @@ export default function CoordinatorSchedulePage() {
             </div>
           </div>
           <DialogFooter className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 -m-6 mt-6 p-6 rounded-b-lg border-t border-slate-200 dark:border-slate-800">
-            <Button variant="outline" onClick={createModal.close} className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700">
+            <Button variant="outline" onClick={createDialog.close} className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700">
               Hủy
             </Button>
             <Button onClick={handleCreateSchedule} disabled={loading} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
