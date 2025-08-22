@@ -4,12 +4,14 @@ using ivan_api.DTOs.Common;
 using ivan_api.Models;
 using ivan_api.Repository.EventRepo;
 using ivan_api.Repository.SupportRequestRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services.EventServ
 {
     public class EventService : IEventService
     {
         private readonly IEventRepository _eventRepository;
+        private readonly VolunteerManagementSystemContext _context;
         private readonly ISupportRequestRepository _supportRequestRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<EventService> _logger;
@@ -18,12 +20,14 @@ namespace ivan_api.Services.EventServ
             IEventRepository eventRepository,
             ISupportRequestRepository supportRequestRepository,
             IMapper mapper,
-            ILogger<EventService> logger)
+            ILogger<EventService> logger,
+            VolunteerManagementSystemContext context)
         {
             _eventRepository = eventRepository;
             _supportRequestRepository = supportRequestRepository;
             _mapper = mapper;
             _logger = logger;
+            _context = context;
         }
 
         public async Task<int> CreateAsync(CreateEventDto dto)
@@ -164,6 +168,15 @@ namespace ivan_api.Services.EventServ
         {
             var statuses = await _eventRepository.GetStatusesAsync();
             return _mapper.Map<IEnumerable<EventStatusDto>>(statuses);
+        }
+
+        public async Task<Event> GetEventNotDTO(int eventID)
+        {
+            return await _context.Events
+                .Include(e => e.Organization)
+                .Include(e => e.Category)
+                .Include(e => e.Status)
+                .FirstOrDefaultAsync(e => e.EventId == eventID);
         }
     }
 }

@@ -14,10 +14,10 @@ namespace ivan_api.Services.EventRegistrationSer
         private readonly IMapper _mapper;
         private readonly ILogger<EventRegistrationService> _logger;
         private readonly VolunteerManagementSystemContext _context;
-        
+
         public EventRegistrationService(
-            IEventRegistrationRepository repository, 
-            IMapper mapper, 
+            IEventRegistrationRepository repository,
+            IMapper mapper,
             ILogger<EventRegistrationService> logger,
             VolunteerManagementSystemContext context)
         {
@@ -44,7 +44,8 @@ namespace ivan_api.Services.EventRegistrationSer
             }
 
             // Check registration period
-            if (DateTime.UtcNow < eventEntity.RegistrationStartDate || DateTime.UtcNow > eventEntity.RegistrationEndDate)
+            if (DateTime.UtcNow < eventEntity.RegistrationStartDate ||
+                DateTime.UtcNow > eventEntity.RegistrationEndDate)
             {
                 throw new InvalidOperationException("Registration period has ended");
             }
@@ -53,7 +54,8 @@ namespace ivan_api.Services.EventRegistrationSer
             var duplicateExists = await _repository.CheckDuplicateRegistrationAsync(eventId, volunteer.VolunteerId);
             if (duplicateExists)
             {
-                throw new InvalidOperationException("Already registered for this event. Duplicate registrations are not allowed.");
+                throw new InvalidOperationException(
+                    "Already registered for this event. Duplicate registrations are not allowed.");
             }
 
             // Additional validation: Check database constraint directly
@@ -98,7 +100,8 @@ namespace ivan_api.Services.EventRegistrationSer
             return registrationDto;
         }
 
-        public async Task<bool> UpdateRegistrationAsync(int eventId, int registrationId, int userId, RegistrationRequestDTO request)
+        public async Task<bool> UpdateRegistrationAsync(int eventId, int registrationId, int userId,
+            RegistrationRequestDTO request)
         {
             // Get volunteer
             var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
@@ -182,7 +185,8 @@ namespace ivan_api.Services.EventRegistrationSer
             return true;
         }
 
-        public async Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId, int? organizationId, string? status, int page, int size)
+        public async Task<PagedResultDto<RegistrationDTO>> ListRegistrationsAsync(int eventId, int userId,
+            int? organizationId, string? status, int page, int size)
         {
             // Get the event with organization info
             var eventWithOrg = await _repository.GetEventWithOrganizationAsync(eventId);
@@ -190,9 +194,9 @@ namespace ivan_api.Services.EventRegistrationSer
             {
                 throw new InvalidOperationException("Event not found or has no organization");
             }
-            
+
             bool isAuthorized = false;
-            
+
             // Check if user is organization owner
             if (organizationId.HasValue && eventWithOrg.OrganizationId == organizationId.Value)
             {
@@ -212,15 +216,17 @@ namespace ivan_api.Services.EventRegistrationSer
                     isAuthorized = true;
                 }
             }
-            
+
             if (!isAuthorized)
             {
                 throw new UnauthorizedAccessException("You don't have permission to view registrations for this event");
             }
 
             // Get registrations
-            var result = await _repository.GetRegistrationsByEventAsync(eventId, eventWithOrg.OrganizationId, status, page, size);
-            
+            var result =
+                await _repository.GetRegistrationsByEventAsync(eventId, eventWithOrg.OrganizationId, status, page,
+                    size);
+
             // Handle null result (defensive programming)
             if (result == null)
             {
@@ -233,10 +239,11 @@ namespace ivan_api.Services.EventRegistrationSer
                     PageSize = size
                 };
             }
-            
+
             // Map to DTOs - handle empty collections safely
-            var registrationDtos = result.Items?.Select(r => _mapper.Map<RegistrationDTO>(r))?.ToList() ?? new List<RegistrationDTO>();
-            
+            var registrationDtos = result.Items?.Select(r => _mapper.Map<RegistrationDTO>(r))?.ToList() ??
+                                   new List<RegistrationDTO>();
+
             var pagedResult = new PagedResultDto<RegistrationDTO>
             {
                 Items = registrationDtos,
@@ -270,7 +277,8 @@ namespace ivan_api.Services.EventRegistrationSer
             return registrationDto;
         }
 
-        public async Task<bool> ApproveRegistrationAsync(int eventId, int registrationId, int userId, ApproveRegistrationRequestDTO request)
+        public async Task<bool> ApproveRegistrationAsync(int eventId, int registrationId, int userId,
+            ApproveRegistrationRequestDTO request)
         {
             // Get registration
             var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
@@ -309,7 +317,8 @@ namespace ivan_api.Services.EventRegistrationSer
             // Check if approving this registration would exceed capacity
             if (eventEntity.MaxVolunteers.HasValue && currentApprovedCount >= eventEntity.MaxVolunteers.Value)
             {
-                throw new InvalidOperationException($"Cannot approve registration: Event has reached maximum capacity of {eventEntity.MaxVolunteers.Value} volunteers");
+                throw new InvalidOperationException(
+                    $"Cannot approve registration: Event has reached maximum capacity of {eventEntity.MaxVolunteers.Value} volunteers");
             }
 
             // Get approved status
@@ -338,7 +347,8 @@ namespace ivan_api.Services.EventRegistrationSer
             return true;
         }
 
-        public async Task<bool> RejectRegistrationAsync(int eventId, int registrationId, int userId, RejectRegistrationRequestDTO request)
+        public async Task<bool> RejectRegistrationAsync(int eventId, int registrationId, int userId,
+            RejectRegistrationRequestDTO request)
         {
             // Get registration
             var registration = await _repository.GetRegistrationAsync(eventId, registrationId);
@@ -389,7 +399,8 @@ namespace ivan_api.Services.EventRegistrationSer
             return true;
         }
 
-        public async Task<RegistrationStatusDTO?> GetRegistrationStatusAsync(int eventId, int registrationId, int userId)
+        public async Task<RegistrationStatusDTO?> GetRegistrationStatusAsync(int eventId, int registrationId,
+            int userId)
         {
             // Get volunteer
             var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
@@ -409,11 +420,13 @@ namespace ivan_api.Services.EventRegistrationSer
             return statusDto;
         }
 
-        public async Task<PagedResultDto<RegistrationDTO>> GetVolunteerRegistrationsAsync(int volunteerId, string? status, int page, int size)
+        public async Task<PagedResultDto<RegistrationDTO>> GetVolunteerRegistrationsAsync(int volunteerId,
+            string? status, int page, int size)
         {
             try
             {
-                var registrations = await _repository.GetRegistrationsByVolunteerIdAsync(volunteerId, status, page, size);
+                var registrations =
+                    await _repository.GetRegistrationsByVolunteerIdAsync(volunteerId, status, page, size);
                 var totalCount = await _repository.CountRegistrationsByVolunteerIdAsync(volunteerId, status);
 
                 var registrationDtos = registrations.Select(r => _mapper.Map<RegistrationDTO>(r)).ToList();
@@ -433,7 +446,8 @@ namespace ivan_api.Services.EventRegistrationSer
             }
         }
 
-        public async Task<AttendanceDTO> CheckInAsync(int eventId, int registrationId, int userId, CheckInRequestDTO request)
+        public async Task<AttendanceDTO> CheckInAsync(int eventId, int registrationId, int userId,
+            CheckInRequestDTO request)
         {
             // Get volunteer profile
             var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
@@ -501,7 +515,7 @@ namespace ivan_api.Services.EventRegistrationSer
                 throw new InvalidOperationException("Failed to check in");
             }
 
-            _logger.LogInformation("Volunteer {VolunteerId} checked in for event {EventId} at {CheckInTime}", 
+            _logger.LogInformation("Volunteer {VolunteerId} checked in for event {EventId} at {CheckInTime}",
                 volunteer.VolunteerId, eventId, now);
 
             return new AttendanceDTO
@@ -509,7 +523,9 @@ namespace ivan_api.Services.EventRegistrationSer
                 RegistrationId = registration.RegistrationId,
                 EventId = registration.EventId,
                 VolunteerId = registration.VolunteerId,
-                VolunteerName = volunteer.User?.UserProfiles?.FirstOrDefault()?.FirstName + " " + volunteer.User?.UserProfiles?.FirstOrDefault()?.LastName ?? "Unknown",
+                VolunteerName =
+                    volunteer.User?.UserProfiles?.FirstOrDefault()?.FirstName + " " +
+                    volunteer.User?.UserProfiles?.FirstOrDefault()?.LastName ?? "Unknown",
                 AttendanceStatus = registration.AttendanceStatus,
                 CheckInTime = registration.CheckInTime,
                 CheckOutTime = registration.CheckOutTime,
@@ -518,7 +534,8 @@ namespace ivan_api.Services.EventRegistrationSer
             };
         }
 
-        public async Task<AttendanceDTO> CheckOutAsync(int eventId, int registrationId, int userId, CheckOutRequestDTO request)
+        public async Task<AttendanceDTO> CheckOutAsync(int eventId, int registrationId, int userId,
+            CheckOutRequestDTO request)
         {
             // Get volunteer profile
             var volunteer = await _repository.GetVolunteerByUserIdAsync(userId);
@@ -537,7 +554,8 @@ namespace ivan_api.Services.EventRegistrationSer
             // Verify ownership
             if (registration.VolunteerId != volunteer.VolunteerId)
             {
-                throw new UnauthorizedAccessException("Access denied: You can only check-out for your own registration");
+                throw new UnauthorizedAccessException(
+                    "Access denied: You can only check-out for your own registration");
             }
 
             // Check if checked in
@@ -583,7 +601,8 @@ namespace ivan_api.Services.EventRegistrationSer
             // Update event statistics
             await _repository.UpdateEventStatisticsAsync(eventId);
 
-            _logger.LogInformation("Volunteer {VolunteerId} checked out from event {EventId} at {CheckOutTime} with {ActualHours} hours", 
+            _logger.LogInformation(
+                "Volunteer {VolunteerId} checked out from event {EventId} at {CheckOutTime} with {ActualHours} hours",
                 volunteer.VolunteerId, eventId, now, registration.ActualHours);
 
             return new AttendanceDTO
@@ -591,13 +610,30 @@ namespace ivan_api.Services.EventRegistrationSer
                 RegistrationId = registration.RegistrationId,
                 EventId = registration.EventId,
                 VolunteerId = registration.VolunteerId,
-                VolunteerName = volunteer.User?.UserProfiles?.FirstOrDefault()?.FirstName + " " + volunteer.User?.UserProfiles?.FirstOrDefault()?.LastName ?? "Unknown",
+                VolunteerName =
+                    volunteer.User?.UserProfiles?.FirstOrDefault()?.FirstName + " " +
+                    volunteer.User?.UserProfiles?.FirstOrDefault()?.LastName ?? "Unknown",
                 AttendanceStatus = registration.AttendanceStatus,
                 CheckInTime = registration.CheckInTime,
                 CheckOutTime = registration.CheckOutTime,
                 ActualHours = registration.ActualHours,
                 StatusName = completedStatus?.StatusName ?? "Completed"
             };
+        }
+
+        public async Task<IEnumerable<EventRegistration>> GetAllVolunteerRegistration()
+        {
+            try
+            {
+                var list = await _repository.GetAllEventRegistrationsAsync();
+
+                return list;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting registrations");
+                throw;
+            }
         }
     }
 }

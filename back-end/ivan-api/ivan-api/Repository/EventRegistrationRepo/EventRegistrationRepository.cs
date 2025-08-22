@@ -18,11 +18,11 @@ namespace ivan_api.Repository.EventRegistrationRepo
         {
             return await _context.EventRegistrations
                 .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                        .ThenInclude(u => u.UserProfiles)
+                .ThenInclude(v => v.User)
+                .ThenInclude(u => u.UserProfiles)
                 .Include(r => r.Status)
                 .Include(r => r.Event)
-                    .ThenInclude(e => e.Organization)
+                .ThenInclude(e => e.Organization)
                 .FirstOrDefaultAsync(r => r.EventId == eventId && r.RegistrationId == registrationId);
         }
 
@@ -33,14 +33,15 @@ namespace ivan_api.Repository.EventRegistrationRepo
                 .FirstOrDefaultAsync(r => r.EventId == eventId && r.VolunteerId == volunteerId);
         }
 
-        public async Task<PagedResultDto<EventRegistration>> GetRegistrationsByEventAsync(int eventId, int organizationId, string? status, int page, int size)
+        public async Task<PagedResultDto<EventRegistration>> GetRegistrationsByEventAsync(int eventId,
+            int organizationId, string? status, int page, int size)
         {
             try
             {
                 var query = _context.EventRegistrations
                     .Include(r => r.Volunteer)
-                        .ThenInclude(v => v.User)
-                            .ThenInclude(u => u.UserProfiles)
+                    .ThenInclude(v => v.User)
+                    .ThenInclude(u => u.UserProfiles)
                     .Include(r => r.Status)
                     .Include(r => r.Event)
                     .Where(r => r.EventId == eventId && r.Event.OrganizationId == organizationId);
@@ -120,7 +121,7 @@ namespace ivan_api.Repository.EventRegistrationRepo
         {
             return await _context.VolunteerProfiles
                 .Include(v => v.User)
-                    .ThenInclude(u => u.UserProfiles)
+                .ThenInclude(u => u.UserProfiles)
                 .FirstOrDefaultAsync(v => v.UserId == userId);
         }
 
@@ -138,15 +139,16 @@ namespace ivan_api.Repository.EventRegistrationRepo
                 .AnyAsync(c => c.Organization.Events.Any(e => e.EventId == eventId));
         }
 
-        public async Task<IEnumerable<EventRegistration>> GetRegistrationsByVolunteerIdAsync(int volunteerId, string? status, int page, int size)
+        public async Task<IEnumerable<EventRegistration>> GetRegistrationsByVolunteerIdAsync(int volunteerId,
+            string? status, int page, int size)
         {
             var query = _context.EventRegistrations
                 .Include(r => r.Event)
-                    .ThenInclude(e => e.Organization)
+                .ThenInclude(e => e.Organization)
                 .Include(r => r.Status)
                 .Include(r => r.Volunteer)
-                    .ThenInclude(v => v.User)
-                        .ThenInclude(u => u.UserProfiles)
+                .ThenInclude(v => v.User)
+                .ThenInclude(u => u.UserProfiles)
                 .Where(r => r.VolunteerId == volunteerId);
 
             // Filter by status if provided
@@ -215,6 +217,19 @@ namespace ivan_api.Repository.EventRegistrationRepo
         {
             return await _context.Events
                 .FirstOrDefaultAsync(e => e.EventId == eventId && (e.IsActive == null || e.IsActive == true));
+        }
+
+        public async Task<IEnumerable<EventRegistration>> GetAllEventRegistrationsAsync()
+        {
+            var query = _context.EventRegistrations
+                .Include(r => r.Event)
+                .ThenInclude(e => e.Organization)
+                .Include(r => r.Status)
+                .Include(r => r.Volunteer)
+                .ThenInclude(v => v.User)
+                .ThenInclude(u => u.UserProfiles);
+
+            return query.ToList();
         }
     }
 }

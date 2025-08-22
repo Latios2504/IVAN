@@ -8,6 +8,7 @@ namespace ivan_api.Repository.OnSiteTasks
     {
         Task<bool> AddOnSiteTask(OnSiteTask onSiteTask);
         Task<bool> UpdateOnSiteTask(OnSiteTask onSiteTask);
+        Task<bool> DeleteOnSiteTask(int id);
         Task<IEnumerable<OnSiteTask>> ListOnSiteTask(OnSiteTaskFilterModel filter);
         Task<OnSiteTask> GetOnSiteTaskById(int id);
         Task<PagedResultDto<OnSiteTaskViewModel>> GetOnSiteTasksAsync(int PageNumber, int PageSize);
