@@ -299,6 +299,25 @@ namespace ivan_api.Services.OnSiteTasks
             return _mapper.Map<OnSiteTaskViewModel>(task);
         }
 
+        public async Task<IEnumerable<TaskAssignmentViewModel>> GetTaskAssignmentsById(int id)
+        {
+            var task = await _repository.GetOnSiteTaskById(id);
+            if (task == null)
+            {
+                throw new Exception("On Site Task not found");
+            }
+
+            var list = (await _taskAssignmentRepository.SearchTaskAssignmentsByTaskId(id)).ToList();
+            var output = new List<TaskAssignmentViewModel>();
+
+            foreach (var assignment in list)
+            {
+                output.Add(_mapper.Map<TaskAssignmentViewModel>(assignment));
+            }
+
+            return output;
+        }
+
         public async Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize)
         {
             return await _repository.GetOnSiteTasksAsync(pageNumber, pageSize);

@@ -1,5 +1,6 @@
-﻿using ivan_api.DTOs.OnSiteTasks;
-using ivan_api.DTOs.Common;
+﻿using ivan_api.DTOs.Common;
+using ivan_api.DTOs.OnSiteTasks;
+using ivan_api.DTOs.TaskAssignments;
 
 namespace ivan_api.Services.OnSiteTasks
 {
@@ -17,5 +18,6 @@ namespace ivan_api.Services.OnSiteTasks
         Task<bool> CompleteAllOnSiteTask(int id);
         Task<bool> CompleteTask(int taskId, int volunteerId);
         Task<bool> UnassigTask(int taskId, int volunteerId);
+        Task<IEnumerable<TaskAssignmentViewModel>> GetTaskAssignmentsById(int id);
     }
 }

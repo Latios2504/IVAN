@@ -274,8 +274,8 @@ namespace ivan_api.Controllers
 
             try
             {
-                var result = await _service.AssignOnSiteTask( id);
-                var postUpdate = await _service.GetOnSiteTaskById(id);
+                var result = await _service.AssignOnSiteTask(id);
+                var data = await _service.GetTaskAssignmentsById(id);
 
                 if (!result)
                 {
@@ -290,7 +290,7 @@ namespace ivan_api.Controllers
                 return Ok(new ApiResponseDTO<object>
                 {
                     Success = true,
-                    Data = postUpdate,
+                    Data = data,
                     Message = "On-site task assigned successfully"
                 });
             }
@@ -327,7 +327,7 @@ namespace ivan_api.Controllers
             try
             {
                 var result = await _service.StartAllOnSiteTask(id);
-                var postUpdate = await _service.GetOnSiteTaskById(id);
+                var data = await _service.GetTaskAssignmentsById(id);
 
                 if (!result)
                 {
@@ -342,7 +342,7 @@ namespace ivan_api.Controllers
                 return Ok(new ApiResponseDTO<object>
                 {
                     Success = true,
-                    Data = postUpdate,
+                    Data = data,
                     Message = "On-site task started successfully"
                 });
             }
@@ -379,7 +379,7 @@ namespace ivan_api.Controllers
             try
             {
                 var result = await _service.CompleteAllOnSiteTask(id);
-                var postUpdate = await _service.GetOnSiteTaskById(id);
+                var data = await _service.GetTaskAssignmentsById(id);
 
                 if (!result)
                 {
@@ -394,7 +394,7 @@ namespace ivan_api.Controllers
                 return Ok(new ApiResponseDTO<object>
                 {
                     Success = true,
-                    Data = postUpdate,
+                    Data = data,
                     Message = "On-site task completeed successfully"
                 });
             }

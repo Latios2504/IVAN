@@ -28,7 +28,7 @@ namespace ivan_api.DTOs.TaskAssignments
 
         public DateTime? CreatedAt { get; set; }
 
-        //public DateTime? UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         //public virtual User? AssignedByNavigation { get; set; }
 
