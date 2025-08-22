@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.DTOs.TaskAssignments;
@@ -81,7 +82,7 @@ namespace ivan_api.Services.OnSiteTasks
             }
         }
 
-        public async Task<bool> AssignOnSiteTask(int id)
+        public async Task<bool> AssignAllOnSiteTask(int id)
         {
             var existingTask = await _repository.GetOnSiteTaskById(id);
             if (existingTask == null)
@@ -158,6 +159,77 @@ namespace ivan_api.Services.OnSiteTasks
 
         }
 
+        public async Task<bool> AssignTask(int taskId, int volunteerId)
+        {
+            var existingTask = await _repository.GetOnSiteTaskById(taskId);
+            if (existingTask == null)
+            {
+                throw new Exception("On Site Task not found");
+            }
+
+            existingTask.UpdatedAt = DateTime.Now;
+
+            existingTask.StatusId = 1;//not started
+
+            var updateResult = await _repository.UpdateOnSiteTask(existingTask);
+
+            if (!updateResult)
+                return false;
+
+            //add assignment
+            var eventRegList = (await _eventRegistrationRepository.GetAllEventRegistrationsAsync()).ToList();
+            var validVolunnteerIdList = new List<int>();
+
+            foreach (var eventRegistration in eventRegList)//get volunnteers for current event
+            {
+                if (
+                    eventRegistration.EventId == existingTask.EventId &&
+                    (
+                     eventRegistration.StatusId == 2 ||//Approved
+                     eventRegistration.StatusId == 5//Attended
+                    )
+                  )
+                {
+                    validVolunnteerIdList.Add(eventRegistration.VolunteerId);
+                }
+            }
+
+            if (validVolunnteerIdList == null || validVolunnteerIdList.Count == 0)
+            {
+                throw new Exception("No valid volunteer available");
+            }
+
+            if (!validVolunnteerIdList.Contains(volunteerId))
+            {
+                throw new Exception("No valid volunteer available");
+            }
+
+            var existingAssignment = await _taskAssignmentRepository
+                .SearchTaskAssignment(taskId, volunteerId);
+
+            if (existingAssignment != null)//check dpplicate
+            {
+                // Skip or update instead of inserting duplicate
+                throw new Exception("Dupplicate task assignment exist");
+            }
+
+            var assignment = new TaskAssignmentInputModel
+            {
+                VolunteerId = volunteerId,
+                TaskId = taskId,
+                Status = "Assigned",
+                AssignedDate = DateTime.Now
+            };
+
+            var input = _mapper.Map<TaskAssignment>(assignment);
+            var assginmentResult = await _taskAssignmentRepository.AddTaskAssignment(input);
+
+            if (!assginmentResult)
+                throw new Exception("Failed to assign task to volunter id:" + volunteerId);
+
+            return true;
+        }
+
         public async Task<bool> StartAllOnSiteTask(int id)
         {
             var existingTask = await _repository.GetOnSiteTaskById(id);
@@ -191,6 +263,30 @@ namespace ivan_api.Services.OnSiteTasks
                 return true;
             else
                 throw new Exception();
+        }
+
+        public async Task<bool> StartTask(int taskId, int volunteerId)
+        {
+            var existingTask = await _repository.GetOnSiteTaskById(taskId);
+            if (existingTask == null)
+            {
+                throw new Exception("On Site Task not found");
+            }
+
+            existingTask.UpdatedAt = DateTime.Now;
+
+            existingTask.StatusId = 2;//In Progress
+
+            var result = await _repository.UpdateOnSiteTask(existingTask);
+
+            //var assignmentList = (await _taskAssignmentRepository.SearchTaskAssignmentsByTaskId(existingTask.TaskId)).ToList();
+            var assignedtask = await _taskAssignmentRepository.SearchTaskAssignment(taskId, volunteerId);
+
+            assignedtask.UpdatedAt = DateTime.Now;
+            assignedtask.StartedAt = DateTime.Now;
+            assignedtask.Status = "Started";
+
+            return await _taskAssignmentRepository.UpdateTaskAssignment(assignedtask);
         }
 
         public async Task<bool> CompleteAllOnSiteTask(int id)
@@ -282,6 +378,38 @@ namespace ivan_api.Services.OnSiteTasks
             return assignmenResult;
         }
 
+        //public async Task<bool> AssignTask(int taskId, int volunteerId)
+        //{
+        //    var assignment = await _taskAssignmentRepository.SearchTaskAssignment(taskId, volunteerId);
+        //    if (assignment == null)
+        //    {
+        //        throw new Exception("Task Assignment not found");
+        //    }
+
+        //    assignment.UpdatedAt = DateTime.Now;
+        //    assignment.AssignedDate = DateTime.Now;
+        //    assignment.Status = "Assigned";
+        //    var assignmenResult = await _taskAssignmentRepository.UpdateTaskAssignment(assignment);
+
+        //    return assignmenResult;
+        //}
+
+        //public async Task<bool> StartTask(int taskId, int volunteerId)
+        //{
+        //    var assignment = await _taskAssignmentRepository.SearchTaskAssignment(taskId, volunteerId);
+        //    if (assignment == null)
+        //    {
+        //        throw new Exception("Task Assignment not found");
+        //    }
+
+        //    assignment.UpdatedAt = DateTime.Now;
+        //    assignment.CompletedAt = DateTime.Now;
+        //    assignment.Status = "Started";
+        //    var assignmenResult = await _taskAssignmentRepository.UpdateTaskAssignment(assignment);
+
+        //    return assignmenResult;
+        //}
+
         public async Task<IEnumerable<OnSiteTaskViewModel>> ListOnSiteTask(OnSiteTaskFilterModel filter)
         {
             var tasks = await _repository.ListOnSiteTask(filter);
@@ -324,5 +452,11 @@ namespace ivan_api.Services.OnSiteTasks
         }
 
         public async Task<int> GetLastId() => await _repository.GetLastId();
+
+        public async Task<TaskAssignmentViewModel> SearchTaskAssignment(int taskId, int volunteerId)
+        {
+            var assignment = await _taskAssignmentRepository.SearchTaskAssignment(taskId, volunteerId);
+            return _mapper.Map<TaskAssignmentViewModel>(assignment);
+        }
     }
 }

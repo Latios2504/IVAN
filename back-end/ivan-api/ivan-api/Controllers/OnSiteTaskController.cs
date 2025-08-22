@@ -253,7 +253,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPut("{id}/assign")]
+        [HttpPut("{id}/assignAll")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<ActionResult<ApiResponseDTO<object>>> AssignAll(int id)
         {
@@ -274,7 +274,7 @@ namespace ivan_api.Controllers
 
             try
             {
-                var result = await _service.AssignOnSiteTask(id);
+                var result = await _service.AssignAllOnSiteTask(id);
                 var data = await _service.GetTaskAssignmentsById(id);
 
                 if (!result)
@@ -305,7 +305,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPut("{id}/start")]
+        [HttpPut("{id}/startAll")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<ActionResult<ApiResponseDTO<object>>> StartAll(int id)
         {
@@ -357,7 +357,7 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPut("{id}/complete")]
+        [HttpPut("{id}/completeAll")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<ActionResult<ApiResponseDTO<object>>> CompleteAll(int id)
         {
@@ -451,6 +451,7 @@ namespace ivan_api.Controllers
             try
             {
                 var result = await _service.CompleteTask(id, volunteerId);
+                var data = await _service.SearchTaskAssignment(id, volunteerId);
 
                 if (!result)
                 {
@@ -466,7 +467,7 @@ namespace ivan_api.Controllers
                 {
                     Success = true,
                     Message = "On-Site Task completed successfully",
-                    Data = new { deletedId = id }
+                    Data = data
                 });
             }
             catch (Exception ex)
@@ -475,6 +476,78 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Failed to complete on-site task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        [HttpPut("{id}/assign/{volunteerId}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> Assign(int id, int volunteerId)
+        {
+            try
+            {
+                var result = await _service.AssignTask(id, volunteerId);
+                var data = await _service.SearchTaskAssignment(id, volunteerId);
+
+                if (!result)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to assign on-site task",
+                        Errors = new List<string> { "Unable to assign on-site task" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "On-Site Task assigned successfully",
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to assign on-site task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        [HttpPut("{id}/start/{volunteerId}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> Start(int id, int volunteerId)
+        {
+            try
+            {
+                var result = await _service.StartTask(id, volunteerId);
+                var data = await _service.SearchTaskAssignment(id, volunteerId);
+
+                if (!result)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Failed to start on-site task",
+                        Errors = new List<string> { "Unable to start on-site task" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "On-Site Task started successfully",
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to start on-site task",
                     Errors = new List<string> { ex.Message }
                 });
             }

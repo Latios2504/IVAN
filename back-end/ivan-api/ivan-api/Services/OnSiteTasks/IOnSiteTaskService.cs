@@ -13,11 +13,14 @@ namespace ivan_api.Services.OnSiteTasks
         Task<OnSiteTaskViewModel> GetOnSiteTaskById(int id);
         Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize);
         Task<int> GetLastId();
-        Task<bool> AssignOnSiteTask(int id);
+        Task<bool> AssignAllOnSiteTask(int id);
         Task<bool> StartAllOnSiteTask(int id);
         Task<bool> CompleteAllOnSiteTask(int id);
         Task<bool> CompleteTask(int taskId, int volunteerId);
         Task<bool> UnassigTask(int taskId, int volunteerId);
         Task<IEnumerable<TaskAssignmentViewModel>> GetTaskAssignmentsById(int id);
+        Task<bool> AssignTask(int taskId, int volunteerId);
+        Task<bool> StartTask(int taskId, int volunteerId);
+        Task<TaskAssignmentViewModel> SearchTaskAssignment(int taskId, int volunteerId);
     }
 }
