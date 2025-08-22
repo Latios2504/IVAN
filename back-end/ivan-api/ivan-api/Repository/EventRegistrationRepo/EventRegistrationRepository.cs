@@ -202,5 +202,18 @@ namespace ivan_api.Repository.EventRegistrationRepo
             // Save changes
             return await SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<EventRegistration>> GetAllEventRegistrationsAsync()
+        {
+            var query = _context.EventRegistrations
+                .Include(r => r.Event)
+                    .ThenInclude(e => e.Organization)
+                .Include(r => r.Status)
+                .Include(r => r.Volunteer)
+                    .ThenInclude(v => v.User)
+                        .ThenInclude(u => u.UserProfiles);
+
+            return query.ToList();
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
+using ivan_api.Models;
 
 namespace ivan_api.Services.EventRegistrationSer
 {
@@ -16,5 +17,8 @@ namespace ivan_api.Services.EventRegistrationSer
         
         // New method for volunteers to get their own registrations
         Task<PagedResultDto<RegistrationDTO>> GetVolunteerRegistrationsAsync(int volunteerId, string? status, int page, int size);
+        Task<IEnumerable<EventRegistration>> GetAllVolunteerRegistration();
+
+
     }
 }

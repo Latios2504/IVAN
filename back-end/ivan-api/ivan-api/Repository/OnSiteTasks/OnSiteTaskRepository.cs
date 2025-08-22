@@ -33,6 +33,16 @@ namespace ivan_api.Repository.OnSiteTasks
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> DeleteOnSiteTask(int id)
+        {
+            var task = await _context.OnSiteTasks.FindAsync(id);
+            if (task == null)
+                return false;
+
+            _context.OnSiteTasks.Remove(task);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task<IEnumerable<OnSiteTask>> ListOnSiteTask(OnSiteTaskFilterModel filter)
         {
             var query = _context.OnSiteTasks

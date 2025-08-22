@@ -54,6 +54,8 @@ using Microsoft.OpenApi.Models;
 using ivan_api.Services.FeedbackServ;
 using ivan_api.Repository.FeedbackRepo;
 using ivan_api.Services.ExportService;
+using ivan_api.Repository.TaskAssignments;
+using ivan_api.Services.TaskAssignments;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -206,6 +208,9 @@ builder.Services.AddScoped<ICertificateTemplateService, CertificateTemplateServi
 
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.AddScoped<ITaskAssignmentRepository, TaskAssignmentRepository>();
+builder.Services.AddScoped<ITaskAssignmentService, TaskAssignmentService>();
 
 // Partner Collaboration DI
 builder.Services.AddScoped<IPartnerCollaborationService, PartnerCollaborationService>();

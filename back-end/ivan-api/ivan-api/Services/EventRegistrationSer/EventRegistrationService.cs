@@ -401,5 +401,20 @@ namespace ivan_api.Services.EventRegistrationSer
                 throw;
             }
         }
+
+        public async Task<IEnumerable<EventRegistration>> GetAllVolunteerRegistration()
+        {
+            try
+            {
+                var list = await _repository.GetAllEventRegistrationsAsync();
+
+                return list;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting registrations");
+                throw;
+            }
+        }
     }
 }

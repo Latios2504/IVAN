@@ -28,5 +28,6 @@ namespace ivan_api.Repository.EventRegistrationRepo
         
         // Event statistics update methods
         Task<bool> UpdateEventStatisticsAsync(int eventId);
+        Task<IEnumerable<EventRegistration>> GetAllEventRegistrationsAsync();
     }
 }
