@@ -49,7 +49,7 @@ Ngoài đối chiếu với `flows.md`, còn có thể đối chiếu với `iva
 
 #### EventsController.cs
 
-- [ ] **Status lifecycle**: Kiểm tra có đúng các trạng thái `Pending Approval → Published → Ongoing → Completed → Cancelled`
+- [ ] **Status lifecycle**: Kiểm tra có đúng các trạng thái `Pending Approval → Published → Ongoing → Completed/Cancelled`
 - [ ] **Create Event**:
   - [ ] Organization có thể tạo event với status `Pending Approval`
   - [ ] Validate các trường bắt buộc:
