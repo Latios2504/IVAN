@@ -1,8 +1,10 @@
-using ivan_api.Constants;
-using ivan_api.DTOs.EventManage;
+﻿using ivan_api.Constants;
 using ivan_api.DTOs.Common;
-using ivan_api.Services.EventServ;
+using ivan_api.DTOs.EventManage;
+using ivan_api.DTOs.ModerationEvent;
 using ivan_api.Services.AuthenticationSer;
+using ivan_api.Services.EventServ;
+using ivan_api.Services.ModerationEventServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -14,17 +16,19 @@ namespace ivan_api.Controllers
     public class EventsController : ControllerBase
     {
         private readonly IEventService _eventService;
+        private readonly IModerationEventService _moderationEventService;
         private readonly IAuthenticationService _authenticationService;
         private readonly ILogger<EventsController> _logger;
 
         public EventsController(
             IEventService eventService,
             IAuthenticationService authenticationService,
-            ILogger<EventsController> logger)
+            ILogger<EventsController> logger, IModerationEventService modetationService)
         {
             _eventService = eventService;
             _authenticationService = authenticationService;
             _logger = logger;
+            _moderationEventService = modetationService;
         }
 
         // Get events list (public + filtered for organizations)
@@ -372,6 +376,65 @@ namespace ivan_api.Controllers
             {
                 _logger.LogError(ex, "Error getting organization ID from claims for user");
                 throw new UnauthorizedAccessException("Failed to retrieve organization information");
+            }
+        }
+
+        [HttpPost("{eventId}/approve")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> ApproveEvent(int eventId)
+        {
+            try
+            {
+                await _moderationEventService.ApproveEventAsync(eventId);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Sự kiện đã được duyệt thành công.",
+                    Data = new { eventId }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while approving the event",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        [HttpPost("{eventId}/reject")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> RejectEvent(int eventId,
+            [FromBody] RejectEventRequestDto request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Rejection reason is required" }
+                });
+            }
+
+            try
+            {
+                await _moderationEventService.RejectEventAsync(eventId, request.Reason);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Sự kiện đã bị từ chối.",
+                    Data = new { eventId, reason = request.Reason }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while rejecting the event",
+                    Errors = new List<string> { ex.Message }
+                });
             }
         }
     }

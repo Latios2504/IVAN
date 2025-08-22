@@ -1,5 +1,6 @@
 using ivan_api.DTOs.EventManage;
 using ivan_api.DTOs.Common;
+using ivan_api.Models;
 
 namespace ivan_api.Services.EventServ
 {
@@ -20,5 +21,7 @@ namespace ivan_api.Services.EventServ
         // Lookup data methods
         Task<IEnumerable<EventCategoryDto>> GetCategoriesAsync();
         Task<IEnumerable<EventStatusDto>> GetStatusesAsync();
+
+        Task<Event> GetEventNotDTO(int eventID);
     }
 }
