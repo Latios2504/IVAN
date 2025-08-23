@@ -1,4 +1,4 @@
-﻿namespace ivan_api.DTOs.EventManage
+namespace ivan_api.DTOs.EventManage
 {
     public class EventDto
     {
@@ -33,6 +33,7 @@
         // Volunteers
         public int? MaxVolunteers { get; set; }
         public int MinVolunteers { get; set; }
+        public int? VolunteersRegistered { get; set; }
         
         // Requirements
         public string? RequiredSkills { get; set; }

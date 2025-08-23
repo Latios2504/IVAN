@@ -22,6 +22,9 @@ namespace ivan_api.Services.EventServ
         Task<IEnumerable<EventCategoryDto>> GetCategoriesAsync();
         Task<IEnumerable<EventStatusDto>> GetStatusesAsync();
 
+        // Status management
+        Task UpdateEventStatusAsync(int eventId, string status, int organizationId);
+
         Task<Event> GetEventNotDTO(int eventID);
     }
 }

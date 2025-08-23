@@ -47,6 +47,8 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
     shortDescription: "",
     startDate: "",
     endDate: "",
+    registrationStartDate: "",
+    registrationEndDate: "",
     location: "",
     detailedAddress: "",
     province: "",
@@ -62,6 +64,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
     contactPhone: "",
     contactEmail: "",
     bannerImageUrl: "",
+    galleryImages: "",
     isFeatured: false,
     isUrgent: false,
   });
@@ -76,6 +79,8 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         shortDescription: event.shortDescription || "",
         startDate: event.startDate ? event.startDate.split("T")[0] : "",
         endDate: event.endDate ? event.endDate.split("T")[0] : "",
+        registrationStartDate: event.registrationStartDate ? event.registrationStartDate.split("T")[0] : "",
+        registrationEndDate: event.registrationEndDate ? event.registrationEndDate.split("T")[0] : "",
         location: event.location || "",
         detailedAddress: event.detailedAddress || "",
         province: event.province || "",
@@ -91,6 +96,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         contactPhone: event.contactPhone || "",
         contactEmail: event.contactEmail || "",
         bannerImageUrl: event.bannerImageUrl || "",
+        galleryImages: event.galleryImages || "",
         isFeatured: event.isFeatured || false,
         isUrgent: event.isUrgent || false,
       });
@@ -119,6 +125,8 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         shortDescription: formData.shortDescription || undefined,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        registrationStartDate: formData.registrationStartDate || undefined,
+        registrationEndDate: formData.registrationEndDate || undefined,
         location: formData.location,
         detailedAddress: formData.detailedAddress || undefined,
         province: formData.province || undefined,
@@ -134,6 +142,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
         contactPhone: formData.contactPhone || undefined,
         contactEmail: formData.contactEmail || undefined,
         bannerImageUrl: formData.bannerImageUrl || undefined,
+        galleryImages: formData.galleryImages || undefined,
         isFeatured: formData.isFeatured,
         isUrgent: formData.isUrgent,
       };
@@ -153,7 +162,7 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 border-gradient-to-r border-blue-200 dark:border-blue-800 shadow-2xl">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 border-gradient-to-r border-blue-200 dark:border-blue-800 shadow-2xl">
         <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6 -m-6 mb-6">
           <DialogTitle className="text-xl font-bold">Edit Event: {event.eventName}</DialogTitle>
         </DialogHeader>
@@ -246,6 +255,30 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="registrationStartDate" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Registration Start Date</Label>
+              <Input
+                id="registrationStartDate"
+                type="date"
+                value={formData.registrationStartDate}
+                onChange={(e) => handleInputChange("registrationStartDate", e.target.value)}
+                className="bg-gradient-to-r from-white to-pink-50 dark:from-gray-800 dark:to-pink-900/20 border-pink-200 dark:border-pink-700 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="registrationEndDate" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Registration End Date</Label>
+              <Input
+                id="registrationEndDate"
+                type="date"
+                value={formData.registrationEndDate}
+                onChange={(e) => handleInputChange("registrationEndDate", e.target.value)}
+                className="bg-gradient-to-r from-white to-rose-50 dark:from-gray-800 dark:to-rose-900/20 border-rose-200 dark:border-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 dark:focus:ring-rose-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="location" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Location *</Label>
             <Input
@@ -291,6 +324,18 @@ export const EditEventDialog: React.FC<EditEventDialogProps> = ({
                 className="bg-gradient-to-r from-white to-emerald-50 dark:from-gray-800 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all duration-200 shadow-sm hover:shadow-md"
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="galleryImages" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Gallery Images (URLs separated by commas)</Label>
+            <Textarea
+              id="galleryImages"
+              value={formData.galleryImages}
+              onChange={(e) => handleInputChange("galleryImages", e.target.value)}
+              rows={3}
+              placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+              className="bg-gradient-to-r from-white to-violet-50 dark:from-gray-800 dark:to-violet-900/20 border-violet-200 dark:border-violet-700 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
+            />
           </div>
 
           <div className="flex gap-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-lg border border-gray-200 dark:border-gray-700">

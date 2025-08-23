@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LoadingState } from "@/components/common/LoadingState";
 import { EmptyState } from "@/components/common/EmptyState";
+import RegistrationDetailModal from "./RegistrationDetailModal";
+import ApproveRegistrationModal from "./ApproveRegistrationModal";
+import { RejectRegistrationModal } from "./RejectRegistrationModal";
 import {
   CheckCircle,
   XCircle,
@@ -106,25 +109,47 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={onView} className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 dark:from-blue-800 dark:to-indigo-800 dark:hover:from-blue-700 dark:hover:to-indigo-700 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onView}
+              className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 dark:from-blue-800 dark:to-indigo-800 dark:hover:from-blue-700 dark:hover:to-indigo-700 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-600"
+            >
               <Eye className="h-4 w-4" />
             </Button>
 
             {canModifyStatus && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="bg-gradient-to-r from-gray-100 to-slate-100 hover:from-gray-200 hover:to-slate-200 dark:from-gray-700 dark:to-slate-700 dark:hover:from-gray-600 dark:hover:to-slate-600 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-gradient-to-r from-gray-100 to-slate-100 hover:from-gray-200 hover:to-slate-200 dark:from-gray-700 dark:to-slate-700 dark:hover:from-gray-600 dark:hover:to-slate-600 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                  >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 dark:from-slate-800 dark:via-slate-700/50 dark:to-slate-600/30 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm">
-                  <DropdownMenuItem onClick={onApprove} className="hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-all duration-200">
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 dark:from-slate-800 dark:via-slate-700/50 dark:to-slate-600/30 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm"
+                >
+                  <DropdownMenuItem
+                    onClick={onApprove}
+                    className="hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-800 dark:hover:to-emerald-800 transition-all duration-200"
+                  >
                     <CheckCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
-                    <span className="text-green-700 dark:text-green-300">Approve</span>
+                    <span className="text-green-700 dark:text-green-300">
+                      Approve
+                    </span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onReject} className="hover:bg-gradient-to-r hover:from-red-100 hover:to-rose-100 dark:hover:from-red-800 dark:hover:to-rose-800 transition-all duration-200">
+                  <DropdownMenuItem
+                    onClick={onReject}
+                    className="hover:bg-gradient-to-r hover:from-red-100 hover:to-rose-100 dark:hover:from-red-800 dark:hover:to-rose-800 transition-all duration-200"
+                  >
                     <XCircle className="h-4 w-4 mr-2 text-red-600 dark:text-red-400" />
-                    <span className="text-red-700 dark:text-red-300">Reject</span>
+                    <span className="text-red-700 dark:text-red-300">
+                      Reject
+                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -139,7 +164,10 @@ const RegistrationCard: React.FC<RegistrationCardProps> = ({
 const RegistrationListSkeleton: React.FC = () => (
   <div className="space-y-4">
     {[...Array(5)].map((_, i) => (
-      <Card key={i} className="bg-gradient-to-br from-white/80 via-blue-50/40 to-indigo-50/60 dark:from-slate-800/80 dark:via-slate-700/40 dark:to-slate-600/60 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm">
+      <Card
+        key={i}
+        className="bg-gradient-to-br from-white/80 via-blue-50/40 to-indigo-50/60 dark:from-slate-800/80 dark:via-slate-700/40 dark:to-slate-600/60 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm"
+      >
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-200 to-indigo-200 dark:from-blue-700 dark:to-indigo-700 rounded-full animate-pulse" />
@@ -171,9 +199,12 @@ export default function RegistrationList({
     totalItems: 0,
   });
 
-  // Modal states - simplified (no dialogs for now)
+  // Modal states
   const [selectedRegistration, setSelectedRegistration] =
     useState<RegistrationDTO | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   const numericEventId =
     typeof eventId === "string" ? parseInt(eventId) : eventId;
@@ -287,52 +318,42 @@ export default function RegistrationList({
   };
 
   const handleViewDetails = async (registration: RegistrationDTO) => {
-    // Simple alert for now - can be enhanced with dialog later
-    alert(
-      `Registration Details:\n\nName: ${registration.fullName}\nStatus: ${
-        registration.statusName
-      }\nDate: ${
-        registration.applicationDate
-          ? new Date(registration.applicationDate).toLocaleDateString()
-          : "N/A"
-      }`
-    );
+    setSelectedRegistration(registration);
+    setShowDetailModal(true);
   };
 
   const handleShowApprovalDialog = async (registration: RegistrationDTO) => {
-    const notes = prompt(
-      `Approve registration for ${registration.fullName}?\n\nOptional notes:`
-    );
-    if (notes !== null) {
-      // User clicked OK (even if notes is empty)
-      try {
-        await handleApprove(registration.registrationId, {
-          notes: notes || undefined,
-        });
-        alert("Registration approved successfully!");
-      } catch (error) {
-        alert("Failed to approve registration. Please try again.");
-      }
-    }
+    setSelectedRegistration(registration);
+    setShowApproveModal(true);
   };
 
   const handleShowRejectionDialog = async (registration: RegistrationDTO) => {
-    const reason = prompt(
-      `Reject registration for ${registration.fullName}?\n\nReason (required):`
-    );
-    if (reason && reason.trim()) {
-      // User provided a reason
-      try {
-        await handleReject(registration.registrationId, {
-          reason: reason.trim(),
-        });
-        alert("Registration rejected successfully!");
-      } catch (error) {
-        alert("Failed to reject registration. Please try again.");
-      }
-    } else if (reason !== null) {
-      // User clicked OK but didn't provide reason
-      alert("Please provide a reason for rejection.");
+    setSelectedRegistration(registration);
+    setShowRejectModal(true);
+  };
+
+  const handleApproveSubmit = async (
+    registrationId: number,
+    request: ApproveRegistrationRequestDTO
+  ) => {
+    try {
+      await handleApprove(registrationId, request);
+      setShowApproveModal(false);
+      setSelectedRegistration(null);
+    } catch (error) {
+      throw error; // Let the modal handle the error
+    }
+  };
+
+  const handleRejectSubmit = async (request: RejectRegistrationRequestDTO) => {
+    if (!selectedRegistration) return;
+
+    try {
+      await handleReject(selectedRegistration.registrationId, request);
+      setShowRejectModal(false);
+      setSelectedRegistration(null);
+    } catch (error) {
+      throw error; // Let the modal handle the error
     }
   };
 
@@ -375,9 +396,16 @@ export default function RegistrationList({
       <Card className="bg-gradient-to-br from-white/80 via-blue-50/40 to-indigo-50/60 dark:from-slate-800/80 dark:via-slate-700/40 dark:to-slate-600/60 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm">
         <CardHeader className="bg-gradient-to-r from-transparent via-blue-50/20 to-indigo-50/30 dark:from-transparent dark:via-slate-700/20 dark:to-slate-600/30 rounded-t-lg">
           <CardTitle className="flex items-center justify-between">
-            <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 dark:from-blue-300 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">Event Registrations</span>
+            <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 dark:from-blue-300 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">
+              Event Registrations
+            </span>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-600">{pagination.totalItems} total</Badge>
+              <Badge
+                variant="outline"
+                className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-600"
+              >
+                {pagination.totalItems} total
+              </Badge>
               <Button
                 variant="outline"
                 size="sm"
@@ -433,7 +461,32 @@ export default function RegistrationList({
         </CardContent>
       </Card>
 
-      {/* Dialogs removed for simplicity - using browser prompts instead */}
+      {/* Modals */}
+      {selectedRegistration && (
+        <>
+          <RegistrationDetailModal
+            registration={selectedRegistration}
+            open={showDetailModal}
+            onOpenChange={setShowDetailModal}
+          />
+
+          <ApproveRegistrationModal
+            open={showApproveModal}
+            onOpenChange={setShowApproveModal}
+            registration={selectedRegistration}
+            onApprove={handleApproveSubmit}
+            loading={actionLoading}
+          />
+
+          <RejectRegistrationModal
+            isOpen={showRejectModal}
+            onClose={() => setShowRejectModal(false)}
+            registration={selectedRegistration}
+            onReject={handleRejectSubmit}
+            isLoading={actionLoading}
+          />
+        </>
+      )}
     </div>
   );
 }

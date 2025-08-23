@@ -147,6 +147,22 @@ const VolunteerCoordinatorManagementPage = () => {
     } finally {
       setSpecializationsLoading(false);
     }
+
+    // Load available managers (for now, use coordinators as potential managers)
+    setAvailableManagersLoading(true);
+    setAvailableManagersError(null);
+    try {
+      // For now, we'll use the coordinators list as available managers
+      // In a real scenario, this might be a separate API call for organization users
+      const managersResult = coordinators.map(coord => coord.user).filter(user => user);
+      setAvailableManagers(managersResult);
+    } catch (err) {
+      setAvailableManagersError(
+        err instanceof Error ? err.message : "Failed to load available managers"
+      );
+    } finally {
+      setAvailableManagersLoading(false);
+    }
   };
 
   const handleCreateSuccess = () => {
@@ -226,6 +242,7 @@ const VolunteerCoordinatorManagementPage = () => {
           organizationId={organizationId!}
           coordinators={coordinators}
           onCoordinatorUpdated={handleUpdateSuccess}
+          availableManagers={availableManagers}
         />
       ) : (
         <div className="text-center py-12 bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-900 dark:via-slate-900 dark:to-zinc-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-lg">

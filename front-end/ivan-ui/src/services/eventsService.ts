@@ -9,6 +9,7 @@ import type {
   EventCategoryDto,
   EventStatusDto,
   CreateEventFromSupportRequestDto,
+  UpdateEventStatusDto,
 } from "../types/events";
 
 class EventsService {
@@ -89,6 +90,11 @@ class EventsService {
       `${this.baseUrl}/statuses`
     );
     return response.data || [];
+  }
+
+  // PUT /api/Events/{eventId}/status - Update Event Status (Organization role only)
+  async updateEventStatus(eventId: number, statusData: UpdateEventStatusDto): Promise<void> {
+    await apiClient.put(`${this.baseUrl}/${eventId}/status`, statusData);
   }
 
   // Utility Methods

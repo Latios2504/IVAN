@@ -170,6 +170,73 @@ namespace ivan_api.Services.EventServ
             return _mapper.Map<IEnumerable<EventStatusDto>>(statuses);
         }
 
+        public async Task UpdateEventStatusAsync(int eventId, string status, int organizationId)
+        {
+            try
+            {
+                var eventEntity = await _eventRepository.GetByIdAsync(eventId);
+                if (eventEntity == null)
+                {
+                    throw new ArgumentException($"Event with ID {eventId} not found");
+                }
+
+                // Verify the event belongs to the organization
+                if (eventEntity.OrganizationId != organizationId)
+                {
+                    throw new UnauthorizedAccessException("You don't have permission to update this event's status");
+                }
+
+                // Get status ID from status name
+                var statuses = await _eventRepository.GetStatusesAsync();
+                var targetStatus = statuses.FirstOrDefault(s => s.StatusName.Equals(status, StringComparison.OrdinalIgnoreCase));
+                if (targetStatus == null)
+                {
+                    throw new ArgumentException($"Invalid status: {status}");
+                }
+
+                // Validate status transition logic
+                var currentStatusName = eventEntity.Status?.StatusName;
+                if (!IsValidStatusTransition(currentStatusName, status))
+                {
+                    throw new ArgumentException($"Invalid status transition from {currentStatusName} to {status}");
+                }
+
+                // Update the status
+                eventEntity.StatusId = targetStatus.StatusId;
+                eventEntity.UpdatedAt = DateTime.UtcNow;
+
+                var updateResult = await _eventRepository.UpdateAsync(eventEntity);
+                
+                if (!updateResult)
+                {
+                    throw new InvalidOperationException($"Failed to update event status for EventId {eventId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating event status for EventId {EventId}", eventId);
+                throw;
+            }
+        }
+
+        private bool IsValidStatusTransition(string? currentStatus, string newStatus)
+        {
+            // Define valid status transitions for manual updates
+            var validTransitions = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Published", new List<string> { "Ongoing", "Cancelled" } },
+                { "Ongoing", new List<string> { "Completed", "Cancelled" } },
+                { "Completed", new List<string>() }, // No transitions from completed
+                { "Cancelled", new List<string>() }  // No transitions from cancelled
+            };
+
+            if (string.IsNullOrEmpty(currentStatus))
+                return false;
+
+            return validTransitions.ContainsKey(currentStatus) && 
+                   validTransitions[currentStatus].Contains(newStatus, StringComparer.OrdinalIgnoreCase);
+        }
+
         public async Task<Event> GetEventNotDTO(int eventID)
         {
             return await _context.Events

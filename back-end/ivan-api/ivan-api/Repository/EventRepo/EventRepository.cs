@@ -26,10 +26,19 @@ namespace ivan_api.Repository.EventRepo
 
         public async Task<bool> UpdateAsync(Event evt)
         {
-            _context.ChangeTracker.Clear();
-            _context.Events.Attach(evt);
-            _context.Entry(evt).State = EntityState.Modified;
-            return await _context.SaveChangesAsync() > 0;
+            // Load the existing entity from database
+            var existingEvent = await _context.Events.FindAsync(evt.EventId);
+            if (existingEvent == null)
+            {
+                return false;
+            }
+            
+            // Update only the fields that changed
+            existingEvent.StatusId = evt.StatusId;
+            existingEvent.UpdatedAt = evt.UpdatedAt;
+            
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
         }
 
         public async Task<bool> DeleteAsync(int eventId, int organizationId)
