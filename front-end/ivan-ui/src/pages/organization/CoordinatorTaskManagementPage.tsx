@@ -49,27 +49,36 @@ import type {
   TaskPriority,
 } from "@/types/coordinatorTask";
 
+import {
+  TASK_STATUS,
+  TASK_PRIORITY,
+  TASK_CATEGORY,
+  TASK_STATUS_OPTIONS,
+  TASK_PRIORITY_OPTIONS,
+  TASK_CATEGORY_OPTIONS,
+} from "@/types/coordinatorTask";
+
 const priorityColors: Record<string, string> = {
-  Low: "bg-green-100 text-green-800",
-  Medium: "bg-yellow-100 text-yellow-800",
-  High: "bg-orange-100 text-orange-800",
-  Urgent: "bg-red-100 text-red-800",
+  [TASK_PRIORITY.LOW]: "bg-green-100 text-green-800",
+  [TASK_PRIORITY.MEDIUM]: "bg-yellow-100 text-yellow-800",
+  [TASK_PRIORITY.HIGH]: "bg-orange-100 text-orange-800",
+  [TASK_PRIORITY.URGENT]: "bg-red-100 text-red-800",
 };
 
 const statusColors: Record<string, string> = {
-  Pending: "bg-gray-100 text-gray-800",
-  "In Progress": "bg-blue-100 text-blue-800",
-  Completed: "bg-green-100 text-green-800",
-  Overdue: "bg-red-100 text-red-800",
-  Cancelled: "bg-gray-100 text-gray-600",
+  [TASK_STATUS.NOT_STARTED]: "bg-gray-100 text-gray-800",
+  [TASK_STATUS.IN_PROGRESS]: "bg-blue-100 text-blue-800",
+  [TASK_STATUS.COMPLETED]: "bg-green-100 text-green-800",
+  [TASK_STATUS.CANCELLED]: "bg-gray-100 text-gray-600",
+  [TASK_STATUS.ON_HOLD]: "bg-yellow-100 text-yellow-800",
 };
 
 const statusIcons: Record<string, typeof Clock> = {
-  Pending: Clock,
-  "In Progress": AlertCircle,
-  Completed: CheckCircle,
-  Overdue: XCircle,
-  Cancelled: XCircle,
+  [TASK_STATUS.NOT_STARTED]: Clock,
+  [TASK_STATUS.IN_PROGRESS]: AlertCircle,
+  [TASK_STATUS.COMPLETED]: CheckCircle,
+  [TASK_STATUS.CANCELLED]: XCircle,
+  [TASK_STATUS.ON_HOLD]: Clock,
 };
 
 export default function CoordinatorTaskManagementPage() {
@@ -87,9 +96,9 @@ export default function CoordinatorTaskManagementPage() {
     taskName: "",
     description: "",
     dueDate: "",
-    priority: "Medium",
-    status: "Pending",
-    category: "",
+    priority: TASK_PRIORITY.MEDIUM,
+    status: TASK_STATUS.NOT_STARTED,
+    category: TASK_CATEGORY.SETUP,
     estimatedHours: 0,
     notes: "",
   });
@@ -107,43 +116,153 @@ export default function CoordinatorTaskManagementPage() {
     try {
       setLoading(true);
       const tasksData = await coordinatorTaskService.getAllTasks();
+      
+      // Validate data structure
+      if (!Array.isArray(tasksData)) {
+        console.warn("Tasks data is not an array:", tasksData);
+        setTasks([]);
+        toast.warning("Dữ liệu nhiệm vụ không hợp lệ");
+        return;
+      }
+      
       setTasks(tasksData);
+      
+      if (tasksData.length === 0) {
+        toast.info("Chưa có nhiệm vụ nào được tạo");
+      }
     } catch (error) {
       console.error("Error loading tasks:", error);
-      toast.error("Không thể tải danh sách nhiệm vụ");
+      setTasks([]);
+      toast.error("Không thể tải danh sách nhiệm vụ. Vui lòng kiểm tra kết nối backend.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleUpdateTask = async (taskId: number, updateData: Partial<CoordinatorTaskDto>) => {
+    try {
+      if (!taskId || taskId <= 0) {
+        toast.error("ID nhiệm vụ không hợp lệ");
+        return;
+      }
+
+      const updatedTask = await coordinatorTaskService.updateTask(taskId, {
+        ...selectedTask!,
+        ...updateData,
+      });
+      
+      if (updatedTask) {
+        toast.success("Cập nhật nhiệm vụ thành công");
+        await loadTasks(); // Reload tasks
+        setSelectedTask(null);
+      } else {
+        toast.error("Không thể cập nhật nhiệm vụ - phản hồi không hợp lệ từ server");
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Validation failed')) {
+          toast.error(`Lỗi validation: ${error.message}`);
+        } else if (error.message.includes('not found')) {
+          toast.error("Nhiệm vụ không tồn tại");
+        } else {
+          toast.error(`Không thể cập nhật nhiệm vụ: ${error.message}`);
+        }
+      } else {
+        toast.error("Không thể cập nhật nhiệm vụ. Vui lòng thử lại.");
+      }
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      if (!taskId || taskId <= 0) {
+        toast.error("ID nhiệm vụ không hợp lệ");
+        return;
+      }
+
+      // Note: Backend doesn't have delete endpoint, so we'll update status to CANCELLED
+      await handleUpdateTask(taskId, { status: TASK_STATUS.CANCELLED });
+      toast.success("Đã hủy nhiệm vụ thành công");
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast.error("Không thể xóa nhiệm vụ. Vui lòng thử lại.");
+    }
+  };
+
+  const handleCompleteTask = async (taskId: number, actualHours?: number) => {
+    try {
+      const completedTask = await coordinatorTaskService.completeTask(taskId, actualHours);
+      
+      if (completedTask) {
+        toast.success("Đã hoàn thành nhiệm vụ");
+        await loadTasks();
+      } else {
+        toast.error("Không thể hoàn thành nhiệm vụ");
+      }
+    } catch (error) {
+      console.error("Error completing task:", error);
+      toast.error("Không thể hoàn thành nhiệm vụ. Vui lòng thử lại.");
+    }
+  };
+
   const handleCreateTask = async () => {
     try {
+      // Validation
       if (!newTask.taskName.trim()) {
         toast.error("Vui lòng nhập tên nhiệm vụ");
         return;
       }
+      
+      if (!newTask.eventId || newTask.eventId <= 0) {
+        toast.error("Vui lòng chọn sự kiện hợp lệ");
+        return;
+      }
+      
+      if (!newTask.coordinatorId || newTask.coordinatorId <= 0) {
+        toast.error("Vui lòng chọn điều phối viên hợp lệ");
+        return;
+      }
 
-      await coordinatorTaskService.createTask(newTask);
-      toast.success("Tạo nhiệm vụ thành công");
-      createModal.close();
-      loadTasks(); // Reload tasks
+      const createdTask = await coordinatorTaskService.createTask(newTask);
+      
+      if (createdTask) {
+        toast.success("Tạo nhiệm vụ thành công");
+        createModal.close();
+        await loadTasks(); // Reload tasks
 
-      // Reset form
-      setNewTask({
-        eventId: 0,
-        coordinatorId: 0,
-        taskName: "",
-        description: "",
-        dueDate: "",
-        priority: "Medium",
-        status: "Pending",
-        category: "",
-        estimatedHours: 0,
-        notes: "",
-      });
+        // Reset form
+        setNewTask({
+          eventId: 0,
+          coordinatorId: 0,
+          taskName: "",
+          description: "",
+          dueDate: "",
+          priority: TASK_PRIORITY.MEDIUM,
+          status: TASK_STATUS.NOT_STARTED,
+          category: TASK_CATEGORY.SETUP,
+          estimatedHours: 0,
+          notes: "",
+        });
+      } else {
+        toast.error("Không thể tạo nhiệm vụ - phản hồi không hợp lệ từ server");
+      }
     } catch (error) {
       console.error("Error creating task:", error);
-      toast.error("Không thể tạo nhiệm vụ");
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.message.includes('Validation failed')) {
+          toast.error(`Lỗi validation: ${error.message}`);
+        } else if (error.message.includes('Network')) {
+          toast.error("Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.");
+        } else {
+          toast.error(`Không thể tạo nhiệm vụ: ${error.message}`);
+        }
+      } else {
+        toast.error("Không thể tạo nhiệm vụ. Vui lòng thử lại.");
+      }
     }
   };
 
@@ -151,8 +270,7 @@ export default function CoordinatorTaskManagementPage() {
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      "";
+      (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesStatus =
       statusFilter === "all" || task.status === statusFilter;
     const matchesPriority =
@@ -164,10 +282,11 @@ export default function CoordinatorTaskManagementPage() {
   // Task statistics
   const taskStats = {
     total: tasks.length,
-    pending: tasks.filter((t) => t.status === "Pending").length,
-    inProgress: tasks.filter((t) => t.status === "In Progress").length,
-    completed: tasks.filter((t) => t.status === "Completed").length,
-    overdue: tasks.filter((t) => t.status === "Overdue").length,
+    pending: tasks.filter((t) => t.status === TASK_STATUS.NOT_STARTED).length,
+    inProgress: tasks.filter((t) => t.status === TASK_STATUS.IN_PROGRESS).length,
+    completed: tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length,
+    onHold: tasks.filter((t) => t.status === TASK_STATUS.ON_HOLD).length,
+    cancelled: tasks.filter((t) => t.status === TASK_STATUS.CANCELLED).length,
     totalHours: tasks.reduce((sum, task) => sum + (task.actualHours || 0), 0),
   };
 
@@ -257,6 +376,13 @@ export default function CoordinatorTaskManagementPage() {
       key: "priority",
       header: "Ưu tiên",
       render: (_, task) => {
+        const priorityLabels = {
+          [TASK_PRIORITY.LOW]: "Thấp",
+          [TASK_PRIORITY.MEDIUM]: "Trung bình",
+          [TASK_PRIORITY.HIGH]: "Cao",
+          [TASK_PRIORITY.URGENT]: "Khẩn cấp"
+        };
+        
         if (!task.priority)
           return <span className="text-gray-400">Chưa xác định</span>;
         return (
@@ -265,7 +391,7 @@ export default function CoordinatorTaskManagementPage() {
               priorityColors[task.priority] || "bg-gray-100 text-gray-800"
             }
           >
-            {task.priority}
+            {priorityLabels[task.priority] || task.priority}
           </Badge>
         );
       },
@@ -274,16 +400,22 @@ export default function CoordinatorTaskManagementPage() {
       key: "status",
       header: "Trạng thái",
       render: (_, task) => {
+        // Check if task is overdue
+        const isOverdue = task.dueDate && 
+          new Date(task.dueDate) < new Date() && 
+          task.status !== TASK_STATUS.COMPLETED && 
+          task.status !== TASK_STATUS.CANCELLED;
+        
+        const displayStatus = isOverdue ? "Quá hạn" : (task.status || "Chưa xác định");
+        const statusColor = isOverdue ? "bg-red-100 text-red-800" : 
+          (statusColors[task.status || ""] || "bg-gray-100 text-gray-800");
         const StatusIcon = statusIcons[task.status || ""] || Clock;
+        
         return (
           <div className="flex items-center gap-2">
             <StatusIcon className="w-4 h-4" />
-            <Badge
-              className={
-                statusColors[task.status || ""] || "bg-gray-100 text-gray-800"
-              }
-            >
-              {task.status || "Chưa xác định"}
+            <Badge className={statusColor}>
+              {displayStatus}
             </Badge>
           </div>
         );
@@ -295,8 +427,7 @@ export default function CoordinatorTaskManagementPage() {
       render: (_, task) => {
         if (!task.dueDate)
           return <span className="text-gray-400">Chưa xác định</span>;
-        const isOverdue =
-          new Date(task.dueDate) < new Date() && task.status !== "Completed";
+        const isOverdue = coordinatorTaskService.isTaskOverdue(task);
         return (
           <div
             className={`text-sm ${isOverdue ? "text-red-600 font-medium" : ""}`}
@@ -314,14 +445,7 @@ export default function CoordinatorTaskManagementPage() {
       key: "estimatedHours",
       header: "Tiến độ",
       render: (_, task) => {
-        const progress =
-          task.status === "Completed"
-            ? 100
-            : task.status === "In Progress"
-            ? 65
-            : task.status === "Pending"
-            ? 0
-            : 0;
+        const progress = coordinatorTaskService.getTaskProgress(task);
         return (
           <div className="space-y-1">
             <div className="text-sm font-medium">{progress}%</div>
@@ -356,40 +480,51 @@ export default function CoordinatorTaskManagementPage() {
     },
     {
       label: "Chỉnh sửa",
-      onClick: () => {
+      onClick: (task) => {
+        setSelectedTask(task);
+        // In a real implementation, you would open an edit modal
         toast.info("Chức năng chỉnh sửa đang được phát triển");
       },
     },
     {
       label: "Đánh dấu hoàn thành",
       onClick: async (task) => {
-        try {
-          // In a real implementation, you would call the update API
-          setTasks((prev) =>
-            prev.map((t) =>
-              t.eventId === task.eventId &&
-              t.coordinatorId === task.coordinatorId
-                ? {
-                    ...t,
-                    status: "Completed",
-                    completedAt: new Date().toISOString(),
-                  }
-                : t
-            )
-          );
-          toast.success("Đã đánh dấu nhiệm vụ hoàn thành");
-        } catch (error) {
-          toast.error("Không thể cập nhật trạng thái");
+        if (!task.taskId) {
+          toast.error("Không thể xác định ID nhiệm vụ");
+          return;
         }
+        
+        if (task.status === TASK_STATUS.COMPLETED) {
+          toast.info("Nhiệm vụ đã được hoàn thành");
+          return;
+        }
+        
+        await handleCompleteTask(task.taskId);
       },
-      visible: (task) => task.status !== "Completed",
+      visible: (task) => task.status !== TASK_STATUS.COMPLETED,
     },
     {
-      label: "Xóa",
-      onClick: () => {
-        toast.info("Chức năng xóa đang được phát triển");
+      label: "Hủy nhiệm vụ",
+      onClick: async (task) => {
+        if (!task.taskId) {
+          toast.error("Không thể xác định ID nhiệm vụ");
+          return;
+        }
+        
+        if (task.status === TASK_STATUS.CANCELLED) {
+          toast.info("Nhiệm vụ đã được hủy");
+          return;
+        }
+        
+        if (task.status === TASK_STATUS.COMPLETED) {
+          toast.info("Không thể hủy nhiệm vụ đã hoàn thành");
+          return;
+        }
+        
+        await handleDeleteTask(task.taskId);
       },
       variant: "destructive" as const,
+      visible: (task) => task.status !== TASK_STATUS.CANCELLED && task.status !== TASK_STATUS.COMPLETED,
     },
   ];
 

@@ -167,3 +167,7 @@ export interface CreateEventFromSupportRequestDto {
   linkToSupportRequest: boolean;
   notes?: string;
 }
+
+export interface UpdateEventStatusDto {
+  status: string;
+}

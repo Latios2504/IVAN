@@ -20,7 +20,7 @@ import {
 } from "../types/onSiteTask";
 
 class OnSiteTaskService {
-  private readonly baseUrl = "/api/OnSiteTask";
+  private readonly baseUrl = "/OnSiteTask";
 
   // === CRUD OPERATIONS ===
 
@@ -110,17 +110,20 @@ class OnSiteTaskService {
 
     // Add filters
     if (filter.eventId) params.append("eventId", filter.eventId.toString());
-    if (filter.categoryId) params.append("categoryId", filter.categoryId.toString());
+    if (filter.categoryId)
+      params.append("categoryId", filter.categoryId.toString());
     if (filter.statusId) params.append("statusId", filter.statusId.toString());
     if (filter.priority) params.append("priority", filter.priority);
     if (filter.difficulty) params.append("difficulty", filter.difficulty);
     if (filter.search) params.append("search", filter.search);
-    if (filter.startDateFrom) params.append("startDateFrom", filter.startDateFrom);
+    if (filter.startDateFrom)
+      params.append("startDateFrom", filter.startDateFrom);
     if (filter.startDateTo) params.append("startDateTo", filter.startDateTo);
     if (filter.endDateFrom) params.append("endDateFrom", filter.endDateFrom);
     if (filter.endDateTo) params.append("endDateTo", filter.endDateTo);
     if (filter.sortBy) params.append("sortBy", filter.sortBy);
-    if (filter.sortDirection) params.append("sortDirection", filter.sortDirection);
+    if (filter.sortDirection)
+      params.append("sortDirection", filter.sortDirection);
 
     const response = await apiClient.get<PagedResultDto<OnSiteTaskDto>>(
       `${this.baseUrl}?${params.toString()}`
@@ -200,12 +203,18 @@ class OnSiteTaskService {
     }
 
     // Priority validation
-    if (data.priority && !TASK_PRIORITY_OPTIONS.some(p => p.value === data.priority)) {
+    if (
+      data.priority &&
+      !TASK_PRIORITY_OPTIONS.some((p) => p.value === data.priority)
+    ) {
       errors.push("Invalid priority value");
     }
 
     // Difficulty validation
-    if (data.difficulty && !TASK_DIFFICULTY_OPTIONS.some(d => d.value === data.difficulty)) {
+    if (
+      data.difficulty &&
+      !TASK_DIFFICULTY_OPTIONS.some((d) => d.value === data.difficulty)
+    ) {
       errors.push("Invalid difficulty value");
     }
 
@@ -217,7 +226,9 @@ class OnSiteTaskService {
   }
 
   // Validate task update data
-  validateUpdateTaskData(data: OnSiteTaskUpdateDto): OnSiteTaskValidationResult {
+  validateUpdateTaskData(
+    data: OnSiteTaskUpdateDto
+  ): OnSiteTaskValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -324,25 +335,29 @@ class OnSiteTaskService {
 
   // Get priority color class
   getPriorityColor(priority?: string): string {
-    const priorityOption = TASK_PRIORITY_OPTIONS.find(p => p.value === priority);
+    const priorityOption = TASK_PRIORITY_OPTIONS.find(
+      (p) => p.value === priority
+    );
     return priorityOption?.color || "bg-gray-100 text-gray-800";
   }
 
   // Get difficulty color class
   getDifficultyColor(difficulty?: string): string {
-    const difficultyOption = TASK_DIFFICULTY_OPTIONS.find(d => d.value === difficulty);
+    const difficultyOption = TASK_DIFFICULTY_OPTIONS.find(
+      (d) => d.value === difficulty
+    );
     return difficultyOption?.color || "bg-gray-100 text-gray-800";
   }
 
   // Get status color class
   getStatusColor(statusId?: number): string {
-    const statusOption = TASK_STATUS_OPTIONS.find(s => s.value === statusId);
+    const statusOption = TASK_STATUS_OPTIONS.find((s) => s.value === statusId);
     return statusOption?.color || "bg-gray-100 text-gray-800";
   }
 
   // Get status label
   getStatusLabel(statusId?: number): string {
-    const statusOption = TASK_STATUS_OPTIONS.find(s => s.value === statusId);
+    const statusOption = TASK_STATUS_OPTIONS.find((s) => s.value === statusId);
     return statusOption?.label || "Unknown";
   }
 

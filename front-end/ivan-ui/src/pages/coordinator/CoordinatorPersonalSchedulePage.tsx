@@ -551,19 +551,19 @@ export default function CoordinatorPersonalSchedulePage() {
               <div className="grid gap-2">
                 <Label htmlFor="event">Sự kiện</Label>
                 <Select
-                  value={formData.eventId?.toString() || ""}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      eventId: value ? parseInt(value) : undefined,
-                    })
-                  }
+                  value={formData.eventId?.toString() || "none"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    eventId: value === "none" ? undefined : parseInt(value),
+                  })
+                }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Không có sự kiện</SelectItem>
+                    <SelectItem value="none">Không có sự kiện</SelectItem>
                     {events.map((event) => (
                       <SelectItem
                         key={event.eventId}
@@ -749,19 +749,19 @@ export default function CoordinatorPersonalSchedulePage() {
               <div className="grid gap-2">
                 <Label htmlFor="edit-event">Sự kiện</Label>
                 <Select
-                  value={formData.eventId?.toString() || ""}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      eventId: value ? parseInt(value) : undefined,
-                    })
-                  }
+                  value={formData.eventId?.toString() || "none"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    eventId: value === "none" ? undefined : parseInt(value),
+                  })
+                }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Không có sự kiện</SelectItem>
+                    <SelectItem value="none">Không có sự kiện</SelectItem>
                     {events.map((event) => (
                       <SelectItem
                         key={event.eventId}

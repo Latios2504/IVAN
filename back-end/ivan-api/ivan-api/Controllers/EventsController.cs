@@ -1,4 +1,4 @@
-﻿using ivan_api.Constants;
+using ivan_api.Constants;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventManage;
 using ivan_api.DTOs.ModerationEvent;
@@ -380,6 +380,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("{eventId}/approve")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<object>>> ApproveEvent(int eventId)
         {
             try
@@ -404,6 +405,7 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("{eventId}/reject")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         public async Task<ActionResult<ApiResponseDTO<object>>> RejectEvent(int eventId,
             [FromBody] RejectEventRequestDto request)
         {
@@ -433,6 +435,77 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "An error occurred while rejecting the event",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        // Manual status update endpoint for Organizations
+        [HttpPut("{eventId}/status")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> UpdateEventStatus(int eventId, [FromBody] UpdateEventStatusDto request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Status))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Status is required" }
+                });
+            }
+
+            try
+            {
+                // Get organization ID from claims
+                var organizationId = await GetOrganizationIdFromClaimsAsync();
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Organization not found"
+                    });
+                }
+
+                // Validate status transition (Published -> Ongoing/Cancelled, Ongoing -> Completed/Cancelled)
+                var validStatuses = new[] { "Published", "Ongoing", "Completed", "Cancelled" };
+                if (!validStatuses.Contains(request.Status))
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Invalid status. Valid statuses are: Published, Ongoing, Completed, Cancelled"
+                    });
+                }
+
+                await _eventService.UpdateEventStatusAsync(eventId, request.Status, organizationId);
+                
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = $"Event status updated to {request.Status} successfully.",
+                    Data = new { eventId, status = request.Status }
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while updating event status",
                     Errors = new List<string> { ex.Message }
                 });
             }

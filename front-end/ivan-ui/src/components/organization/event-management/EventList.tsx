@@ -154,8 +154,12 @@ export const EventList: React.FC<EventListProps> = ({
       header: "Event Name",
       render: (value: string, event: EventDto) => (
         <div className="space-y-1">
-          <div className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">{event.eventName}</div>
-          <div className="text-sm px-2 py-1 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-full inline-block">{event.categoryName}</div>
+          <div className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+            {event.eventName}
+          </div>
+          <div className="text-sm px-2 py-1 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-full inline-block">
+            {event.categoryName}
+          </div>
         </div>
       ),
     },
@@ -163,7 +167,11 @@ export const EventList: React.FC<EventListProps> = ({
       key: "statusName",
       header: "Status",
       render: (value: string, event: EventDto) => (
-        <Badge className={`${getStatusGradient(event.statusName)} transition-all duration-200 hover:scale-105`}>
+        <Badge
+          className={`${getStatusGradient(
+            event.statusName
+          )} transition-all duration-200 hover:scale-105`}
+        >
           {event.statusName}
         </Badge>
       ),
@@ -186,7 +194,7 @@ export const EventList: React.FC<EventListProps> = ({
       header: "Volunteers",
       render: (_, event: EventDto) => (
         <div className="px-3 py-1 bg-gradient-to-r from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 text-teal-800 dark:text-teal-200 rounded-lg text-sm font-semibold shadow-sm">
-          0/{event.maxVolunteers || 0}
+          {event.volunteersRegistered || 0}/{event.maxVolunteers || 0}
         </div>
       ),
     },
@@ -195,9 +203,13 @@ export const EventList: React.FC<EventListProps> = ({
       header: "Location",
       render: (value: string, event: EventDto) => (
         <div className="text-sm space-y-1">
-          <div className="truncate max-w-[200px] font-medium text-gray-900 dark:text-gray-100">{event.location}</div>
+          <div className="truncate max-w-[200px] font-medium text-gray-900 dark:text-gray-100">
+            {event.location}
+          </div>
           {event.province && (
-            <div className="text-xs px-2 py-1 bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-800 dark:to-slate-800 text-gray-600 dark:text-gray-400 rounded-md truncate inline-block">{event.province}</div>
+            <div className="text-xs px-2 py-1 bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-800 dark:to-slate-800 text-gray-600 dark:text-gray-400 rounded-md truncate inline-block">
+              {event.province}
+            </div>
           )}
         </div>
       ),
@@ -206,7 +218,13 @@ export const EventList: React.FC<EventListProps> = ({
       key: "isFeatured",
       header: "Featured",
       render: (value: boolean) => (
-        <Badge className={value ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105" : "bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md transition-all duration-200"}>
+        <Badge
+          className={
+            value
+              ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+              : "bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md transition-all duration-200"
+          }
+        >
           {value ? "⭐ Yes" : "No"}
         </Badge>
       ),

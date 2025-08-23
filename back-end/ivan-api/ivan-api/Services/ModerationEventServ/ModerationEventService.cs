@@ -79,17 +79,21 @@ namespace ivan_api.Services.ModerationEventServ
             //eventEntity.IsPendingModeration = false;
             await _dbContext.SaveChangesAsync();
 
-            var notificationDto = new SendNotificationDTO
+            // Only send notification if CreatedBy is not null
+            if (eventEntity.CreatedBy.HasValue)
             {
-                UserId = eventEntity.CreatedBy.Value, // Đảm bảo CreatedBy không null
-                Title = "Sự kiện được duyệt",
-                Content = "Sự kiện của bạn đã được duyệt."
-            };
+                var notificationDto = new SendNotificationDTO
+                {
+                    UserId = eventEntity.CreatedBy.Value,
+                    Title = "Sự kiện được duyệt",
+                    Content = "Sự kiện của bạn đã được duyệt."
+                };
 
-            var response = await _notificationService.SendNotificationAsync(notificationDto);
-            if (!response)
-            {
-                Console.WriteLine("Failed to send notification");
+                var response = await _notificationService.SendNotificationAsync(notificationDto);
+                if (!response)
+                {
+                    Console.WriteLine("Failed to send notification");
+                }
             }
         }
 
@@ -102,16 +106,21 @@ namespace ivan_api.Services.ModerationEventServ
             }
             eventEntity.StatusId = 5; // Cancelled (used for rejected events)
             await _dbContext.SaveChangesAsync();
-            var notificationDto = new SendNotificationDTO
+            
+            // Only send notification if CreatedBy is not null
+            if (eventEntity.CreatedBy.HasValue)
             {
-                UserId = eventEntity.CreatedBy.Value, // Đảm bảo CreatedBy không null
-                Title = "Sự kiện bị từ chối",
-                Content = $"Sự kiện của bạn đã bị từ chối. Lý do: {reason}"
-            };
-            var response = await _notificationService.SendNotificationAsync(notificationDto);
-            if (!response)
-            {
-                Console.WriteLine("Failed to send notification");
+                var notificationDto = new SendNotificationDTO
+                {
+                    UserId = eventEntity.CreatedBy.Value,
+                    Title = "Sự kiện bị từ chối",
+                    Content = $"Sự kiện của bạn đã bị từ chối. Lý do: {reason}"
+                };
+                var response = await _notificationService.SendNotificationAsync(notificationDto);
+                if (!response)
+                {
+                    Console.WriteLine("Failed to send notification");
+                }
             }
         }
     }

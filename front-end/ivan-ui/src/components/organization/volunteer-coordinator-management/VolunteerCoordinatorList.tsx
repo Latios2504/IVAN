@@ -14,17 +14,23 @@ import {
 } from "../../ui/dropdown-menu";
 import type { VolunteerCoordinatorDto } from "../../../types/volunteerCoordinator";
 import { volunteerCoordinatorService } from "../../../services/volunteerCoordinatorService";
+import { VolunteerCoordinatorDetailModal } from "./VolunteerCoordinatorDetailModal";
+import { EditVolunteerCoordinatorModal } from "./EditVolunteerCoordinatorModal";
 
 interface VolunteerCoordinatorListProps {
   organizationId: number;
   coordinators: VolunteerCoordinatorDto[];
   onCoordinatorUpdated?: () => void;
+  availableManagers?: any[];
 }
 
 export const VolunteerCoordinatorList: React.FC<
   VolunteerCoordinatorListProps
-> = ({ organizationId, coordinators, onCoordinatorUpdated }) => {
+> = ({ organizationId, coordinators, onCoordinatorUpdated, availableManagers = [] }) => {
   const [loading, setLoading] = useState(false);
+  const [selectedCoordinator, setSelectedCoordinator] = useState<VolunteerCoordinatorDto | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const getStatusColor = (isActive?: boolean) => {
     if (isActive === true) {
@@ -64,13 +70,17 @@ export const VolunteerCoordinatorList: React.FC<
   };
 
   const handleEditCoordinator = (coordinator: VolunteerCoordinatorDto) => {
-    // TODO: Implement edit functionality
-    console.log("Edit coordinator:", coordinator);
+    setSelectedCoordinator(coordinator);
+    setShowEditModal(true);
   };
 
   const handleViewDetails = (coordinator: VolunteerCoordinatorDto) => {
-    // TODO: Implement view details functionality
-    console.log("View coordinator details:", coordinator);
+    setSelectedCoordinator(coordinator);
+    setShowDetailModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    onCoordinatorUpdated?.();
   };
 
   const columns: TableColumn<VolunteerCoordinatorDto>[] = [
@@ -199,8 +209,26 @@ export const VolunteerCoordinatorList: React.FC<
   ];
 
   return (
-    <div className="space-y-4 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-800/30 dark:via-blue-900/10 dark:to-indigo-900/20 rounded-lg p-4 backdrop-blur-sm">
-      <DataTable data={coordinators} columns={columns} loading={loading} />
-    </div>
+    <>
+      <div className="space-y-4 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-slate-800/30 dark:via-blue-900/10 dark:to-indigo-900/20 rounded-lg p-4 backdrop-blur-sm">
+        <DataTable data={coordinators} columns={columns} loading={loading} />
+      </div>
+
+      {/* Detail Modal */}
+      <VolunteerCoordinatorDetailModal
+        coordinator={selectedCoordinator}
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+      />
+
+      {/* Edit Modal */}
+      <EditVolunteerCoordinatorModal
+        coordinator={selectedCoordinator}
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        onSuccess={handleEditSuccess}
+        availableManagers={availableManagers}
+      />
+    </>
   );
 };
