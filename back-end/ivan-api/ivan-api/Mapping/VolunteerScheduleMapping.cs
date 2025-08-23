@@ -1,4 +1,5 @@
 using AutoMapper;
+using ivan_api.DTOs.CoordinatorSchedule;
 using ivan_api.DTOs.VolunteerSchedule;
 using ivan_api.Models;
 
@@ -40,6 +41,37 @@ namespace ivan_api.Mapping
                 .ForMember(dest => dest.Volunteer, opt => opt.Ignore())
                 .ForMember(dest => dest.Event, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedByNavigation, opt => opt.Ignore());
+
+            CreateMap<CoordinatorSchedule, CoordinatorScheduleDto>()
+                .ForMember(dest => dest.CoordinatorName,
+                    opt => opt.MapFrom(src => src.Coordinator.User.UserProfiles.FirstOrDefault() != null
+                                    ? src.Coordinator.User.UserProfiles.FirstOrDefault().FullName
+                                    : string.Empty))
+                .ForMember(dest => dest.CoordinatorEmail,
+                    opt => opt.MapFrom(src => src.Coordinator.User.Email))
+                .ForMember(dest => dest.CoordinatorPosition,
+                    opt => opt.MapFrom(src => src.Coordinator.Position))
+                .ForMember(dest => dest.EventName,
+                    opt => opt.MapFrom(src => src.Event.EventName))
+                .ForMember(dest => dest.EventLocation,
+                    opt => opt.MapFrom(src => src.Event.Location))
+                .ForMember(dest => dest.CreatedByName,
+                    opt => opt.MapFrom(src => src.CreatedByNavigation.UserProfiles.FirstOrDefault() != null
+                                    ? src.CreatedByNavigation.UserProfiles.FirstOrDefault().FullName
+                                    : string.Empty));
+
+            // ========== Create / Update ==========
+            CreateMap<CreateCoordinatorScheduleDto, CoordinatorSchedule>();
+            CreateMap<UpdateCoordinatorScheduleDto, CoordinatorSchedule>();
+
+            CreateMap<CoordinatorSchedule, CoordinatorScheduleSummaryDto>()
+                .ForMember(dest => dest.CoordinatorName,
+                    opt => opt.MapFrom(src =>
+                        src.Coordinator.User.UserProfiles.FirstOrDefault() != null ? src.Coordinator.User.UserProfiles.FirstOrDefault().FullName : string.Empty))
+                .ForMember(dest => dest.EventName,
+                    opt => opt.MapFrom(src =>
+                        src.Event != null ? src.Event.EventName : null));
+
         }
     }
 }

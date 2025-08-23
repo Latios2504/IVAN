@@ -45,7 +45,7 @@ namespace ivan_api.Mapping
             var volunteerProfile = src.VolunteerProfileUsers?.FirstOrDefault();
             if (volunteerProfile != null)
             {
-                return !string.IsNullOrEmpty(volunteerProfile.StudentId) 
+                return !string.IsNullOrEmpty(volunteerProfile.StudentId)
                     ? $"Student ID: {volunteerProfile.StudentId}"
                     : $"University: {volunteerProfile.University ?? "N/A"}";
             }

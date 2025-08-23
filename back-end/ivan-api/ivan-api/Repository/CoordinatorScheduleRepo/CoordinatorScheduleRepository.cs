@@ -19,10 +19,10 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             return await _context.CoordinatorSchedules
                 .Include(cs => cs.Coordinator)
                     .ThenInclude(c => c.User)
-                        .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                        //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Include(cs => cs.Event)
                 .Include(cs => cs.CreatedByNavigation)
-                    .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                    //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .FirstOrDefaultAsync(cs => cs.ScheduleId == scheduleId);
         }
 
@@ -31,10 +31,10 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             return await _context.CoordinatorSchedules
                 .Include(cs => cs.Coordinator)
                     .ThenInclude(c => c.User)
-                        .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                        //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Include(cs => cs.Event)
                 .Include(cs => cs.CreatedByNavigation)
-                    .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                    //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .FirstOrDefaultAsync(cs => cs.ScheduleId == scheduleId && 
                                          cs.Coordinator.OrganizationId == organizationId);
         }
@@ -45,10 +45,10 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             var query = _context.CoordinatorSchedules
                 .Include(cs => cs.Coordinator)
                     .ThenInclude(c => c.User)
-                        .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                        //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Include(cs => cs.Event)
                 .Include(cs => cs.CreatedByNavigation)
-                    .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                    //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Where(cs => cs.Coordinator.OrganizationId == organizationId);
 
             // Apply filters
@@ -160,10 +160,10 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             var query = _context.CoordinatorSchedules
                 .Include(cs => cs.Coordinator)
                     .ThenInclude(c => c.User)
-                        .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                        //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Include(cs => cs.Event)
                 .Include(cs => cs.CreatedByNavigation)
-                    .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                    //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Where(cs => cs.CoordinatorId == coordinatorId.Value);
 
             // Apply same filtering logic as organization schedules
@@ -222,7 +222,7 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             var query = _context.CoordinatorSchedules
                 .Include(cs => cs.Coordinator)
                     .ThenInclude(c => c.User)
-                        .ThenInclude(u => u.UserProfiles.FirstOrDefault())
+                        //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
                 .Include(cs => cs.Event)
                 .Where(cs => cs.Coordinator.OrganizationId == organizationId &&
                            cs.StartDateTime <= endDate &&
