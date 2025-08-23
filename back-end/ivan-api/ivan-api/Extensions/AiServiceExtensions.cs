@@ -20,6 +20,9 @@ public static class AiServiceExtensions
         services.Configure<AiModelConfiguration>("Gemini", configuration.GetSection("AiProviders:Gemini"));
         services.Configure<AiModelConfiguration>("OpenRouter", configuration.GetSection("AiProviders:OpenRouter"));
         
+        // Chatbot Configuration
+        services.Configure<ChatbotConfiguration>(configuration.GetSection("Chatbot"));
+        
         // AI Providers - Register as named services to avoid conflicts
         services.AddHttpClient<GeminiAiProvider>();
         services.AddHttpClient<OpenRouterAiProvider>();
@@ -34,6 +37,10 @@ public static class AiServiceExtensions
         services.AddScoped<IAiProviderFactory, AiProviderFactory>();
         services.AddScoped<ISqlExecutionService, SqlExecutionService>();
         services.AddScoped<IAiCustomInstructionService, AiCustomInstructionService>();
+        services.AddScoped<IChatbotConfigurationService, ChatbotConfigurationService>();
+        
+        // Add memory cache for chatbot configuration
+        services.AddMemoryCache();
         
         return services;
     }
