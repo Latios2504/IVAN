@@ -3,18 +3,21 @@ using ivan_api.DTOs.Common;
 using ivan_api.DTOs.SupportRequest;
 using ivan_api.Models;
 using ivan_api.Repository.SupportRequestRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Services.SupportRequestServ
 {
     public class SupportRequestService : ISupportRequestService
     {
         private readonly ISupportRequestRepository _repository;
+        private readonly VolunteerManagementSystemContext _db;
         private readonly IMapper _mapper;
 
-        public SupportRequestService(ISupportRequestRepository repository, IMapper mapper)
+        public SupportRequestService(ISupportRequestRepository repository, IMapper mapper, VolunteerManagementSystemContext db)
         {
             _repository = repository;
             _mapper = mapper;
+            _db = db;
         }
 
         public async Task<ApiResponseDTO<List<SupportRequestResponseDTO>>> GetAllRequestsAsync(string? status = null, int? categoryId = null)
@@ -361,5 +364,7 @@ namespace ivan_api.Services.SupportRequestServ
                 }).ToList()
             };
         }
+
+
     }
 }

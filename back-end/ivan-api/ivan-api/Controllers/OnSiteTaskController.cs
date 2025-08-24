@@ -528,78 +528,78 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPut("{id}/assign/{volunteerId}")]
-        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Assign(int id, int volunteerId)
-        {
-            try
-            {
-                // Kiểm tra volunteer đã đăng ký và được approve cho event
-                var task = await _service.GetOnSiteTaskById(id);
-                if (task == null)
-                {
-                    return NotFound(new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Task not found",
-                        Errors = new List<string> { $"Task with ID {id} was not found" }
-                    });
-                }
+        //[HttpPut("{id}/assign/{volunteerId}")]
+        //[Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
+        //public async Task<ActionResult<ApiResponseDTO<object>>> Assign(int id, int volunteerId)
+        //{
+        //    try
+        //    {
+        //        // Kiểm tra volunteer đã đăng ký và được approve cho event
+        //        var task = await _service.GetOnSiteTaskById(id);
+        //        if (task == null)
+        //        {
+        //            return NotFound(new ApiResponseDTO<object>
+        //            {
+        //                Success = false,
+        //                Message = "Task not found",
+        //                Errors = new List<string> { $"Task with ID {id} was not found" }
+        //            });
+        //        }
 
-                // Kiểm tra VolunteerId có tồn tại trong VolunteerProfiles không
-                var volunteerProfile = await _eventRegistrationService.GetVolunteerProfileById(volunteerId);
-                if (volunteerProfile == null)
-                {
-                    return BadRequest(new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Volunteer profile not found",
-                        Errors = new List<string> { $"Volunteer with ID {volunteerId} does not exist" }
-                    });
-                }
+        //        // Kiểm tra VolunteerId có tồn tại trong VolunteerProfiles không
+        //        var volunteerProfile = await _eventRegistrationService.GetVolunteerProfileById(volunteerId);
+        //        if (volunteerProfile == null)
+        //        {
+        //            return BadRequest(new ApiResponseDTO<object>
+        //            {
+        //                Success = false,
+        //                Message = "Volunteer profile not found",
+        //                Errors = new List<string> { $"Volunteer with ID {volunteerId} does not exist" }
+        //            });
+        //        }
 
-                // Kiểm tra volunteer có registration approved cho event này không
-                var registration = await _eventRegistrationService.GetRegistrationByEventAndVolunteer(task.EventId, volunteerId);
-                if (registration == null || registration.StatusId != 2) // Assuming 2 is "Approved" status
-                {
-                    return BadRequest(new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Volunteer is not approved for this event",
-                        Errors = new List<string> { "Cannot assign task to volunteer who is not approved for the event" }
-                    });
-                }
+        //        // Kiểm tra volunteer có registration approved cho event này không
+        //        var registration = await _eventRegistrationService.GetRegistrationByEventAndVolunteer(task.EventId, volunteerId);
+        //        if (registration == null || registration.StatusId != 2) // Assuming 2 is "Approved" status
+        //        {
+        //            return BadRequest(new ApiResponseDTO<object>
+        //            {
+        //                Success = false,
+        //                Message = "Volunteer is not approved for this event",
+        //                Errors = new List<string> { "Cannot assign task to volunteer who is not approved for the event" }
+        //            });
+        //        }
 
-                var result = await _service.AssignTask(id, volunteerId);
-                var data = await _service.SearchTaskAssignment(id, volunteerId);
+        //        var result = await _service.AssignTask(id, volunteerId);
+        //        var data = await _service.SearchTaskAssignment(id, volunteerId);
 
-                if (!result)
-                {
-                    return BadRequest(new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Failed to assign on-site task",
-                        Errors = new List<string> { "Unable to assign on-site task" }
-                    });
-                }
+        //        if (!result)
+        //        {
+        //            return BadRequest(new ApiResponseDTO<object>
+        //            {
+        //                Success = false,
+        //                Message = "Failed to assign on-site task",
+        //                Errors = new List<string> { "Unable to assign on-site task" }
+        //            });
+        //        }
 
-                return Ok(new ApiResponseDTO<object>
-                {
-                    Success = true,
-                    Message = "On-Site Task assigned successfully",
-                    Data = data
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Failed to assign on-site task",
-                    Errors = new List<string> { ex.Message }
-                });
-            }
-        }
+        //        return Ok(new ApiResponseDTO<object>
+        //        {
+        //            Success = true,
+        //            Message = "On-Site Task assigned successfully",
+        //            Data = data
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new ApiResponseDTO<object>
+        //        {
+        //            Success = false,
+        //            Message = "Failed to assign on-site task",
+        //            Errors = new List<string> { ex.Message }
+        //        });
+        //    }
+        //}
 
         [HttpPut("{id}/start/{volunteerId}")]
         [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
