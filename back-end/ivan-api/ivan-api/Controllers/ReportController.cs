@@ -1,12 +1,15 @@
-using ivan_api.DTOs.Reports;
+using ivan_api.Constants;
 using ivan_api.DTOs.Common;
+using ivan_api.DTOs.Reports;
 using ivan_api.Services.Reports;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ivan_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ReportController : ControllerBase
     {
         private readonly IReportService _service;
@@ -17,6 +20,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("listEventReport")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReportList([FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
@@ -41,6 +46,8 @@ namespace ivan_api.Controllers
             }
         }
 
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
         [HttpGet("listOrganizationReport")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReportList(
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
@@ -66,6 +73,7 @@ namespace ivan_api.Controllers
             }
         }
 
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         [HttpGet("listSystemReport")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReportList([FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
@@ -92,6 +100,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("getEventReport/{id}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReport(int id)
         {
             try
@@ -126,6 +136,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpGet("getOrganizationReport/{id}")]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReport(int id)
         {
             try
@@ -159,6 +171,7 @@ namespace ivan_api.Controllers
             }
         }
 
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         [HttpGet("getSystemReport/{id}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReport(int id)
         {
@@ -193,8 +206,44 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPost("addEventReport")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> AddEventReport([FromBody] ReportInputModel input)
+        [HttpGet("getReport/{id}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetReport(int id)
+        {
+            try
+            {
+                var result = await _service.GetReportById(id);
+                if (result == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Report not found",
+                        Errors = new List<string> { $"Report with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Report retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving report",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+        [HttpPost("addEventReport/{eventId}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> AddEventReport(int eventId, [FromBody] ReportInputModel input)
         {
             if (input == null)
             {
@@ -223,7 +272,7 @@ namespace ivan_api.Controllers
 
             try
             {
-                var result = await _service.AddEventReport(input);
+                var result = await _service.AddEventReport(input, eventId);
 
                 if (!result)
                 {
@@ -262,8 +311,10 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPost("addOrganizationReport")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> AddOrganizationReport([FromBody] ReportInputModel input)
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
+        [HttpPost("addOrganizationReport/{orgId}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> AddOrganizationReport(int orgId, [FromBody] ReportInputModel input)
         {
             if (input == null)
             {
@@ -292,7 +343,7 @@ namespace ivan_api.Controllers
 
             try
             {
-                var result = await _service.AddOrganizationReport(input);
+                var result = await _service.AddOrganizationReport(input, orgId);
 
                 if (!result)
                 {
@@ -331,6 +382,8 @@ namespace ivan_api.Controllers
             }
         }
 
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
         [HttpGet("downloadEventReport/{id}")]
         public async Task<IActionResult> DownloadEventReport(int id)
         {
@@ -360,6 +413,8 @@ namespace ivan_api.Controllers
             }
         }
 
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
         [HttpGet("downloadOrganizationReport/{id}")]
         public async Task<IActionResult> DownloadOrganizationReport(int id)
         {
@@ -389,6 +444,7 @@ namespace ivan_api.Controllers
             }
         }
 
+        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
         [HttpGet("downloadSystemReport/{id}")]
         public async Task<IActionResult> DownloadSystemReport(int id)
         {
@@ -409,6 +465,35 @@ namespace ivan_api.Controllers
 
                 stream.Position = 0;
                 string fileName = $"SystemReport.pdf";
+
+                return File(stream, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("downloadReport/{id}")]
+        public async Task<IActionResult> DownloadReport(int id)
+        {
+            var test = await _service.GetReportById(id);
+
+            if (test == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var result = await _service.DownloadReportById(id);
+
+                var stream = new MemoryStream();
+
+                result.Save(stream);
+
+                stream.Position = 0;
+                string fileName = $"Report.pdf";
 
                 return File(stream, "application/pdf", fileName);
             }

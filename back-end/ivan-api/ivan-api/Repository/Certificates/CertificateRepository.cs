@@ -142,6 +142,50 @@ namespace ivan_api.Repository.Certificates
                 .Include(x => x.Volunteer)
                 .AsQueryable();
 
+            if(filter.OrganizationId != null)
+            {
+                var org = _context.Organizations.Find(filter.OrganizationId);
+
+                query = query
+                    .Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == 2/*organization role id*/ && org != null && c.IssuedBy == org.UserId);
+            }
+            if (!string.IsNullOrWhiteSpace(filter.Status))
+            {
+                query = query
+                    .Where(x => x.Status.ToLower().Contains(filter.Status.ToLower()));
+            }
+            if (filter.VolunteerId != null)
+            {
+                query = query
+                    .Where(x => x.VolunteerId == filter.VolunteerId);
+            }
+            if (filter.EventId != null)
+            {
+                query = query
+                    .Where(x => x.EventId == filter.EventId);
+            }
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var term = filter.SearchTerm.ToLower();
+                query = query.Where(x =>
+                    x.CertificateNumber.ToLower().Contains(term) ||
+                    x.CertificateName.ToLower().Contains(term) ||
+                    (x.Description != null && x.Description.ToLower().Contains(term)) ||
+                    (x.PerformanceLevel != null && x.PerformanceLevel.ToLower().Contains(term)) ||
+                    (x.Status != null && x.Status.ToLower().Contains(term)) ||
+                    (x.Event.EventName != null && x.Event.EventName.ToLower().Contains(term))
+                );
+            }
+            if (filter.IssuedDateFrom != null)
+            {
+                query = query.Where(x => x.IssueDate >= filter.IssuedDateFrom);
+            }
+            if (filter.IssuedDateTo != null)
+            {
+                query = query.Where(x => x.IssueDate <= filter.IssuedDateTo);
+            }
+
+
             //return query.ToList();
             return await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)

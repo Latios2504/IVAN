@@ -13,7 +13,7 @@ namespace ivan_api.Repository.OrganizationProfiles
         Task<PagedResultDto<PublicOrganizationDTO>> GetPublicOrganizationsAsync(PublicOrganizationFiltersDTO filters);
         Task<PublicOrganizationDTO?> GetPublicOrganizationAsync(int id);
         Task<int> GetLastId();
-        
+        Task<Organization?> GetOrganizationByOrgIdAsync(int id);
         // Organization types lookup methods
         Task<IEnumerable<OrganizationType>> GetAllOrganizationTypesAsync();
     }

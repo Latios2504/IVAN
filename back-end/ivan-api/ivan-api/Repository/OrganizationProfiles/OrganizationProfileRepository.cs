@@ -155,5 +155,15 @@ namespace ivan_api.Repository.OrganizationProfiles
                 .OrderBy(ot => ot.TypeName)
                 .ToListAsync();
         }
+
+        public async Task<Organization?> GetOrganizationByOrgIdAsync(int id)
+        {
+            var organization = await _context.Organizations
+                .Include(o => o.Type)
+                .Where(o => o.OrganizationId == id)
+                .SingleOrDefaultAsync();
+
+            return organization;
+        }
     }
 }

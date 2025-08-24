@@ -7,17 +7,19 @@ namespace ivan_api.Repository.Reports
 {
     public interface IReportRepository
     {
-        Task<bool> AddEventReport(Report report);
-        Task<bool> AddOrganizationReport(Report report);
+        Task<bool> AddEventReport(Report report, int id);
+        Task<bool> AddOrganizationReport(Report report, int id);
         Task<IEnumerable<Report>> ListEventReport(ReportFilterModel filter);
         Task<IEnumerable<Report>> ListOrganizationReport(ReportFilterModel filter);
         Task<IEnumerable<Report>> ListSystemReport(ReportFilterModel filter);
         Task<Report> GetEventReportById(int id);
         Task<Report> GetOrganizationReportById(int id);
         Task<Report> GetSystemReportById(int id);
+        Task<Report> GetReportById(int id);
         Task<PdfDocument> DownloadEventReportById(int id);
         Task<PdfDocument> DownloadOrganizationReportById(int id);
         Task<PdfDocument> DownloadSystemReportById(int id);
+        Task<PdfDocument> DownloadReportById(int id);
         Task<PagedResultDto<ReportViewModel>> GetEventReportsAsync(int PageNumber, int PageSize);
         Task<PagedResultDto<ReportViewModel>> GetOrganizationReportsAsync(int PageNumber, int PageSize);
         Task<PagedResultDto<ReportViewModel>> GetSystemReportsAsync(int PageNumber, int PageSize);

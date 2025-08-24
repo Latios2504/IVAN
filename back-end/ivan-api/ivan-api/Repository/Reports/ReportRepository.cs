@@ -22,24 +22,31 @@ namespace ivan_api.Repository.Reports
             _mapper = mapper;
         }
 
-        public async Task<bool> AddEventReport(Report report)
+        public async Task<bool> AddEventReport(Report report, int id)
         {
-            report.ReportType = "Event";
+            report.ReportType = "Event_" + id;
             await _context.Reports.AddAsync(report);
             return await _context.SaveChangesAsync() > 0;
         }
-        public async Task<bool> AddOrganizationReport(Report report)
+        public async Task<bool> AddOrganizationReport(Report report, int id)
         {
-            report.ReportType = "Organization";
+            report.ReportType = "Organization_" + id;
             await _context.Reports.AddAsync(report);
             return await _context.SaveChangesAsync() > 0;
         }
         public async Task<IEnumerable<Report>> ListEventReport(ReportFilterModel filter)
         {
             var query = _context.Reports
-                .Where(x => x.ReportType.Equals("Event"))
+                .Where(x => x.ReportType == "Event" || x.ReportType.StartsWith("Event_"))
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var term = filter.SearchTerm.ToLower();
+                query = query
+                    .Where(x => x.Content.ToLower().Contains(filter.SearchTerm));
+            }
 
             //return query.ToList();
             return await query
@@ -50,9 +57,16 @@ namespace ivan_api.Repository.Reports
         public async Task<IEnumerable<Report>> ListOrganizationReport(ReportFilterModel filter)
         {
             var query = _context.Reports
-                .Where(x => x.ReportType.Equals("Organization"))
+                .Where(x => x.ReportType == "Organization" || x.ReportType.StartsWith("Organization_"))
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var term = filter.SearchTerm.ToLower();
+                query = query
+                    .Where(x => x.Content.ToLower().Contains(filter.SearchTerm));
+            }
 
             //return query.ToList();
             return await query
@@ -67,6 +81,13 @@ namespace ivan_api.Repository.Reports
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
 
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var term = filter.SearchTerm.ToLower();
+                query = query
+                    .Where(x => x.Content.ToLower().Contains(filter.SearchTerm));
+            }
+
             //return query.ToList();
             return await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
@@ -77,7 +98,7 @@ namespace ivan_api.Repository.Reports
         public async Task<PagedResultDto<ReportViewModel>> GetEventReportsAsync(int PageNumber, int PageSize)
         {
             var query = _context.Reports
-                .Where(x => x.ReportType.Equals("Event"))
+                .Where(x => x.ReportType == "Event" || x.ReportType.StartsWith("Event_"))
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
 
@@ -101,7 +122,7 @@ namespace ivan_api.Repository.Reports
         public async Task<PagedResultDto<ReportViewModel>> GetOrganizationReportsAsync(int PageNumber, int PageSize)
         {
             var query = _context.Reports
-                .Where(x => x.ReportType.Equals("Organization"))
+                .Where(x => x.ReportType == "Organization" || x.ReportType.StartsWith("Organization_"))
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
 
@@ -150,13 +171,13 @@ namespace ivan_api.Repository.Reports
         {
             return await _context.Reports
                 .Include(x => x.CreatedByNavigation)
-                .SingleOrDefaultAsync(x => x.ReportId == id && x.ReportType.Equals("Event"));
+                .SingleOrDefaultAsync(x => x.ReportId == id && (x.ReportType == "Event" || x.ReportType.StartsWith("Event_")));
         }
         public async Task<Report> GetOrganizationReportById(int id)
         {
             return await _context.Reports
                 .Include(x => x.CreatedByNavigation)
-                .SingleOrDefaultAsync(x => x.ReportId == id && x.ReportType.Equals("Organization"));
+                .SingleOrDefaultAsync(x => x.ReportId == id && (x.ReportType == "Organization" || x.ReportType.StartsWith("Organization_")));
         }
         public async Task<Report> GetSystemReportById(int id)
         {
@@ -164,6 +185,14 @@ namespace ivan_api.Repository.Reports
                 .Include(x => x.CreatedByNavigation)
                 .SingleOrDefaultAsync(x => x.ReportId == id && x.ReportType.Equals("System"));
         }
+
+        public async Task<Report> GetReportById(int id)
+        {
+            return await _context.Reports
+                .Include(x => x.CreatedByNavigation)
+                .SingleOrDefaultAsync(x => x.ReportId == id);
+        }
+
         public async Task<PdfDocument> DownloadEventReportById(int id)
         {
             //var report = await _context.Reports
@@ -202,7 +231,7 @@ namespace ivan_api.Repository.Reports
 
             var report = await _context.Reports
                 .Include(x => x.CreatedByNavigation)
-                .SingleOrDefaultAsync(x => x.ReportId == id && x.ReportType == "Event");
+                .SingleOrDefaultAsync(x => x.ReportId == id && (x.ReportType == "Event" || x.ReportType.StartsWith("Event_")));
 
             if (report == null) return null;
 
@@ -276,7 +305,7 @@ namespace ivan_api.Repository.Reports
 
             var report = await _context.Reports
                 .Include(x => x.CreatedByNavigation)
-                .SingleOrDefaultAsync(x => x.ReportId == id && x.ReportType == "Organization");
+                .SingleOrDefaultAsync(x => x.ReportId == id && (x.ReportType == "Organization" || x.ReportType.StartsWith("Organization_")));
 
             if (report == null) return null;
 
@@ -387,6 +416,47 @@ namespace ivan_api.Repository.Reports
             return document;
         }
 
+        public async Task<PdfDocument> DownloadReportById(int id)
+        {
+            var report = await _context.Reports
+                .Include(x => x.CreatedByNavigation)
+                .SingleOrDefaultAsync(x => x.ReportId == id);
+
+            if (report == null) return null;
+
+            PdfDocument document = new PdfDocument();
+            document.Info.Title = report.ReportType + "_Report";
+
+            PDFHelper helper = new PDFHelper(document, XUnit.FromCentimeter(2), XUnit.FromCentimeter(27));
+
+            var titleFont = new XFont("Arial", 16, XFontStyleEx.Bold);
+            var labelFont = new XFont("Arial", 12, XFontStyleEx.Bold);
+            var valueFont = new XFont("Arial", 12, XFontStyleEx.Regular);
+
+            double labelX = XUnit.FromCentimeter(1.5);
+            double valueX = XUnit.FromCentimeter(5.5);
+            double spacing = XUnit.FromMillimeter(10);
+
+            helper.Gfx.DrawString(report.ReportType + "_Report", titleFont, XBrushes.DarkBlue,
+                new XRect(0, helper.GetLinePosition(spacing), helper.Page.Width, 30), XStringFormats.TopCenter);
+
+            void DrawRow(string label, string value)
+            {
+                var y = helper.GetLinePosition(spacing);
+                helper.Gfx.DrawString(label, labelFont, XBrushes.Black, new XPoint(labelX, y));
+                helper.Gfx.DrawString(value ?? "N/A", valueFont, XBrushes.Black, new XPoint(valueX, y));
+            }
+
+            DrawRow("Report ID:", report.ReportId.ToString());
+            DrawRow("Report Type:", report.ReportType);
+            DrawRow("Content:", report.Content);
+            DrawRow("Generated Date:", report.GeneratedDate != null ? report.GeneratedDate.ToString() : "N/A");
+            DrawRow("Created By:", report.CreatedBy != null ? report.CreatedBy.ToString() : "N/A");
+            DrawRow("Created At:", report.CreatedAt != null ? report.CreatedAt.ToString() : "N/A");
+
+            return document;
+        }
+
         public async Task<int> GetLastId()
         {
             var query = _context.Reports
@@ -401,7 +471,7 @@ namespace ivan_api.Repository.Reports
         public async Task<int> GetLastIdEvent()
         {
             var query = _context.Reports
-                .Where(x => x.ReportType.Equals("Event"))
+                .Where(x => x.ReportType == "Event" || x.ReportType.StartsWith("Event_"))
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
 
@@ -413,7 +483,7 @@ namespace ivan_api.Repository.Reports
         public async Task<int> GetLastIdOrganization()
         {
             var query = _context.Reports
-                .Where(x => x.ReportType.Equals("Organization"))
+                .Where(x => x.ReportType == "Organization" || x.ReportType.StartsWith("Organization_"))
                 .Include(x => x.CreatedByNavigation)
                 .AsQueryable();
 

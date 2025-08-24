@@ -12,6 +12,8 @@ namespace ivan_api.Repository.TaskAssignments
         Task<TaskAssignment> GetTaskAssignmentById(int id);
         Task<TaskAssignment> SearchTaskAssignment(int? taskId, int? volunteerId);
         Task<IEnumerable<TaskAssignment>> SearchTaskAssignmentsByTaskId(int taskId);
+        Task<IEnumerable<TaskAssignment>> SearchTaskAssignmentsByEventId(int eventId);
+        Task<IEnumerable<TaskAssignment>> GetAllTaskAssignments();
         Task<int> GetLastId();
     }
 }

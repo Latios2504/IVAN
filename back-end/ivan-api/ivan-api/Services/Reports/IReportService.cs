@@ -6,8 +6,8 @@ namespace ivan_api.Services.Reports
 {
     public interface IReportService
     {
-        Task<bool> AddEventReport(ReportInputModel certificateInputModel);
-        Task<bool> AddOrganizationReport(ReportInputModel certificateInputModel);
+        Task<bool> AddEventReport(ReportInputModel certificateInputModel, int eventId);
+        Task<bool> AddOrganizationReport(ReportInputModel certificateInputModel, int orgId);
         Task<IEnumerable<ReportViewModel>> ListEventReport(ReportFilterModel filter);
         Task<IEnumerable<ReportViewModel>> ListOrganizationReport(ReportFilterModel filter);
         Task<IEnumerable<ReportViewModel>> ListSystemReport(ReportFilterModel filter);
@@ -24,5 +24,7 @@ namespace ivan_api.Services.Reports
         Task<int> GetLastIdEvent();
         Task<int> GetLastIdOrganization();
         Task<int> GetLastIdSystem();
+        Task<ReportViewModel> GetReportById(int id);
+        Task<PdfDocument> DownloadReportById(int id);
     }
 }

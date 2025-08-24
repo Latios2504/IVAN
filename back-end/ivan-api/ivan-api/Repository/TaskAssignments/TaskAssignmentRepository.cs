@@ -77,6 +77,25 @@ namespace ivan_api.Repository.TaskAssignments
             return assignments;
         }
 
+        public async Task<IEnumerable<TaskAssignment>> SearchTaskAssignmentsByEventId(int eventId)
+        {
+            var assignments = _context.TaskAssignments
+                .Include(x => x.AssignedByNavigation)
+                .Include(x => x.Task)
+                .Include(x => x.Volunteer)
+                .Where(x => x.Task.EventId == eventId);
+            return assignments;
+        }
+
+        public async Task<IEnumerable<TaskAssignment>> GetAllTaskAssignments()
+        {
+            var assignments = _context.TaskAssignments
+                .Include(x => x.AssignedByNavigation)
+                .Include(x => x.Task)
+                .Include(x => x.Volunteer);
+            return assignments;
+        }
+
         public async Task<int> GetLastId()
         {
             var query = _context.TaskAssignments
