@@ -58,14 +58,16 @@ namespace ivan_api.Services.Reports
                 if (task.EventId == eventId && (task.StatusId != 3 /*completed*/ && task.StatusId != 5 /*canceled*/))
                     throw new Exception("Not all tasks are completed or canceled.");
 
-                if (task.EventId == eventId && task.StatusId != 3 /*completed*/)
+                if (task.EventId == eventId && task.StatusId == 3 /*completed*/)
                     compCount++;
 
-                if (task.EventId == eventId && task.StatusId != 5 /*canceled*/)
+                if (task.EventId == eventId && task.StatusId == 5 /*canceled*/)
                     cancelCount++;
 
-                total++;
-                if(task.ActualHours != null && task.StatusId != 3 /*completed*/)
+                if(task.EventId == eventId)
+                    total++;
+
+                if (task.ActualHours != null && task.StatusId == 3 /*completed*/)
                     totalActualHours += task.ActualHours;
             }
 
@@ -101,20 +103,23 @@ namespace ivan_api.Services.Reports
             foreach( var assignment in assignmentList)
             {
                 if (!assignment.Status.Equals("Completed"))
-                    throw new Exception("Not all assignments is completed");
+                    throw new Exception("Not all assignments are completed");
             }
 
+            var averageHours = total > 0 ? totalActualHours / total : 0;
+
+
             string contentData = string.Empty;
-            contentData = "Number of completed tasks: " + compCount + "/n" +
-                          "Number of canceled tasks:" + cancelCount + "/n" +
-                          "Total number of tasks:" + total + "/n" +
-                          "Avarage hours/task:" + totalActualHours/total + "/n" +
-                          "/n" +
-                          "Total Registrations for Event " + eventId + ":" + totalRegs + "/n" +
-                          "Total Approved Registrations:" + approvedCount + "/n" +
-                          "Total Rejected Registrations:" + rejectedCount + "/n" +
-                          "Total Cancel Registrations:" + canceledRegsCount + "/n" +
-                          "/n";
+            contentData = "Number of completed tasks: " + compCount + "\n" +
+                          "Number of canceled tasks:" + cancelCount + "\n" +
+                          "Total number of tasks:" + total + "\n" +
+                          "Avarage hours/task:" + averageHours + "\n" +
+                          "\n" +
+                          "Total Registrations for Event " + eventId + ":" + totalRegs + "\n" +
+                          "Total Approved Registrations:" + approvedCount + "\n" +
+                          "Total Rejected Registrations:" + rejectedCount + "\n" +
+                          "Total Cancel Registrations:" + canceledRegsCount + "\n" +
+                          "\n";
 
             var report = _mapper.Map<Report>(reportInputModel);
             report.Content = contentData + report.Content;
