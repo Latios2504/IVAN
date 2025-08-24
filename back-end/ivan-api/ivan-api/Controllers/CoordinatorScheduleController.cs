@@ -447,6 +447,17 @@ namespace ivan_api.Controllers
                 });
             }
 
+            // Validate status value
+            if (!ScheduleConstants.GetAllStatuses().Contains(request.Status))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid status value",
+                    Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                });
+            }
+
             var result = await _coordinatorScheduleService.UpdateScheduleStatusAsync(
                 userInfo.OrganizationId.Value, scheduleId, request.Status, userId);
             
@@ -498,6 +509,27 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Organization not found for this user"
+                });
+            }
+
+            // Validate status value
+            if (!ScheduleConstants.GetAllStatuses().Contains(request.Status))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid status value",
+                    Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                });
+            }
+
+            // Validate schedule IDs list
+            if (request.ScheduleIds == null || !request.ScheduleIds.Any())
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Schedule IDs list cannot be empty"
                 });
             }
 

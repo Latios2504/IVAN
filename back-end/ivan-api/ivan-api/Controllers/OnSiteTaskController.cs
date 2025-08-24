@@ -546,20 +546,9 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                // Kiểm tra VolunteerId có tồn tại trong VolunteerProfiles không
-                var volunteerProfile = await _eventRegistrationService.GetVolunteerProfileById(volunteerId);
-                if (volunteerProfile == null)
-                {
-                    return BadRequest(new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Volunteer profile not found",
-                        Errors = new List<string> { $"Volunteer with ID {volunteerId} does not exist" }
-                    });
-                }
-
                 // Kiểm tra volunteer có registration approved cho event này không
-                var registration = await _eventRegistrationService.GetRegistrationByEventAndVolunteer(task.EventId, volunteerId);
+                var registrations = await _eventRegistrationService.GetAllVolunteerRegistration();
+                var registration = registrations.FirstOrDefault(r => r.EventId == task.EventId && r.VolunteerId == volunteerId);
                 if (registration == null || registration.StatusId != 2) // Assuming 2 is "Approved" status
                 {
                     return BadRequest(new ApiResponseDTO<object>
@@ -647,6 +636,50 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Failed to start on-site task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        /// Get tasks assigned to current volunteer
+        [HttpGet("my-tasks")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetMyTasks([FromQuery] int? eventId = null)
+        {
+            try
+            {
+                var currentUserId = GetUserId();
+                
+                // Lấy VolunteerId từ UserId thông qua AuthenticationService
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(currentUserId);
+                if (userInfo?.VolunteerId == null)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Volunteer profile not found",
+                        Errors = new List<string> { "User does not have a volunteer profile" }
+                    });
+                }
+
+                var volunteerId = userInfo.VolunteerId.Value;
+                
+                // Lấy danh sách task assignments cho volunteer này
+                var assignments = await _taskAssignmentService.GetTaskAssignmentsByVolunteerId(volunteerId, eventId);
+                
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = assignments,
+                    Message = "My tasks retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving my tasks",
                     Errors = new List<string> { ex.Message }
                 });
             }

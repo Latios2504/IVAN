@@ -213,13 +213,15 @@ class VolunteerScheduleService {
     };
   }
 
-  // Check for schedule conflicts (mock implementation)
+  // Check for schedule conflicts
   async checkScheduleConflicts(
     conflictCheck: VolunteerScheduleConflictCheckDto
-  ): Promise<ScheduleConflictDto[]> {
-    // This would need to be implemented in the backend
-    // For now, return empty array
-    return [];
+  ): Promise<VolunteerScheduleDto[]> {
+    const response = await apiClient.post<VolunteerScheduleDto[]>(
+      `${this.baseUrl}/conflicts`,
+      conflictCheck
+    );
+    return this.extractDataFromNetResponse(response.data);
   }
 
   // Get volunteer availability (mock implementation)

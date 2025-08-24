@@ -5,6 +5,7 @@ using ivan_api.Models;
 using ivan_api.Repository.VolunteerScheduleRepo;
 using ivan_api.Repository.VolunteerProfileRepo;
 using ivan_api.Repository.EventRepo;
+using ivan_api.Constants;
 
 namespace ivan_api.Services.VolunteerScheduleServ
 {
@@ -87,7 +88,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
                 Description = request.Description,
                 StartDateTime = request.StartDateTime,
                 EndDateTime = request.EndDateTime,
-                Status = request.Status ?? "Scheduled",
+                Status = request.Status ?? ScheduleConstants.Status.Scheduled,
                 Notes = request.Notes,
                 CreatedBy = createdByUserId,
                 CreatedAt = DateTime.UtcNow
@@ -106,6 +107,18 @@ namespace ivan_api.Services.VolunteerScheduleServ
             // Verify the schedule belongs to the organization through event
             if (existingSchedule.Event?.OrganizationId != organizationId)
                 throw new UnauthorizedAccessException("Schedule does not belong to your organization");
+
+            // Validate status transition if status is being updated
+            if (!string.IsNullOrEmpty(request.Status) && request.Status != existingSchedule.Status)
+            {
+                if (!string.IsNullOrEmpty(existingSchedule.Status) && 
+                    !ScheduleConstants.IsValidStatusTransition(existingSchedule.Status, request.Status))
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid status transition from '{existingSchedule.Status}' to '{request.Status}'. " +
+                        $"Valid transitions from '{existingSchedule.Status}' are: {string.Join(", ", ScheduleConstants.ValidStatusTransitions.GetValueOrDefault(existingSchedule.Status, new List<string>()))}");
+                }
+            }
 
             // Update properties
             existingSchedule.Title = request.Title;
@@ -171,6 +184,14 @@ namespace ivan_api.Services.VolunteerScheduleServ
                 throw new UnauthorizedAccessException("Schedule does not belong to you");
 
             return _mapper.Map<VolunteerScheduleDTO>(schedule);
+        }
+
+        public async Task<List<VolunteerScheduleDTO>> CheckScheduleConflictsAsync(
+            int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
+        {
+            var conflicts = await _scheduleRepository.CheckConflictsAsync(
+                volunteerId, startDateTime, endDateTime, excludeScheduleId);
+            return _mapper.Map<List<VolunteerScheduleDTO>>(conflicts);
         }
     }
 }

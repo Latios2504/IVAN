@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ivan_api.Repository.TaskAssignments;
 using ivan_api.Models;
 using ivan_api.DTOs.TaskAssignments;
@@ -49,6 +49,20 @@ namespace ivan_api.Services.TaskAssignments
             {
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<TaskAssignment>> GetTaskAssignmentsByVolunteerId(int volunteerId, int? eventId = null)
+        {
+            var allAssignments = await _repository.GetAllTaskAssignments();
+            
+            var volunteerAssignments = allAssignments.Where(a => a.VolunteerId == volunteerId);
+            
+            if (eventId.HasValue)
+            {
+                volunteerAssignments = volunteerAssignments.Where(a => a.Task.EventId == eventId.Value);
+            }
+            
+            return volunteerAssignments.ToList();
         }
     }
 }

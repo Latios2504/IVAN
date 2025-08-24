@@ -1,6 +1,7 @@
 using ivan_api.DTOs.VolunteerSchedule;
 using ivan_api.DTOs.Common;
 using ivan_api.Models;
+using ivan_api.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Repository.VolunteerScheduleRepo
@@ -255,15 +256,15 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
             return new VolunteerScheduleStatsDTO
             {
                 TotalSchedules = schedules.Count,
-                ScheduledCount = schedules.Count(s => s.Status == "Scheduled"),
-                InProgressCount = schedules.Count(s => s.Status == "InProgress"),
-                CompletedCount = schedules.Count(s => s.Status == "Completed"),
-                CancelledCount = schedules.Count(s => s.Status == "Cancelled"),
+                ScheduledCount = schedules.Count(s => s.Status == ScheduleConstants.Status.Scheduled),
+                InProgressCount = schedules.Count(s => s.Status == ScheduleConstants.Status.InProgress),
+                CompletedCount = schedules.Count(s => s.Status == ScheduleConstants.Status.Completed),
+                CancelledCount = schedules.Count(s => s.Status == ScheduleConstants.Status.Cancelled),
                 TodaySchedules = schedules.Count(s => s.StartDateTime.Date == today),
                 ThisWeekSchedules = schedules.Count(s => s.StartDateTime.Date >= weekStart && s.StartDateTime.Date < weekStart.AddDays(7)),
                 ThisMonthSchedules = schedules.Count(s => s.StartDateTime.Date >= monthStart && s.StartDateTime.Date < monthStart.AddMonths(1)),
-                UpcomingSchedules = schedules.Count(s => s.StartDateTime > now && s.Status != "Cancelled"),
-                OverdueSchedules = schedules.Count(s => s.EndDateTime < now && s.Status == "Scheduled"),
+                UpcomingSchedules = schedules.Count(s => s.StartDateTime > now && s.Status != ScheduleConstants.Status.Cancelled),
+                OverdueSchedules = schedules.Count(s => s.EndDateTime < now && s.Status == ScheduleConstants.Status.Scheduled),
                 SchedulesByType = schedules
                     .Where(s => !string.IsNullOrEmpty(s.ScheduleType))
                     .GroupBy(s => s.ScheduleType!)
@@ -293,8 +294,8 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
                     VolunteerId = g.Key.VolunteerId,
                     VolunteerName = $"{g.Key.FirstName} {g.Key.LastName}",
                     ScheduleCount = g.Count(),
-                    CompletedCount = g.Count(s => s.Status == "Completed"),
-                    CompletionRate = g.Count() > 0 ? (decimal)g.Count(s => s.Status == "Completed") / g.Count() * 100 : 0
+                    CompletedCount = g.Count(s => s.Status == ScheduleConstants.Status.Completed),
+                    CompletionRate = g.Count() > 0 ? (decimal)g.Count(s => s.Status == ScheduleConstants.Status.Completed) / g.Count() * 100 : 0
                 })
                 .OrderByDescending(s => s.ScheduleCount)
                 .Take(limit)

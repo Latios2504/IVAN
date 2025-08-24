@@ -1,6 +1,7 @@
 using ivan_api.DTOs.CoordinatorSchedule;
 using ivan_api.DTOs.Common;
 using ivan_api.Models;
+using ivan_api.Constants;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Repository.CoordinatorScheduleRepo
@@ -196,7 +197,7 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             var query = _context.CoordinatorSchedules
                 .Include(cs => cs.Event)
                 .Where(cs => cs.CoordinatorId == coordinatorId &&
-                           cs.Status != "Cancelled" &&
+                           cs.Status != ScheduleConstants.Status.Cancelled &&
                            ((cs.StartDateTime < endDateTime && cs.EndDateTime > startDateTime)));
 
             if (excludeScheduleId.HasValue)
@@ -294,7 +295,7 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             return await _context.CoordinatorSchedules
                 .CountAsync(cs => cs.Coordinator.OrganizationId == organizationId &&
                                 cs.StartDateTime > now &&
-                                cs.Status != "Cancelled");
+                                cs.Status != ScheduleConstants.Status.Cancelled);
         }
 
         public async Task<int> GetOverdueSchedulesCountAsync(int organizationId)
@@ -304,7 +305,7 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             return await _context.CoordinatorSchedules
                 .CountAsync(cs => cs.Coordinator.OrganizationId == organizationId &&
                                 cs.EndDateTime < now &&
-                                cs.Status == "Scheduled");
+                                cs.Status == ScheduleConstants.Status.Scheduled);
         }
 
         public async Task<List<CoordinatorScheduleStatsItem>> GetTopCoordinatorsAsync(int organizationId, int limit = 10)
@@ -322,8 +323,8 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
                     CoordinatorId = g.Key.CoordinatorId,
                     CoordinatorName = g.Key.CoordinatorName,
                     ScheduleCount = g.Count(),
-                    CompletedCount = g.Count(cs => cs.Status == "Completed"),
-                    CompletionRate = g.Count() > 0 ? (double)g.Count(cs => cs.Status == "Completed") / g.Count() * 100 : 0
+                    CompletedCount = g.Count(cs => cs.Status == ScheduleConstants.Status.Completed),
+                    CompletionRate = g.Count() > 0 ? (double)g.Count(cs => cs.Status == ScheduleConstants.Status.Completed) / g.Count() * 100 : 0
                 })
                 .OrderByDescending(item => item.ScheduleCount)
                 .Take(limit)
@@ -485,15 +486,15 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
             var stats = new CoordinatorScheduleStatsDto
             {
                 TotalSchedules = schedules.Count,
-                ScheduledCount = schedules.Count(s => s.Status == "Scheduled"),
-                InProgressCount = schedules.Count(s => s.Status == "In Progress"),
-                CompletedCount = schedules.Count(s => s.Status == "Completed"),
-                CancelledCount = schedules.Count(s => s.Status == "Cancelled"),
+                ScheduledCount = schedules.Count(s => s.Status == ScheduleConstants.Status.Scheduled),
+                InProgressCount = schedules.Count(s => s.Status == ScheduleConstants.Status.InProgress),
+                CompletedCount = schedules.Count(s => s.Status == ScheduleConstants.Status.Completed),
+                CancelledCount = schedules.Count(s => s.Status == ScheduleConstants.Status.Cancelled),
                 TodaySchedules = schedules.Count(s => s.StartDateTime.Date == now.Date),
                 ThisWeekSchedules = schedules.Count(s => s.StartDateTime >= startOfWeek && s.StartDateTime < startOfWeek.AddDays(7)),
                 ThisMonthSchedules = schedules.Count(s => s.StartDateTime >= startOfMonth && s.StartDateTime < startOfMonth.AddMonths(1)),
-                UpcomingSchedules = schedules.Count(s => s.StartDateTime > now && s.Status == "Scheduled"),
-                OverdueSchedules = schedules.Count(s => s.EndDateTime < now && s.Status != "Completed" && s.Status != "Cancelled"),
+                UpcomingSchedules = schedules.Count(s => s.StartDateTime > now && s.Status == ScheduleConstants.Status.Scheduled),
+                OverdueSchedules = schedules.Count(s => s.EndDateTime < now && s.Status != ScheduleConstants.Status.Completed && s.Status != ScheduleConstants.Status.Cancelled),
 
                 SchedulesByType = schedules
                     .GroupBy(s => s.ScheduleType ?? "Unknown")

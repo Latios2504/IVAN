@@ -1,4 +1,5 @@
 using AutoMapper;
+using ivan_api.Constants;
 using ivan_api.DTOs.CoordinatorSchedule;
 using ivan_api.DTOs.Common;
 using ivan_api.Models;
@@ -171,6 +172,15 @@ namespace ivan_api.Services.CoordinatorScheduleServ
                 return false;
             }
 
+            // Validate status transition if current status exists
+            if (!string.IsNullOrEmpty(schedule.Status) && 
+                !ScheduleConstants.IsValidStatusTransition(schedule.Status, status))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid status transition from '{schedule.Status}' to '{status}'. " +
+                    $"Valid transitions from '{schedule.Status}' are: {string.Join(", ", ScheduleConstants.ValidStatusTransitions.GetValueOrDefault(schedule.Status, new List<string>()))}");
+            }
+
             schedule.Status = status;
             schedule.UpdatedAt = DateTime.UtcNow;
 
@@ -179,6 +189,25 @@ namespace ivan_api.Services.CoordinatorScheduleServ
 
         public async Task<bool> BulkUpdateStatusAsync(int organizationId, List<int> scheduleIds, string status, int updatedBy)
         {
+            // Get all schedules to validate status transitions
+            var schedules = new List<CoordinatorSchedule>();
+            foreach (var scheduleId in scheduleIds)
+            {
+                var schedule = await _repository.GetByIdAsync(scheduleId);
+                if (schedule != null && schedule.Coordinator?.OrganizationId == organizationId)
+                {
+                    // Validate status transition if current status exists
+                    if (!string.IsNullOrEmpty(schedule.Status) && 
+                        !ScheduleConstants.IsValidStatusTransition(schedule.Status, status))
+                    {
+                        throw new InvalidOperationException(
+                            $"Invalid status transition for schedule {scheduleId} from '{schedule.Status}' to '{status}'. " +
+                            $"Valid transitions from '{schedule.Status}' are: {string.Join(", ", ScheduleConstants.ValidStatusTransitions.GetValueOrDefault(schedule.Status, new List<string>()))}");
+                    }
+                    schedules.Add(schedule);
+                }
+            }
+
             return await _repository.BulkUpdateStatusAsync(organizationId, scheduleIds, status, updatedBy);
         }
 

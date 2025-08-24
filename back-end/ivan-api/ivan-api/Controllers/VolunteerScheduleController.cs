@@ -116,6 +116,21 @@ namespace ivan_api.Controllers
         {
             try
             {
+                // Validate status if provided, default to Scheduled if not provided
+                if (string.IsNullOrEmpty(request.Status))
+                {
+                    request.Status = ScheduleConstants.Status.Scheduled;
+                }
+                else if (!ScheduleConstants.GetAllStatuses().Contains(request.Status))
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Invalid status value",
+                        Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                    });
+                }
+
                 var coordinatorId = _authenticationService.GetUserIdFromClaims(User);
                 var userId = coordinatorId;
                 var result = await _volunteerScheduleService.CreateVolunteerScheduleAsync(coordinatorId, request, userId);
@@ -169,6 +184,17 @@ namespace ivan_api.Controllers
         {
             try
             {
+                // Validate status if provided
+                if (!string.IsNullOrEmpty(request.Status) && !ScheduleConstants.GetAllStatuses().Contains(request.Status))
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Invalid status value",
+                        Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                    });
+                }
+
                 var coordinatorId = _authenticationService.GetUserIdFromClaims(User);
                 var userId = coordinatorId;
                 var result = await _volunteerScheduleService.UpdateVolunteerScheduleAsync(coordinatorId, scheduleId, request, userId);
@@ -350,6 +376,51 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Failed to retrieve schedule",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        #endregion
+
+        #region Conflict Detection
+
+        /// Check for volunteer schedule conflicts
+        [HttpPost("conflicts")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<List<VolunteerScheduleDTO>>>> CheckConflicts(
+            [FromBody] VolunteerScheduleConflictCheckDTO request)
+        {
+            try
+            {
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
+                
+                if (userInfo?.OrganizationId == null)
+                {
+                    return BadRequest(new ApiResponseDTO<List<VolunteerScheduleDTO>>
+                    {
+                        Success = false,
+                        Message = "Organization not found for this user"
+                    });
+                }
+                
+                var conflicts = await _volunteerScheduleService.CheckScheduleConflictsAsync(
+                    request.VolunteerId, request.StartDateTime, request.EndDateTime, request.ExcludeScheduleId);
+                
+                return Ok(new ApiResponseDTO<List<VolunteerScheduleDTO>>
+                {
+                    Success = true,
+                    Message = conflicts.Any() ? "Schedule conflicts found" : "No conflicts found",
+                    Data = conflicts
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to check schedule conflicts",
                     Errors = new List<string> { ex.Message }
                 });
             }

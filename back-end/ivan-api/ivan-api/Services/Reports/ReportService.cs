@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.Reports;
 using ivan_api.Models;
@@ -46,87 +46,183 @@ namespace ivan_api.Services.Reports
             if (eventResult == null)
                 throw new Exception("Event not found");
 
-            //check all task completed
-            int compCount = 0;
-            int cancelCount = 0;
-            int total = 0;
-            decimal? totalActualHours = 0;
+            // Enhanced Completion Gates Validation
+            await ValidateEventCompletionGates(eventId);
 
-            var taskList = (await _onSiteTaskRepository.GetAllOnSiteTasks()).ToList();
-            foreach (var task in taskList)
-            {
-                if (task.EventId == eventId && (task.StatusId != 3 /*completed*/ && task.StatusId != 5 /*canceled*/))
-                    throw new Exception("Not all tasks are completed or canceled.");
-
-                if (task.EventId == eventId && task.StatusId == 3 /*completed*/)
-                    compCount++;
-
-                if (task.EventId == eventId && task.StatusId == 5 /*canceled*/)
-                    cancelCount++;
-
-                if(task.EventId == eventId)
-                    total++;
-
-                if (task.ActualHours != null && task.StatusId == 3 /*completed*/)
-                    totalActualHours += task.ActualHours;
-            }
-
-
-            var regList = (await _eventRegistrationRepository.GetAllEventRegistrationsAsync()).ToList();
-            int totalRegs = 0;
-            int approvedCount = 0;
-            int rejectedCount = 0;
-            int canceledRegsCount = 0;
-
-            foreach ( var reg in regList)
-            {
-                if (reg.EventId == eventId && 
-                    !(
-                    (reg.ApprovedBy.HasValue && reg.ApprovedDate.HasValue) || 
-                    (reg.RejectedBy.HasValue && reg.RejectedDate.HasValue) || 
-                    reg.CancelledDate.HasValue))
-                {
-                    throw new Exception("Not all Event Registrations has been reviewed");
-                }
-                if (reg.EventId == eventId)
-                    totalRegs++;
-                if(reg.EventId == eventId && (reg.ApprovedBy.HasValue && reg.ApprovedDate.HasValue))
-                    approvedCount++;
-                if (reg.EventId == eventId && (reg.RejectedBy.HasValue && reg.RejectedDate.HasValue))
-                    rejectedCount++;
-                if (reg.EventId == eventId && reg.CancelledDate.HasValue)
-                    canceledRegsCount++;
-
-            }
-
-            var assignmentList = (await _taskAssignmentRepository.SearchTaskAssignmentsByEventId(eventId)).ToList();
-            foreach( var assignment in assignmentList)
-            {
-                if (!assignment.Status.Equals("Completed"))
-                    throw new Exception("Not all assignments are completed");
-            }
-
-            var averageHours = total > 0 ? totalActualHours / total : 0;
-
-
-            string contentData = string.Empty;
-            contentData = "Number of completed tasks: " + compCount + "\n" +
-                          "Number of canceled tasks:" + cancelCount + "\n" +
-                          "Total number of tasks:" + total + "\n" +
-                          "Avarage hours/task:" + averageHours + "\n" +
-                          "\n" +
-                          "Total Registrations for Event " + eventId + ":" + totalRegs + "\n" +
-                          "Total Approved Registrations:" + approvedCount + "\n" +
-                          "Total Rejected Registrations:" + rejectedCount + "\n" +
-                          "Total Cancel Registrations:" + canceledRegsCount + "\n" +
-                          "\n";
+            // Generate comprehensive report content
+            var reportContent = await GenerateEventReportContent(eventId);
 
             var report = _mapper.Map<Report>(reportInputModel);
-            report.Content = contentData + report.Content;
+            report.Content = reportContent + report.Content;
             report.CreatedAt = DateTime.Now;
             report.GeneratedDate = DateTime.Now;
 
             return await _repository.AddEventReport(report, eventId);
+        }
+
+        private async Task ValidateEventCompletionGates(int eventId)
+        {
+            // Gate 1: Validate all OnSite Tasks are completed or canceled
+            await ValidateOnSiteTasksCompletion(eventId);
+
+            // Gate 2: Validate all Event Registrations are reviewed
+            await ValidateEventRegistrationsReviewed(eventId);
+
+            // Gate 3: Validate all Task Assignments are completed
+            await ValidateTaskAssignmentsCompletion(eventId);
+
+            // Gate 4: Validate approved volunteers have checked out
+            await ValidateVolunteerCheckOut(eventId);
+
+            // Gate 5: Validate event timing constraints
+            await ValidateEventTimingConstraints(eventId);
+        }
+
+        private async Task ValidateOnSiteTasksCompletion(int eventId)
+        {
+            var taskList = (await _onSiteTaskRepository.GetAllOnSiteTasks())
+                .Where(t => t.EventId == eventId).ToList();
+
+            var incompleteTasks = taskList.Where(t => t.StatusId != 3 /*completed*/ && t.StatusId != 5 /*canceled*/).ToList();
+            
+            if (incompleteTasks.Any())
+            {
+                var taskNames = string.Join(", ", incompleteTasks.Select(t => t.TaskName ?? $"Task {t.TaskId}"));
+                throw new Exception($"Not all OnSite tasks are completed or canceled. Incomplete tasks: {taskNames}");
+            }
+        }
+
+        private async Task ValidateEventRegistrationsReviewed(int eventId)
+        {
+            var regList = (await _eventRegistrationRepository.GetAllEventRegistrationsAsync())
+                .Where(r => r.EventId == eventId).ToList();
+
+            var unreviewed = regList.Where(reg => 
+                !((reg.ApprovedBy.HasValue && reg.ApprovedDate.HasValue) || 
+                  (reg.RejectedBy.HasValue && reg.RejectedDate.HasValue) || 
+                  reg.CancelledDate.HasValue)).ToList();
+
+            if (unreviewed.Any())
+            {
+                throw new Exception($"Not all Event Registrations have been reviewed. {unreviewed.Count} registrations are still pending review.");
+            }
+        }
+
+        private async Task ValidateTaskAssignmentsCompletion(int eventId)
+        {
+            var assignmentList = (await _taskAssignmentRepository.SearchTaskAssignmentsByEventId(eventId)).ToList();
+            var incompleteAssignments = assignmentList.Where(a => !a.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (incompleteAssignments.Any())
+            {
+                throw new Exception($"Not all task assignments are completed. {incompleteAssignments.Count} assignments are still incomplete.");
+            }
+        }
+
+        private async Task ValidateVolunteerCheckOut(int eventId)
+        {
+            var approvedRegistrations = (await _eventRegistrationRepository.GetAllEventRegistrationsAsync())
+                .Where(r => r.EventId == eventId && r.ApprovedBy.HasValue && r.ApprovedDate.HasValue)
+                .ToList();
+
+            var notCheckedOut = approvedRegistrations.Where(r => r.CheckInTime.HasValue && !r.CheckOutTime.HasValue).ToList();
+
+            if (notCheckedOut.Any())
+            {
+                throw new Exception($"Not all approved volunteers have checked out. {notCheckedOut.Count} volunteers are still checked in.");
+            }
+        }
+
+        private async Task ValidateEventTimingConstraints(int eventId)
+        {
+            var eventEntity = await _eventRepository.GetByIdAsync(eventId);
+            if (eventEntity == null) return;
+
+            var now = DateTime.UtcNow;
+            
+            // Event should have ended before completion report can be generated
+            if (now < eventEntity.EndDate)
+            {
+                throw new Exception($"Event has not ended yet. Event ends at {eventEntity.EndDate:yyyy-MM-dd HH:mm} UTC.");
+            }
+
+            // Allow some buffer time after event end for final check-outs and cleanup
+            var bufferTime = eventEntity.EndDate.AddHours(2); // 2-hour buffer
+            if (now < bufferTime)
+            {
+                throw new Exception($"Please wait until {bufferTime:yyyy-MM-dd HH:mm} UTC before generating completion report to allow for final check-outs and cleanup.");
+            }
+        }
+
+        private async Task<string> GenerateEventReportContent(int eventId)
+        {
+            // OnSite Tasks Statistics
+            var taskList = (await _onSiteTaskRepository.GetAllOnSiteTasks())
+                .Where(t => t.EventId == eventId).ToList();
+            
+            int compCount = taskList.Count(t => t.StatusId == 3);
+            int cancelCount = taskList.Count(t => t.StatusId == 5);
+            int total = taskList.Count;
+            decimal? totalActualHours = taskList.Where(t => t.StatusId == 3 && t.ActualHours.HasValue)
+                .Sum(t => t.ActualHours.Value);
+            var averageHours = total > 0 ? totalActualHours / total : 0;
+
+            // Registration Statistics
+            var regList = (await _eventRegistrationRepository.GetAllEventRegistrationsAsync())
+                .Where(r => r.EventId == eventId).ToList();
+            
+            int totalRegs = regList.Count;
+            int approvedCount = regList.Count(r => r.ApprovedBy.HasValue && r.ApprovedDate.HasValue);
+            int rejectedCount = regList.Count(r => r.RejectedBy.HasValue && r.RejectedDate.HasValue);
+            int canceledRegsCount = regList.Count(r => r.CancelledDate.HasValue);
+            int attendedCount = regList.Count(r => r.CheckInTime.HasValue);
+            int completedCount = regList.Count(r => r.CheckInTime.HasValue && r.CheckOutTime.HasValue);
+
+            // Task Assignment Statistics
+            var assignmentList = (await _taskAssignmentRepository.SearchTaskAssignmentsByEventId(eventId)).ToList();
+            int totalAssignments = assignmentList.Count;
+            int completedAssignments = assignmentList.Count(a => a.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase));
+
+            // Calculate volunteer hours
+            decimal totalVolunteerHours = regList.Where(r => r.ActualHours.HasValue).Sum(r => r.ActualHours.Value);
+            decimal averageVolunteerHours = approvedCount > 0 ? totalVolunteerHours / approvedCount : 0;
+
+            return $"=== EVENT COMPLETION REPORT ===\n" +
+                   $"Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC\n\n" +
+                   
+                   $"=== ONSITE TASKS SUMMARY ===\n" +
+                   $"Total Tasks: {total}\n" +
+                   $"Completed Tasks: {compCount}\n" +
+                   $"Canceled Tasks: {cancelCount}\n" +
+                   $"Task Completion Rate: {(total > 0 ? (compCount * 100.0 / total):0):F1}%\n" +
+                   $"Total Task Hours: {totalActualHours:F2}\n" +
+                   $"Average Hours per Task: {averageHours:F2}\n\n" +
+                   
+                   $"=== VOLUNTEER REGISTRATION SUMMARY ===\n" +
+                   $"Total Registrations: {totalRegs}\n" +
+                   $"Approved Registrations: {approvedCount}\n" +
+                   $"Rejected Registrations: {rejectedCount}\n" +
+                   $"Canceled Registrations: {canceledRegsCount}\n" +
+                   $"Volunteers Attended: {attendedCount}\n" +
+                   $"Volunteers Completed: {completedCount}\n" +
+                   $"Attendance Rate: {(approvedCount > 0 ? (attendedCount * 100.0 / approvedCount):0):F1}%\n" +
+                   $"Completion Rate: {(attendedCount > 0 ? (completedCount * 100.0 / attendedCount):0):F1}%\n\n" +
+                   
+                   $"=== TASK ASSIGNMENTS SUMMARY ===\n" +
+                   $"Total Assignments: {totalAssignments}\n" +
+                   $"Completed Assignments: {completedAssignments}\n" +
+                   $"Assignment Completion Rate: {(totalAssignments > 0 ? (completedAssignments * 100.0 / totalAssignments):0):F1}%\n\n" +
+                   
+                   $"=== VOLUNTEER HOURS SUMMARY ===\n" +
+                   $"Total Volunteer Hours: {totalVolunteerHours:F2}\n" +
+                   $"Average Hours per Volunteer: {averageVolunteerHours:F2}\n\n" +
+                   
+                   $"=== COMPLETION GATES STATUS ===\n" +
+                   $"✓ All OnSite Tasks completed or canceled\n" +
+                   $"✓ All Event Registrations reviewed\n" +
+                   $"✓ All Task Assignments completed\n" +
+                   $"✓ All approved volunteers checked out\n" +
+                   $"✓ Event timing constraints satisfied\n\n";
         }
         public async Task<bool> AddOrganizationReport(ReportInputModel reportInputModel, int orgId)
         {
