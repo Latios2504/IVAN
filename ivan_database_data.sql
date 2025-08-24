@@ -365,15 +365,15 @@ VALUES
 
 INSERT INTO CoordinatorSchedules (CoordinatorId, EventId, Title, Description, StartDateTime, EndDateTime, Location, ScheduleType, Priority, Status, IsAllDay, ReminderMinutes, Notes, CreatedBy)
 VALUES
-((SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), 1, N'Briefing đầu ngày', N'Phân công công việc cho TNV', '2025-07-20 07:30:00', '2025-07-20 08:00:00', N'BK HCM', N'Meeting', N'High', N'Planned', 0, 30, N'Chuẩn bị danh sách', 2),
-((SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), 1, N'Rút kinh nghiệm', N'Họp nhanh tổng kết', '2025-07-20 17:15:00', '2025-07-20 17:45:00', N'BK HCM', N'Meeting', N'Low', N'Planned', 0, 10, N'Ghi chú sự cố', 2),
-((SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E002'), 8, N'Chuẩn bị Workshop', N'Kiểm tra CSVC và tài liệu', '2025-08-12 07:30:00', '2025-08-12 08:30:00', N'Phòng 201, ĐH Mở', N'Meeting', N'High', N'Planned', 0, 15, N'In thêm phiếu khảo sát', 2);
+((SELECT TOP 1 CoordinatorId FROM VolunteerCoordinators WHERE EmployeeId='E001'), 1, N'Briefing đầu ngày', N'Phân công công việc cho TNV', '2025-07-20 07:30:00', '2025-07-20 08:00:00', N'BK HCM', N'Meeting', N'High', N'Planned', 0, 30, N'Chuẩn bị danh sách', 2),
+((SELECT TOP 1 CoordinatorId FROM VolunteerCoordinators WHERE EmployeeId='E001'), 1, N'Rút kinh nghiệm', N'Họp nhanh tổng kết', '2025-07-20 17:15:00', '2025-07-20 17:45:00', N'BK HCM', N'Meeting', N'Low', N'Planned', 0, 10, N'Ghi chú sự cố', 2),
+((SELECT TOP 1 CoordinatorId FROM VolunteerCoordinators WHERE EmployeeId='E002'), 8, N'Chuẩn bị Workshop', N'Kiểm tra CSVC và tài liệu', '2025-08-12 07:30:00', '2025-08-12 08:30:00', N'Phòng 201, ĐH Mở', N'Meeting', N'High', N'Planned', 0, 15, N'In thêm phiếu khảo sát', 2);
 
 INSERT INTO CoordinatorTasks (EventId, CoordinatorId, TaskName, Description, DueDate, Priority, Status, Category, EstimatedHours, Notes, CreatedBy)
 VALUES
-(1, (SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), N'Lập kế hoạch phân luồng', N'Xác định khu vực đón tiếp, hiến và nghỉ', '2025-07-18 18:00:00', N'High', N'Not Started', N'Planning', 3.5, N'Dùng sơ đồ nhà thi đấu', 2),
-(1, (SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E001'), N'Liên hệ nhà tài trợ', N'Xác nhận nước uống và snack', '2025-07-19 12:00:00', N'Medium', N'In Progress', N'Logistics', 2.0, N'Nhà tài trợ Orion', 2),
-(8, (SELECT TOP 1 UserId FROM VolunteerCoordinators WHERE EmployeeId='E002'), N'Chuẩn bị thiết bị', N'Máy chiếu, micro, wifi', '2025-08-11 17:00:00', N'High', N'Not Started', N'Operations', 1.5, N'Kiểm tra dây HDMI', 2);
+(1, (SELECT TOP 1 CoordinatorId FROM VolunteerCoordinators WHERE EmployeeId='E001'), N'Lập kế hoạch phân luồng', N'Xác định khu vực đón tiếp, hiến và nghỉ', '2025-07-18 18:00:00', N'High', N'Not Started', N'Planning', 3.5, N'Dùng sơ đồ nhà thi đấu', 2),
+(1, (SELECT TOP 1 CoordinatorId FROM VolunteerCoordinators WHERE EmployeeId='E001'), N'Liên hệ nhà tài trợ', N'Xác nhận nước uống và snack', '2025-07-19 12:00:00', N'Medium', N'In Progress', N'Logistics', 2.0, N'Nhà tài trợ Orion', 2),
+(8, (SELECT TOP 1 CoordinatorId FROM VolunteerCoordinators WHERE EmployeeId='E002'), N'Chuẩn bị thiết bị', N'Máy chiếu, micro, wifi', '2025-08-11 17:00:00', N'High', N'Not Started', N'Operations', 1.5, N'Kiểm tra dây HDMI', 2);
 
 INSERT INTO ChatbotInteractions (UserId, Question, Response, InteractionDate)
 VALUES

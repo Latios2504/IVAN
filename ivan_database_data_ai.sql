@@ -1123,7 +1123,7 @@ INSERT INTO TableRelationships (FromTableId, FromColumn, ToTableId, ToColumn, Re
 
 -- CoordinatorSchedules relationships
 INSERT INTO TableRelationships (FromTableId, FromColumn, ToTableId, ToColumn, RelationshipType) VALUES 
-((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorSchedules'), 'CoordinatorId', (SELECT Id FROM TableSchemas WHERE TableName = 'Users'), 'UserId', 'FK'),
+((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorSchedules'), 'CoordinatorId', (SELECT Id FROM TableSchemas WHERE TableName = 'VolunteerCoordinators'), 'CoordinatorId', 'FK'),
 ((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorSchedules'), 'EventId', (SELECT Id FROM TableSchemas WHERE TableName = 'Events'), 'EventId', 'FK'),
 ((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorSchedules'), 'CreatedBy', (SELECT Id FROM TableSchemas WHERE TableName = 'Users'), 'UserId', 'FK');
 
@@ -1145,7 +1145,7 @@ INSERT INTO TableRelationships (FromTableId, FromColumn, ToTableId, ToColumn, Re
 -- CoordinatorTasks relationships
 INSERT INTO TableRelationships (FromTableId, FromColumn, ToTableId, ToColumn, RelationshipType) VALUES 
 ((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorTasks'), 'EventId', (SELECT Id FROM TableSchemas WHERE TableName = 'Events'), 'EventId', 'FK'),
-((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorTasks'), 'CoordinatorId', (SELECT Id FROM TableSchemas WHERE TableName = 'Users'), 'UserId', 'FK'),
+((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorTasks'), 'CoordinatorId', (SELECT Id FROM TableSchemas WHERE TableName = 'VolunteerCoordinators'), 'CoordinatorId', 'FK'),
 ((SELECT Id FROM TableSchemas WHERE TableName = 'CoordinatorTasks'), 'CreatedBy', (SELECT Id FROM TableSchemas WHERE TableName = 'Users'), 'UserId', 'FK');
 
 -- Feedback relationships

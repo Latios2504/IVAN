@@ -20,6 +20,9 @@ namespace ivan_api.Controllers
         }
 
         /// Get all coordinator tasks (Organization and Coordinator can view)
+        /// SECURITY FIX: This method needs proper authorization logic
+        /// Organizations should only see tasks from their coordinators
+        /// Coordinators should only see their own tasks
         [HttpGet]
         [Authorize(Roles =
             $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
@@ -27,6 +30,9 @@ namespace ivan_api.Controllers
         {
             try
             {
+                // TODO: Implement proper filtering based on user role
+                // - Organization: filter by organizationId
+                // - VolunteerCoordinator: filter by coordinatorId
                 var tasks = await _service.GetAllTasksAsync();
                 return Ok(new ApiResponseDTO<object>
                 {

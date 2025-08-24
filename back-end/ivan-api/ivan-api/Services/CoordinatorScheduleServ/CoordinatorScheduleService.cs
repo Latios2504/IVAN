@@ -137,7 +137,8 @@ namespace ivan_api.Services.CoordinatorScheduleServ
             }
 
             var coordinatorId = userInfo.CoordinatorId.Value;
-            var schedules = await _repository.GetPersonalSchedulesAsync(coordinatorUserId, filter);
+            // FIX: Pass coordinatorId instead of coordinatorUserId to repository
+            var schedules = await _repository.GetPersonalSchedulesAsync(coordinatorId, filter);
             var scheduleDtos = _mapper.Map<List<CoordinatorScheduleDto>>(schedules.Items);
 
             return new PagedResultDto<CoordinatorScheduleDto>

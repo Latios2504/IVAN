@@ -4,6 +4,7 @@ using ivan_api.DTOs.Common;
 using ivan_api.Services.OnSiteTasks;
 using ivan_api.Services.TaskAssignments;
 using ivan_api.Services.EventRegistrationSer;
+using ivan_api.Services.AuthenticationSer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -17,10 +18,17 @@ namespace ivan_api.Controllers
         private readonly IOnSiteTaskService _service;
         private readonly ITaskAssignmentService _taskAssignmentService;
         private readonly IEventRegistrationService _eventRegistrationService;
+        private readonly IAuthenticationService _authenticationService;
 
-        public OnSiteTaskController(IOnSiteTaskService service)
+        public OnSiteTaskController(IOnSiteTaskService service, 
+            ITaskAssignmentService taskAssignmentService,
+            IEventRegistrationService eventRegistrationService,
+            IAuthenticationService authenticationService)
         {
             _service = service;
+            _taskAssignmentService = taskAssignmentService;
+            _eventRegistrationService = eventRegistrationService;
+            _authenticationService = authenticationService;
         }
 
         [HttpGet]
@@ -274,6 +282,18 @@ namespace ivan_api.Controllers
 
             try
             {
+                // Kiểm tra task tồn tại
+                var task = await _service.GetOnSiteTaskById(id);
+                if (task == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Task not found",
+                        Errors = new List<string> { $"Task with ID {id} was not found" }
+                    });
+                }
+
                 var result = await _service.AssignAllOnSiteTask(id);
                 var data = await _service.GetTaskAssignmentsById(id);
 
@@ -395,7 +415,7 @@ namespace ivan_api.Controllers
                 {
                     Success = true,
                     Data = data,
-                    Message = "On-site task completeed successfully"
+                    Message = "On-site task completed successfully"
                 });
             }
             catch (Exception ex)
@@ -415,6 +435,18 @@ namespace ivan_api.Controllers
         {
             try
             {
+                // Kiểm tra task assignment tồn tại
+                var assignment = await _service.SearchTaskAssignment(id, volunteerId);
+                if (assignment == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Task assignment not found",
+                        Errors = new List<string> { $"Assignment for task {id} and volunteer {volunteerId} was not found" }
+                    });
+                }
+
                 var result = await _service.UnassigTask(id, volunteerId);
 
                 if (!result)
@@ -431,7 +463,7 @@ namespace ivan_api.Controllers
                 {
                     Success = true,
                     Message = "On-Site Task unassigned successfully",
-                    Data = new { deletedId = id }
+                    Data = new { taskId = id, volunteerId = volunteerId }
                 });
             }
             catch (Exception ex)
@@ -446,10 +478,25 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("{id}/complete/{volunteerId}")]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Complete(int id, int volunteerId)
         {
             try
             {
+                var currentUserId = GetUserId();
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+                // Nếu là volunteer, chỉ được complete task của chính mình
+                if (userRole == AuthenticationConstants.Roles.Volunteer)
+                {
+                    // Lấy VolunteerId từ UserId thông qua AuthenticationService
+                    var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(currentUserId);
+                    if (userInfo?.VolunteerId == null || userInfo.VolunteerId.Value != volunteerId)
+                    {
+                        return Forbid("You can only complete your own tasks");
+                    }
+                }
+
                 var result = await _service.CompleteTask(id, volunteerId);
                 var data = await _service.SearchTaskAssignment(id, volunteerId);
 
@@ -482,10 +529,47 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("{id}/assign/{volunteerId}")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<ActionResult<ApiResponseDTO<object>>> Assign(int id, int volunteerId)
         {
             try
             {
+                // Kiểm tra volunteer đã đăng ký và được approve cho event
+                var task = await _service.GetOnSiteTaskById(id);
+                if (task == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Task not found",
+                        Errors = new List<string> { $"Task with ID {id} was not found" }
+                    });
+                }
+
+                // Kiểm tra VolunteerId có tồn tại trong VolunteerProfiles không
+                var volunteerProfile = await _eventRegistrationService.GetVolunteerProfileById(volunteerId);
+                if (volunteerProfile == null)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Volunteer profile not found",
+                        Errors = new List<string> { $"Volunteer with ID {volunteerId} does not exist" }
+                    });
+                }
+
+                // Kiểm tra volunteer có registration approved cho event này không
+                var registration = await _eventRegistrationService.GetRegistrationByEventAndVolunteer(task.EventId, volunteerId);
+                if (registration == null || registration.StatusId != 2) // Assuming 2 is "Approved" status
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Volunteer is not approved for this event",
+                        Errors = new List<string> { "Cannot assign task to volunteer who is not approved for the event" }
+                    });
+                }
+
                 var result = await _service.AssignTask(id, volunteerId);
                 var data = await _service.SearchTaskAssignment(id, volunteerId);
 
@@ -518,10 +602,25 @@ namespace ivan_api.Controllers
         }
 
         [HttpPut("{id}/start/{volunteerId}")]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Volunteer}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Start(int id, int volunteerId)
         {
             try
             {
+                var currentUserId = GetUserId();
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+                // Nếu là volunteer, chỉ được start task của chính mình
+                if (userRole == AuthenticationConstants.Roles.Volunteer)
+                {
+                    // Lấy VolunteerId từ UserId thông qua AuthenticationService
+                    var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(currentUserId);
+                    if (userInfo?.VolunteerId == null || userInfo.VolunteerId.Value != volunteerId)
+                    {
+                        return Forbid("You can only start your own tasks");
+                    }
+                }
+
                 var result = await _service.StartTask(id, volunteerId);
                 var data = await _service.SearchTaskAssignment(id, volunteerId);
 

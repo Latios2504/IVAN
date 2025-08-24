@@ -452,7 +452,7 @@ CREATE TABLE CoordinatorSchedules (
     CreatedBy INT,
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2 DEFAULT GETDATE(),
-    FOREIGN KEY (CoordinatorId) REFERENCES VolunteerCoordinators(CoordinatorId) ON DELETE CASCADE,
+    FOREIGN KEY (CoordinatorId) REFERENCES VolunteerCoordinators(CoordinatorId) ON DELETE NO ACTION,
     FOREIGN KEY (EventId) REFERENCES Events(EventId),
     FOREIGN KEY (CreatedBy) REFERENCES Users(UserId)
 );
@@ -558,7 +558,7 @@ CREATE TABLE CoordinatorTasks (
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2 DEFAULT GETDATE(),
     FOREIGN KEY (EventId) REFERENCES Events(EventId) ON DELETE CASCADE,
-    FOREIGN KEY (CoordinatorId) REFERENCES Users(UserId),
+    FOREIGN KEY (CoordinatorId) REFERENCES VolunteerCoordinators(CoordinatorId) ON DELETE NO ACTION,
     FOREIGN KEY (CreatedBy) REFERENCES Users(UserId)
 );
 

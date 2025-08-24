@@ -39,9 +39,7 @@ public partial class User
 
     public virtual ICollection<CoordinatorSchedule> CoordinatorSchedules { get; set; } = new List<CoordinatorSchedule>();
 
-    public virtual ICollection<CoordinatorTask> CoordinatorTaskCoordinators { get; set; } = new List<CoordinatorTask>();
-
-    public virtual ICollection<CoordinatorTask> CoordinatorTaskCreatedByNavigations { get; set; } = new List<CoordinatorTask>();
+    public virtual ICollection<CoordinatorTask> CoordinatorTasks { get; set; } = new List<CoordinatorTask>();
 
     public virtual ICollection<Event> EventCreatedByNavigations { get; set; } = new List<Event>();
 

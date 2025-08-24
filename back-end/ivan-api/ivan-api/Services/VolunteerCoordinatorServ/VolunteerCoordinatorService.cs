@@ -215,8 +215,9 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
 
         // Check if coordinator has dependent records (events, schedules, tasks)
         var hasEvents = await _context.Events.AnyAsync(e => e.CreatedBy == coordinator.UserId);
-        var hasSchedules = await _context.CoordinatorSchedules.AnyAsync(cs => cs.CoordinatorId == coordinator.UserId);
-        var hasTasks = await _context.CoordinatorTasks.AnyAsync(ct => ct.CoordinatorId == coordinator.UserId);
+        // FIX: Use coordinator.CoordinatorId for schedules and tasks, not coordinator.UserId
+        var hasSchedules = await _context.CoordinatorSchedules.AnyAsync(cs => cs.CoordinatorId == coordinator.CoordinatorId);
+        var hasTasks = await _context.CoordinatorTasks.AnyAsync(ct => ct.CoordinatorId == coordinator.CoordinatorId);
 
         if (hasEvents || hasSchedules || hasTasks)
         {

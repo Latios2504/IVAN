@@ -41,6 +41,8 @@ public partial class VolunteerCoordinator
 
     public virtual ICollection<CoordinatorSchedule> CoordinatorSchedules { get; set; } = new List<CoordinatorSchedule>();
 
+    public virtual ICollection<CoordinatorTask> CoordinatorTasks { get; set; } = new List<CoordinatorTask>();
+
     public virtual User CreatedByNavigation { get; set; } = null!;
 
     public virtual User? Manager { get; set; }

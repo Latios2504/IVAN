@@ -20,7 +20,7 @@ namespace ivan_api.Services.CoordinatorScheduleServ
         Task<bool> DeleteScheduleAsync(int organizationId, int scheduleId);
 
         // Personal Schedule (for Coordinator to view their own)
-        Task<PagedResultDto<CoordinatorScheduleDto>> GetPersonalSchedulesAsync(
+        Task<PagedResultDto<CoordinatorScheduleDto>?> GetPersonalSchedulesAsync(
             int coordinatorUserId, CoordinatorScheduleFilterDto filter);
 
         // Stats & Analytics

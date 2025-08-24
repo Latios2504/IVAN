@@ -141,21 +141,10 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
         }
 
         public async Task<PagedResultDto<CoordinatorSchedule>> GetPersonalSchedulesAsync(
-            int coordinatorUserId, CoordinatorScheduleFilterDto filter)
+            int coordinatorId, CoordinatorScheduleFilterDto filter)
         {
-            var coordinatorId = await GetCoordinatorIdByUserIdAsync(coordinatorUserId);
-            if (!coordinatorId.HasValue)
-            {
-                return new PagedResultDto<CoordinatorSchedule>
-                {
-                    Items = new List<CoordinatorSchedule>(),
-                    TotalCount = 0,
-                    PageNumber = filter.PageNumber,
-                    PageSize = filter.PageSize
-                };
-            }
-
-            filter.CoordinatorId = coordinatorId.Value;
+            // FIX: Method now receives coordinatorId directly instead of coordinatorUserId
+            filter.CoordinatorId = coordinatorId;
             
             var query = _context.CoordinatorSchedules
                 .Include(cs => cs.Coordinator)
@@ -164,7 +153,7 @@ namespace ivan_api.Repository.CoordinatorScheduleRepo
                 .Include(cs => cs.Event)
                 .Include(cs => cs.CreatedByNavigation)
                     //.ThenInclude(u => u.UserProfiles.FirstOrDefault())
-                .Where(cs => cs.CoordinatorId == coordinatorId.Value);
+                .Where(cs => cs.CoordinatorId == coordinatorId);
 
             // Apply same filtering logic as organization schedules
             return await ApplyFiltersAndPagination(query, filter);
