@@ -103,4 +103,5 @@ export interface ChatMessageResponse {
   timestamp: string;
   modelUsed?: string;
   customInstructionUsed?: string;
+  executionTimeMs?: number;
 }
