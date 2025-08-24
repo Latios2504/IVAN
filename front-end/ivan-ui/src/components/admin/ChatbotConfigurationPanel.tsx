@@ -174,8 +174,7 @@ const ChatbotConfigurationPanel: React.FC = () => {
           </div>
 
           {/* Configuration Form */}
-          {configuration.enableCustomInstructions && (
-            <div className="space-y-4">
+          <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">
                   Chọn Custom Instruction mặc định
@@ -258,7 +257,6 @@ const ChatbotConfigurationPanel: React.FC = () => {
                 </Button>
               </div>
             </div>
-          )}
 
           {/* Info Alert */}
           <Alert>

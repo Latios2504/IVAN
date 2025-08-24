@@ -58,6 +58,12 @@ export default function OrganizationDashboard() {
                     Phản hồi sự kiện
                   </Link>
                 </Button>
+                <Button asChild className="w-full justify-start" variant="outline">
+                  <Link to="/organization/feedback" className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    Quản lý phản hồi
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
 
