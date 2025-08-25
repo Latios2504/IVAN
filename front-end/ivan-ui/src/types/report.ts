@@ -1,12 +1,12 @@
 // Report API Types - Matching backend ReportController
 
-// Input DTOs for creating reports
-export interface ReportInputDto {
+// Input DTOs for creating reports - matches backend ReportInputModel
+export interface ReportInputModel {
   content: string;
 }
 
-// View model for report data
-export interface ReportDto {
+// View model for report data - matches backend ReportViewModel
+export interface ReportViewModel {
   reportId: number;
   reportType: string;
   content: string;
@@ -15,11 +15,17 @@ export interface ReportDto {
   createdAt?: string;
 }
 
-// Filter model for report queries
-export interface ReportFilterDto {
+// Filter model for report queries - matches backend ReportFilterModel
+export interface ReportFilterModel {
   pageNumber: number;
   pageSize: number;
+  searchTerm?: string;
 }
+
+// Legacy aliases for backward compatibility
+export type ReportInputDto = ReportInputModel;
+export type ReportDto = ReportViewModel;
+export type ReportFilterDto = ReportFilterModel;
 
 // Report statistics (for dashboard/analytics)
 export interface ReportStatsDto {
@@ -53,9 +59,10 @@ export const REPORT_TYPE_OPTIONS = [
 ];
 
 // Default filter values
-export const DEFAULT_REPORT_FILTER: ReportFilterDto = {
+export const DEFAULT_REPORT_FILTER: ReportFilterModel = {
   pageNumber: 1,
-  pageSize: 10
+  pageSize: 10,
+  searchTerm: undefined
 };
 
 // Report sort options

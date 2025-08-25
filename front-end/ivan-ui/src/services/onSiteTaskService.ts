@@ -189,7 +189,7 @@ class OnSiteTaskService {
   // GET /api/OnSiteTask/my-tasks - Get tasks assigned to current volunteer
   async getMyTasks(eventId?: number): Promise<any[]> {
     const params = eventId ? `?eventId=${eventId}` : '';
-    const response = await apiClient.get(`${this.baseUrl}/my-tasks${params}`);
+    const response = await apiClient.get<any[]>(`${this.baseUrl}/my-tasks${params}`);
     return response.data || [];
   }
 

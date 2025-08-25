@@ -2,108 +2,241 @@
 import { apiClient } from "./apiClient";
 import type { PagedResultDto } from "../types/common";
 import type {
-  ReportInputDto,
-  ReportDto,
-  ReportFilterDto,
+  ReportInputModel,
+  ReportViewModel,
+  ReportFilterModel,
   ReportStatsDto,
   ReportValidationResult,
   ReportType
 } from "../types/report";
 import { REPORT_TYPES } from "../types/report";
 
-// CRUD Operations
-export const reportService = {
-  // Get paginated event reports
-  async getEventReports(pageNumber: number = 1, pageSize: number = 10): Promise<PagedResultDto<ReportDto>> {
-    const response = await apiClient.get<PagedResultDto<ReportDto>>(
-      `/api/Report/listEventReport?pageNumber=${pageNumber}&pageSize=${pageSize}`
-    );
-    return response.data!;
-  },
+class ReportService {
+  private readonly baseUrl = "/Report";
 
-  // Get paginated organization reports
-  async getOrganizationReports(pageNumber: number = 1, pageSize: number = 10): Promise<PagedResultDto<ReportDto>> {
-    const response = await apiClient.get<PagedResultDto<ReportDto>>(
-      `/api/Report/listOrganizationReport?pageNumber=${pageNumber}&pageSize=${pageSize}`
-    );
-    return response.data!;
-  },
+  // Helper function to handle .NET JSON serialization format
+  private extractDataFromNetResponse<T>(data: T | any): T {
+    // If data has $values property (common with .NET JSON serialization), extract it
+    if (data && typeof data === "object" && "$values" in data) {
+      return data.$values as T;
+    }
+    return data;
+  }
 
-  // Get paginated system reports
-  async getSystemReports(pageNumber: number = 1, pageSize: number = 10): Promise<PagedResultDto<ReportDto>> {
-    const response = await apiClient.get<PagedResultDto<ReportDto>>(
-      `/api/Report/listSystemReport?pageNumber=${pageNumber}&pageSize=${pageSize}`
-    );
-    return response.data!;
-  },
+  // === LIST ENDPOINTS ===
 
-  // Get event report by ID
-  async getEventReportById(id: number): Promise<ReportDto> {
-    const response = await apiClient.get<ReportDto>(`/api/Report/getEventReport/${id}`);
+  // GET /api/Report/listEventReport - Get Event Reports (VolunteerCoordinator, Admin)
+  async getEventReports(
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Promise<PagedResultDto<ReportViewModel>> {
+    const response = await apiClient.get<PagedResultDto<ReportViewModel>>(
+      `${this.baseUrl}/listEventReport`,
+      { pageNumber, pageSize }
+    );
+
     if (!response.data) {
-      throw new Error('Event report not found');
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    // Handle .NET JSON serialization format
+    const extractedData = this.extractDataFromNetResponse(response.data);
+
+    // If the entire response is wrapped, extract it
+    if (
+      extractedData &&
+      typeof extractedData === "object" &&
+      "items" in extractedData
+    ) {
+      const pagedResult = extractedData as PagedResultDto<ReportViewModel>;
+      // Also check if items is wrapped in $values
+      if (
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
+      ) {
+        pagedResult.items = (pagedResult.items as any).$values;
+      }
+      return pagedResult;
+    }
+
+    return extractedData as PagedResultDto<ReportViewModel>;
+  }
+
+  // GET /api/Report/listOrganizationReport - Get Organization Reports (Organization, Admin)
+  async getOrganizationReports(
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Promise<PagedResultDto<ReportViewModel>> {
+    const response = await apiClient.get<PagedResultDto<ReportViewModel>>(
+      `${this.baseUrl}/listOrganizationReport`,
+      { pageNumber, pageSize }
+    );
+
+    if (!response.data) {
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    return this.extractDataFromNetResponse(response.data) as PagedResultDto<ReportViewModel>;
+  }
+
+  // GET /api/Report/listSystemReport - Get System Reports (Admin only)
+  async getSystemReports(
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Promise<PagedResultDto<ReportViewModel>> {
+    const response = await apiClient.get<PagedResultDto<ReportViewModel>>(
+      `${this.baseUrl}/listSystemReport`,
+      { pageNumber, pageSize }
+    );
+
+    if (!response.data) {
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    return this.extractDataFromNetResponse(response.data) as PagedResultDto<ReportViewModel>;
+  }
+
+  // === GET BY ID ENDPOINTS ===
+
+  // GET /api/Report/getEventReport/{id} - Get Event Report by ID (VolunteerCoordinator, Admin)
+  async getEventReportById(id: number): Promise<ReportViewModel> {
+    const response = await apiClient.get<ReportViewModel>(
+      `${this.baseUrl}/getEventReport/${id}`
+    );
+    if (!response.data) {
+      throw new Error("Event report not found");
     }
     return response.data;
-  },
+  }
 
-  // Get organization report by ID
-  async getOrganizationReportById(id: number): Promise<ReportDto> {
-    const response = await apiClient.get<ReportDto>(`/api/Report/getOrganizationReport/${id}`);
+  // GET /api/Report/getOrganizationReport/{id} - Get Organization Report by ID (Organization, Admin)
+  async getOrganizationReportById(id: number): Promise<ReportViewModel> {
+    const response = await apiClient.get<ReportViewModel>(
+      `${this.baseUrl}/getOrganizationReport/${id}`
+    );
     if (!response.data) {
-      throw new Error('Organization report not found');
+      throw new Error("Organization report not found");
     }
     return response.data;
-  },
+  }
 
-  // Get system report by ID
-  async getSystemReportById(id: number): Promise<ReportDto> {
-    const response = await apiClient.get<ReportDto>(`/api/Report/getSystemReport/${id}`);
+  // GET /api/Report/getSystemReport/{id} - Get System Report by ID (Admin only)
+  async getSystemReportById(id: number): Promise<ReportViewModel> {
+    const response = await apiClient.get<ReportViewModel>(
+      `${this.baseUrl}/getSystemReport/${id}`
+    );
     if (!response.data) {
-      throw new Error('System report not found');
+      throw new Error("System report not found");
     }
     return response.data;
-  },
+  }
 
-  // Create event report
-  async createEventReport(reportData: ReportInputDto): Promise<ReportDto> {
-    const response = await apiClient.post<ReportDto>('/api/Report/addEventReport', reportData);
-    return response.data!;
-  },
+  // GET /api/Report/getReport/{id} - Get Report by ID (Any authenticated user)
+  async getReportById(id: number): Promise<ReportViewModel> {
+    const response = await apiClient.get<ReportViewModel>(
+      `${this.baseUrl}/getReport/${id}`
+    );
+    if (!response.data) {
+      throw new Error("Report not found");
+    }
+    return response.data;
+  }
 
-  // Create organization report
-  async createOrganizationReport(reportData: ReportInputDto): Promise<ReportDto> {
-    const response = await apiClient.post<ReportDto>('/api/Report/addOrganizationReport', reportData);
-    return response.data!;
-  },
+  // === CREATE ENDPOINTS ===
 
-  // Download event report as PDF
+  // POST /api/Report/addEventReport/{eventId} - Create Event Report (VolunteerCoordinator, Admin)
+  async createEventReport(
+    eventId: number,
+    reportData: ReportInputModel
+  ): Promise<ReportViewModel> {
+    const response = await apiClient.post<ReportViewModel>(
+      `${this.baseUrl}/addEventReport/${eventId}`,
+      reportData
+    );
+    if (!response.data) {
+      throw new Error("Failed to create event report");
+    }
+    return response.data;
+  }
+
+  // POST /api/Report/addOrganizationReport/{orgId} - Create Organization Report (Organization, Admin)
+  async createOrganizationReport(
+    orgId: number,
+    reportData: ReportInputModel
+  ): Promise<ReportViewModel> {
+    const response = await apiClient.post<ReportViewModel>(
+      `${this.baseUrl}/addOrganizationReport/${orgId}`,
+      reportData
+    );
+    if (!response.data) {
+      throw new Error("Failed to create organization report");
+    }
+    return response.data;
+  }
+
+  // === DOWNLOAD ENDPOINTS ===
+
+  // GET /api/Report/downloadEventReport/{id} - Download Event Report as PDF (VolunteerCoordinator, Admin)
   async downloadEventReport(id: number): Promise<Blob> {
-    const response = await apiClient.get(`/api/Report/downloadEventReport/${id}`, {
+    const response = await apiClient.get(`${this.baseUrl}/downloadEventReport/${id}`, {
       responseType: 'blob'
     });
     return response.data as Blob;
-  },
+  }
 
-  // Download organization report as PDF
+  // GET /api/Report/downloadOrganizationReport/{id} - Download Organization Report as PDF (Organization, Admin)
   async downloadOrganizationReport(id: number): Promise<Blob> {
-    const response = await apiClient.get(`/api/Report/downloadOrganizationReport/${id}`, {
+    const response = await apiClient.get(`${this.baseUrl}/downloadOrganizationReport/${id}`, {
       responseType: 'blob'
     });
     return response.data as Blob;
-  },
+  }
 
-  // Download system report as PDF
+  // GET /api/Report/downloadSystemReport/{id} - Download System Report as PDF (Admin only)
   async downloadSystemReport(id: number): Promise<Blob> {
-    const response = await apiClient.get(`/api/Report/downloadSystemReport/${id}`, {
+    const response = await apiClient.get(`${this.baseUrl}/downloadSystemReport/${id}`, {
       responseType: 'blob'
     });
     return response.data as Blob;
-  },
+  }
 
-  // Get report statistics (mock implementation - extend based on actual backend)
+  // GET /api/Report/downloadReport/{id} - Download Report as PDF (Any authenticated user)
+  async downloadReportById(id: number): Promise<Blob> {
+    const response = await apiClient.get(`${this.baseUrl}/downloadReport/${id}`, {
+      responseType: 'blob'
+    });
+    return response.data as Blob;
+  }
+
+  // === UTILITY METHODS ===
+
+  // Get report statistics (aggregated from existing endpoints)
   async getReportStats(): Promise<ReportStatsDto> {
-    // This would typically come from a dedicated analytics endpoint
-    // For now, we'll aggregate from existing endpoints
     try {
       const [eventReports, orgReports, systemReports] = await Promise.all([
         this.getEventReports(1, 1),
@@ -129,10 +262,10 @@ export const reportService = {
       };
     }
   }
-};
+}
 
 // Validation Functions
-export const validateReportData = (data: ReportInputDto): ReportValidationResult => {
+export const validateReportData = (data: ReportInputModel): ReportValidationResult => {
   const errors: string[] = [];
 
   // Validate content
@@ -202,7 +335,7 @@ export const reportUtils = {
     return content.substring(0, maxLength) + '...';
   },
 
-  // Download report file with proper filename
+  // Download report file with proper naming
   downloadReportFile: (blob: Blob, reportType: ReportType, reportId: number): void => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -214,28 +347,26 @@ export const reportUtils = {
     window.URL.revokeObjectURL(url);
   },
 
-  // Check if user can download reports (role-based)
+  // Check if user can download reports (based on role)
   canDownloadReports: (userRole?: string): boolean => {
-    // Implement based on your role system
-    return userRole === 'Admin' || userRole === 'Coordinator';
+    return ['Admin', 'VolunteerCoordinator', 'Organization'].includes(userRole || '');
   },
 
-  // Check if user can create reports (role-based)
+  // Check if user can create reports (based on role)
   canCreateReports: (userRole?: string): boolean => {
-    // Implement based on your role system
-    return userRole === 'Admin' || userRole === 'Coordinator';
+    return ['Admin', 'VolunteerCoordinator', 'Organization'].includes(userRole || '');
   },
 
-  // Get report content word count
+  // Get word count from content
   getWordCount: (content: string): number => {
     return content.trim().split(/\s+/).filter(word => word.length > 0).length;
   },
 
-  // Validate report content format
+  // Validate report content
   isValidReportContent: (content: string): boolean => {
-    // Basic validation - can be extended
     return content.trim().length >= 10 && content.length <= 10000;
   }
 };
 
+export const reportService = new ReportService();
 export default reportService;
