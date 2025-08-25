@@ -1,6 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Building2, Users, MapPin, Search, Star } from "lucide-react";
+import {
+  Building2,
+  Users,
+  MapPin,
+  Search,
+  Star,
+  Target,
+  ExternalLink,
+} from "lucide-react";
 import { CombinedLayout } from "@/components/public/CombinedLayout";
 import { PartnerListItem } from "@/components/public/PartnerListItem";
 import { partnerProfileService } from "@/services/partnerProfileService";
@@ -14,18 +22,7 @@ import type { StatCard } from "@/components/public/StatsSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Globe,
-  Share2,
-  Link,
-  Shield,
-  ExternalLink,
-  Heart,
-  Target,
-  Phone,
-  Mail,
-  Calendar,
-} from "lucide-react";
+import { Globe, Link, Shield, Phone, Mail, Calendar } from "lucide-react";
 
 const mapPartnerToListItem = (partner: PublicPartnerDto) => {
   return {
@@ -252,9 +249,7 @@ export default function PublicPartnersPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  ></a>
                 )}
               </div>
               <div className="flex items-center gap-2 mb-3">
@@ -407,21 +402,6 @@ export default function PublicPartnersPage() {
             )}
           </CardContent>
         </Card>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <Button className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
-            <Heart className="h-4 w-4 mr-2" />
-            Theo dõi
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 border-2 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-950/50 dark:hover:to-pink-950/50 hover:border-purple-300 dark:hover:border-purple-700 transition-all"
-          >
-            <Target className="h-4 w-4 mr-2" />
-            Hợp tác
-          </Button>
-        </div>
       </div>
     );
   };

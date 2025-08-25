@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Users, MapPin, Search, Heart, Award, Calendar } from "lucide-react";
+import { Users, MapPin, Search, Award, Calendar } from "lucide-react";
 import { CombinedLayout } from "@/components/public/CombinedLayout";
 import { VolunteerListItem } from "@/components/public/VolunteerListItem";
 import { volunteerProfileService } from "@/services/volunteerProfileService";
@@ -468,7 +468,7 @@ export default function PublicVolunteersPage() {
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200/50 dark:border-blue-800/50">
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                  <Heart className="h-6 w-6 text-white" />
+                  <Clock className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   {selectedVolunteer.volunteerHours}
@@ -519,20 +519,7 @@ export default function PublicVolunteersPage() {
           </Card>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Nhắn tin
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 border-2 border-gradient-to-r from-pink-300 to-purple-300 dark:from-pink-700 dark:to-purple-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-950/50 dark:hover:to-purple-950/50 text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 transition-all duration-200"
-          >
-            <Heart className="h-4 w-4 mr-2" />
-            Theo dõi
-          </Button>
-        </div>
+
       </div>
     );
   };

@@ -159,15 +159,8 @@ export default function AdminProfilePage() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-white/80 via-rose-50/50 to-pink-50/50 dark:from-slate-900/80 dark:via-rose-950/50 dark:to-pink-950/50 backdrop-blur-sm border border-rose-200/50 dark:border-rose-700/50 shadow-lg">
+          <TabsList className="grid w-full grid-cols-1 bg-gradient-to-r from-white/80 via-rose-50/50 to-pink-50/50 dark:from-slate-900/80 dark:via-rose-950/50 dark:to-pink-950/50 backdrop-blur-sm border border-rose-200/50 dark:border-rose-700/50 shadow-lg">
             <TabsTrigger value="info" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300">Thông tin</TabsTrigger>
-            <TabsTrigger value="system" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300">Hệ thống</TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300">Phân tích</TabsTrigger>
-            <TabsTrigger value="logs" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300">Nhật ký</TabsTrigger>
-            <TabsTrigger value="permissions" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300">Quyền hạn</TabsTrigger>
-            {isCurrentUser && (
-              <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300">Cài đặt</TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="info" className="space-y-6 bg-gradient-to-br from-white/60 via-rose-50/30 to-pink-50/30 dark:from-slate-900/60 dark:via-rose-950/30 dark:to-pink-950/30 backdrop-blur-sm border border-rose-200/50 dark:border-rose-700/50 rounded-lg p-4 shadow-lg">
@@ -266,102 +259,7 @@ export default function AdminProfilePage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="system" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  Quản lý hệ thống
-                </CardTitle>
-                <CardDescription>
-                  Các chức năng quản lý và cấu hình hệ thống
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  Phân tích hệ thống
-                </CardTitle>
-                <CardDescription>
-                  Thống kê và báo cáo hoạt động hệ thống
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="logs" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Nhật ký hoạt động
-                </CardTitle>
-                <CardDescription>
-                  Theo dõi các hoạt động và thay đổi trong hệ thống
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="permissions" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Quản lý quyền hạn
-                </CardTitle>
-                <CardDescription>
-                  Cấu hình quyền truy cập cho người dùng và vai trò
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {isCurrentUser && (
-            <TabsContent value="settings" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    Cài đặt tài khoản
-                  </CardTitle>
-                  <CardDescription>
-                    Cấu hình cá nhân và bảo mật tài khoản
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    Tính năng đang được phát triển...
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
         </Tabs>
       </div>
     </div>

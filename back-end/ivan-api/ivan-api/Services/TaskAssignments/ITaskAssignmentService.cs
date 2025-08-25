@@ -9,5 +9,6 @@ namespace ivan_api.Services.TaskAssignments
         Task<bool> UpdateTaskAssignment(TaskAssignmentUpdateModel TaskAssignmentUpdateModel, int id);
         Task<bool> DeleteTaskAssignment(int id);
         Task<IEnumerable<TaskAssignment>> GetTaskAssignmentsByVolunteerId(int volunteerId, int? eventId = null);
+        Task<IEnumerable<MyTaskAssignmentDto>> GetMyTaskAssignmentsByVolunteerId(int volunteerId, int? eventId = null);
     }
 }

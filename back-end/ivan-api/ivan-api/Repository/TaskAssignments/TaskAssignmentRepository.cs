@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -91,8 +91,14 @@ namespace ivan_api.Repository.TaskAssignments
         {
             var assignments = _context.TaskAssignments
                 .Include(x => x.AssignedByNavigation)
+                    .ThenInclude(u => u.UserProfiles)
                 .Include(x => x.Task)
-                .Include(x => x.Volunteer);
+                    .ThenInclude(t => t.Event)
+                .Include(x => x.Task)
+                    .ThenInclude(t => t.Status)
+                .Include(x => x.Volunteer)
+                    .ThenInclude(v => v.User)
+                        .ThenInclude(u => u.UserProfiles);
             return assignments;
         }
 

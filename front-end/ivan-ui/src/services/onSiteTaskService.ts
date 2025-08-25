@@ -9,6 +9,7 @@ import type {
   OnSiteTaskStatsDto,
   OnSiteTaskValidationResult,
   TaskStatus,
+  MyTaskAssignmentDto,
 } from "../types/onSiteTask";
 import {
   DEFAULT_ONSITE_TASK_FILTER,
@@ -193,9 +194,82 @@ class OnSiteTaskService {
     return response.data || [];
   }
 
+  // GET /api/OnSiteTask/my-tasks - Get task assignments for current volunteer with full task details
+  async getMyTaskAssignments(eventId?: number): Promise<MyTaskAssignmentDto[]> {
+    const params = eventId ? `?eventId=${eventId}` : '';
+    const response = await apiClient.get<MyTaskAssignmentDto[]>(`${this.baseUrl}/my-tasks${params}`);
+    return response.data || [];
+  }
+
+  // PUT /api/OnSiteTask/{taskId}/start - Start task for current volunteer
+  async startTask(taskId: number): Promise<any> {
+    try {
+      const response = await apiClient.put(`${this.baseUrl}/${taskId}/start`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error starting task:', error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${taskId} not found`);
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. You are not assigned to this task.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to start task');
+    }
+  }
+
+  // PUT /api/OnSiteTask/{taskId}/complete - Complete task for current volunteer
+  async completeTask(taskId: number, actualHours?: number, notes?: string): Promise<any> {
+    try {
+      const payload: any = {};
+      if (actualHours !== undefined) payload.actualHours = actualHours;
+      if (notes) payload.notes = notes;
+      
+      const response = await apiClient.put(`${this.baseUrl}/${taskId}/complete`, payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error completing task:', error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${taskId} not found`);
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. You are not assigned to this task.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to complete task');
+    }
+  }
+
   // === FILTERING AND SEARCH ===
-  // Note: Backend controller doesn't have filtered search endpoint
-  // Only basic GetList with pagination is available
+  
+  // Get all tasks with filtering support
+  async getAll(filter: OnSiteTaskFilterDto = {}): Promise<PagedResultDto<OnSiteTaskDto>> {
+    const params = new URLSearchParams();
+    
+    // Add pagination parameters
+    if (filter.pageNumber) params.append('pageNumber', filter.pageNumber.toString());
+    if (filter.pageSize) params.append('pageSize', filter.pageSize.toString());
+    
+    // Add filter parameters
+    if (filter.eventId) params.append('eventId', filter.eventId.toString());
+    if (filter.categoryId) params.append('categoryId', filter.categoryId.toString());
+    if (filter.statusId) params.append('statusId', filter.statusId.toString());
+    if (filter.startDateFrom) params.append('startTimeFrom', new Date(filter.startDateFrom).toISOString());
+    if (filter.startDateTo) params.append('startTimeTo', new Date(filter.startDateTo).toISOString());
+    if (filter.endDateFrom) params.append('endTimeFrom', new Date(filter.endDateFrom).toISOString());
+    if (filter.endDateTo) params.append('endTimeTo', new Date(filter.endDateTo).toISOString());
+    if (filter.search) params.append('searchTerm', filter.search);
+    
+    const queryString = params.toString();
+    const url = queryString ? `${this.baseUrl}?${queryString}` : this.baseUrl;
+    
+    try {
+      const response = await apiClient.get<PagedResultDto<OnSiteTaskDto>>(url);
+      return response.data!;
+    } catch (error: any) {
+      console.error('Error fetching tasks with filter:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch tasks');
+    }
+  }
 
   // Note: Backend controller doesn't have task assignments endpoint
    // Assignment data would need to be retrieved through other means

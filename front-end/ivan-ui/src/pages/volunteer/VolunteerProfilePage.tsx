@@ -270,8 +270,6 @@ export default function VolunteerProfilePage() {
         <TabsList className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 border-b border-blue-200/50 dark:border-blue-700/50">
           <TabsTrigger value="info">Thông tin cá nhân</TabsTrigger>
           <TabsTrigger value="skills">Kỹ năng</TabsTrigger>
-          <TabsTrigger value="activities">Hoạt động</TabsTrigger>
-          {isCurrentUser && <TabsTrigger value="settings">Cài đặt</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
@@ -416,62 +414,7 @@ export default function VolunteerProfilePage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="activities" className="space-y-6">
-          <Card className="bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-900 border-orange-200/50 dark:border-orange-700/50 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-orange-100/50 to-amber-100/50 dark:from-orange-800/50 dark:to-amber-800/50 border-b border-orange-200/30 dark:border-orange-700/30">
-              <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
-                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                Lịch sử hoạt động
-              </CardTitle>
-              <CardDescription>
-                Các hoạt động tình nguyện đã tham gia
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Chưa có hoạt động nào</p>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/events")}
-                  className="mt-4"
-                >
-                  Tìm kiếm sự kiện
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {isCurrentUser && (
-          <TabsContent value="settings" className="space-y-6">
-            <Card className="bg-gradient-to-br from-white to-red-50 dark:from-gray-800 dark:to-red-900 border-red-200/50 dark:border-red-700/50 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-red-100/50 to-rose-100/50 dark:from-red-800/50 dark:to-rose-800/50 border-b border-red-200/30 dark:border-red-700/30">
-                <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                  <Settings className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  Cài đặt tài khoản
-                </CardTitle>
-                <CardDescription>
-                  Quản lý tài khoản và quyền riêng tư
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button variant="outline" className="w-full justify-start">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Thay đổi mật khẩu
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Cài đặt quyền riêng tư
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Cài đặt thông báo
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
       </Tabs>
 
       {/* Edit Profile Modal */}

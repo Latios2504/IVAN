@@ -6,11 +6,12 @@ export interface OnSiteTaskInputDto {
   categoryId: number;
   statusId: number;
   taskName: string;
-  description?: string;
-  startTime?: string; // ISO string
-  endTime?: string; // ISO string
-  location?: string;
-  requiredVolunteers?: number;
+  description: string;
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  estimatedHours: number;
+  location: string;
+  requiredVolunteers: number;
   assignedVolunteers?: number;
   requiredSkills?: string;
   priority?: string;
@@ -33,6 +34,7 @@ export interface OnSiteTaskUpdateDto {
   description?: string;
   startTime?: string; // ISO string
   endTime?: string; // ISO string
+  estimatedHours?: number;
   actualHours?: number;
   location?: string;
   requiredVolunteers?: number;
@@ -159,5 +161,60 @@ export const TASK_STATUS_OPTIONS = [
 
 // Type definitions for constants
 export type TaskStatus = typeof TASK_STATUS_OPTIONS[number]["value"];
+
+// Task Assignment DTO for volunteer's personal tasks
+export interface MyTaskAssignmentDto {
+  // TaskAssignment properties
+  assignmentId: number;
+  taskId: number;
+  volunteerId: number;
+  assignedDate?: string; // ISO string
+  assignedBy?: number;
+  assignmentStatus?: string;
+  startedAt?: string; // ISO string
+  completedAt?: string; // ISO string
+  hoursWorked?: number;
+  performance?: string;
+  assignmentNotes?: string;
+  assignmentCreatedAt?: string; // ISO string
+  assignmentUpdatedAt?: string; // ISO string
+
+  // OnSiteTask properties
+  taskName: string;
+  description?: string; // Task description
+  taskDescription?: string; // Alias for description
+  eventId: number;
+  eventName?: string;
+  locationId?: number;
+  locationName?: string;
+  location?: string; // Direct location field
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  estimatedHours: number;
+  actualHours?: number;
+  statusId: number;
+  statusName?: string;
+  priorityId?: number;
+  priorityName?: string;
+  priority?: string; // Direct priority field
+  difficulty?: string; // Task difficulty
+  taskNotes?: string;
+  notes?: string; // Alias for taskNotes
+  taskCreatedAt: string; // ISO string
+  taskUpdatedAt?: string; // ISO string
+
+  // Additional OnSiteTask fields for UI compatibility
+  requiredVolunteers?: number;
+  assignedVolunteers?: number;
+  requiredSkills?: string;
+  instructions?: string;
+  materials?: string;
+  safetyRequirements?: string;
+  completionCriteria?: string;
+
+  // Additional info
+  assignedByName?: string;
+  volunteerName?: string;
+}
 // Note: TaskPriority, TaskDifficulty, TaskSortBy types removed
 // Backend doesn't support these fields
