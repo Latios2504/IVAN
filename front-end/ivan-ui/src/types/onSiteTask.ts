@@ -1,14 +1,14 @@
 // OnSite Task Types - Matching backend OnSiteTaskController
 
-// Input DTO for creating new on-site tasks
+// Input DTO for creating new on-site tasks - matches backend OnSiteTaskInputModel
 export interface OnSiteTaskInputDto {
   eventId: number;
   categoryId: number;
   statusId: number;
   taskName: string;
   description?: string;
-  startTime?: string; // ISO string format
-  endTime?: string; // ISO string format
+  startTime?: string; // ISO string
+  endTime?: string; // ISO string
   location?: string;
   requiredVolunteers?: number;
   assignedVolunteers?: number;
@@ -20,17 +20,19 @@ export interface OnSiteTaskInputDto {
   safetyRequirements?: string;
   completionCriteria?: string;
   notes?: string;
+  // Note: Backend includes statusId, assignedVolunteers, priority, difficulty in input model
+  // EstimatedHours, ActualHours, CompletedAt, CompletedBy, VerifiedBy are commented out in backend
 }
 
-// Update DTO for updating existing on-site tasks
+// Update DTO for modifying existing on-site tasks - matches backend OnSiteTaskUpdateModel
 export interface OnSiteTaskUpdateDto {
   eventId: number;
   categoryId: number;
   statusId: number;
   taskName: string;
   description?: string;
-  startTime?: string; // ISO string format
-  endTime?: string; // ISO string format
+  startTime?: string; // ISO string
+  endTime?: string; // ISO string
   actualHours?: number;
   location?: string;
   requiredVolunteers?: number;
@@ -43,9 +45,11 @@ export interface OnSiteTaskUpdateDto {
   safetyRequirements?: string;
   completionCriteria?: string;
   notes?: string;
+  // Note: Backend OnSiteTaskUpdateModel includes all fields as required/optional
+  // EstimatedHours is commented out in backend model
 }
 
-// View model for displaying on-site task details
+// Full DTO for displaying on-site task details - matches backend OnSiteTaskViewModel
 export interface OnSiteTaskDto {
   taskId: number;
   eventId: number;
@@ -53,9 +57,9 @@ export interface OnSiteTaskDto {
   statusId: number;
   taskName: string;
   description?: string;
-  startTime?: string; // ISO string format
-  endTime?: string; // ISO string format
-  estimatedHours?: number;
+  startTime?: string; // ISO string
+  endTime?: string; // ISO string
+  estimatedHours?: number; // Calculated by backend from start/end time
   actualHours?: number;
   location?: string;
   requiredVolunteers?: number;
@@ -67,34 +71,33 @@ export interface OnSiteTaskDto {
   materials?: string;
   safetyRequirements?: string;
   completionCriteria?: string;
-  completedAt?: string; // ISO string format
+  completedAt?: string; // ISO string
   completedBy?: number;
   verifiedBy?: number;
   notes?: string;
   createdBy?: number;
-  createdAt?: string; // ISO string format
-  updatedAt?: string; // ISO string format
+  createdAt?: string; // ISO string
+  updatedAt?: string; // ISO string
+  // Note: Backend OnSiteTaskViewModel includes priority and difficulty fields
 }
 
-// Filter DTO for searching/filtering on-site tasks
+// Filter DTO for searching and filtering on-site tasks - matches backend OnSiteTaskFilterModel
 export interface OnSiteTaskFilterDto {
   pageNumber?: number;
   pageSize?: number;
-  eventId?: number;
-  categoryId?: number;
-  statusId?: number;
-  priority?: string;
-  difficulty?: string;
-  startDateFrom?: string; // ISO string format
-  startDateTo?: string; // ISO string format
-  endDateFrom?: string; // ISO string format
-  endDateTo?: string; // ISO string format
-  search?: string; // Search in task name, description, notes
-  sortBy?: string;
-  sortDirection?: "asc" | "desc";
+  eventId?: number; // Maps to EventId
+  categoryId?: number; // Maps to CategoryId
+  statusId?: number; // Maps to StatusId
+  startDateFrom?: string; // Maps to StartTimeFrom (ISO string)
+  startDateTo?: string; // Maps to StartTimeTo (ISO string)
+  endDateFrom?: string; // Maps to EndTimeFrom (ISO string)
+  endDateTo?: string; // Maps to EndTimeTo (ISO string)
+  search?: string; // Maps to SearchTerm
+  // Note: Backend doesn't support priority, difficulty, sortBy, sortDirection in filter model
+  // These would need to be added to backend OnSiteTaskFilterModel if required
 }
 
-// Stats DTO for dashboard/analytics
+// Stats DTO for dashboard/analytics - NOT IMPLEMENTED in backend yet
 export interface OnSiteTaskStatsDto {
   totalTasks: number;
   completedTasks: number;
@@ -102,11 +105,10 @@ export interface OnSiteTaskStatsDto {
   pendingTasks: number;
   overdueTasks: number;
   tasksByStatus: TaskStatusStatsDto[];
-  tasksByPriority: TaskPriorityStatsDto[];
-  tasksByDifficulty: TaskDifficultyStatsDto[];
   tasksByCategory: TaskCategoryStatsDto[];
   averageCompletionTime: number;
   volunteerUtilization: number;
+  // Note: tasksByPriority and tasksByDifficulty removed as backend doesn't support these fields
 }
 
 export interface TaskStatusStatsDto {
@@ -116,17 +118,8 @@ export interface TaskStatusStatsDto {
   percentage: number;
 }
 
-export interface TaskPriorityStatsDto {
-  priority: string;
-  count: number;
-  percentage: number;
-}
-
-export interface TaskDifficultyStatsDto {
-  difficulty: string;
-  count: number;
-  percentage: number;
-}
+// Note: TaskPriorityStatsDto and TaskDifficultyStatsDto removed
+// Backend doesn't support priority and difficulty fields
 
 export interface TaskCategoryStatsDto {
   categoryId: number;
@@ -142,29 +135,15 @@ export interface OnSiteTaskValidationResult {
   warnings: string[];
 }
 
-// Default filter values
+// Default filter values - matches backend capabilities
 export const DEFAULT_ONSITE_TASK_FILTER: OnSiteTaskFilterDto = {
   pageNumber: 1,
-  pageSize: 10,
-  sortBy: "startTime",
-  sortDirection: "asc",
+  pageSize: 10
+  // Note: sortBy and sortDirection removed as backend doesn't support sorting in filter model
 };
 
-// Task priority options
-export const TASK_PRIORITY_OPTIONS = [
-  { value: "Low", label: "Low", color: "bg-green-100 text-green-800" },
-  { value: "Medium", label: "Medium", color: "bg-yellow-100 text-yellow-800" },
-  { value: "High", label: "High", color: "bg-red-100 text-red-800" },
-  { value: "Critical", label: "Critical", color: "bg-red-200 text-red-900" },
-] as const;
-
-// Task difficulty options
-export const TASK_DIFFICULTY_OPTIONS = [
-  { value: "Easy", label: "Easy", color: "bg-green-100 text-green-800" },
-  { value: "Medium", label: "Medium", color: "bg-yellow-100 text-yellow-800" },
-  { value: "Hard", label: "Hard", color: "bg-orange-100 text-orange-800" },
-  { value: "Expert", label: "Expert", color: "bg-red-100 text-red-800" },
-] as const;
+// Note: TASK_PRIORITY_OPTIONS and TASK_DIFFICULTY_OPTIONS removed
+// Backend doesn't support priority and difficulty fields
 
 // Task status options (these would typically come from the backend)
 export const TASK_STATUS_OPTIONS = [
@@ -175,19 +154,10 @@ export const TASK_STATUS_OPTIONS = [
   { value: 5, label: "On Hold", color: "bg-yellow-100 text-yellow-800" },
 ] as const;
 
-// Sort options for tasks
-export const TASK_SORT_OPTIONS = [
-  { value: "taskName", label: "Task Name" },
-  { value: "startTime", label: "Start Time" },
-  { value: "endTime", label: "End Time" },
-  { value: "priority", label: "Priority" },
-  { value: "difficulty", label: "Difficulty" },
-  { value: "createdAt", label: "Created Date" },
-  { value: "updatedAt", label: "Updated Date" },
-] as const;
+// Note: TASK_SORT_OPTIONS removed
+// Backend doesn't support sorting in OnSiteTaskFilterModel
 
 // Type definitions for constants
-export type TaskPriority = typeof TASK_PRIORITY_OPTIONS[number]["value"];
-export type TaskDifficulty = typeof TASK_DIFFICULTY_OPTIONS[number]["value"];
 export type TaskStatus = typeof TASK_STATUS_OPTIONS[number]["value"];
-export type TaskSortBy = typeof TASK_SORT_OPTIONS[number]["value"];
+// Note: TaskPriority, TaskDifficulty, TaskSortBy types removed
+// Backend doesn't support these fields

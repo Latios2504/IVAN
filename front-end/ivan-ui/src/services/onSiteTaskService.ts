@@ -8,14 +8,10 @@ import type {
   OnSiteTaskFilterDto,
   OnSiteTaskStatsDto,
   OnSiteTaskValidationResult,
-  TaskPriority,
-  TaskDifficulty,
   TaskStatus,
 } from "../types/onSiteTask";
 import {
   DEFAULT_ONSITE_TASK_FILTER,
-  TASK_PRIORITY_OPTIONS,
-  TASK_DIFFICULTY_OPTIONS,
   TASK_STATUS_OPTIONS,
 } from "../types/onSiteTask";
 
@@ -37,13 +33,24 @@ class OnSiteTaskService {
 
   // GET /api/OnSiteTask/get/{id} - Get on-site task details by ID
   async getOnSiteTaskById(id: number): Promise<OnSiteTaskDto> {
-    const response = await apiClient.get<OnSiteTaskDto>(
-      `${this.baseUrl}/get/${id}`
-    );
-    if (!response.data) {
-      throw new Error("On-site task not found");
+    try {
+      const response = await apiClient.get<OnSiteTaskDto>(
+        `${this.baseUrl}/get/${id}`
+      );
+      if (!response.data) {
+        throw new Error("On-site task not found");
+      }
+      return response.data;
+    } catch (error: any) {
+      console.error("Error fetching on-site task:", error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${id} not found`);
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. You do not have permission to view this task.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch task details');
     }
-    return response.data;
   }
 
   // POST /api/OnSiteTask/add - Add new on-site task (Coordinator only)
@@ -54,14 +61,25 @@ class OnSiteTaskService {
       throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
     }
 
-    // Convert dates to proper format
-    const formattedData = this.formatTaskDataForApi(taskData);
+    try {
+      // Convert dates to proper format
+      const formattedData = this.formatTaskDataForApi(taskData);
 
-    const response = await apiClient.post<OnSiteTaskDto>(
-      `${this.baseUrl}/add`,
-      formattedData
-    );
-    return response.data!;
+      const response = await apiClient.post<OnSiteTaskDto>(
+        `${this.baseUrl}/add`,
+        formattedData
+      );
+      return response.data!;
+    } catch (error: any) {
+      console.error("Error creating on-site task:", error);
+      if (error.response?.status === 400) {
+        throw new Error(error.response?.data?.message || 'Invalid task data provided');
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. Only coordinators can create tasks.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to create task');
+    }
   }
 
   // PUT /api/OnSiteTask/update/{id} - Update on-site task (Coordinator only)
@@ -75,96 +93,125 @@ class OnSiteTaskService {
       throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
     }
 
-    // Convert dates to proper format
-    const formattedData = this.formatUpdateTaskDataForApi(taskData);
+    try {
+      // Convert dates to proper format
+      const formattedData = this.formatUpdateTaskDataForApi(taskData);
 
-    const response = await apiClient.put<OnSiteTaskDto>(
-      `${this.baseUrl}/update/${id}`,
-      formattedData
-    );
-    return response.data!;
+      const response = await apiClient.put<OnSiteTaskDto>(
+        `${this.baseUrl}/update/${id}`,
+        formattedData
+      );
+      return response.data!;
+    } catch (error: any) {
+      console.error("Error updating on-site task:", error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${id} not found`);
+      }
+      if (error.response?.status === 400) {
+        throw new Error(error.response?.data?.message || 'Invalid task data provided');
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. Only coordinators can update tasks.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to update task');
+    }
   }
 
-  // DELETE /api/OnSiteTask/{id} - Delete on-site task (if endpoint exists)
+  // DELETE /api/OnSiteTask/delete/{id} - Delete on-site task (Coordinator only)
   async deleteOnSiteTask(id: number): Promise<boolean> {
     try {
-      await apiClient.delete(`${this.baseUrl}/${id}`);
+      await apiClient.delete(`${this.baseUrl}/delete/${id}`);
+      return true;
+    } catch (error: any) {
+      console.error("Error deleting on-site task:", error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${id} not found`);
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. Only coordinators can delete tasks.');
+      }
+      if (error.response?.status === 400) {
+        throw new Error(error.response?.data?.message || 'Cannot delete task. It may have active assignments.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to delete task');
+    }
+  }
+
+  // === TASK ASSIGNMENT OPERATIONS ===
+
+  // PUT /api/OnSiteTask/{id}/assignAll - Assign all volunteers to task (Coordinator only)
+  async assignAllVolunteersToTask(id: number): Promise<any> {
+    const response = await apiClient.put(`${this.baseUrl}/${id}/assignAll`);
+    return response.data;
+  }
+
+  // PUT /api/OnSiteTask/{id}/assign/{volunteerId} - Assign specific volunteer to task (Coordinator only)
+  async assignVolunteerToTask(taskId: number, volunteerId: number): Promise<any> {
+    const response = await apiClient.put(`${this.baseUrl}/${taskId}/assign/${volunteerId}`);
+    return response.data;
+  }
+
+  // DELETE /api/OnSiteTask/{id}/unassign/{volunteerId} - Unassign volunteer from task (Coordinator only)
+  async unassignVolunteerFromTask(taskId: number, volunteerId: number): Promise<boolean> {
+    try {
+      await apiClient.delete(`${this.baseUrl}/${taskId}/unassign/${volunteerId}`);
       return true;
     } catch (error) {
-      console.error("Error deleting on-site task:", error);
+      console.error("Error unassigning volunteer from task:", error);
       return false;
     }
   }
 
-  // === FILTERING AND SEARCH ===
-
-  // Get filtered list of on-site tasks
-  async getFilteredOnSiteTasks(
-    filter: OnSiteTaskFilterDto = DEFAULT_ONSITE_TASK_FILTER
-  ): Promise<PagedResultDto<OnSiteTaskDto>> {
-    const params = new URLSearchParams();
-
-    // Add pagination
-    params.append("pageNumber", (filter.pageNumber || 1).toString());
-    params.append("pageSize", (filter.pageSize || 10).toString());
-
-    // Add filters
-    if (filter.eventId) params.append("eventId", filter.eventId.toString());
-    if (filter.categoryId)
-      params.append("categoryId", filter.categoryId.toString());
-    if (filter.statusId) params.append("statusId", filter.statusId.toString());
-    if (filter.priority) params.append("priority", filter.priority);
-    if (filter.difficulty) params.append("difficulty", filter.difficulty);
-    if (filter.search) params.append("search", filter.search);
-    if (filter.startDateFrom)
-      params.append("startDateFrom", filter.startDateFrom);
-    if (filter.startDateTo) params.append("startDateTo", filter.startDateTo);
-    if (filter.endDateFrom) params.append("endDateFrom", filter.endDateFrom);
-    if (filter.endDateTo) params.append("endDateTo", filter.endDateTo);
-    if (filter.sortBy) params.append("sortBy", filter.sortBy);
-    if (filter.sortDirection)
-      params.append("sortDirection", filter.sortDirection);
-
-    const response = await apiClient.get<PagedResultDto<OnSiteTaskDto>>(
-      `${this.baseUrl}?${params.toString()}`
-    );
-    return response.data!;
+  // PUT /api/OnSiteTask/{id}/start/{volunteerId} - Start task for specific volunteer
+  async startTaskForVolunteer(taskId: number, volunteerId: number): Promise<any> {
+    const response = await apiClient.put(`${this.baseUrl}/${taskId}/start/${volunteerId}`);
+    return response.data;
   }
+
+  // PUT /api/OnSiteTask/{id}/complete/{volunteerId} - Complete task for specific volunteer
+  async completeTaskForVolunteer(taskId: number, volunteerId: number): Promise<any> {
+    const response = await apiClient.put(`${this.baseUrl}/${taskId}/complete/${volunteerId}`);
+    return response.data;
+  }
+
+  // PUT /api/OnSiteTask/{id}/startAll - Start all assignments for task (Coordinator only)
+  async startAllTaskAssignments(id: number): Promise<any> {
+    const response = await apiClient.put(`${this.baseUrl}/${id}/startAll`);
+    return response.data;
+  }
+
+  // PUT /api/OnSiteTask/{id}/completeAll - Complete all assignments for task (Coordinator only)
+  async completeAllTaskAssignments(id: number): Promise<any> {
+    const response = await apiClient.put(`${this.baseUrl}/${id}/completeAll`);
+    return response.data;
+  }
+
+  // GET /api/OnSiteTask/my-tasks - Get tasks assigned to current volunteer
+  async getMyTasks(eventId?: number): Promise<any[]> {
+    const params = eventId ? `?eventId=${eventId}` : '';
+    const response = await apiClient.get(`${this.baseUrl}/my-tasks${params}`);
+    return response.data || [];
+  }
+
+  // === FILTERING AND SEARCH ===
+  // Note: Backend controller doesn't have filtered search endpoint
+  // Only basic GetList with pagination is available
+
+  // Note: Backend controller doesn't have task assignments endpoint
+   // Assignment data would need to be retrieved through other means
 
   // === UTILITY METHODS ===
-
-  // Get task statistics (mock implementation since no backend endpoint exists)
-  async getTaskStats(
-    eventId?: number,
-    categoryId?: number,
-    startDate?: string,
-    endDate?: string
-  ): Promise<OnSiteTaskStatsDto> {
-    // This would need to be implemented in the backend
-    // For now, return mock data or derive from existing tasks
-    return {
-      totalTasks: 0,
-      completedTasks: 0,
-      inProgressTasks: 0,
-      pendingTasks: 0,
-      overdueTasks: 0,
-      tasksByStatus: [],
-      tasksByPriority: [],
-      tasksByDifficulty: [],
-      tasksByCategory: [],
-      averageCompletionTime: 0,
-      volunteerUtilization: 0,
-    };
-  }
+  // Note: Backend controller doesn't have task statistics endpoint
+  // This would need to be implemented in OnSiteTaskController if required
 
   // === VALIDATION METHODS ===
 
-  // Validate task input data
+  // Validate task input data - matches backend OnSiteTaskInputModel
   validateTaskData(data: OnSiteTaskInputDto): OnSiteTaskValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Required fields validation
+    // Required fields validation - based on backend model
     if (!data.taskName?.trim()) {
       errors.push("Task name is required");
     }
@@ -174,9 +221,7 @@ class OnSiteTaskService {
     if (!data.categoryId) {
       errors.push("Category ID is required");
     }
-    if (!data.statusId) {
-      errors.push("Status ID is required");
-    }
+    // Note: statusId is not required for input - backend auto-sets to 4 (On Hold)
 
     // Date validation
     if (data.startTime && data.endTime) {
@@ -191,32 +236,7 @@ class OnSiteTaskService {
     if (data.requiredVolunteers && data.requiredVolunteers < 0) {
       errors.push("Required volunteers cannot be negative");
     }
-    if (data.assignedVolunteers && data.assignedVolunteers < 0) {
-      errors.push("Assigned volunteers cannot be negative");
-    }
-    if (
-      data.requiredVolunteers &&
-      data.assignedVolunteers &&
-      data.assignedVolunteers > data.requiredVolunteers
-    ) {
-      warnings.push("Assigned volunteers exceed required volunteers");
-    }
-
-    // Priority validation
-    if (
-      data.priority &&
-      !TASK_PRIORITY_OPTIONS.some((p) => p.value === data.priority)
-    ) {
-      errors.push("Invalid priority value");
-    }
-
-    // Difficulty validation
-    if (
-      data.difficulty &&
-      !TASK_DIFFICULTY_OPTIONS.some((d) => d.value === data.difficulty)
-    ) {
-      errors.push("Invalid difficulty value");
-    }
+    // Note: assignedVolunteers is not part of input model - handled by assignment operations
 
     return {
       isValid: errors.length === 0,
@@ -225,25 +245,16 @@ class OnSiteTaskService {
     };
   }
 
-  // Validate task update data
+  // Validate task update data - matches backend OnSiteTaskUpdateModel
   validateUpdateTaskData(
     data: OnSiteTaskUpdateDto
   ): OnSiteTaskValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Required fields validation
-    if (!data.taskName?.trim()) {
-      errors.push("Task name is required");
-    }
-    if (!data.eventId) {
-      errors.push("Event ID is required");
-    }
-    if (!data.categoryId) {
-      errors.push("Category ID is required");
-    }
-    if (!data.statusId) {
-      errors.push("Status ID is required");
+    // Task name validation (optional for update)
+    if (data.taskName !== undefined && !data.taskName?.trim()) {
+      errors.push("Task name cannot be empty");
     }
 
     // Date validation
@@ -256,24 +267,15 @@ class OnSiteTaskService {
     }
 
     // Hours validation
-    if (data.actualHours && data.actualHours < 0) {
+    if (data.actualHours !== undefined && data.actualHours < 0) {
       errors.push("Actual hours cannot be negative");
     }
 
     // Volunteer count validation
-    if (data.requiredVolunteers && data.requiredVolunteers < 0) {
+    if (data.requiredVolunteers !== undefined && data.requiredVolunteers < 0) {
       errors.push("Required volunteers cannot be negative");
     }
-    if (data.assignedVolunteers && data.assignedVolunteers < 0) {
-      errors.push("Assigned volunteers cannot be negative");
-    }
-    if (
-      data.requiredVolunteers &&
-      data.assignedVolunteers &&
-      data.assignedVolunteers > data.requiredVolunteers
-    ) {
-      warnings.push("Assigned volunteers exceed required volunteers");
-    }
+    // Note: assignedVolunteers is not part of update model - handled by assignment operations
 
     return {
       isValid: errors.length === 0,
@@ -284,22 +286,53 @@ class OnSiteTaskService {
 
   // === HELPER METHODS ===
 
-  // Format task data for API (handle .NET JSON serialization)
+  // Format task data for API (handle .NET JSON serialization) - matches backend OnSiteTaskInputModel
   private formatTaskDataForApi(data: OnSiteTaskInputDto): any {
     return {
-      ...data,
+      taskName: data.taskName,
+      description: data.description || null,
+      eventId: data.eventId,
+      categoryId: data.categoryId,
       startTime: data.startTime ? new Date(data.startTime).toISOString() : null,
       endTime: data.endTime ? new Date(data.endTime).toISOString() : null,
+      location: data.location || null,
+      requiredVolunteers: data.requiredVolunteers || 0,
+      requiredSkills: data.requiredSkills || null,
+      instructions: data.instructions || null,
+      materials: data.materials || null,
+      safetyRequirements: data.safetyRequirements || null,
+      completionCriteria: data.completionCriteria || null,
+      notes: data.notes || null
+      // Note: Backend auto-sets StatusId to 4 (On Hold), CreatedAt, UpdatedAt, EstimatedHours
     };
   }
 
-  // Format update task data for API
+  // Format update task data for API - matches backend OnSiteTaskUpdateModel
   private formatUpdateTaskDataForApi(data: OnSiteTaskUpdateDto): any {
-    return {
-      ...data,
-      startTime: data.startTime ? new Date(data.startTime).toISOString() : null,
-      endTime: data.endTime ? new Date(data.endTime).toISOString() : null,
-    };
+    const formatted: any = {};
+    
+    // Only include fields that are provided (partial update)
+    if (data.taskName !== undefined) formatted.taskName = data.taskName;
+    if (data.description !== undefined) formatted.description = data.description;
+    if (data.eventId !== undefined) formatted.eventId = data.eventId;
+    if (data.categoryId !== undefined) formatted.categoryId = data.categoryId;
+    if (data.startTime !== undefined) {
+      formatted.startTime = data.startTime ? new Date(data.startTime).toISOString() : null;
+    }
+    if (data.endTime !== undefined) {
+      formatted.endTime = data.endTime ? new Date(data.endTime).toISOString() : null;
+    }
+    if (data.location !== undefined) formatted.location = data.location;
+    if (data.requiredVolunteers !== undefined) formatted.requiredVolunteers = data.requiredVolunteers;
+    if (data.requiredSkills !== undefined) formatted.requiredSkills = data.requiredSkills;
+    if (data.instructions !== undefined) formatted.instructions = data.instructions;
+    if (data.materials !== undefined) formatted.materials = data.materials;
+    if (data.safetyRequirements !== undefined) formatted.safetyRequirements = data.safetyRequirements;
+    if (data.completionCriteria !== undefined) formatted.completionCriteria = data.completionCriteria;
+    if (data.notes !== undefined) formatted.notes = data.notes;
+    if (data.actualHours !== undefined) formatted.actualHours = data.actualHours;
+    
+    return formatted;
   }
 
   // Format task date for display
@@ -333,21 +366,8 @@ class OnSiteTaskService {
     return start > now;
   }
 
-  // Get priority color class
-  getPriorityColor(priority?: string): string {
-    const priorityOption = TASK_PRIORITY_OPTIONS.find(
-      (p) => p.value === priority
-    );
-    return priorityOption?.color || "bg-gray-100 text-gray-800";
-  }
-
-  // Get difficulty color class
-  getDifficultyColor(difficulty?: string): string {
-    const difficultyOption = TASK_DIFFICULTY_OPTIONS.find(
-      (d) => d.value === difficulty
-    );
-    return difficultyOption?.color || "bg-gray-100 text-gray-800";
-  }
+  // Note: getPriorityColor and getDifficultyColor methods removed
+  // Backend doesn't support priority and difficulty fields
 
   // Get status color class
   getStatusColor(statusId?: number): string {
