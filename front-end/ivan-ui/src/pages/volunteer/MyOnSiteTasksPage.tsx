@@ -30,17 +30,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { onSiteTaskService } from "@/services/onSiteTaskService";
-import type {
-  OnSiteTaskDto,
-} from "@/types/onSiteTask";
+import type { OnSiteTaskDto } from "@/types/onSiteTask";
 import type { PagedResultDto } from "@/types/common";
 
 const MyOnSiteTasksPage: React.FC = () => {
   const [tasks, setTasks] = useState<OnSiteTaskDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<OnSiteTaskDto | null>(
-    null
-  );
+  const [selectedTask, setSelectedTask] = useState<OnSiteTaskDto | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
   const [completionNotes, setCompletionNotes] = useState("");
@@ -55,10 +51,8 @@ const MyOnSiteTasksPage: React.FC = () => {
   const loadMyTasks = async () => {
     try {
       setLoading(true);
-      const result: PagedResultDto<OnSiteTaskDto> = await onSiteTaskService.getOnSiteTasks(
-        currentPage,
-        10
-      );
+      const result: PagedResultDto<OnSiteTaskDto> =
+        await onSiteTaskService.getOnSiteTasks(currentPage, 10);
       setTasks(result.items);
       setTotalPages(Math.ceil(result.totalCount / 10));
     } catch (error) {
@@ -73,7 +67,7 @@ const MyOnSiteTasksPage: React.FC = () => {
       const task = await onSiteTaskService.getOnSiteTaskById(taskId);
       await onSiteTaskService.updateOnSiteTask(taskId, {
         ...task,
-        statusId: 2 // Status: In Progress
+        statusId: 2, // Status: In Progress
       });
       toast.success("Task started successfully");
       loadMyTasks();
@@ -90,7 +84,7 @@ const MyOnSiteTasksPage: React.FC = () => {
         ...selectedTask,
         statusId: 3, // Status: Completed
         actualHours: actualHours ? parseFloat(actualHours) : undefined,
-        notes: completionNotes || selectedTask.notes
+        notes: completionNotes || selectedTask.notes,
       });
       toast.success("Task completed successfully");
       setIsCompleteDialogOpen(false);
@@ -222,7 +216,9 @@ const MyOnSiteTasksPage: React.FC = () => {
             >
               <CardHeader className="pb-3 bg-gradient-to-r from-indigo-50/60 via-purple-50/60 to-pink-50/60 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-t-lg border-b border-indigo-200/30 dark:border-indigo-800/30">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg text-foreground">{task.taskName}</CardTitle>
+                  <CardTitle className="text-lg text-foreground">
+                    {task.taskName}
+                  </CardTitle>
                   <div className="flex flex-col space-y-1">
                     {getStatusBadge(task.statusId)}
                     {getPriorityBadge(task.priority)}
@@ -273,7 +269,9 @@ const MyOnSiteTasksPage: React.FC = () => {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-50/95 via-gray-50/95 to-zinc-50/95 dark:from-slate-950/95 dark:via-gray-950/95 dark:to-zinc-950/95 border-slate-200/50 dark:border-slate-800/50">
                       <DialogHeader className="bg-gradient-to-r from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-purple-950/40 rounded-lg p-4 border border-blue-200/50 dark:border-blue-800/50">
-                        <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">{task.taskName}</DialogTitle>
+                        <DialogTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                          {task.taskName}
+                        </DialogTitle>
                         <DialogDescription className="text-muted-foreground">
                           Task Details and Instructions
                         </DialogDescription>
@@ -389,7 +387,9 @@ const MyOnSiteTasksPage: React.FC = () => {
                         </DialogTrigger>
                         <DialogContent className="bg-gradient-to-br from-slate-50/95 via-gray-50/95 to-zinc-50/95 dark:from-slate-950/95 dark:via-gray-950/95 dark:to-zinc-950/95 border-slate-200/50 dark:border-slate-800/50">
                           <DialogHeader className="bg-gradient-to-r from-green-50/80 via-emerald-50/80 to-teal-50/80 dark:from-green-950/40 dark:via-emerald-950/40 dark:to-teal-950/40 rounded-lg p-4 border border-green-200/50 dark:border-green-800/50">
-                            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">Complete Task</DialogTitle>
+                            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                              Complete Task
+                            </DialogTitle>
                             <DialogDescription className="text-muted-foreground">
                               Mark "{task.taskName}" as completed
                             </DialogDescription>
@@ -433,7 +433,10 @@ const MyOnSiteTasksPage: React.FC = () => {
                               >
                                 Cancel
                               </Button>
-                              <Button onClick={handleCompleteTask} className="bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 hover:from-green-600 hover:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700 text-white border-0 transition-all duration-300">
+                              <Button
+                                onClick={handleCompleteTask}
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 hover:from-green-600 hover:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700 text-white border-0 transition-all duration-300"
+                              >
                                 Complete Task
                               </Button>
                             </div>
