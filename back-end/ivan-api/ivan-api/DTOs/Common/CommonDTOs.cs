@@ -7,5 +7,47 @@ public class ApiResponseDTO<T>
     public string Message { get; set; } = string.Empty;
     public T? Data { get; set; }
     public List<string> Errors { get; set; } = new();
+
+    // Helper: success
+    public static ApiResponseDTO<T> Ok(T data, string message = "Success")
+    {
+        return new ApiResponseDTO<T>
+        {
+            Success = true,
+            Message = message,
+            Data = data
+        };
+    }
+
+    // Helper: fail
+    public static ApiResponseDTO<T> Fail(string message, List<string>? errors = null)
+    {
+        return new ApiResponseDTO<T>
+        {
+            Success = false,
+            Message = message,
+            Errors = errors
+        };
+    }
+
+    // Helper: forbidden
+    public static ApiResponseDTO<T> Forbidden(string message = "Forbidden")
+    {
+        return new ApiResponseDTO<T>
+        {
+            Success = false,
+            Message = message
+        };
+    }
+
+    // Helper: conflict
+    public static ApiResponseDTO<T> Conflict(string message = "Conflict")
+    {
+        return new ApiResponseDTO<T>
+        {
+            Success = false,
+            Message = message
+        };
+    }
 }
 

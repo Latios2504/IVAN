@@ -56,6 +56,7 @@ using ivan_api.Repository.FeedbackRepo;
 using ivan_api.Services.ExportService;
 using ivan_api.Repository.TaskAssignments;
 using ivan_api.Services.TaskAssignments;
+using ivan_api.Services.CoordinatorRequestServ;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -244,6 +245,8 @@ builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IModerationEventService, ModerationEventService>();
 //Notification Service
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddScoped<ICoordinatorRequestService, CoordinatorRequestService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
