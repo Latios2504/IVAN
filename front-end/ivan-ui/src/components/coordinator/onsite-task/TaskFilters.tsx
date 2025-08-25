@@ -153,14 +153,14 @@ const TaskFilters: React.FC<TaskFiltersProps> = ({
 
         {/* Event Filter */}
         <Select
-          value={filters.eventId?.toString() || ""}
-          onValueChange={(value) => handleFilterChange("eventId", value ? parseInt(value) : undefined)}
+          value={filters.eventId?.toString() || "all"}
+          onValueChange={(value) => handleFilterChange("eventId", value === "all" ? undefined : parseInt(value))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Chọn sự kiện" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tất cả sự kiện</SelectItem>
+            <SelectItem value="all">Tất cả sự kiện</SelectItem>
             {events.map((event) => (
               <SelectItem key={event.eventId} value={event.eventId.toString()}>
                 {event.eventName}
@@ -171,14 +171,14 @@ const TaskFilters: React.FC<TaskFiltersProps> = ({
 
         {/* Status Filter */}
         <Select
-          value={filters.statusId?.toString() || ""}
-          onValueChange={(value) => handleFilterChange("statusId", value ? parseInt(value) : undefined)}
+          value={filters.statusId?.toString() || "all"}
+          onValueChange={(value) => handleFilterChange("statusId", value === "all" ? undefined : parseInt(value))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tất cả trạng thái</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
             <SelectItem value="1">Chờ thực hiện</SelectItem>
             <SelectItem value="2">Đang thực hiện</SelectItem>
             <SelectItem value="3">Hoàn thành</SelectItem>
@@ -187,14 +187,14 @@ const TaskFilters: React.FC<TaskFiltersProps> = ({
 
         {/* Category Filter */}
         <Select
-          value={filters.categoryId?.toString() || ""}
-          onValueChange={(value) => handleFilterChange("categoryId", value ? parseInt(value) : undefined)}
+          value={filters.categoryId?.toString() || "all"}
+          onValueChange={(value) => handleFilterChange("categoryId", value === "all" ? undefined : parseInt(value))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Danh mục" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tất cả danh mục</SelectItem>
+            <SelectItem value="all">Tất cả danh mục</SelectItem>
             <SelectItem value="1">Chuẩn bị</SelectItem>
             <SelectItem value="2">Thực hiện</SelectItem>
             <SelectItem value="3">Dọn dẹp</SelectItem>

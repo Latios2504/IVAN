@@ -21,7 +21,7 @@ namespace ivan_api.Controllers
 
         [HttpGet("listEventReport")]
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReportList([FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
@@ -47,7 +47,7 @@ namespace ivan_api.Controllers
         }
 
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         [HttpGet("listOrganizationReport")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReportList(
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
@@ -73,7 +73,8 @@ namespace ivan_api.Controllers
             }
         }
 
-        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         [HttpGet("listSystemReport")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReportList([FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
@@ -101,7 +102,7 @@ namespace ivan_api.Controllers
 
         [HttpGet("getEventReport/{id}")]
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetEventReport(int id)
         {
             try
@@ -137,7 +138,7 @@ namespace ivan_api.Controllers
 
         [HttpGet("getOrganizationReport/{id}")]
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetOrganizationReport(int id)
         {
             try
@@ -171,7 +172,8 @@ namespace ivan_api.Controllers
             }
         }
 
-        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         [HttpGet("getSystemReport/{id}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetSystemReport(int id)
         {
@@ -241,7 +243,7 @@ namespace ivan_api.Controllers
         }
 
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
         [HttpPost("addEventReport/{eventId}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> AddEventReport(int eventId, [FromBody] ReportInputModel input)
         {
@@ -312,7 +314,7 @@ namespace ivan_api.Controllers
         }
 
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         [HttpPost("addOrganizationReport/{orgId}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> AddOrganizationReport(int orgId, [FromBody] ReportInputModel input)
         {
@@ -383,7 +385,7 @@ namespace ivan_api.Controllers
         }
 
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Organization}")]
         [HttpGet("downloadEventReport/{id}")]
         public async Task<IActionResult> DownloadEventReport(int id)
         {
@@ -414,7 +416,7 @@ namespace ivan_api.Controllers
         }
 
         [Authorize(Roles =
-            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         [HttpGet("downloadOrganizationReport/{id}")]
         public async Task<IActionResult> DownloadOrganizationReport(int id)
         {
@@ -444,7 +446,8 @@ namespace ivan_api.Controllers
             }
         }
 
-        [Authorize(Roles = AuthenticationConstants.Roles.Admin)]
+        [Authorize(Roles =
+            $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
         [HttpGet("downloadSystemReport/{id}")]
         public async Task<IActionResult> DownloadSystemReport(int id)
         {

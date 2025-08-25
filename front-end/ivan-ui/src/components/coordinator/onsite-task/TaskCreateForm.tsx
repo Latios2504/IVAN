@@ -83,7 +83,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
   // Update selected event when eventId changes
   useEffect(() => {
     if (formData.eventId) {
-      const event = events.find(e => e.eventId === formData.eventId);
+      const event = events.find((e) => e.eventId === formData.eventId);
       setSelectedEvent(event || null);
     } else {
       setSelectedEvent(null);
@@ -116,7 +116,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
     if (formData.startTime && formData.endTime) {
       const startDate = new Date(formData.startTime);
       const endDate = new Date(formData.endTime);
-      
+
       if (endDate <= startDate) {
         newErrors.endTime = "Thời gian kết thúc phải sau thời gian bắt đầu";
       }
@@ -125,9 +125,10 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
       if (selectedEvent) {
         const eventStart = new Date(selectedEvent.startDate);
         const eventEnd = new Date(selectedEvent.endDate);
-        
+
         if (startDate < eventStart || endDate > eventEnd) {
-          newErrors.startTime = "Thời gian nhiệm vụ phải nằm trong thời gian sự kiện";
+          newErrors.startTime =
+            "Thời gian nhiệm vụ phải nằm trong thời gian sự kiện";
         }
       }
     }
@@ -137,7 +138,8 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
     }
 
     if (!formData.requiredVolunteers || formData.requiredVolunteers < 1) {
-      newErrors.requiredVolunteers = "Số lượng tình nguyện viên phải ít nhất là 1";
+      newErrors.requiredVolunteers =
+        "Số lượng tình nguyện viên phải ít nhất là 1";
     }
 
     if (!formData.estimatedHours || formData.estimatedHours < 0.5) {
@@ -150,7 +152,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -193,10 +195,10 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
   };
 
   const handleInputChange = (field: keyof OnSiteTaskInputDto, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -215,8 +217,10 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
           Sự kiện *
         </Label>
         <Select
-          value={formData.eventId.toString()}
-          onValueChange={(value) => handleInputChange("eventId", parseInt(value))}
+          value={formData.eventId > 0 ? formData.eventId.toString() : undefined}
+          onValueChange={(value) =>
+            handleInputChange("eventId", value ? parseInt(value) : 0)
+          }
         >
           <SelectTrigger className={errors.eventId ? "border-red-500" : ""}>
             <SelectValue placeholder="Chọn sự kiện" />
@@ -227,7 +231,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
                 <div>
                   <div className="font-medium">{event.eventName}</div>
                   <div className="text-sm text-muted-foreground">
-                    {new Date(event.startDate).toLocaleDateString("vi-VN")} - 
+                    {new Date(event.startDate).toLocaleDateString("vi-VN")} -
                     {new Date(event.endDate).toLocaleDateString("vi-VN")}
                   </div>
                 </div>
@@ -305,8 +309,12 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
             type="datetime-local"
             value={formatDateTimeLocal(formData.startTime)}
             onChange={(e) => handleInputChange("startTime", e.target.value)}
-            min={selectedEvent ? formatDateTimeLocal(selectedEvent.startDate) : ""}
-            max={selectedEvent ? formatDateTimeLocal(selectedEvent.endDate) : ""}
+            min={
+              selectedEvent ? formatDateTimeLocal(selectedEvent.startDate) : ""
+            }
+            max={
+              selectedEvent ? formatDateTimeLocal(selectedEvent.endDate) : ""
+            }
             className={errors.startTime ? "border-red-500" : ""}
           />
           {errors.startTime && (
@@ -324,8 +332,15 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
             type="datetime-local"
             value={formatDateTimeLocal(formData.endTime)}
             onChange={(e) => handleInputChange("endTime", e.target.value)}
-            min={formData.startTime || (selectedEvent ? formatDateTimeLocal(selectedEvent.startDate) : "")}
-            max={selectedEvent ? formatDateTimeLocal(selectedEvent.endDate) : ""}
+            min={
+              formData.startTime ||
+              (selectedEvent
+                ? formatDateTimeLocal(selectedEvent.startDate)
+                : "")
+            }
+            max={
+              selectedEvent ? formatDateTimeLocal(selectedEvent.endDate) : ""
+            }
             className={errors.endTime ? "border-red-500" : ""}
           />
           {errors.endTime && (
@@ -336,7 +351,10 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="requiredVolunteers" className="flex items-center gap-2">
+          <Label
+            htmlFor="requiredVolunteers"
+            className="flex items-center gap-2"
+          >
             <Users className="w-4 h-4 text-blue-500" />
             Số tình nguyện viên *
           </Label>
@@ -345,7 +363,12 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
             type="number"
             min="1"
             value={formData.requiredVolunteers}
-            onChange={(e) => handleInputChange("requiredVolunteers", parseInt(e.target.value) || 1)}
+            onChange={(e) =>
+              handleInputChange(
+                "requiredVolunteers",
+                parseInt(e.target.value) || 1
+              )
+            }
             className={errors.requiredVolunteers ? "border-red-500" : ""}
           />
           {errors.requiredVolunteers && (
@@ -364,7 +387,12 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
             step="0.5"
             min="0.5"
             value={formData.estimatedHours}
-            onChange={(e) => handleInputChange("estimatedHours", parseFloat(e.target.value) || 1)}
+            onChange={(e) =>
+              handleInputChange(
+                "estimatedHours",
+                parseFloat(e.target.value) || 1
+              )
+            }
             className={errors.estimatedHours ? "border-red-500" : ""}
           />
           {errors.estimatedHours && (
@@ -378,7 +406,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
       {/* Additional Information */}
       <div className="space-y-4">
         <h3 className="font-semibold text-lg">Thông tin bổ sung</h3>
-        
+
         <div className="space-y-2">
           <Label htmlFor="instructions" className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-blue-500" />
@@ -402,7 +430,9 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
             <Textarea
               id="requiredSkills"
               value={formData.requiredSkills}
-              onChange={(e) => handleInputChange("requiredSkills", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("requiredSkills", e.target.value)
+              }
               placeholder="Các kỹ năng cần thiết để thực hiện nhiệm vụ"
               rows={2}
             />
@@ -424,14 +454,19 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="safetyRequirements" className="flex items-center gap-2">
+          <Label
+            htmlFor="safetyRequirements"
+            className="flex items-center gap-2"
+          >
             <Shield className="w-4 h-4 text-red-500" />
             Yêu cầu an toàn
           </Label>
           <Textarea
             id="safetyRequirements"
             value={formData.safetyRequirements}
-            onChange={(e) => handleInputChange("safetyRequirements", e.target.value)}
+            onChange={(e) =>
+              handleInputChange("safetyRequirements", e.target.value)
+            }
             placeholder="Các yêu cầu về an toàn lao động"
             rows={2}
           />
@@ -442,7 +477,9 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
           <Textarea
             id="completionCriteria"
             value={formData.completionCriteria}
-            onChange={(e) => handleInputChange("completionCriteria", e.target.value)}
+            onChange={(e) =>
+              handleInputChange("completionCriteria", e.target.value)
+            }
             placeholder="Tiêu chí để đánh giá nhiệm vụ hoàn thành"
             rows={2}
           />
@@ -487,9 +524,7 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
   if (trigger) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger asChild>
-          {trigger}
-        </DialogTrigger>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl text-orange-700 dark:text-orange-300">
