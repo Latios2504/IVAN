@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import OrganizationAnalyticsDashboard from "@/components/organization/OrganizationAnalyticsDashboard";
-import { Calendar, Users, Award, BarChart3, Settings, UserPlus, HeartHandshake, MessageSquare } from "lucide-react";
+import { Calendar, Users, Award, BarChart3, Settings, UserPlus, HeartHandshake, MessageSquare, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function OrganizationDashboard() {
@@ -141,8 +141,8 @@ export default function OrganizationDashboard() {
               <CardContent className="space-y-3 pt-4">
                 <Button asChild className="w-full justify-start" variant="outline">
                   <Link to="/organization/reports" className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    Báo cáo dữ liệu
+                    <FileText className="w-4 h-4" />
+                    Xem báo cáo
                   </Link>
                 </Button>
                 <Button asChild className="w-full justify-start" variant="outline">

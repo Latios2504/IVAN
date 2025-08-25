@@ -20,6 +20,7 @@ import {
   ClipboardList,
   Target,
   CheckCircle,
+  FileText,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -68,32 +69,6 @@ export default function CoordinatorDashboard() {
                     >
                       <Calendar className="w-4 h-4" />
                       Quản lý lịch trình tình nguyện viên
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/organization/events"
-                      className="flex items-center gap-2"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      Quản lý sự kiện
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/organization/event-registrations"
-                      className="flex items-center gap-2"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      Đăng ký sự kiện
                     </Link>
                   </Button>
                 </CardContent>
@@ -181,15 +156,15 @@ export default function CoordinatorDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Profile & Settings */}
-              <Card className="bg-gradient-to-br from-purple-50/80 via-pink-50/80 to-rose-50/80 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-rose-950/30 border border-purple-200/50 dark:border-purple-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="border-b border-purple-200/50 dark:border-purple-800/50">
-                  <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    Cài đặt & Hồ sơ
+              {/* Reports Management */}
+              <Card className="bg-gradient-to-br from-violet-50/80 via-purple-50/80 to-pink-50/80 dark:from-violet-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-violet-200/50 dark:border-violet-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="border-b border-violet-200/50 dark:border-violet-800/50">
+                  <CardTitle className="text-violet-800 dark:text-violet-200 flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Quản lý báo cáo
                   </CardTitle>
-                  <CardDescription className="text-purple-700/80 dark:text-purple-300/80">
-                    Quản lý thông tin cá nhân và cài đặt
+                  <CardDescription className="text-violet-700/80 dark:text-violet-300/80">
+                    Tạo và quản lý báo cáo sự kiện
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
@@ -199,11 +174,11 @@ export default function CoordinatorDashboard() {
                     variant="outline"
                   >
                     <Link
-                      to="/coordinator/profile"
+                      to="/coordinator/reports/create"
                       className="flex items-center gap-2"
                     >
-                      <Settings className="w-4 h-4" />
-                      Cập nhật thông tin
+                      <FileText className="w-4 h-4" />
+                      Tạo báo cáo sự kiện
                     </Link>
                   </Button>
                 </CardContent>

@@ -50,8 +50,11 @@ const CertificateTemplateManagementPage = lazy(
 const VolunteerCertificatesPage = lazy(
   () => import("@/pages/volunteer/VolunteerCertificatesPage")
 );
-const OrganizationReportsPage = lazy(
-  () => import("@/pages/organization/OrganizationReportsPage")
+const ReportListPage = lazy(
+  () => import("@/pages/organization/ReportListPage")
+);
+const ReportCreatePage = lazy(
+  () => import("@/pages/coordinator/ReportCreatePage")
 );
 const OrganizationCoordinatorRequestPage = lazy(
   () => import("@/pages/organization/OrganizationCoordinatorRequestPage")
@@ -375,7 +378,15 @@ export default function AppRoutes() {
           path="/organization/reports"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <OrganizationReportsPage />
+              <ReportListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/coordinator/reports/create"
+          element={
+            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
+              <ReportCreatePage />
             </ProtectedRoute>
           }
         />
