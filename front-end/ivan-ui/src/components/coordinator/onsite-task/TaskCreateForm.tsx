@@ -541,17 +541,19 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-          Tạo nhiệm vụ mới
-        </h2>
-        <p className="text-orange-600 dark:text-orange-400">
-          Tạo nhiệm vụ tại chỗ cho sự kiện
-        </p>
-      </div>
-      <FormContent />
-    </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl text-orange-700 dark:text-orange-300">
+            Tạo nhiệm vụ mới
+          </DialogTitle>
+          <DialogDescription className="text-orange-600 dark:text-orange-400">
+            Tạo nhiệm vụ tại chỗ cho sự kiện
+          </DialogDescription>
+        </DialogHeader>
+        <FormContent />
+      </DialogContent>
+    </Dialog>
   );
 };
 

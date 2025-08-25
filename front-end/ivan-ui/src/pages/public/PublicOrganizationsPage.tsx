@@ -19,14 +19,10 @@ import {
   Building,
   Globe,
   Link,
-  Share2,
   Star,
   Shield,
   Calendar,
-  ExternalLink,
-  Heart,
   Target,
-  Eye,
   Phone,
   Mail,
 } from "lucide-react";
@@ -434,7 +430,7 @@ export default function PublicOrganizationsPage() {
                     className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium transition-colors flex items-center gap-2"
                   >
                     {selectedOrganization.website}
-                    <ExternalLink className="h-3 w-3" />
+
                   </a>
                 </div>
               )}
@@ -448,7 +444,7 @@ export default function PublicOrganizationsPage() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 text-white">
-                  <Heart className="h-5 w-5" />
+                  <Globe className="h-5 w-5" />
                 </div>
                 <span className="bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent font-semibold">
                   Mạng xã hội
@@ -459,7 +455,7 @@ export default function PublicOrganizationsPage() {
               {selectedOrganization.facebookPage && (
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-violet-200/50 dark:border-violet-800/50">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white flex-shrink-0">
-                    <Share2 className="h-4 w-4" />
+                    <Globe className="h-4 w-4" />
                   </div>
                   <a 
                     href={selectedOrganization.facebookPage.startsWith('http') ? selectedOrganization.facebookPage : `https://${selectedOrganization.facebookPage}`} 
@@ -468,7 +464,7 @@ export default function PublicOrganizationsPage() {
                     className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors flex items-center gap-2"
                   >
                     Facebook
-                    <ExternalLink className="h-3 w-3" />
+
                   </a>
                 </div>
               )}
@@ -484,7 +480,7 @@ export default function PublicOrganizationsPage() {
                     className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors flex items-center gap-2"
                   >
                     LinkedIn
-                    <ExternalLink className="h-3 w-3" />
+
                   </a>
                 </div>
               )}
@@ -492,20 +488,7 @@ export default function PublicOrganizationsPage() {
           </Card>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-0 shadow-md hover:shadow-lg transition-all">
-            <Heart className="h-4 w-4 mr-2" />
-            Theo dõi
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex-1 border-2 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 dark:hover:from-violet-950/50 dark:hover:to-purple-950/50 hover:border-violet-300 dark:hover:border-violet-700 transition-all"
-          >
-            <Target className="h-4 w-4 mr-2" />
-            Tham gia hoạt động
-          </Button>
-        </div>
+
       </div>
     );
   };

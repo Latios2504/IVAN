@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar, Users, MapPin, Search, Clock, Building2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { CombinedLayout } from "@/components/public/CombinedLayout";
 import { EventListItem } from "@/components/public/EventListItem";
 import { eventsService } from "@/services/eventsService";
@@ -17,9 +18,6 @@ import { Button } from "@/components/ui/button";
 import {
   Heart,
   Target,
-  Share2,
-  Bookmark,
-  ExternalLink,
   Zap,
 } from "lucide-react";
 
@@ -96,6 +94,7 @@ const mapEventToListItem = (event: EventDto) => {
 export default function PublicEventsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, hasRole } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
@@ -642,33 +641,23 @@ export default function PublicEventsPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button 
-            className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300" 
-            disabled={eventStatus === 'closed' || eventStatus === 'full'}
-            onClick={() => {
-              if (eventStatus !== 'closed' && eventStatus !== 'full' && selectedEvent) {
-                navigate(`/volunteer/events/${selectedEvent.eventId}/register`);
-              }
-            }}
-          >
-            <Heart className="h-4 w-4 mr-2" />
-            {eventStatus === 'closed' ? 'Đã đóng' : 
-             eventStatus === 'full' ? 'Đã đủ người' : 'Đăng ký tham gia'}
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
-          >
-            <Bookmark className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-        </div>
+        {hasRole('volunteer') && (
+          <div className="flex gap-3">
+            <Button 
+              className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300" 
+              disabled={eventStatus === 'closed' || eventStatus === 'full'}
+              onClick={() => {
+                if (eventStatus !== 'closed' && eventStatus !== 'full' && selectedEvent) {
+                  navigate(`/volunteer/events/${selectedEvent.eventId}/register`);
+                }
+              }}
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              {eventStatus === 'closed' ? 'Đã đóng' : 
+               eventStatus === 'full' ? 'Đã đủ người' : 'Đăng ký tham gia'}
+            </Button>
+          </div>
+        )}
       </div>
     );
   };

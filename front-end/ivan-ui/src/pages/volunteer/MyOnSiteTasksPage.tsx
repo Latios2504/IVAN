@@ -20,12 +20,13 @@ import { toast } from "sonner";
 import { onSiteTaskService } from "@/services/onSiteTaskService";
 import type {
   OnSiteTaskDto,
+  MyTaskAssignmentDto,
 } from "@/types/onSiteTask";
 import type { PagedResultDto } from "@/types/common";
 import TaskList from "@/components/volunteer/onsite-task/TaskList";
 
 const MyOnSiteTasksPage: React.FC = () => {
-  const [tasks, setTasks] = useState<OnSiteTaskDto[]>([]);
+  const [tasks, setTasks] = useState<MyTaskAssignmentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,13 +42,16 @@ const MyOnSiteTasksPage: React.FC = () => {
     try {
       setLoading(page === 1);
       setRefreshing(page !== 1);
-      const result: PagedResultDto<OnSiteTaskDto> = await onSiteTaskService.getOnSiteTasks(
-        page,
-        pageSize
-      );
-      setTasks(result.items);
-      setTotalPages(Math.ceil(result.totalCount / pageSize));
-      setTotalTasks(result.totalCount);
+      const result: MyTaskAssignmentDto[] = await onSiteTaskService.getMyTaskAssignments();
+      
+      // Handle pagination manually since API returns all assignments
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedTasks = result.slice(startIndex, endIndex);
+      
+      setTasks(paginatedTasks);
+      setTotalPages(Math.ceil(result.length / pageSize));
+      setTotalTasks(result.length);
       setCurrentPage(page);
     } catch (error) {
       toast.error("Không thể tải danh sách nhiệm vụ của bạn");
@@ -59,11 +63,7 @@ const MyOnSiteTasksPage: React.FC = () => {
 
   const handleStartTask = async (taskId: number) => {
     try {
-      const task = await onSiteTaskService.getOnSiteTaskById(taskId);
-      await onSiteTaskService.updateOnSiteTask(taskId, {
-        ...task,
-        statusId: 2 // Status: In Progress
-      });
+      await onSiteTaskService.startTask(taskId);
       toast.success("Bắt đầu nhiệm vụ thành công");
       await loadMyTasks(currentPage);
     } catch (error) {
@@ -73,13 +73,7 @@ const MyOnSiteTasksPage: React.FC = () => {
 
   const handleCompleteTask = async (taskId: number, actualHours?: number, notes?: string) => {
     try {
-      const task = await onSiteTaskService.getOnSiteTaskById(taskId);
-      await onSiteTaskService.updateOnSiteTask(taskId, {
-        ...task,
-        statusId: 3, // Status: Completed
-        actualHours: actualHours,
-        notes: notes || task.notes
-      });
+      await onSiteTaskService.completeTask(taskId, actualHours, notes);
       toast.success("Hoàn thành nhiệm vụ thành công");
       await loadMyTasks(currentPage);
     } catch (error) {
@@ -96,7 +90,7 @@ const MyOnSiteTasksPage: React.FC = () => {
     const pending = tasks.filter(t => t.statusId === 1).length;
     const inProgress = tasks.filter(t => t.statusId === 2).length;
     const completed = tasks.filter(t => t.statusId === 3).length;
-    const overdue = tasks.filter(t => t.statusId !== 3 && new Date(t.endTime || '') < new Date()).length;
+    const overdue = tasks.filter(t => t.statusId !== 3 && new Date(t.endTime) < new Date()).length;
     
     return { total, pending, inProgress, completed, overdue };
   };

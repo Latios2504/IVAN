@@ -664,8 +664,8 @@ namespace ivan_api.Controllers
 
                 var volunteerId = userInfo.VolunteerId.Value;
                 
-                // Lấy danh sách task assignments cho volunteer này
-                var assignments = await _taskAssignmentService.GetTaskAssignmentsByVolunteerId(volunteerId, eventId);
+                // Lấy danh sách task assignments cho volunteer này với đầy đủ thông tin task
+                var assignments = await _taskAssignmentService.GetMyTaskAssignmentsByVolunteerId(volunteerId, eventId);
                 
                 return Ok(new ApiResponseDTO<object>
                 {

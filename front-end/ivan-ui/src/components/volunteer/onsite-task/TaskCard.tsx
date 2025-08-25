@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TaskStatusBadge from "./TaskStatusBadge";
-import type { OnSiteTaskDto } from "@/types/onSiteTask";
+import type { OnSiteTaskDto, MyTaskAssignmentDto } from "@/types/onSiteTask";
 
 interface TaskCardProps {
-  task: OnSiteTaskDto;
-  onViewDetails: (task: OnSiteTaskDto) => void;
+  task: MyTaskAssignmentDto;
+  onViewDetails: (task: MyTaskAssignmentDto) => void;
   onStartTask?: (taskId: number) => void;
   onCompleteTask?: (taskId: number, actualHours?: number, notes?: string) => void;
   showActions?: boolean;
@@ -36,11 +36,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onCompleteTask,
   showActions = true,
 }) => {
-  const canStartTask = (task: OnSiteTaskDto) => {
+  const canStartTask = (task: MyTaskAssignmentDto) => {
     return task.statusId === 1; // Pending
   };
 
-  const canCompleteTask = (task: OnSiteTaskDto) => {
+  const canCompleteTask = (task: MyTaskAssignmentDto) => {
     return task.statusId === 2; // In Progress
   };
 
@@ -103,7 +103,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               {task.taskName}
             </CardTitle>
             <CardDescription className="line-clamp-2 text-orange-600 dark:text-orange-400 mt-1">
-              {task.description || "Không có mô tả"}
+              {task.taskDescription || "Không có mô tả"}
             </CardDescription>
           </div>
           {isOverdue(task.endTime) && (
@@ -112,8 +112,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
           <TaskStatusBadge statusId={task.statusId} size="sm" />
-          {task.priority && getPriorityBadge(task.priority)}
-          {task.difficulty && getDifficultyBadge(task.difficulty)}
+          {task.priorityName && getPriorityBadge(task.priorityName)}
         </div>
       </CardHeader>
       <CardContent className="space-y-3 bg-gradient-to-r from-orange-50/30 to-amber-50/30 dark:from-orange-950/20 dark:to-amber-950/20">
@@ -126,21 +125,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </span>
           </div>
           
-          {task.location && (
+          {task.locationName && (
             <div className="flex items-center text-muted-foreground">
               <MapPin className="mr-2 h-4 w-4 text-orange-500" />
               <span className="font-medium">Địa điểm:</span>
-              <span className="ml-1 line-clamp-1">{task.location}</span>
+              <span className="ml-1 line-clamp-1">{task.locationName}</span>
             </div>
           )}
           
-          <div className="flex items-center text-muted-foreground">
-            <Users className="mr-2 h-4 w-4 text-orange-500" />
-            <span className="font-medium">Tình nguyện viên:</span>
-            <span className="ml-1">
-              {task.assignedVolunteers || 0} / {task.requiredVolunteers || 0}
-            </span>
-          </div>
+          {task.eventName && (
+            <div className="flex items-center text-muted-foreground">
+              <Calendar className="mr-2 h-4 w-4 text-orange-500" />
+              <span className="font-medium">Sự kiện:</span>
+              <span className="ml-1 line-clamp-1">{task.eventName}</span>
+            </div>
+          )}
           
           {task.estimatedHours && (
             <div className="flex items-center text-muted-foreground">

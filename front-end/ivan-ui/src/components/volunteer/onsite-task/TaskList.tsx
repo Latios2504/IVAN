@@ -13,10 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import TaskCard from "./TaskCard";
 import TaskDetailModal from "./TaskDetailModal";
-import type { OnSiteTaskDto } from "@/types/onSiteTask";
+import type { OnSiteTaskDto, MyTaskAssignmentDto } from "@/types/onSiteTask";
 
 interface TaskListProps {
-  tasks: OnSiteTaskDto[];
+  tasks: MyTaskAssignmentDto[];
   loading?: boolean;
   error?: string | null;
   onRefresh?: () => void;
@@ -36,7 +36,7 @@ const TaskList: React.FC<TaskListProps> = ({
   showFilters = true,
   showStats = true,
 }) => {
-  const [selectedTask, setSelectedTask] = useState<OnSiteTaskDto | null>(null);
+  const [selectedTask, setSelectedTask] = useState<MyTaskAssignmentDto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -46,7 +46,7 @@ const TaskList: React.FC<TaskListProps> = ({
     const matchesSearch = task.taskName
       .toLowerCase()
       .includes(searchTerm.toLowerCase()) ||
-      (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+      (task.taskDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     
     const matchesStatus = statusFilter === "all" || 
       (statusFilter === "pending" && task.statusId === 1) ||
@@ -68,7 +68,7 @@ const TaskList: React.FC<TaskListProps> = ({
     }).length,
   };
 
-  const handleViewTask = (task: OnSiteTaskDto) => {
+  const handleViewTask = (task: MyTaskAssignmentDto) => {
     setSelectedTask(task);
     setIsDetailModalOpen(true);
   };

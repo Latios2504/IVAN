@@ -9,6 +9,7 @@ import type {
   OnSiteTaskStatsDto,
   OnSiteTaskValidationResult,
   TaskStatus,
+  MyTaskAssignmentDto,
 } from "../types/onSiteTask";
 import {
   DEFAULT_ONSITE_TASK_FILTER,
@@ -191,6 +192,51 @@ class OnSiteTaskService {
     const params = eventId ? `?eventId=${eventId}` : '';
     const response = await apiClient.get<any[]>(`${this.baseUrl}/my-tasks${params}`);
     return response.data || [];
+  }
+
+  // GET /api/OnSiteTask/my-tasks - Get task assignments for current volunteer with full task details
+  async getMyTaskAssignments(eventId?: number): Promise<MyTaskAssignmentDto[]> {
+    const params = eventId ? `?eventId=${eventId}` : '';
+    const response = await apiClient.get<MyTaskAssignmentDto[]>(`${this.baseUrl}/my-tasks${params}`);
+    return response.data || [];
+  }
+
+  // PUT /api/OnSiteTask/{taskId}/start - Start task for current volunteer
+  async startTask(taskId: number): Promise<any> {
+    try {
+      const response = await apiClient.put(`${this.baseUrl}/${taskId}/start`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error starting task:', error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${taskId} not found`);
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. You are not assigned to this task.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to start task');
+    }
+  }
+
+  // PUT /api/OnSiteTask/{taskId}/complete - Complete task for current volunteer
+  async completeTask(taskId: number, actualHours?: number, notes?: string): Promise<any> {
+    try {
+      const payload: any = {};
+      if (actualHours !== undefined) payload.actualHours = actualHours;
+      if (notes) payload.notes = notes;
+      
+      const response = await apiClient.put(`${this.baseUrl}/${taskId}/complete`, payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error completing task:', error);
+      if (error.response?.status === 404) {
+        throw new Error(`Task with ID ${taskId} not found`);
+      }
+      if (error.response?.status === 403) {
+        throw new Error('Access denied. You are not assigned to this task.');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to complete task');
+    }
   }
 
   // === FILTERING AND SEARCH ===

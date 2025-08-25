@@ -172,15 +172,8 @@ export default function CoordinatorProfilePage() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-indigo-200 dark:border-indigo-800/50">
+          <TabsList className="grid w-full grid-cols-1 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-indigo-200 dark:border-indigo-800/50">
             <TabsTrigger value="info" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Thông tin</TabsTrigger>
-            <TabsTrigger value="tasks" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Nhiệm vụ</TabsTrigger>
-            <TabsTrigger value="schedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Lịch trình</TabsTrigger>
-            <TabsTrigger value="performance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Hiệu suất</TabsTrigger>
-            <TabsTrigger value="team" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Nhóm</TabsTrigger>
-            {isCurrentUser && (
-              <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-800/50 dark:hover:to-purple-800/50 transition-all duration-300">Cài đặt</TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="info" className="space-y-6">
@@ -333,102 +326,7 @@ export default function CoordinatorProfilePage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="tasks" className="space-y-6">
-            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                  <ClipboardList className="w-5 h-5" />
-                  Quản lý nhiệm vụ
-                </CardTitle>
-                <CardDescription className="text-indigo-600 dark:text-indigo-400">
-                  Danh sách và trạng thái các nhiệm vụ được giao
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="schedule" className="space-y-6">
-            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                  <Calendar className="w-5 h-5" />
-                  Lịch trình làm việc
-                </CardTitle>
-                <CardDescription className="text-indigo-600 dark:text-indigo-400">
-                  Quản lý lịch trình và ca làm việc
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="performance" className="space-y-6">
-            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                  <BarChart3 className="w-5 h-5" />
-                  Báo cáo hiệu suất
-                </CardTitle>
-                <CardDescription className="text-indigo-600 dark:text-indigo-400">
-                  Phân tích và đánh giá hiệu suất làm việc
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-6">
-            <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-              <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-                <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                  <Users className="w-5 h-5" />
-                  Quản lý nhóm
-                </CardTitle>
-                <CardDescription className="text-indigo-600 dark:text-indigo-400">
-                  Thông tin về nhóm tình nguyện viên được quản lý
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Tính năng đang được phát triển...
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {isCurrentUser && (
-            <TabsContent value="settings" className="space-y-6">
-              <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-                <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-                  <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
-                    <Settings className="w-5 h-5" />
-                    Cài đặt tài khoản
-                  </CardTitle>
-                  <CardDescription className="text-indigo-600 dark:text-indigo-400">
-                    Cấu hình cá nhân và thông báo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    Tính năng đang được phát triển...
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
         </Tabs>
       </div>
     </div>

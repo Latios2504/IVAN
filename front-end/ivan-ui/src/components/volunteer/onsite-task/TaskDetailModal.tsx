@@ -27,10 +27,10 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import TaskStatusBadge from "./TaskStatusBadge";
-import type { OnSiteTaskDto } from "@/types/onSiteTask";
+import type { OnSiteTaskDto, MyTaskAssignmentDto } from "@/types/onSiteTask";
 
 interface TaskDetailModalProps {
-  task: OnSiteTaskDto | null;
+  task: MyTaskAssignmentDto | null;
   isOpen: boolean;
   onClose: () => void;
   onStartTask?: (taskId: number) => void;
@@ -52,11 +52,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   if (!task) return null;
 
-  const canStartTask = (task: OnSiteTaskDto) => {
+  const canStartTask = (task: MyTaskAssignmentDto) => {
     return task.statusId === 1; // Pending
   };
 
-  const canCompleteTask = (task: OnSiteTaskDto) => {
+  const canCompleteTask = (task: MyTaskAssignmentDto) => {
     return task.statusId === 2; // In Progress
   };
 
@@ -146,7 +146,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           
           <div className="flex flex-wrap gap-2 mt-4">
             <TaskStatusBadge statusId={task.statusId} />
-            {task.priority && getPriorityBadge(task.priority)}
+            {task.priorityName && getPriorityBadge(task.priorityName)}
             {task.difficulty && getDifficultyBadge(task.difficulty)}
           </div>
         </DialogHeader>
@@ -171,12 +171,12 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 </div>
               </div>
               
-              {task.location && (
+              {task.locationName && (
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-orange-500" />
                   <div>
                     <p className="font-medium text-sm text-muted-foreground">Địa điểm</p>
-                    <p className="text-sm">{task.location}</p>
+                    <p className="text-sm">{task.locationName}</p>
                   </div>
                 </div>
               )}
@@ -218,14 +218,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           <Separator />
 
           {/* Description */}
-          {task.description && (
+          {(task.taskDescription || task.description) && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-orange-500" />
                 <h3 className="font-semibold">Mô tả nhiệm vụ</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {task.description}
+                {task.taskDescription || task.description}
               </p>
             </div>
           )}
@@ -287,14 +287,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           </div>
 
           {/* Notes */}
-          {task.notes && (
+          {(task.taskNotes || task.notes) && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <StickyNote className="w-5 h-5 text-yellow-500" />
                 <h3 className="font-semibold">Ghi chú</h3>
               </div>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {task.notes}
+                {task.taskNotes || task.notes}
               </p>
             </div>
           )}

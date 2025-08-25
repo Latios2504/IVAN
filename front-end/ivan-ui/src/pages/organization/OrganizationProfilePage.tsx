@@ -268,8 +268,6 @@ export default function OrganizationProfilePage() {
         <TabsList className="bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/80 border border-blue-200/30 dark:border-blue-800/30 shadow-lg">
           <TabsTrigger value="info" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/50 dark:hover:to-purple-900/50">Thông tin tổ chức</TabsTrigger>
           <TabsTrigger value="contact" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-blue-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-green-50 hover:to-blue-50 dark:hover:from-green-900/50 dark:hover:to-blue-900/50">Liên hệ</TabsTrigger>
-          <TabsTrigger value="activities" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50">Hoạt động</TabsTrigger>
-          {isCurrentUser && <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-orange-900/50 dark:hover:to-red-900/50">Cài đặt</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
@@ -460,60 +458,7 @@ export default function OrganizationProfilePage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="activities" className="space-y-6">
-          <Card className="bg-gradient-to-br from-white/80 to-amber-50/80 dark:from-gray-800/80 dark:to-amber-900/80 border border-amber-200/50 dark:border-amber-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
-            <CardHeader className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-950/50 dark:to-orange-950/50 border-b border-amber-200/30 dark:border-amber-800/30">
-              <CardTitle className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">Hoạt động tổ chức</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-300">
-                Các sự kiện và hoạt động đã tổ chức
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="text-center py-8 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-900/50 dark:to-orange-900/50 rounded-lg border border-amber-200/30 dark:border-amber-800/30">
-                <Award className="w-12 h-12 text-amber-400 dark:text-amber-500 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-300">Chưa có hoạt động nào</p>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/organization/events")}
-                  className="mt-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white border-none"
-                >
-                  Tạo sự kiện mới
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {isCurrentUser && (
-          <TabsContent value="settings" className="space-y-6">
-            <Card className="bg-gradient-to-br from-white/80 to-red-50/80 dark:from-gray-800/80 dark:to-red-900/80 border border-red-200/50 dark:border-red-800/50 shadow-lg hover:shadow-xl transition-all duration-200">
-              <CardHeader className="bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-950/50 dark:to-pink-950/50 border-b border-red-200/30 dark:border-red-800/30">
-                <CardTitle className="bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">Cài đặt tài khoản</CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Quản lý tài khoản và cài đặt tổ chức
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Thay đổi mật khẩu
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Cài đặt quyền riêng tư
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Cài đặt thông báo
-                </Button>
-                <Button variant="outline" className="w-full justify-start bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/50 border-red-200 dark:border-red-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-300">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Quản lý chứng nhận
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
       </Tabs>
 
       {/* Edit Profile Modal */}
