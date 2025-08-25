@@ -1,10 +1,11 @@
-using ivan_api.Constants;
+﻿using ivan_api.Constants;
 using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.CoordinatorTaskServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ivan_api.Services.AuthenticationSer;
 
 namespace ivan_api.Controllers
 {
@@ -13,10 +14,12 @@ namespace ivan_api.Controllers
     public class CoordinatorTaskController : ControllerBase
     {
         private readonly ICoordinatorTaskService _service;
+        private readonly IAuthenticationService _auth; // NEW
 
-        public CoordinatorTaskController(ICoordinatorTaskService service)
+        public CoordinatorTaskController(ICoordinatorTaskService service, IAuthenticationService auth)
         {
             _service = service;
+            _auth = auth; // NEW
         }
 
         /// Get all coordinator tasks (Organization and Coordinator can view)
@@ -210,6 +213,127 @@ namespace ivan_api.Controllers
         private int GetUserId()
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        }
+
+        // NEW: Organization xem task thuộc tổ chức mình (có phân trang + filter)
+        [HttpGet("organization")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>>> ListForOrganization(
+            [FromQuery] int? coordinatorId,
+            [FromQuery] int? eventId,
+            [FromQuery] string? status,
+            [FromQuery] string? priority,
+            [FromQuery] DateTime? dueFrom,
+            [FromQuery] DateTime? dueTo,
+            [FromQuery] string? search,
+            [FromQuery] string? sortBy = "DueDate",
+            [FromQuery] string? sortDirection = "desc",
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            var userInfo = await _auth.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.OrganizationId == null)
+            {
+                return BadRequest(new ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>
+                {
+                    Success = false,
+                    Message = "Organization not found for this user"
+                });
+            }
+
+            var filter = new CoordinatorTaskFilterDto
+            {
+                CoordinatorId = coordinatorId,
+                EventId = eventId,
+                Status = status,
+                Priority = priority,
+                DueFrom = dueFrom,
+                DueTo = dueTo,
+                Search = search,
+                SortBy = sortBy,
+                SortDirection = sortDirection,
+                PageNumber = page,
+                PageSize = size
+            };
+
+            var result = await _service.GetOrgTasksPagedAsync(userInfo.OrganizationId.Value, filter);
+
+            return Ok(new ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>
+            {
+                Success = true,
+                Message = "Organization tasks retrieved successfully",
+                Data = result
+            });
+        }
+
+        // NEW: Volunteer Coordinator xem task cá nhân của mình
+        [HttpGet("personal")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
+        public async Task<ActionResult<ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>>> ListForCoordinator(
+            [FromQuery] int? eventId,
+            [FromQuery] string? status,
+            [FromQuery] string? priority,
+            [FromQuery] DateTime? dueFrom,
+            [FromQuery] DateTime? dueTo,
+            [FromQuery] string? search,
+            [FromQuery] string? sortBy = "DueDate",
+            [FromQuery] string? sortDirection = "desc",
+            [FromQuery] int page = 1,
+            [FromQuery] int size = 20)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out var userId))
+            {
+                return Unauthorized(new ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>
+                {
+                    Success = false,
+                    Message = "User not authenticated or missing user ID claim"
+                });
+            }
+
+            // Lấy CoordinatorId từ profile
+            var userInfo = await _auth.GetUserInfoWithProfileAsync(userId);
+            if (userInfo?.CoordinatorId == null)
+            {
+                return BadRequest(new ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>
+                {
+                    Success = false,
+                    Message = "Coordinator not found for this user"
+                });
+            }
+
+            var filter = new CoordinatorTaskFilterDto
+            {
+                EventId = eventId,
+                Status = status,
+                Priority = priority,
+                DueFrom = dueFrom,
+                DueTo = dueTo,
+                Search = search,
+                SortBy = sortBy,
+                SortDirection = sortDirection,
+                PageNumber = page,
+                PageSize = size
+            };
+
+            var result = await _service.GetPersonalTasksPagedAsync(userInfo.CoordinatorId.Value, filter);
+
+            return Ok(new ApiResponseDTO<PagedResultDto<CoordinatorTaskDto>>
+            {
+                Success = true,
+                Message = "Coordinator tasks retrieved successfully",
+                Data = result
+            });
         }
     }
 }
