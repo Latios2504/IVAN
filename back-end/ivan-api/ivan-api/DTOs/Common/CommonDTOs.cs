@@ -49,5 +49,25 @@ public class ApiResponseDTO<T>
             Message = message
         };
     }
+
+    public static ApiResponseDTO<T> NotFound(string message) => new()
+    {
+        Success = false,
+        Message = message
+    };
+
+    public static ApiResponseDTO<T> BadRequest(string message, List<string>? errors = null) => new()
+    {
+        Success = false,
+        Message = message,
+        Errors = errors
+    };
+
+    public static ApiResponseDTO<T> Error(string message, List<string>? errors = null) => new()
+    {
+        Success = false,
+        Message = message,
+        Errors = errors
+    };
 }
 

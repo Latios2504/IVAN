@@ -9,19 +9,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { onSiteTaskService } from "@/services/onSiteTaskService";
-import type {
-  OnSiteTaskDto,
-  MyTaskAssignmentDto,
-} from "@/types/onSiteTask";
+import type { OnSiteTaskDto, MyTaskAssignmentDto } from "@/types/onSiteTask";
 import type { PagedResultDto } from "@/types/common";
 import TaskList from "@/components/volunteer/onsite-task/TaskList";
 
@@ -42,13 +34,14 @@ const MyOnSiteTasksPage: React.FC = () => {
     try {
       setLoading(page === 1);
       setRefreshing(page !== 1);
-      const result: MyTaskAssignmentDto[] = await onSiteTaskService.getMyTaskAssignments();
-      
+      const result: MyTaskAssignmentDto[] =
+        await onSiteTaskService.getMyTaskAssignments();
+
       // Handle pagination manually since API returns all assignments
       const startIndex = (page - 1) * pageSize;
       const endIndex = startIndex + pageSize;
       const paginatedTasks = result.slice(startIndex, endIndex);
-      
+
       setTasks(paginatedTasks);
       setTotalPages(Math.ceil(result.length / pageSize));
       setTotalTasks(result.length);
@@ -71,7 +64,11 @@ const MyOnSiteTasksPage: React.FC = () => {
     }
   };
 
-  const handleCompleteTask = async (taskId: number, actualHours?: number, notes?: string) => {
+  const handleCompleteTask = async (
+    taskId: number,
+    actualHours?: number,
+    notes?: string
+  ) => {
     try {
       await onSiteTaskService.completeTask(taskId, actualHours, notes);
       toast.success("Hoàn thành nhiệm vụ thành công");
@@ -87,11 +84,13 @@ const MyOnSiteTasksPage: React.FC = () => {
 
   const getTaskStats = () => {
     const total = totalTasks;
-    const pending = tasks.filter(t => t.statusId === 1).length;
-    const inProgress = tasks.filter(t => t.statusId === 2).length;
-    const completed = tasks.filter(t => t.statusId === 3).length;
-    const overdue = tasks.filter(t => t.statusId !== 3 && new Date(t.endTime) < new Date()).length;
-    
+    const pending = tasks.filter((t) => t.statusId === 1).length;
+    const inProgress = tasks.filter((t) => t.statusId === 2).length;
+    const completed = tasks.filter((t) => t.statusId === 3).length;
+    const overdue = tasks.filter(
+      (t) => t.statusId !== 3 && new Date(t.endTime) < new Date()
+    ).length;
+
     return { total, pending, inProgress, completed, overdue };
   };
 
@@ -108,7 +107,11 @@ const MyOnSiteTasksPage: React.FC = () => {
           </p>
         </div>
         <Button onClick={handleRefresh} disabled={loading || refreshing}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${(loading || refreshing) ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`w-4 h-4 mr-2 ${
+              loading || refreshing ? "animate-spin" : ""
+            }`}
+          />
           Refresh
         </Button>
       </div>
@@ -126,49 +129,57 @@ const MyOnSiteTasksPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-gray-600">{stats.pending}</p>
+                <p className="text-2xl font-bold text-gray-600">
+                  {stats.pending}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-gray-500" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">In Progress</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.inProgress}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.completed}
+                </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Overdue</p>
-                <p className="text-2xl font-bold text-red-600">{stats.overdue}</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.overdue}
+                </p>
               </div>
               <AlertCircle className="w-8 h-8 text-red-500" />
             </div>

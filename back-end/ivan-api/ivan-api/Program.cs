@@ -57,6 +57,8 @@ using ivan_api.Services.ExportService;
 using ivan_api.Repository.TaskAssignments;
 using ivan_api.Services.TaskAssignments;
 using ivan_api.Services.CoordinatorRequestServ;
+using ivan_api.Repository.AdminProfileRepo;
+using ivan_api.Services.AdminProfileServ;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -167,6 +169,10 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.DisableConstructorMapping();
     cfg.ShouldMapMethod = (method) => false; // Disable method mapping to avoid MaxFloat
 }, typeof(Program).Assembly);
+
+// Admin Profile DI
+builder.Services.AddScoped<IAdminProfileRepository, AdminProfileRepository>();
+builder.Services.AddScoped<IAdminProfileService, AdminProfileService>();
 
 // Volunteer Profile DI
 builder.Services.AddScoped<IVolunteerProfileRepository, VolunteerProfileRepository>();

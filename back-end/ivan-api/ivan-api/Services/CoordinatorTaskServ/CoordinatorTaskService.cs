@@ -1,4 +1,5 @@
-﻿using ivan_api.DTOs.CoordinatorTask;
+﻿using ivan_api.DTOs.Common;
+using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.Models;
 using ivan_api.Repository.CoordinatorTaskRepo;
 
@@ -7,10 +8,12 @@ namespace ivan_api.Services.CoordinatorTaskServ
     public class CoordinatorTaskService : ICoordinatorTaskService
     {
         private readonly ICoordinatorTaskRepository _repository;
+        private readonly VolunteerManagementSystemContext _context;
 
-        public CoordinatorTaskService(ICoordinatorTaskRepository repository)
+        public CoordinatorTaskService(ICoordinatorTaskRepository repository, VolunteerManagementSystemContext context)
         {
             _repository = repository;
+            _context = context;
         }
 
         public async Task<IEnumerable<CoordinatorTaskDto>> GetAllTasksAsync()
@@ -149,5 +152,55 @@ namespace ivan_api.Services.CoordinatorTaskServ
                 UpdatedAt = existingTask.UpdatedAt
             };
         }
+
+        public async Task<PagedResultDto<CoordinatorTaskDto>> GetOrgTasksPagedAsync(int organizationId, CoordinatorTaskFilterDto filter)
+        {
+            var page = await _repository.GetOrgTasksAsync(organizationId, filter);
+            return new PagedResultDto<CoordinatorTaskDto>
+            {
+                Items = page.Items.Select(MapToDto),
+                TotalCount = page.TotalCount,
+                PageNumber = page.PageNumber,
+                PageSize = page.PageSize
+            };
+        }
+
+        public async Task<PagedResultDto<CoordinatorTaskDto>> GetPersonalTasksPagedAsync(int coordinatorId, CoordinatorTaskFilterDto filter)
+        {
+            var page = await _repository.GetPersonalTasksAsync(coordinatorId, filter);
+            return new PagedResultDto<CoordinatorTaskDto>
+            {
+                Items = page.Items.Select(MapToDto),
+                TotalCount = page.TotalCount,
+                PageNumber = page.PageNumber,
+                PageSize = page.PageSize
+            };
+        }
+
+        public async Task<CoordinatorTaskDto?> GetTaskByIdForOrgAsync(int organizationId, int taskId)
+        {
+            var task = await _repository.GetByIdAndOrganizationAsync(taskId, organizationId);
+            return task == null ? null : MapToDto(task);
+        }
+
+        private static CoordinatorTaskDto MapToDto(CoordinatorTask x) => new CoordinatorTaskDto
+        {
+            TaskId = x.TaskId,
+            EventId = x.EventId,
+            CoordinatorId = x.CoordinatorId,
+            TaskName = x.TaskName,
+            Description = x.Description,
+            DueDate = x.DueDate,
+            Priority = x.Priority,
+            Status = x.Status,
+            Category = x.Category,
+            EstimatedHours = x.EstimatedHours,
+            ActualHours = x.ActualHours,
+            CompletedAt = x.CompletedAt,
+            Notes = x.Notes,
+            CreatedBy = x.CreatedBy,
+            CreatedAt = x.CreatedAt,
+            UpdatedAt = x.UpdatedAt
+        };
     }
 }
