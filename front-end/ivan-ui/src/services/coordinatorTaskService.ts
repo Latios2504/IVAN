@@ -402,8 +402,17 @@ class CoordinatorTaskService {
   ): Promise<CoordinatorTaskDto> {
     const task = await this.getTaskById(taskId);
     const updateDto: UpdateCoordinatorTaskDto = {
-      ...task,
+      eventId: task.eventId,
+      coordinatorId: task.coordinatorId,
+      taskName: task.taskName,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: task.priority,
       status,
+      category: task.category,
+      estimatedHours: task.estimatedHours,
+      actualHours: task.actualHours,
+      notes: task.notes,
       // Set completion date if marking as completed
       completedAt:
         status === TASK_STATUS.COMPLETED
@@ -421,10 +430,18 @@ class CoordinatorTaskService {
   ): Promise<CoordinatorTaskDto> {
     const task = await this.getTaskById(taskId);
     const updateDto: UpdateCoordinatorTaskDto = {
-      ...task,
+      eventId: task.eventId,
+      coordinatorId: task.coordinatorId,
+      taskName: task.taskName,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: task.priority,
       status: TASK_STATUS.COMPLETED,
-      completedAt: new Date().toISOString(),
+      category: task.category,
+      estimatedHours: task.estimatedHours,
       actualHours: actualHours ?? task.actualHours,
+      completedAt: new Date().toISOString(),
+      notes: task.notes,
     };
 
     return this.updateTask(taskId, updateDto);

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useModal, useModalWithData } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { coordinatorScheduleService } from "@/services/coordinatorScheduleService";
 import type {
@@ -22,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -31,14 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import {
   Table,
   TableBody,
@@ -61,21 +53,11 @@ import {
   Download,
   Loader2,
 } from "lucide-react";
+import AddScheduleModal from "@/components/organization/coordinator-schedule-management/AddScheduleModal";
+import EditScheduleModal from "@/components/organization/coordinator-schedule-management/EditScheduleModal";
+import ViewScheduleModal from "@/components/organization/coordinator-schedule-management/ViewScheduleModal";
 
-interface ScheduleFormData {
-  coordinatorId: number;
-  eventId?: number;
-  title: string;
-  description?: string;
-  startDateTime: string;
-  endDateTime: string;
-  location?: string;
-  scheduleType: "Meeting" | "Event" | "Training" | "Other";
-  priority: "Low" | "Medium" | "High";
-  isAllDay: boolean;
-  reminderMinutes: number;
-  notes?: string;
-}
+
 
 export default function CoordinatorSchedulePage() {
   // Auth hook
@@ -97,23 +79,12 @@ export default function CoordinatorSchedulePage() {
   const pageSize = 20;
 
   // Modal hooks for managing dialog states
-  const createDialog = useModal();
-  const viewModal = useModalWithData<CoordinatorScheduleDto>();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<CoordinatorScheduleDto | null>(null);
 
-  const [formData, setFormData] = useState<ScheduleFormData>({
-    coordinatorId: 0,
-    eventId: undefined,
-    title: "",
-    description: "",
-    startDateTime: "",
-    endDateTime: "",
-    location: "",
-    scheduleType: "Event",
-    priority: "Medium",
-    isAllDay: false,
-    reminderMinutes: 60,
-    notes: "",
-  });
+
 
   // Load schedules from API
   const loadSchedules = async () => {
@@ -260,51 +231,32 @@ export default function CoordinatorSchedulePage() {
     );
   };
 
-  const handleCreateSchedule = async () => {
-    try {
-      setLoading(true);
-      const scheduleData = {
-        coordinatorId: formData.coordinatorId,
-        eventId: formData.eventId,
-        title: formData.title,
-        description: formData.description,
-        startDateTime: formData.startDateTime,
-        endDateTime: formData.endDateTime,
-        location: formData.location,
-        scheduleType: formData.scheduleType,
-        priority: formData.priority,
-        isAllDay: formData.isAllDay,
-        reminderMinutes: formData.reminderMinutes,
-        notes: formData.notes,
-      };
-
-      await coordinatorScheduleService.createSchedule(scheduleData);
-      toast.success("Schedule created successfully");
-      createDialog.close();
-      loadSchedules(); // Refresh the list
-
-      // Reset form
-      setFormData({
-        coordinatorId: 0,
-        eventId: undefined,
-        title: "",
-        description: "",
-        startDateTime: "",
-        endDateTime: "",
-        location: "",
-        scheduleType: "Event",
-        priority: "Medium",
-        isAllDay: false,
-        reminderMinutes: 60,
-        notes: "",
-      });
-    } catch (error) {
-      console.error("Error creating schedule:", error);
-      toast.error("Failed to create schedule");
-    } finally {
-      setLoading(false);
-    }
+  // Modal handlers
+  const handleAddSchedule = () => {
+    setIsAddModalOpen(true);
   };
+
+  const handleEditSchedule = (schedule: CoordinatorScheduleDto) => {
+    setSelectedSchedule(schedule);
+    setIsEditModalOpen(true);
+  };
+
+  const handleViewSchedule = (schedule: CoordinatorScheduleDto) => {
+    setSelectedSchedule(schedule);
+    setIsViewModalOpen(true);
+  };
+
+  const handleModalSuccess = () => {
+    loadSchedules(); // Refresh the list
+  };
+
+  const handleCloseModals = () => {
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsViewModalOpen(false);
+    setSelectedSchedule(null);
+  };
+
 
   const handleDeleteSchedule = async (scheduleId: number) => {
     if (!confirm("Are you sure you want to delete this schedule?")) return;
@@ -322,9 +274,7 @@ export default function CoordinatorSchedulePage() {
     }
   };
 
-  const handleViewSchedule = (schedule: CoordinatorScheduleDto) => {
-    viewModal.openWith(schedule);
-  };
+
 
   const filteredSchedules = schedules.filter((schedule) => {
     const matchesSearch =
@@ -351,7 +301,7 @@ export default function CoordinatorSchedulePage() {
             Tạo và quản lý lịch trình cho các điều phối viên tình nguyện
           </p>
         </div>
-        <Button onClick={createDialog.open} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+        <Button onClick={handleAddSchedule} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
           <Plus className="h-4 w-4" />
           Tạo lịch trình mới
         </Button>
@@ -461,6 +411,14 @@ export default function CoordinatorSchedulePage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEditSchedule(schedule)}
+                              className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950/30 dark:hover:to-emerald-950/30 border border-transparent hover:border-green-200 dark:hover:border-green-800 transition-all duration-200"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() =>
                                 handleDeleteSchedule(schedule.scheduleId)
                               }
@@ -480,253 +438,25 @@ export default function CoordinatorSchedulePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Create Schedule Dialog */}
-      <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
-          <DialogContent className="max-w-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl">
-            <DialogHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 -m-6 mb-6 p-6 rounded-t-lg border-b border-indigo-200/50 dark:border-indigo-800/50">
-              <DialogTitle className="text-indigo-900 dark:text-indigo-100 text-xl font-bold">Tạo lịch trình mới</DialogTitle>
-              <DialogDescription className="text-indigo-700 dark:text-indigo-300">
-                Tạo lịch trình mới cho điều phối viên
-              </DialogDescription>
-            </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title" className="text-slate-900 dark:text-slate-100 font-semibold">Tiêu đề</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                placeholder="Nhập tiêu đề lịch trình"
-                className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="coordinator" className="text-slate-900 dark:text-slate-100 font-semibold">Điều phối viên</Label>
-              <Select
-                value={formData.coordinatorId.toString()}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, coordinatorId: parseInt(value) })
-                }
-              >
-                <SelectTrigger className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400 text-slate-900 dark:text-slate-100">
-                  <SelectValue placeholder="Chọn điều phối viên" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                  {coordinatorsLoading ? (
-                    <SelectItem value="loading" disabled className="text-slate-500 dark:text-slate-400">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Đang tải...
-                    </SelectItem>
-                  ) : (
-                    coordinators.map((coordinator) => (
-                      <SelectItem
-                        key={coordinator.coordinatorId}
-                        value={coordinator.coordinatorId.toString()}
-                        className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/30 dark:hover:to-indigo-950/30"
-                      >
-                        {coordinator.user?.fullName || coordinator.user?.email || 'Unknown'}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="event" className="text-slate-900 dark:text-slate-100 font-semibold">Sự kiện (tùy chọn)</Label>
-              <Select
-                value={formData.eventId?.toString() || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    eventId: value === "none" ? undefined : parseInt(value),
-                  })
-                }
-              >
-                <SelectTrigger className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-green-500 dark:focus:border-green-400 text-slate-900 dark:text-slate-100">
-                  <SelectValue placeholder="Chọn sự kiện" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                  <SelectItem value="none" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 dark:hover:from-gray-950/30 dark:hover:to-slate-950/30">Không có sự kiện</SelectItem>
-                  {eventsLoading ? (
-                    <SelectItem value="loading" disabled className="text-slate-500 dark:text-slate-400">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Đang tải...
-                    </SelectItem>
-                  ) : (
-                    events.map((event) => (
-                      <SelectItem
-                        key={event.eventId}
-                        value={event.eventId.toString()}
-                        className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950/30 dark:hover:to-emerald-950/30"
-                      >
-                        {event.eventName}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="grid gap-2">
-                <Label htmlFor="startDateTime" className="text-slate-900 dark:text-slate-100 font-semibold">Thời gian bắt đầu</Label>
-                <Input
-                  id="startDateTime"
-                  type="datetime-local"
-                  value={formData.startDateTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, startDateTime: e.target.value })
-                  }
-                  className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-400 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="endDateTime" className="text-slate-900 dark:text-slate-100 font-semibold">Thời gian kết thúc</Label>
-                <Input
-                  id="endDateTime"
-                  type="datetime-local"
-                  value={formData.endDateTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, endDateTime: e.target.value })
-                  }
-                  className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-400 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="location" className="text-slate-900 dark:text-slate-100 font-semibold">Địa điểm</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                placeholder="Nhập địa điểm"
-                className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-orange-500 dark:focus:border-orange-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="grid gap-2">
-                <Label htmlFor="scheduleType" className="text-slate-900 dark:text-slate-100 font-semibold">Loại lịch trình</Label>
-                <Select
-                  value={formData.scheduleType}
-                  onValueChange={(
-                    value: "Meeting" | "Event" | "Training" | "Other"
-                  ) => setFormData({ ...formData, scheduleType: value })}
-                >
-                  <SelectTrigger className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-cyan-500 dark:focus:border-cyan-400 text-slate-900 dark:text-slate-100">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                    <SelectItem value="Meeting" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 dark:hover:from-cyan-950/30 dark:hover:to-blue-950/30">Họp</SelectItem>
-                    <SelectItem value="Event" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 dark:hover:from-cyan-950/30 dark:hover:to-blue-950/30">Sự kiện</SelectItem>
-                    <SelectItem value="Training" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 dark:hover:from-cyan-950/30 dark:hover:to-blue-950/30">Đào tạo</SelectItem>
-                    <SelectItem value="Other" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 dark:hover:from-cyan-950/30 dark:hover:to-blue-950/30">Khác</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="priority" className="text-slate-900 dark:text-slate-100 font-semibold">Mức độ ưu tiên</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value: "Low" | "Medium" | "High") =>
-                    setFormData({ ...formData, priority: value })
-                  }
-                >
-                  <SelectTrigger className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-pink-500 dark:focus:border-pink-400 text-slate-900 dark:text-slate-100">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                    <SelectItem value="Low" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950/30 dark:hover:to-emerald-950/30">Thấp</SelectItem>
-                    <SelectItem value="Medium" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 dark:hover:from-yellow-950/30 dark:hover:to-amber-950/30">Trung bình</SelectItem>
-                    <SelectItem value="High" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-950/30 dark:hover:to-rose-950/30">Cao</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="notes" className="text-slate-900 dark:text-slate-100 font-semibold">Ghi chú</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                placeholder="Nhập ghi chú"
-                rows={3}
-                className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-violet-500 dark:focus:border-violet-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 -m-6 mt-6 p-6 rounded-b-lg border-t border-slate-200 dark:border-slate-800">
-            <Button variant="outline" onClick={createDialog.close} className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700">
-              Hủy
-            </Button>
-            <Button onClick={handleCreateSchedule} disabled={loading} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-              {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Tạo lịch trình
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Schedule Dialog */}
-      <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Chi tiết lịch trình</DialogTitle>
-          </DialogHeader>
-          {viewModal.data && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label>Tiêu đề</Label>
-                <div className="font-medium">{viewModal.data.title}</div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Điều phối viên</Label>
-                <div>{viewModal.data.coordinatorName}</div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Sự kiện</Label>
-                <div>{viewModal.data.eventName || "Không có"}</div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Thời gian</Label>
-                <div>
-                  {formatDateTime(viewModal.data.startDateTime)} -{" "}
-                  {formatDateTime(viewModal.data.endDateTime)}
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Địa điểm</Label>
-                <div>{viewModal.data.location || "Không có"}</div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Trạng thái</Label>
-                <div>{getStatusBadge(viewModal.data.status)}</div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Ưu tiên</Label>
-                <div>{getPriorityBadge(viewModal.data.priority)}</div>
-              </div>
-              {viewModal.data.notes && (
-                <div className="grid gap-2">
-                  <Label>Ghi chú</Label>
-                  <div className="text-sm text-muted-foreground">
-                    {viewModal.data.notes}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={viewModal.close}>
-              Đóng
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modals */}
+      <AddScheduleModal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseModals}
+        onSuccess={handleModalSuccess}
+      />
+      
+      <EditScheduleModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModals}
+        onSuccess={handleModalSuccess}
+        schedule={selectedSchedule}
+      />
+      
+      <ViewScheduleModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseModals}
+        schedule={selectedSchedule}
+      />
     </div>
   );
 }

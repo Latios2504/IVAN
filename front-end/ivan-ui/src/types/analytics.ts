@@ -143,7 +143,7 @@ export interface RecentAchievementDto {
 }
 
 // Additional DTOs for Analytics Service
-export interface CoordinatorTaskDto {
+export interface CoordinatorTaskAnalyticsDto {
   taskName: string;
   status: string;
   dueDate?: string;

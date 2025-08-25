@@ -1,8 +1,9 @@
 // Coordinator Task Types - Matching backend CoordinatorTaskController
 import type { PagedResultDto } from "./common";
 
-// Core DTOs
+// Core DTOs - Now matches backend CoordinatorTaskDto exactly
 export interface CoordinatorTaskDto {
+  taskId: number; // Primary key
   eventId: number;
   coordinatorId: number;
   taskName: string;
@@ -15,14 +16,14 @@ export interface CoordinatorTaskDto {
   actualHours?: number | null;
   completedAt?: string | null; // ISO date string
   notes?: string | null;
-}
-
-// Extended model with additional fields from database
-export interface CoordinatorTaskModel extends CoordinatorTaskDto {
-  taskId: number; // Primary key
   createdBy?: number | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+}
+
+// Legacy alias for backward compatibility - now same as CoordinatorTaskDto
+export interface CoordinatorTaskModel extends CoordinatorTaskDto {
+  // All properties are now inherited from CoordinatorTaskDto
 }
 
 // Request DTOs (for create/update operations)

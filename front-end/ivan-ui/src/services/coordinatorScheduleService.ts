@@ -6,13 +6,12 @@ import type {
   CreateCoordinatorScheduleDto,
   UpdateCoordinatorScheduleDto,
   CoordinatorScheduleFilterDto,
+  UpdateScheduleStatusDto,
   CoordinatorScheduleStatsDto,
-  CoordinatorScheduleSummaryDto,
   BulkUpdateStatusDto,
   BulkDeleteDto,
   CheckConflictsDto,
 } from "../types/coordinatorSchedule";
-import { DEFAULT_COORDINATOR_SCHEDULE_FILTER } from "../types/coordinatorSchedule";
 
 class CoordinatorScheduleService {
   private readonly baseUrl = "/CoordinatorSchedule";
@@ -26,89 +25,133 @@ class CoordinatorScheduleService {
     return data;
   }
 
-  // === COORDINATOR SCHEDULE MANAGEMENT ENDPOINTS ===
-  // GET /api/CoordinatorSchedule/personal - Get personal schedules for volunteer coordinators
+  // === PERSONAL SCHEDULE ENDPOINTS (for coordinators viewing their assigned schedules) ===
+  // GET /api/CoordinatorSchedule/personal - Get personal schedules for volunteer coordinators (READ-ONLY)
   async getPersonalSchedules(
     filter: Partial<CoordinatorScheduleFilterDto> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
-    const filterWithDefaults = { ...DEFAULT_COORDINATOR_SCHEDULE_FILTER, ...filter };
     const params = new URLSearchParams();
     
-    Object.entries(filterWithDefaults).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        params.append(key, value.toString());
-      }
-    });
+    // Map frontend filter to backend query parameters
+    if (filter.eventId !== undefined && filter.eventId !== null) {
+      params.append('eventId', filter.eventId.toString());
+    }
+    if (filter.startDate) {
+      params.append('startDate', filter.startDate);
+    }
+    if (filter.endDate) {
+      params.append('endDate', filter.endDate);
+    }
+    if (filter.pageNumber !== undefined) {
+      params.append('page', filter.pageNumber.toString());
+    }
+    if (filter.pageSize !== undefined) {
+      params.append('size', filter.pageSize.toString());
+    }
 
     const queryString = params.toString();
     const url = queryString ? `${this.baseUrl}/personal?${queryString}` : `${this.baseUrl}/personal`;
     
-    const response = await apiClient.get<PagedResultDto<CoordinatorScheduleDto>>(url);
+    const response = await apiClient.get(url);
     
-    if (!response.data) {
-      return {
-        items: [],
-        totalCount: 0,
-        pageNumber: 1,
-        pageSize: 20,
-        totalPages: 0,
-        hasPreviousPage: false,
-        hasNextPage: false,
-      };
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return {
+          ...backendData.Data,
+          items: this.extractDataFromNetResponse(backendData.Data.items || []),
+        };
+      }
     }
 
     return {
-      ...response.data,
-      items: this.extractDataFromNetResponse(response.data.items || []),
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 20,
+      totalPages: 0,
+      hasPreviousPage: false,
+      hasNextPage: false,
     };
   }
 
+  // === ORGANIZATION SCHEDULE ENDPOINTS (for organizations managing all coordinators) ===
   // GET /api/CoordinatorSchedule - List schedules for organizations
   async listSchedules(
     filter: Partial<CoordinatorScheduleFilterDto> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
-    const filterWithDefaults = { ...DEFAULT_COORDINATOR_SCHEDULE_FILTER, ...filter };
     const params = new URLSearchParams();
     
-    Object.entries(filterWithDefaults).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        params.append(key, value.toString());
-      }
-    });
+    // Map frontend filter to backend query parameters
+    if (filter.coordinatorId !== undefined && filter.coordinatorId !== null) {
+      params.append('coordinatorId', filter.coordinatorId.toString());
+    }
+    if (filter.eventId !== undefined && filter.eventId !== null) {
+      params.append('eventId', filter.eventId.toString());
+    }
+    if (filter.pageNumber !== undefined) {
+      params.append('page', filter.pageNumber.toString());
+    }
+    if (filter.pageSize !== undefined) {
+      params.append('size', filter.pageSize.toString());
+    }
 
     const queryString = params.toString();
     const url = queryString ? `${this.baseUrl}?${queryString}` : this.baseUrl;
     
-    const response = await apiClient.get<PagedResultDto<CoordinatorScheduleDto>>(url);
+    const response = await apiClient.get(url);
     
-    if (!response.data) {
-      return {
-        items: [],
-        totalCount: 0,
-        pageNumber: 1,
-        pageSize: 20,
-        totalPages: 0,
-        hasPreviousPage: false,
-        hasNextPage: false,
-      };
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return {
+          ...backendData.Data,
+          items: this.extractDataFromNetResponse(backendData.Data.items || []),
+        };
+      }
     }
 
     return {
-      ...response.data,
-      items: this.extractDataFromNetResponse(response.data.items || []),
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 20,
+      totalPages: 0,
+      hasPreviousPage: false,
+      hasNextPage: false,
     };
   }
 
   // GET /api/CoordinatorSchedule/{id} - Get a specific schedule by ID
   async getSchedule(id: number): Promise<CoordinatorScheduleDto> {
-    const response = await apiClient.get<CoordinatorScheduleDto>(`${this.baseUrl}/${id}`);
-    return this.extractDataFromNetResponse(response.data);
+    const response = await apiClient.get(`${this.baseUrl}/${id}`);
+    
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return this.extractDataFromNetResponse(backendData.Data);
+      }
+    }
+    
+    throw new Error('Failed to get schedule');
   }
 
   // POST /api/CoordinatorSchedule - Create a new schedule
-  async createSchedule(data: CreateCoordinatorScheduleDto): Promise<CoordinatorScheduleDto> {
-    const response = await apiClient.post<CoordinatorScheduleDto>(this.baseUrl, data);
-    return this.extractDataFromNetResponse(response.data);
+  async createSchedule(data: CreateCoordinatorScheduleDto): Promise<number> {
+    const response = await apiClient.post(this.baseUrl, data);
+    
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return backendData.Data;
+      }
+    }
+    
+    throw new Error('Failed to create schedule');
   }
 
   // PUT /api/CoordinatorSchedule/{id} - Update an existing schedule
@@ -116,64 +159,123 @@ class CoordinatorScheduleService {
     id: number,
     data: UpdateCoordinatorScheduleDto
   ): Promise<CoordinatorScheduleDto> {
-    const response = await apiClient.put<CoordinatorScheduleDto>(`${this.baseUrl}/${id}`, data);
-    return this.extractDataFromNetResponse(response.data);
+    const response = await apiClient.put(`${this.baseUrl}/${id}`, data);
+    
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return this.extractDataFromNetResponse(backendData.Data);
+      }
+    }
+    
+    throw new Error('Failed to update schedule');
   }
 
   // DELETE /api/CoordinatorSchedule/{id} - Delete a schedule
   async deleteSchedule(id: number): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/${id}`);
+    const response = await apiClient.delete(`${this.baseUrl}/${id}`);
+    
+    if (!response.success) {
+      throw new Error('Failed to delete schedule');
+    }
   }
 
   // GET /api/CoordinatorSchedule/stats - Get schedule statistics
   async getScheduleStats(): Promise<CoordinatorScheduleStatsDto> {
-    const response = await apiClient.get<CoordinatorScheduleStatsDto>(`${this.baseUrl}/stats`);
-    return this.extractDataFromNetResponse(response.data);
+    const response = await apiClient.get(`${this.baseUrl}/stats`);
+    
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return backendData.Data;
+      }
+    }
+    
+    throw new Error('Failed to get schedule stats');
   }
 
   // GET /api/CoordinatorSchedule/calendar - Get calendar view
   async getCalendarView(
-    startDate: string,
-    endDate: string,
+    startDate?: string,
+    endDate?: string,
     coordinatorId?: number
-  ): Promise<CoordinatorScheduleSummaryDto[]> {
+  ): Promise<CoordinatorScheduleDto[]> {
     const params = new URLSearchParams();
-    params.append("startDate", startDate);
-    params.append("endDate", endDate);
     
-    if (coordinatorId) {
-      params.append("coordinatorId", coordinatorId.toString());
+    if (startDate) {
+      params.append('startDate', startDate);
+    }
+    if (endDate) {
+      params.append('endDate', endDate);
+    }
+    if (coordinatorId !== undefined && coordinatorId !== null) {
+      params.append('coordinatorId', coordinatorId.toString());
     }
 
-    const response = await apiClient.get<CoordinatorScheduleSummaryDto[]>(
-      `${this.baseUrl}/calendar?${params.toString()}`
-    );
-    return this.extractDataFromNetResponse(response.data);
+    const queryString = params.toString();
+    const url = queryString ? `${this.baseUrl}/calendar?${queryString}` : `${this.baseUrl}/calendar`;
+    
+    const response = await apiClient.get(url);
+    
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return this.extractDataFromNetResponse(backendData.Data);
+      }
+    }
+    
+    return [];
   }
 
-  // PATCH /api/CoordinatorSchedule/{id}/status - Update schedule status
-  async updateScheduleStatus(id: number, status: string): Promise<void> {
-    await apiClient.patch(`${this.baseUrl}/${id}/status`, { status });
+  // PUT /api/CoordinatorSchedule/{id}/status - Update schedule status
+  async updateScheduleStatus(
+    id: number,
+    data: UpdateScheduleStatusDto
+  ): Promise<void> {
+    const response = await apiClient.put(`${this.baseUrl}/${id}/status`, data);
+    
+    if (!response.success) {
+      throw new Error('Failed to update schedule status');
+    }
   }
 
-  // PATCH /api/CoordinatorSchedule/bulk/status - Bulk update schedule status
-  async bulkUpdateStatus(request: BulkUpdateStatusDto): Promise<void> {
-    await apiClient.patch(`${this.baseUrl}/bulk/status`, request);
+  // PUT /api/CoordinatorSchedule/bulk-status - Bulk update status
+  async bulkUpdateStatus(data: BulkUpdateStatusDto): Promise<void> {
+    const response = await apiClient.put(`${this.baseUrl}/bulk-status`, data);
+    
+    if (!response.success) {
+      throw new Error('Failed to bulk update status');
+    }
   }
 
   // DELETE /api/CoordinatorSchedule/bulk - Bulk delete schedules
-  async bulkDelete(request: BulkDeleteDto): Promise<void> {
-    await apiClient.delete(`${this.baseUrl}/bulk`, request);
+  async bulkDelete(data: BulkDeleteDto): Promise<void> {
+    const response = await apiClient.delete(`${this.baseUrl}/bulk`, { data });
+    
+    if (!response.success) {
+      throw new Error('Failed to bulk delete schedules');
+    }
   }
 
-  // POST /api/CoordinatorSchedule/conflicts - Check for schedule conflicts
-  async checkConflicts(request: CheckConflictsDto): Promise<CoordinatorScheduleSummaryDto[]> {
-    const response = await apiClient.post<CoordinatorScheduleSummaryDto[]>(
-      `${this.baseUrl}/conflicts`,
-      request
-    );
-    return this.extractDataFromNetResponse(response.data);
-  }
+  // POST /api/CoordinatorSchedule/check-conflicts - Check schedule conflicts
+   async checkConflicts(data: CheckConflictsDto): Promise<boolean> {
+     const response = await apiClient.post(`${this.baseUrl}/check-conflicts`, data);
+     
+     // Handle ApiResponseDTO wrapper - backend returns PascalCase
+     if (response.success && response.data) {
+       const backendData = response.data as any;
+       if (backendData.Success && backendData.Data !== undefined) {
+         return backendData.Data;
+       }
+     }
+     
+     throw new Error('Failed to check conflicts');
+   }
+
+
 
   // === HELPER METHODS FOR COMMON OPERATIONS ===
   

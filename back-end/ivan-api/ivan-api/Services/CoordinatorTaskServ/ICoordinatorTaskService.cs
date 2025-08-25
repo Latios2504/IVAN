@@ -1,4 +1,4 @@
-﻿using ivan_api.DTOs.CoordinatorTask;
+using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.Models;
 
 namespace ivan_api.Services.CoordinatorTaskServ
@@ -7,7 +7,7 @@ namespace ivan_api.Services.CoordinatorTaskServ
     {
         Task<IEnumerable<CoordinatorTaskDto>> GetAllTasksAsync();
         Task<CoordinatorTaskDto> GetTaskByIdAsync(int id);
-        Task<CoordinatorTask> CreateTaskAsync(CoordinatorTaskDto dto, int createdBy);
-        Task<CoordinatorTask?> UpdateTaskAsync(int id, CoordinatorTaskDto dto);
+        Task<CoordinatorTaskDto> CreateTaskAsync(CreateCoordinatorTaskDto dto, int createdBy);
+        Task<CoordinatorTaskDto?> UpdateTaskAsync(int id, UpdateCoordinatorTaskDto dto);
     }
 }

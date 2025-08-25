@@ -18,6 +18,7 @@ namespace ivan_api.Services.CoordinatorTaskServ
             var tasks = await _repository.GetAllAsync();
             var listTaskDTO = tasks.Select(x => new CoordinatorTaskDto
             {
+                TaskId = x.TaskId,
                 EventId = x.EventId,
                 CoordinatorId = x.CoordinatorId,
                 TaskName = x.TaskName,
@@ -29,7 +30,10 @@ namespace ivan_api.Services.CoordinatorTaskServ
                 EstimatedHours = x.EstimatedHours,
                 ActualHours = x.ActualHours,
                 CompletedAt = x.CompletedAt,
-                Notes = x.Notes
+                Notes = x.Notes,
+                CreatedBy = x.CreatedBy,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
             });
             return listTaskDTO;
         }
@@ -40,6 +44,7 @@ namespace ivan_api.Services.CoordinatorTaskServ
             if (tasks == null) return null!; // Handle not found case
             var taskDto = new CoordinatorTaskDto
             {
+                TaskId = tasks.TaskId,
                 EventId = tasks.EventId,
                 CoordinatorId = tasks.CoordinatorId,
                 TaskName = tasks.TaskName,
@@ -51,12 +56,15 @@ namespace ivan_api.Services.CoordinatorTaskServ
                 EstimatedHours = tasks.EstimatedHours,
                 ActualHours = tasks.ActualHours,
                 CompletedAt = tasks.CompletedAt,
-                Notes = tasks.Notes
+                Notes = tasks.Notes,
+                CreatedBy = tasks.CreatedBy,
+                CreatedAt = tasks.CreatedAt,
+                UpdatedAt = tasks.UpdatedAt
             };
             return taskDto;
         }
 
-        public async Task<CoordinatorTask> CreateTaskAsync(CoordinatorTaskDto dto, int createdBy)
+        public async Task<CoordinatorTaskDto> CreateTaskAsync(CreateCoordinatorTaskDto dto, int createdBy)
         {
             var task = new CoordinatorTask
             {
@@ -69,8 +77,6 @@ namespace ivan_api.Services.CoordinatorTaskServ
                 Status = dto.Status ?? "Chưa bắt đầu",
                 Category = dto.Category,
                 EstimatedHours = dto.EstimatedHours,
-                ActualHours = dto.ActualHours,
-                CompletedAt = dto.CompletedAt,
                 Notes = dto.Notes,
                 CreatedBy = createdBy,
                 CreatedAt = DateTime.UtcNow,
@@ -80,30 +86,68 @@ namespace ivan_api.Services.CoordinatorTaskServ
             await _repository.AddAsync(task);
             await _repository.SaveChangesAsync();
 
-            return task;
+            return new CoordinatorTaskDto
+            {
+                TaskId = task.TaskId,
+                EventId = task.EventId,
+                CoordinatorId = task.CoordinatorId,
+                TaskName = task.TaskName,
+                Description = task.Description,
+                DueDate = task.DueDate,
+                Priority = task.Priority,
+                Status = task.Status,
+                Category = task.Category,
+                EstimatedHours = task.EstimatedHours,
+                ActualHours = task.ActualHours,
+                CompletedAt = task.CompletedAt,
+                Notes = task.Notes,
+                CreatedBy = task.CreatedBy,
+                CreatedAt = task.CreatedAt,
+                UpdatedAt = task.UpdatedAt
+            };
         }
 
-        public async Task<CoordinatorTask?> UpdateTaskAsync(int id, CoordinatorTaskDto dto)
+        public async Task<CoordinatorTaskDto?> UpdateTaskAsync(int id, UpdateCoordinatorTaskDto dto)
         {
-            var task = await _repository.GetByIdAsync(id);
-            if (task == null) return null;
+            var existingTask = await _repository.GetByIdAsync(id);
+            if (existingTask == null) return null;
 
-            task.TaskName = dto.TaskName;
-            task.Description = dto.Description;
-            task.DueDate = dto.DueDate;
-            task.Priority = dto.Priority;
-            task.Status = dto.Status;
-            task.Category = dto.Category;
-            task.EstimatedHours = dto.EstimatedHours;
-            task.ActualHours = dto.ActualHours;
-            task.CompletedAt = dto.CompletedAt;
-            task.Notes = dto.Notes;
-            task.UpdatedAt = DateTime.UtcNow;
+            existingTask.EventId = dto.EventId;
+            existingTask.CoordinatorId = dto.CoordinatorId;
+            existingTask.TaskName = dto.TaskName;
+            existingTask.Description = dto.Description;
+            existingTask.DueDate = dto.DueDate;
+            existingTask.Priority = dto.Priority;
+            existingTask.Status = dto.Status;
+            existingTask.Category = dto.Category;
+            existingTask.EstimatedHours = dto.EstimatedHours;
+            existingTask.ActualHours = dto.ActualHours;
+            existingTask.CompletedAt = dto.CompletedAt;
+            existingTask.Notes = dto.Notes;
+            existingTask.UpdatedAt = DateTime.UtcNow;
 
-            _repository.Update(task);
+            _repository.Update(existingTask);
             await _repository.SaveChangesAsync();
 
-            return task;
+            return new CoordinatorTaskDto
+            {
+                TaskId = existingTask.TaskId,
+                EventId = existingTask.EventId,
+                CoordinatorId = existingTask.CoordinatorId,
+                TaskName = existingTask.TaskName,
+                Description = existingTask.Description,
+                DueDate = existingTask.DueDate,
+                Priority = existingTask.Priority,
+                Status = existingTask.Status,
+                Category = existingTask.Category,
+                EstimatedHours = existingTask.EstimatedHours,
+                ActualHours = existingTask.ActualHours,
+                CompletedAt = existingTask.CompletedAt,
+                Notes = existingTask.Notes,
+                CreatedBy = existingTask.CreatedBy,
+                CreatedAt = existingTask.CreatedAt,
+                UpdatedAt = existingTask.UpdatedAt
+            };
         }
     }
 }

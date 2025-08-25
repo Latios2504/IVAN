@@ -60,7 +60,7 @@ export interface UpdateCoordinatorScheduleDto {
   notes?: string | null;
 }
 
-// Filter DTO for searching/filtering schedules
+// Filter DTO for searching/filtering schedules - Updated to match backend exactly
 export interface CoordinatorScheduleFilterDto {
   pageNumber?: number;
   pageSize?: number;
@@ -158,7 +158,11 @@ export interface CoordinatorScheduleValidationResult {
   errors: string[];
 }
 
-// Bulk operation DTOs
+// Additional DTOs for new endpoints
+export interface UpdateScheduleStatusDto {
+  status: string;
+}
+
 export interface BulkUpdateStatusDto {
   scheduleIds: number[];
   status: string;
@@ -168,7 +172,6 @@ export interface BulkDeleteDto {
   scheduleIds: number[];
 }
 
-// Conflict check DTO
 export interface CheckConflictsDto {
   coordinatorId: number;
   startDateTime: string; // ISO date string

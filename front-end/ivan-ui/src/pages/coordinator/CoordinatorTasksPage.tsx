@@ -101,18 +101,20 @@ export default function CoordinatorTasksPage() {
 
   const handleUpdateTaskStatus = async (taskId: number, newStatus: string) => {
     try {
-      // In a real implementation, you would call the update API
-      // For now, we'll simulate the update
+      // Call the update API using coordinatorTaskService
+      await coordinatorTaskService.updateTaskStatus(taskId, newStatus as any);
+      
+      // Update local state
       setTasks((prev) =>
         prev.map((task) =>
-          task.eventId === taskId // Using eventId as task identifier since backend doesn't have taskId in DTO
+          task.taskId === taskId
             ? {
                 ...task,
                 status: newStatus,
                 completedAt:
                   newStatus === "Completed"
                     ? new Date().toISOString()
-                    : undefined,
+                    : task.completedAt,
               }
             : task
         )
@@ -328,14 +330,14 @@ export default function CoordinatorTasksPage() {
                 ) : (
                   filteredTasks.map((task) => (
                     <div
-                      key={`${task.eventId}-${task.coordinatorId}`}
+                      key={`${task.taskId}-${task.coordinatorId}`}
                       className="border border-indigo-200 dark:border-indigo-800/50 rounded-lg p-4 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 hover:bg-gradient-to-br hover:from-indigo-100/70 hover:via-purple-100/70 hover:to-pink-100/70 dark:hover:from-indigo-900/30 dark:hover:via-purple-900/30 dark:hover:to-pink-900/30 cursor-pointer transition-all duration-300"
                       onClick={() =>
                         setSelectedTask(
                           selectedTask ===
-                            `${task.eventId}-${task.coordinatorId}`
+                            `${task.taskId}-${task.coordinatorId}`
                             ? null
-                            : `${task.eventId}-${task.coordinatorId}`
+                            : `${task.taskId}-${task.coordinatorId}`
                         )
                       }
                     >
@@ -387,7 +389,7 @@ export default function CoordinatorTasksPage() {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleUpdateTaskStatus(
-                                      task.eventId,
+                                      task.taskId,
                                       "Completed"
                                     );
                                   }}
@@ -401,7 +403,7 @@ export default function CoordinatorTasksPage() {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleUpdateTaskStatus(
-                                      task.eventId,
+                                      task.taskId,
                                       "In Progress"
                                     );
                                   }}
@@ -416,7 +418,7 @@ export default function CoordinatorTasksPage() {
                       </div>
 
                       {selectedTask ===
-                        `${task.eventId}-${task.coordinatorId}` && (
+                        `${task.taskId}-${task.coordinatorId}` && (
                         <div className="mt-4 pt-4 border-t">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
@@ -460,7 +462,7 @@ export default function CoordinatorTasksPage() {
                   .filter((task) => task.status === "Completed")
                   .map((task) => (
                     <div
-                      key={`${task.eventId}-${task.coordinatorId}`}
+                      key={`${task.taskId}-${task.coordinatorId}`}
                       className="border border-green-200 dark:border-green-800/50 rounded-lg p-4 bg-gradient-to-br from-green-50/70 via-emerald-50/70 to-teal-50/70 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-teal-950/30"
                     >
                       <div className="flex items-start justify-between">

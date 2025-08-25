@@ -6,11 +6,6 @@ import { eventsService } from "@/services/eventsService";
 import type {
   CoordinatorScheduleDto,
   CoordinatorScheduleFilterDto,
-  CreateCoordinatorScheduleDto,
-  UpdateCoordinatorScheduleDto,
-  SCHEDULE_TYPE,
-  SCHEDULE_PRIORITY,
-  SCHEDULE_STATUS,
 } from "@/types/coordinatorSchedule";
 import type { EventDto } from "@/types/events";
 import { toast } from "sonner";
@@ -23,21 +18,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -50,36 +34,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Calendar,
   Clock,
   MapPin,
-  Plus,
-  Edit,
-  Trash2,
   CheckCircle,
   AlertCircle,
   Eye,
   CalendarDays,
   Loader2,
-  Filter,
   RefreshCw,
 } from "lucide-react";
-
-interface ScheduleFormData {
-  eventId?: number;
-  title: string;
-  description?: string;
-  startDateTime: string;
-  endDateTime: string;
-  location?: string;
-  scheduleType: string;
-  priority: string;
-  isAllDay: boolean;
-  reminderMinutes: number;
-  notes?: string;
-}
+import { Input } from "@/components/ui/input";
 
 export default function CoordinatorPersonalSchedulePage() {
   // Auth hook
@@ -98,23 +65,7 @@ export default function CoordinatorPersonalSchedulePage() {
   const pageSize = 20;
 
   // Modal hooks for managing dialog states
-  const createDialog = useModal();
-  const editDialog = useModalWithData<CoordinatorScheduleDto>();
   const viewModal = useModalWithData<CoordinatorScheduleDto>();
-
-  const [formData, setFormData] = useState<ScheduleFormData>({
-    eventId: undefined,
-    title: "",
-    description: "",
-    startDateTime: "",
-    endDateTime: "",
-    location: "",
-    scheduleType: "Event",
-    priority: "Medium",
-    isAllDay: false,
-    reminderMinutes: 60,
-    notes: "",
-  });
 
   // Load personal schedules from API
   const loadPersonalSchedules = async () => {
@@ -236,128 +187,8 @@ export default function CoordinatorPersonalSchedulePage() {
     );
   };
 
-  const handleCreateSchedule = async () => {
-    if (!user?.coordinatorId) {
-      toast.error("Không tìm thấy thông tin điều phối viên");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const scheduleData: CreateCoordinatorScheduleDto = {
-        coordinatorId: user.coordinatorId,
-        eventId: formData.eventId,
-        title: formData.title,
-        description: formData.description,
-        startDateTime: formData.startDateTime,
-        endDateTime: formData.endDateTime,
-        location: formData.location,
-        scheduleType: formData.scheduleType,
-        priority: formData.priority,
-        isAllDay: formData.isAllDay,
-        reminderMinutes: formData.reminderMinutes,
-        notes: formData.notes,
-      };
-
-      await coordinatorScheduleService.createSchedule(scheduleData);
-      toast.success("Tạo lịch trình thành công");
-      createDialog.close();
-      loadPersonalSchedules(); // Refresh the list
-      resetForm();
-    } catch (error) {
-      console.error("Error creating schedule:", error);
-      toast.error("Không thể tạo lịch trình");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdateSchedule = async () => {
-    if (!editDialog.data) return;
-
-    try {
-      setLoading(true);
-      const updateData: UpdateCoordinatorScheduleDto = {
-        eventId: formData.eventId,
-        title: formData.title,
-        description: formData.description,
-        startDateTime: formData.startDateTime,
-        endDateTime: formData.endDateTime,
-        location: formData.location,
-        scheduleType: formData.scheduleType,
-        priority: formData.priority,
-        isAllDay: formData.isAllDay,
-        reminderMinutes: formData.reminderMinutes,
-        notes: formData.notes,
-      };
-
-      await coordinatorScheduleService.updateSchedule(
-        editDialog.data.scheduleId,
-        updateData
-      );
-      toast.success("Cập nhật lịch trình thành công");
-      editDialog.close();
-      loadPersonalSchedules(); // Refresh the list
-      resetForm();
-    } catch (error) {
-      console.error("Error updating schedule:", error);
-      toast.error("Không thể cập nhật lịch trình");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteSchedule = async (scheduleId: number) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa lịch trình này?")) return;
-
-    try {
-      setLoading(true);
-      await coordinatorScheduleService.deleteSchedule(scheduleId);
-      toast.success("Xóa lịch trình thành công");
-      loadPersonalSchedules(); // Refresh the list
-    } catch (error) {
-      console.error("Error deleting schedule:", error);
-      toast.error("Không thể xóa lịch trình");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleViewSchedule = (schedule: CoordinatorScheduleDto) => {
     viewModal.openWith(schedule);
-  };
-
-  const handleEditSchedule = (schedule: CoordinatorScheduleDto) => {
-    setFormData({
-      eventId: schedule.eventId || undefined,
-      title: schedule.title,
-      description: schedule.description || "",
-      startDateTime: schedule.startDateTime,
-      endDateTime: schedule.endDateTime,
-      location: schedule.location || "",
-      scheduleType: schedule.scheduleType || "Event",
-      priority: schedule.priority || "Medium",
-      isAllDay: schedule.isAllDay || false,
-      reminderMinutes: schedule.reminderMinutes || 60,
-      notes: schedule.notes || "",
-    });
-    editDialog.openWith(schedule);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      eventId: undefined,
-      title: "",
-      description: "",
-      startDateTime: "",
-      endDateTime: "",
-      location: "",
-      scheduleType: "Event",
-      priority: "Medium",
-      isAllDay: false,
-      reminderMinutes: 60,
-      notes: "",
-    });
   };
 
   const filteredSchedules = schedules.filter((schedule) => {
@@ -380,21 +211,19 @@ export default function CoordinatorPersonalSchedulePage() {
               Lịch trình cá nhân
             </h1>
             <p className="text-indigo-600 dark:text-indigo-300 mt-2">
-              Quản lý lịch trình cá nhân của bạn với tư cách điều phối viên
+              Xem lịch trình cá nhân được tổ chức giao cho bạn
             </p>
           </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => setViewMode(viewMode === "list" ? "calendar" : "list")}
+              onClick={() =>
+                setViewMode(viewMode === "list" ? "calendar" : "list")
+              }
               className="flex items-center gap-2 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
             >
               <CalendarDays className="h-4 w-4" />
               {viewMode === "list" ? "Xem lịch" : "Xem danh sách"}
-            </Button>
-            <Button onClick={createDialog.open} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg">
-              <Plus className="h-4 w-4" />
-              Tạo lịch trình mới
             </Button>
           </div>
         </div>
@@ -419,7 +248,9 @@ export default function CoordinatorPersonalSchedulePage() {
             disabled={loading}
             className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+            />
             Làm mới
           </Button>
         </div>
@@ -431,17 +262,44 @@ export default function CoordinatorPersonalSchedulePage() {
         className="w-full"
       >
         <TabsList className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200 dark:border-indigo-800/50">
-          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Tất cả</TabsTrigger>
-          <TabsTrigger value="Scheduled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Đã lên lịch</TabsTrigger>
-          <TabsTrigger value="In Progress" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Đang thực hiện</TabsTrigger>
-          <TabsTrigger value="Completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Hoàn thành</TabsTrigger>
-          <TabsTrigger value="Cancelled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300">Đã hủy</TabsTrigger>
+          <TabsTrigger
+            value="all"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+          >
+            Tất cả
+          </TabsTrigger>
+          <TabsTrigger
+            value="Scheduled"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+          >
+            Đã lên lịch
+          </TabsTrigger>
+          <TabsTrigger
+            value="In Progress"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+          >
+            Đang thực hiện
+          </TabsTrigger>
+          <TabsTrigger
+            value="Completed"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+          >
+            Hoàn thành
+          </TabsTrigger>
+          <TabsTrigger
+            value="Cancelled"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+          >
+            Đã hủy
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
           <Card className="bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
             <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 border-b border-indigo-100 dark:border-indigo-800/30">
-              <CardTitle className="text-indigo-900 dark:text-indigo-100">Lịch trình cá nhân</CardTitle>
+              <CardTitle className="text-indigo-900 dark:text-indigo-100">
+                Lịch trình cá nhân
+              </CardTitle>
               <CardDescription className="text-indigo-600 dark:text-indigo-300">
                 Tổng cộng {totalCount} lịch trình
               </CardDescription>
@@ -498,22 +356,6 @@ export default function CoordinatorPersonalSchedulePage() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditSchedule(schedule)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleDeleteSchedule(schedule.scheduleId)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -526,406 +368,16 @@ export default function CoordinatorPersonalSchedulePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Create Schedule Dialog */}
-      <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
-        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
-          <DialogHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-t-lg p-6 -m-6 mb-4 border-b border-indigo-100 dark:border-indigo-800/30">
-            <DialogTitle className="text-indigo-900 dark:text-indigo-100">Tạo lịch trình mới</DialogTitle>
-            <DialogDescription className="text-indigo-600 dark:text-indigo-300">
-              Tạo lịch trình cá nhân mới cho bạn
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Tiêu đề *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Nhập tiêu đề lịch trình"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="event">Sự kiện</Label>
-                <Select
-                  value={formData.eventId?.toString() || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    eventId: value === "none" ? undefined : parseInt(value),
-                  })
-                }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Không có sự kiện</SelectItem>
-                    {events.map((event) => (
-                      <SelectItem
-                        key={event.eventId}
-                        value={event.eventId.toString()}
-                      >
-                        {event.eventName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">Mô tả</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Nhập mô tả lịch trình"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="startDateTime">Thời gian bắt đầu *</Label>
-                <Input
-                  id="startDateTime"
-                  type="datetime-local"
-                  value={formData.startDateTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, startDateTime: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="endDateTime">Thời gian kết thúc *</Label>
-                <Input
-                  id="endDateTime"
-                  type="datetime-local"
-                  value={formData.endDateTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, endDateTime: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="location">Địa điểm</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) =>
-                    setFormData({ ...formData, location: e.target.value })
-                  }
-                  placeholder="Nhập địa điểm"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="scheduleType">Loại lịch trình</Label>
-                <Select
-                  value={formData.scheduleType}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, scheduleType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Event">Sự kiện</SelectItem>
-                    <SelectItem value="Meeting">Cuộc họp</SelectItem>
-                    <SelectItem value="Training">Đào tạo</SelectItem>
-                    <SelectItem value="Other">Khác</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="priority">Ưu tiên</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, priority: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="High">Cao</SelectItem>
-                    <SelectItem value="Medium">Trung bình</SelectItem>
-                    <SelectItem value="Low">Thấp</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="reminderMinutes">Nhắc nhở (phút)</Label>
-                <Input
-                  id="reminderMinutes"
-                  type="number"
-                  value={formData.reminderMinutes}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      reminderMinutes: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="60"
-                />
-              </div>
-              <div className="flex items-center space-x-2 pt-6">
-                <Checkbox
-                  id="isAllDay"
-                  checked={formData.isAllDay}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, isAllDay: checked as boolean })
-                  }
-                />
-                <Label htmlFor="isAllDay">Cả ngày</Label>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Ghi chú</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                placeholder="Nhập ghi chú thêm"
-                rows={2}
-              />
-            </div>
-          </div>
-          <DialogFooter className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-b-lg p-6 -m-6 mt-4 border-t border-indigo-100 dark:border-indigo-800/30">
-            <Button variant="outline" onClick={createDialog.close} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
-              Hủy
-            </Button>
-            <Button
-              onClick={handleCreateSchedule}
-              disabled={loading || !formData.title || !formData.startDateTime || !formData.endDateTime}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg disabled:from-gray-400 disabled:to-gray-500"
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Tạo lịch trình
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Schedule Dialog */}
-      <Dialog open={editDialog.isOpen} onOpenChange={editDialog.close}>
-        <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
-          <DialogHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-t-lg p-6 -m-6 mb-4 border-b border-indigo-100 dark:border-indigo-800/30">
-            <DialogTitle className="text-indigo-900 dark:text-indigo-100">Chỉnh sửa lịch trình</DialogTitle>
-            <DialogDescription className="text-indigo-600 dark:text-indigo-300">
-              Cập nhật thông tin lịch trình của bạn
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* Same form fields as create dialog */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-title">Tiêu đề *</Label>
-                <Input
-                  id="edit-title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Nhập tiêu đề lịch trình"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-event">Sự kiện</Label>
-                <Select
-                  value={formData.eventId?.toString() || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    eventId: value === "none" ? undefined : parseInt(value),
-                  })
-                }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Không có sự kiện</SelectItem>
-                    {events.map((event) => (
-                      <SelectItem
-                        key={event.eventId}
-                        value={event.eventId.toString()}
-                      >
-                        {event.eventName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="edit-description">Mô tả</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Nhập mô tả lịch trình"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-startDateTime">Thời gian bắt đầu *</Label>
-                <Input
-                  id="edit-startDateTime"
-                  type="datetime-local"
-                  value={formData.startDateTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, startDateTime: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-endDateTime">Thời gian kết thúc *</Label>
-                <Input
-                  id="edit-endDateTime"
-                  type="datetime-local"
-                  value={formData.endDateTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, endDateTime: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-location">Địa điểm</Label>
-                <Input
-                  id="edit-location"
-                  value={formData.location}
-                  onChange={(e) =>
-                    setFormData({ ...formData, location: e.target.value })
-                  }
-                  placeholder="Nhập địa điểm"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-scheduleType">Loại lịch trình</Label>
-                <Select
-                  value={formData.scheduleType}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, scheduleType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Event">Sự kiện</SelectItem>
-                    <SelectItem value="Meeting">Cuộc họp</SelectItem>
-                    <SelectItem value="Training">Đào tạo</SelectItem>
-                    <SelectItem value="Other">Khác</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-priority">Ưu tiên</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, priority: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="High">Cao</SelectItem>
-                    <SelectItem value="Medium">Trung bình</SelectItem>
-                    <SelectItem value="Low">Thấp</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-reminderMinutes">Nhắc nhở (phút)</Label>
-                <Input
-                  id="edit-reminderMinutes"
-                  type="number"
-                  value={formData.reminderMinutes}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      reminderMinutes: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  placeholder="60"
-                />
-              </div>
-              <div className="flex items-center space-x-2 pt-6">
-                <Checkbox
-                  id="edit-isAllDay"
-                  checked={formData.isAllDay}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, isAllDay: checked as boolean })
-                  }
-                />
-                <Label htmlFor="edit-isAllDay">Cả ngày</Label>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="edit-notes">Ghi chú</Label>
-              <Textarea
-                id="edit-notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                placeholder="Nhập ghi chú thêm"
-                rows={2}
-              />
-            </div>
-          </div>
-          <DialogFooter className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-b-lg p-6 -m-6 mt-4 border-t border-indigo-100 dark:border-indigo-800/30">
-            <Button variant="outline" onClick={editDialog.close} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
-              Hủy
-            </Button>
-            <Button
-              onClick={handleUpdateSchedule}
-              disabled={loading || !formData.title || !formData.startDateTime || !formData.endDateTime}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg disabled:from-gray-400 disabled:to-gray-500"
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Cập nhật
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Note: Coordinators can only view schedules assigned by organization */}
+      {/* Create/Edit functionality is not available for coordinators */}
 
       {/* View Schedule Dialog */}
       <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
         <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
           <DialogHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-t-lg p-6 -m-6 mb-4 border-b border-indigo-100 dark:border-indigo-800/30">
-            <DialogTitle className="text-indigo-900 dark:text-indigo-100">Chi tiết lịch trình</DialogTitle>
+            <DialogTitle className="text-indigo-900 dark:text-indigo-100">
+              Chi tiết lịch trình
+            </DialogTitle>
           </DialogHeader>
           {viewModal.data && (
             <div className="grid gap-4 py-4">
@@ -992,7 +444,9 @@ export default function CoordinatorPersonalSchedulePage() {
                   <Label className="text-sm font-medium text-muted-foreground">
                     Trạng thái
                   </Label>
-                  <div className="mt-1">{getStatusBadge(viewModal.data.status)}</div>
+                  <div className="mt-1">
+                    {getStatusBadge(viewModal.data.status)}
+                  </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">
@@ -1006,7 +460,9 @@ export default function CoordinatorPersonalSchedulePage() {
                   <Label className="text-sm font-medium text-muted-foreground">
                     Cả ngày
                   </Label>
-                  <p className="mt-1">{viewModal.data.isAllDay ? "Có" : "Không"}</p>
+                  <p className="mt-1">
+                    {viewModal.data.isAllDay ? "Có" : "Không"}
+                  </p>
                 </div>
               </div>
 
@@ -1044,7 +500,11 @@ export default function CoordinatorPersonalSchedulePage() {
             </div>
           )}
           <DialogFooter className="bg-gradient-to-r from-indigo-50/30 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-b-lg p-6 -m-6 mt-4 border-t border-indigo-100 dark:border-indigo-800/30">
-            <Button variant="outline" onClick={viewModal.close} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600">
+            <Button
+              variant="outline"
+              onClick={viewModal.close}
+              className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600"
+            >
               Đóng
             </Button>
           </DialogFooter>

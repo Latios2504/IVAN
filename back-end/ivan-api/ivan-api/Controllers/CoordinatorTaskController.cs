@@ -92,7 +92,7 @@ namespace ivan_api.Controllers
         /// Create new coordinator task (Only Organization can create)
         [HttpPost]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Create([FromBody] CoordinatorTaskDto dto)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Create([FromBody] CreateCoordinatorTaskDto dto)
         {
             if (dto == null)
             {
@@ -149,7 +149,7 @@ namespace ivan_api.Controllers
         /// Update coordinator task (Only Organization can update)
         [HttpPut("{id}")]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id, [FromBody] CoordinatorTaskDto dto)
+        public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id, [FromBody] UpdateCoordinatorTaskDto dto)
         {
             if (dto == null)
             {
