@@ -163,44 +163,6 @@ export default function VolunteerDashboard() {
                   </Button>
                 </CardContent>
               </Card>
-
-              {/* Community & Connection */}
-              <Card className="bg-gradient-to-br from-cyan-50/80 via-sky-50/80 to-blue-50/80 dark:from-cyan-950/30 dark:via-sky-950/30 dark:to-blue-950/30 border border-cyan-200/50 dark:border-cyan-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="border-b border-cyan-200/50 dark:border-cyan-800/50">
-                  <CardTitle className="text-cyan-800 dark:text-cyan-200 flex items-center gap-2">
-                    <HeartHandshake className="w-5 h-5" />
-                    Cộng đồng & Kết nối
-                  </CardTitle>
-                  <CardDescription className="text-cyan-700/80 dark:text-cyan-300/80">
-                    Kết nối với cộng đồng tình nguyện viên
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-4">
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link to="/volunteers" className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Cộng đồng tình nguyện viên
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/organizations"
-                      className="flex items-center gap-2"
-                    >
-                      <HeartHandshake className="w-4 h-4" />
-                      Tổ chức tình nguyện
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 

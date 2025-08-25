@@ -249,12 +249,6 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/settings" className="w-full flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Cài đặt</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
                       <Link
                         to="/change-password"
                         className="w-full flex items-center"
@@ -272,29 +266,6 @@ export default function Navbar() {
                         <span>Lịch sử yêu cầu hỗ trợ</span>
                       </Link>
                     </DropdownMenuItem>
-
-                    {/* Role-specific menu items */}
-                    {user?.role === "admin" && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="w-full flex items-center">
-                          <Shield className="mr-2 h-4 w-4" />
-                          <span>Quản trị hệ thống</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-
-                    {(user?.role === "organization" ||
-                      user?.role === "coordinator") && (
-                      <DropdownMenuItem asChild>
-                        <Link
-                          to="/manage-events"
-                          className="w-full flex items-center"
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          <span>Quản lý sự kiện</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={handleLogout}
