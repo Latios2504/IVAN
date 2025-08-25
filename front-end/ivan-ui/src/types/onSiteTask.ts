@@ -6,11 +6,12 @@ export interface OnSiteTaskInputDto {
   categoryId: number;
   statusId: number;
   taskName: string;
-  description?: string;
-  startTime?: string; // ISO string
-  endTime?: string; // ISO string
-  location?: string;
-  requiredVolunteers?: number;
+  description: string;
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  estimatedHours: number;
+  location: string;
+  requiredVolunteers: number;
   assignedVolunteers?: number;
   requiredSkills?: string;
   priority?: string;
@@ -33,6 +34,7 @@ export interface OnSiteTaskUpdateDto {
   description?: string;
   startTime?: string; // ISO string
   endTime?: string; // ISO string
+  estimatedHours?: number;
   actualHours?: number;
   location?: string;
   requiredVolunteers?: number;

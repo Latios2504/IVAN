@@ -194,8 +194,36 @@ class OnSiteTaskService {
   }
 
   // === FILTERING AND SEARCH ===
-  // Note: Backend controller doesn't have filtered search endpoint
-  // Only basic GetList with pagination is available
+  
+  // Get all tasks with filtering support
+  async getAll(filter: OnSiteTaskFilterDto = {}): Promise<PagedResultDto<OnSiteTaskDto>> {
+    const params = new URLSearchParams();
+    
+    // Add pagination parameters
+    if (filter.pageNumber) params.append('pageNumber', filter.pageNumber.toString());
+    if (filter.pageSize) params.append('pageSize', filter.pageSize.toString());
+    
+    // Add filter parameters
+    if (filter.eventId) params.append('eventId', filter.eventId.toString());
+    if (filter.categoryId) params.append('categoryId', filter.categoryId.toString());
+    if (filter.statusId) params.append('statusId', filter.statusId.toString());
+    if (filter.startDateFrom) params.append('startTimeFrom', new Date(filter.startDateFrom).toISOString());
+    if (filter.startDateTo) params.append('startTimeTo', new Date(filter.startDateTo).toISOString());
+    if (filter.endDateFrom) params.append('endTimeFrom', new Date(filter.endDateFrom).toISOString());
+    if (filter.endDateTo) params.append('endTimeTo', new Date(filter.endDateTo).toISOString());
+    if (filter.search) params.append('searchTerm', filter.search);
+    
+    const queryString = params.toString();
+    const url = queryString ? `${this.baseUrl}?${queryString}` : this.baseUrl;
+    
+    try {
+      const response = await apiClient.get<PagedResultDto<OnSiteTaskDto>>(url);
+      return response.data!;
+    } catch (error: any) {
+      console.error('Error fetching tasks with filter:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch tasks');
+    }
+  }
 
   // Note: Backend controller doesn't have task assignments endpoint
    // Assignment data would need to be retrieved through other means
