@@ -186,25 +186,7 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<List<VolunteerSchedule>> CheckConflictsAsync(int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
-        {
-            var query = _context.VolunteerSchedules
-                .Include(vs => vs.Event)
-                .Where(vs => vs.VolunteerId == volunteerId &&
-                           vs.StartDateTime < endDateTime &&
-                           vs.EndDateTime > startDateTime);
 
-            if (excludeScheduleId.HasValue)
-                query = query.Where(vs => vs.ScheduleId != excludeScheduleId.Value);
-
-            return await query.ToListAsync();
-        }
-
-        public async Task<bool> HasConflictAsync(int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
-        {
-            var conflicts = await CheckConflictsAsync(volunteerId, startDateTime, endDateTime, excludeScheduleId);
-            return conflicts.Any();
-        }
 
         public async Task<List<VolunteerSchedule>> GetVolunteerSchedulesForDateAsync(int volunteerId, DateTime date)
         {
@@ -333,115 +315,15 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
             return schedules;
         }
 
-        public async Task<BulkScheduleResultDTO> CreateBulkWithConflictCheckAsync(List<VolunteerSchedule> schedules)
-        {
-            var result = new BulkScheduleResultDTO
-            {
-                TotalRequested = schedules.Count
-            };
 
-            var successfulSchedules = new List<VolunteerSchedule>();
-            var conflicts = new List<ScheduleConflictDTO>();
-            var errors = new List<string>();
-
-            foreach (var schedule in schedules)
-            {
-                try
-                {
-                    // Check for conflicts
-                    var existingConflicts = await CheckConflictsAsync(
-                        schedule.VolunteerId, 
-                        schedule.StartDateTime, 
-                        schedule.EndDateTime);
-
-                    if (existingConflicts.Any())
-                    {
-                        var volunteer = await _context.VolunteerProfiles
-                            .Include(v => v.User)
-                                .ThenInclude(u => u.UserProfiles)
-                            .FirstOrDefaultAsync(v => v.VolunteerId == schedule.VolunteerId);
-
-                        foreach (var conflict in existingConflicts)
-                        {
-                            var userProfile = volunteer?.User.UserProfiles.FirstOrDefault();
-                            conflicts.Add(new ScheduleConflictDTO
-                            {
-                                VolunteerId = schedule.VolunteerId,
-                                VolunteerName = userProfile != null ? $"{userProfile.FirstName} {userProfile.LastName}".Trim() : "Unknown",
-                                ConflictStart = conflict.StartDateTime,
-                                ConflictEnd = conflict.EndDateTime,
-                                ConflictingScheduleTitle = conflict.Title,
-                                ConflictReason = "Time overlap with existing schedule"
-                            });
-                        }
-                    }
-                    else
-                    {
-                        successfulSchedules.Add(schedule);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    errors.Add($"Error processing schedule for volunteer {schedule.VolunteerId}: {ex.Message}");
-                }
-            }
-
-            if (successfulSchedules.Any())
-            {
-                var createdSchedules = await CreateBulkAsync(successfulSchedules);
-                result.CreatedSchedules = createdSchedules.Select(s => new VolunteerScheduleDTO
-                {
-                    ScheduleId = s.ScheduleId,
-                    VolunteerId = s.VolunteerId,
-                    EventId = s.EventId,
-                    Title = s.Title,
-                    Description = s.Description,
-                    StartDateTime = s.StartDateTime,
-                    EndDateTime = s.EndDateTime,
-                    Location = s.Location,
-                    ScheduleType = s.ScheduleType,
-                    Priority = s.Priority,
-                    Status = s.Status,
-                    IsAllDay = s.IsAllDay,
-                    ReminderMinutes = s.ReminderMinutes,
-                    Notes = s.Notes,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt
-                }).ToList();
-            }
-
-            result.SuccessCount = successfulSchedules.Count;
-            result.FailureCount = schedules.Count - successfulSchedules.Count;
-            result.Conflicts = conflicts;
-            result.Errors = errors;
-
-            return result;
-        }
 
         public async Task<bool> ExistsAsync(int scheduleId)
         {
             return await _context.VolunteerSchedules.AnyAsync(vs => vs.ScheduleId == scheduleId);
         }
 
-        public async Task<bool> IsVolunteerAvailableAsync(int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
-        {
-            return !await HasConflictAsync(volunteerId, startDateTime, endDateTime, excludeScheduleId);
-        }
 
-        public async Task<List<int>> GetAvailableVolunteersAsync(List<int> volunteerIds, DateTime startDateTime, DateTime endDateTime)
-        {
-            var availableVolunteers = new List<int>();
 
-            foreach (var volunteerId in volunteerIds)
-            {
-                var isAvailable = await IsVolunteerAvailableAsync(volunteerId, startDateTime, endDateTime);
-                if (isAvailable)
-                {
-                    availableVolunteers.Add(volunteerId);
-                }
-            }
 
-            return availableVolunteers;
-        }
     }
 }

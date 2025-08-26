@@ -3,6 +3,7 @@ using ivan_api.DTOs.VolunteerSchedule;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.VolunteerScheduleServ;
 using ivan_api.Services.AuthenticationSer;
+using ivan_api.Services.VolunteerCoordinatorServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -15,11 +16,16 @@ namespace ivan_api.Controllers
     {
         private readonly IVolunteerScheduleService _volunteerScheduleService;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IVolunteerCoordinatorService _coordinatorService;
 
-        public VolunteerScheduleController(IVolunteerScheduleService volunteerScheduleService, IAuthenticationService authenticationService)
+        public VolunteerScheduleController(
+            IVolunteerScheduleService volunteerScheduleService, 
+            IAuthenticationService authenticationService,
+            IVolunteerCoordinatorService coordinatorService)
         {
             _volunteerScheduleService = volunteerScheduleService;
             _authenticationService = authenticationService;
+            _coordinatorService = coordinatorService;
         }
 
         #region Coordinator endpoints
@@ -32,9 +38,18 @@ namespace ivan_api.Controllers
             try
             {
                 var userId = _authenticationService.GetUserIdFromClaims(User);
-                var coordinatorId = userId;
+                var organizationId = await _coordinatorService.GetOrganizationIdByUserIdAsync(userId);
                 
-                var result = await _volunteerScheduleService.GetOrganizationVolunteerSchedulesAsync(coordinatorId, filter);
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found or not associated with any organization"
+                    });
+                }
+                
+                var result = await _volunteerScheduleService.GetOrganizationVolunteerSchedulesAsync(organizationId.Value, filter);
                 
                 return Ok(new ApiResponseDTO<PagedResultDto<VolunteerScheduleDTO>>
                 {
@@ -70,9 +85,19 @@ namespace ivan_api.Controllers
         {
             try
             {
-                var coordinatorId = _authenticationService.GetUserIdFromClaims(User);
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var organizationId = await _coordinatorService.GetOrganizationIdByUserIdAsync(userId);
+                
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found or not associated with any organization"
+                    });
+                }
 
-                var result = await _volunteerScheduleService.GetVolunteerScheduleByIdAsync(coordinatorId, scheduleId);
+                var result = await _volunteerScheduleService.GetVolunteerScheduleByIdAsync(organizationId.Value, scheduleId);
                 
                 if (result == null)
                 {
@@ -131,9 +156,19 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var coordinatorId = _authenticationService.GetUserIdFromClaims(User);
-                var userId = coordinatorId;
-                var result = await _volunteerScheduleService.CreateVolunteerScheduleAsync(coordinatorId, request, userId);
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var organizationId = await _coordinatorService.GetOrganizationIdByUserIdAsync(userId);
+                
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found or not associated with any organization"
+                    });
+                }
+                
+                var result = await _volunteerScheduleService.CreateVolunteerScheduleAsync(organizationId.Value, request, userId);
                 
                 return CreatedAtAction(nameof(GetVolunteerScheduleById), new { scheduleId = result.ScheduleId }, new ApiResponseDTO<VolunteerScheduleDTO>
                 {
@@ -195,9 +230,19 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var coordinatorId = _authenticationService.GetUserIdFromClaims(User);
-                var userId = coordinatorId;
-                var result = await _volunteerScheduleService.UpdateVolunteerScheduleAsync(coordinatorId, scheduleId, request, userId);
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var organizationId = await _coordinatorService.GetOrganizationIdByUserIdAsync(userId);
+                
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found or not associated with any organization"
+                    });
+                }
+                
+                var result = await _volunteerScheduleService.UpdateVolunteerScheduleAsync(organizationId.Value, scheduleId, request, userId);
                 
                 return Ok(new ApiResponseDTO<VolunteerScheduleDTO>
                 {
@@ -240,9 +285,19 @@ namespace ivan_api.Controllers
         {
             try
             {
-                var coordinatorId = _authenticationService.GetUserIdFromClaims(User);
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var organizationId = await _coordinatorService.GetOrganizationIdByUserIdAsync(userId);
+                
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found or not associated with any organization"
+                    });
+                }
 
-                var result = await _volunteerScheduleService.DeleteVolunteerScheduleAsync(coordinatorId, scheduleId);
+                var result = await _volunteerScheduleService.DeleteVolunteerScheduleAsync(organizationId.Value, scheduleId);
                 
                 return Ok(new ApiResponseDTO<bool>
                 {
@@ -383,49 +438,6 @@ namespace ivan_api.Controllers
 
         #endregion
 
-        #region Conflict Detection
 
-        /// Check for volunteer schedule conflicts
-        [HttpPost("conflicts")]
-        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<List<VolunteerScheduleDTO>>>> CheckConflicts(
-            [FromBody] VolunteerScheduleConflictCheckDTO request)
-        {
-            try
-            {
-                var userId = _authenticationService.GetUserIdFromClaims(User);
-                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-                
-                if (userInfo?.OrganizationId == null)
-                {
-                    return BadRequest(new ApiResponseDTO<List<VolunteerScheduleDTO>>
-                    {
-                        Success = false,
-                        Message = "Organization not found for this user"
-                    });
-                }
-                
-                var conflicts = await _volunteerScheduleService.CheckScheduleConflictsAsync(
-                    request.VolunteerId, request.StartDateTime, request.EndDateTime, request.ExcludeScheduleId);
-                
-                return Ok(new ApiResponseDTO<List<VolunteerScheduleDTO>>
-                {
-                    Success = true,
-                    Message = conflicts.Any() ? "Schedule conflicts found" : "No conflicts found",
-                    Data = conflicts
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Failed to check schedule conflicts",
-                    Errors = new List<string> { ex.Message }
-                });
-            }
-        }
-
-        #endregion
     }
 }

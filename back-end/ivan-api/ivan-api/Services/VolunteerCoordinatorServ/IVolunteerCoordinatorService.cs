@@ -14,4 +14,6 @@ public interface IVolunteerCoordinatorService
     Task<bool> IsUserCoordinatorForOrganizationAsync(int userId, int organizationId);
     Task<VolunteerCoordinatorStatsDto> GetCoordinatorStatsAsync(int organizationId);
     Task<List<VolunteerCoordinatorDto>> GetAvailableManagersAsync(int organizationId);
+    Task<int?> GetOrganizationIdByCoordinatorIdAsync(int coordinatorId);
+    Task<int?> GetOrganizationIdByUserIdAsync(int userId);
 }

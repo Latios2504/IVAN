@@ -16,8 +16,6 @@ namespace ivan_api.Services.VolunteerScheduleServ
         Task<PagedResultDto<VolunteerScheduleDTO>> GetPersonalSchedulesAsync(int userId, VolunteerScheduleFilterDTO filter);
         Task<VolunteerScheduleDTO?> GetPersonalScheduleByIdAsync(int userId, int scheduleId);
 
-        // Conflict Detection
-        Task<List<VolunteerScheduleDTO>> CheckScheduleConflictsAsync(
-            int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null);
+
     }
 }

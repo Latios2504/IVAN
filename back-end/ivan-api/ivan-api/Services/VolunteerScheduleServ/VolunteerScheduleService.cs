@@ -71,14 +71,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
                     throw new ArgumentException("Event not found or does not belong to your organization");
             }
 
-            // Check for scheduling conflicts
-            var hasConflicts = await _scheduleRepository.HasConflictAsync(
-                request.VolunteerId, 
-                request.StartDateTime, 
-                request.EndDateTime);
 
-            if (hasConflicts)
-                throw new InvalidOperationException("Volunteer has scheduling conflicts during the specified time");
 
             var schedule = new VolunteerSchedule
             {
@@ -186,12 +179,6 @@ namespace ivan_api.Services.VolunteerScheduleServ
             return _mapper.Map<VolunteerScheduleDTO>(schedule);
         }
 
-        public async Task<List<VolunteerScheduleDTO>> CheckScheduleConflictsAsync(
-            int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
-        {
-            var conflicts = await _scheduleRepository.CheckConflictsAsync(
-                volunteerId, startDateTime, endDateTime, excludeScheduleId);
-            return _mapper.Map<List<VolunteerScheduleDTO>>(conflicts);
-        }
+
     }
 }

@@ -249,6 +249,18 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
         return managers.Select(MapToDto).ToList();
     }
 
+    public async Task<int?> GetOrganizationIdByCoordinatorIdAsync(int coordinatorId)
+    {
+        var coordinator = await _coordinatorRepository.GetCoordinatorByIdAsync(coordinatorId);
+        return coordinator?.OrganizationId;
+    }
+
+    public async Task<int?> GetOrganizationIdByUserIdAsync(int userId)
+    {
+        var coordinator = await _coordinatorRepository.GetCoordinatorByUserIdAsync(userId);
+        return coordinator?.OrganizationId;
+    }
+
     private VolunteerCoordinatorDto MapToDto(VolunteerCoordinator coordinator)
     {
         return new VolunteerCoordinatorDto
