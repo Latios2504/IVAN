@@ -13,7 +13,6 @@ import {
   User,
 } from "lucide-react";
 import { aiService } from "@/services/aiService";
-import { chatbotConfigurationService } from "@/services/chatbotConfigurationService";
 import type { ChatMessage } from "@/types/ai";
 
 interface ChatBotProps {
@@ -155,12 +154,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     setIsLoading(true);
 
     try {
-      // Get default custom instruction ID for chatbot
-      const defaultCustomInstructionId = await chatbotConfigurationService.getDefaultCustomInstructionId();
-      
+      // Always use customInstructionId = 1 for chatbot
       const response = await aiService.sendQuery({
         query: inputMessage,
-        customInstructionId: defaultCustomInstructionId ?? undefined,
+        customInstructionId: 1,
         preferredModel: undefined,
         includeContext: true,
         conversationId:

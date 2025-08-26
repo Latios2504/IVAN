@@ -1,6 +1,5 @@
 import type { ChatMessageRequest, ChatMessageResponse, AiQueryRequest } from "../types/ai";
 import { aiService } from "./aiService";
-import { chatbotConfigurationService } from "./chatbotConfigurationService";
 import { apiClient } from "./apiClient";
 
 class ChatBotService {
@@ -15,13 +14,10 @@ class ChatBotService {
     }
   ): Promise<ChatMessageResponse> {
     try {
-      // Get default custom instruction ID from configuration
-      const defaultCustomInstructionId = await chatbotConfigurationService.getDefaultCustomInstructionId();
-      
-      // Use the AI query endpoint with default custom instruction
+      // Use the AI query endpoint with fixed custom instruction ID = 1
       const aiRequest: AiQueryRequest = {
         query: request.message,
-        customInstructionId: defaultCustomInstructionId ?? undefined, // Convert null to undefined
+        customInstructionId: 1,
         preferredModel: undefined, // Use default model
         includeContext: true,
         conversationId: request.conversationId,
@@ -48,38 +44,12 @@ class ChatBotService {
     } catch (error) {
       console.error("Error in chatbot service:", error);
       
-      // Fallback to original aiService method if configuration fails
+      // Fallback to original aiService method
       return await aiService.sendChatMessage(request);
     }
   }
 
-  /**
-   * Get current chatbot configuration (for admin UI)
-   */
-  async getConfiguration() {
-    return await chatbotConfigurationService.getConfiguration();
-  }
 
-  /**
-   * Set default custom instruction (Admin only)
-   */
-  async setDefaultInstruction(instructionId: number | null): Promise<boolean> {
-    return await chatbotConfigurationService.setDefaultInstruction(instructionId);
-  }
-
-  /**
-   * Get available custom instructions for admin selection
-   */
-  async getAvailableInstructions() {
-    return await chatbotConfigurationService.getAvailableInstructions();
-  }
-
-  /**
-   * Clear configuration cache
-   */
-  async clearCache(): Promise<boolean> {
-    return await chatbotConfigurationService.clearServerCache();
-  }
 }
 
 export const chatBotService = new ChatBotService();

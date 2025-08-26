@@ -51,7 +51,7 @@ import {
 import CustomInstructionBuilder from "@/components/admin/ai-custom-instructions/CustomInstructionBuilder";
 import TestingPlayground from "@/components/admin/ai-custom-instructions/TestingPlayground";
 import InstructionPreview from "@/components/admin/ai-custom-instructions/InstructionPreview";
-import ChatbotConfigurationPanel from "@/components/admin/ChatbotConfigurationPanel";
+
 
 const AIInstructionsManagementPageContent: React.FC = () => {
   const { user } = useAuth();
@@ -90,7 +90,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   // Local UI state (much simpler than complex context state)
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "overview" | "builder" | "testing" | "chatbot"
+    "overview" | "builder" | "testing"
   >("overview");
   const [selectedInstruction, setSelectedInstruction] =
     useState<AiCustomInstructionDTO | null>(null);
@@ -200,7 +200,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           setActiveTab(value as any);
         }}
       >
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Tổng quan
@@ -212,10 +212,6 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           <TabsTrigger value="testing" className="flex items-center gap-2">
             <Play className="h-4 w-4" />
             Kiểm tra
-          </TabsTrigger>
-          <TabsTrigger value="chatbot" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Cấu hình Chatbot
           </TabsTrigger>
         </TabsList>
 
@@ -531,23 +527,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Chatbot Configuration Tab */}
-        <TabsContent value="chatbot" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Cấu hình Chatbot
-              </CardTitle>
-              <CardDescription>
-                Quản lý cấu hình mặc định cho chatbot của hệ thống
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChatbotConfigurationPanel />
-            </CardContent>
-          </Card>
-        </TabsContent>
+
       </Tabs>
 
       {/* Preview Modal */}
