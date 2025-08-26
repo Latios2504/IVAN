@@ -171,3 +171,24 @@ export interface CreateEventFromSupportRequestDto {
 export interface UpdateEventStatusDto {
   status: string;
 }
+
+// Moderation Event DTOs - Missing from frontend
+export interface ModerationEventListDto {
+  eventId: number;
+  eventName: string;
+  organizationName: string;
+  submissionDate: string;
+}
+
+export interface ModerationEventDetailDto {
+  eventId: number;
+  eventName: string;
+  organizationName: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface RejectEventRequestDto {
+  reason: string;
+}
