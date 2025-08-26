@@ -58,87 +58,15 @@ export interface VolunteerScheduleFilterDto {
   search?: string;
 }
 
-export interface VolunteerScheduleStatsDto {
-  totalSchedules: number;
-  scheduledCount: number;
-  inProgressCount: number;
-  completedCount: number;
-  cancelledCount: number;
-  todaySchedules: number;
-  thisWeekSchedules: number;
-  thisMonthSchedules: number;
-  upcomingSchedules: number;
-  overdueSchedules: number;
-  schedulesByType: Record<string, number>;
-  schedulesByPriority: Record<string, number>;
-  topVolunteers: VolunteerScheduleSummaryDto[];
+export interface UpdateVolunteerScheduleStatusDto {
+  status: string;
 }
 
-export interface VolunteerScheduleSummaryDto {
-  volunteerId: number;
-  volunteerName: string;
-  scheduleCount: number;
-  completedCount: number;
-  completionRate: number;
-  recentActivity?: string;
-}
 
-export interface VolunteerScheduleConflictCheckDto {
-  volunteerId: number;
-  startDateTime: string; // ISO string format
-  endDateTime: string; // ISO string format
-  excludeScheduleId?: number;
-}
 
-export interface VolunteerAvailabilityDto {
-  volunteerId: number;
-  volunteerName: string;
-  date: string; // ISO string format
-  availableSlots: TimeSlotDto[];
-  existingSchedules: VolunteerScheduleDto[];
-}
 
-export interface TimeSlotDto {
-  startTime: string; // ISO string format
-  endTime: string; // ISO string format
-  isAvailable: boolean;
-  conflictReason?: string;
-}
 
-export interface BulkScheduleAssignmentDto {
-  eventId: number;
-  volunteerIds: number[];
-  title: string;
-  description?: string;
-  startDateTime: string; // ISO string format
-  endDateTime: string; // ISO string format
-  location?: string;
-  scheduleType?: string;
-  priority?: string;
-  isAllDay?: boolean;
-  reminderMinutes?: number;
-  notes?: string;
-  checkConflicts?: boolean;
-  notifyVolunteers?: boolean;
-}
 
-export interface BulkScheduleResultDto {
-  totalRequested: number;
-  successCount: number;
-  failureCount: number;
-  createdSchedules: VolunteerScheduleDto[];
-  conflicts: ScheduleConflictDto[];
-  errors: string[];
-}
-
-export interface ScheduleConflictDto {
-  volunteerId: number;
-  volunteerName: string;
-  conflictStart: string; // ISO string format
-  conflictEnd: string; // ISO string format
-  conflictingScheduleTitle: string;
-  conflictReason: string;
-}
 
 // Default filter values
 export const DEFAULT_SCHEDULE_FILTER: VolunteerScheduleFilterDto = {

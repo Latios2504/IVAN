@@ -1,4 +1,4 @@
-﻿using ivan_api.Models;
+using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 using ivan_api.DTOs.VolunteerProfile;
 using AutoMapper.QueryableExtensions;
@@ -69,6 +69,18 @@ namespace ivan_api.Repository.VolunteerProfileRepo
                 .Include(x => x.VolunteerSkills)
                     .ThenInclude(vs => vs.Skill)
                 .SingleOrDefaultAsync(x => x.UserId == userId);
+            return volunteer;
+        }
+
+        public async Task<VolunteerProfile?> GetVolunteerProfileByVolunteerId(int volunteerId)
+        {
+            var volunteer = await _context.VolunteerProfiles
+                .Include(x => x.User)
+                    .ThenInclude(u => u.UserProfiles)
+                .Include(x => x.VerifiedByNavigation)
+                .Include(x => x.VolunteerSkills)
+                    .ThenInclude(vs => vs.Skill)
+                .SingleOrDefaultAsync(x => x.VolunteerId == volunteerId);
             return volunteer;
         }
 

@@ -15,9 +15,7 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
         Task<VolunteerSchedule> UpdateAsync(VolunteerSchedule schedule);
         Task<bool> DeleteAsync(int scheduleId);
 
-        // Conflict checking
-        Task<List<VolunteerSchedule>> CheckConflictsAsync(int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null);
-        Task<bool> HasConflictAsync(int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null);
+
 
         // Availability checking
         Task<List<VolunteerSchedule>> GetVolunteerSchedulesForDateAsync(int volunteerId, DateTime date);
@@ -33,11 +31,10 @@ namespace ivan_api.Repository.VolunteerScheduleRepo
 
         // Bulk operations
         Task<List<VolunteerSchedule>> CreateBulkAsync(List<VolunteerSchedule> schedules);
-        Task<BulkScheduleResultDTO> CreateBulkWithConflictCheckAsync(List<VolunteerSchedule> schedules);
 
         // Utility methods
         Task<bool> ExistsAsync(int scheduleId);
-        Task<bool> IsVolunteerAvailableAsync(int volunteerId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null);
-        Task<List<int>> GetAvailableVolunteersAsync(List<int> volunteerIds, DateTime startDateTime, DateTime endDateTime);
+
+
     }
 }

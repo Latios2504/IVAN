@@ -5,12 +5,7 @@ import type {
   VolunteerScheduleDto,
   VolunteerScheduleRequestDto,
   VolunteerScheduleFilterDto,
-  VolunteerScheduleStatsDto,
-  VolunteerScheduleConflictCheckDto,
-  VolunteerAvailabilityDto,
-  BulkScheduleAssignmentDto,
-  BulkScheduleResultDto,
-  ScheduleConflictDto,
+  UpdateVolunteerScheduleStatusDto,
 } from "../types/volunteerSchedule";
 import { DEFAULT_SCHEDULE_FILTER } from "../types/volunteerSchedule";
 
@@ -116,6 +111,21 @@ class VolunteerScheduleService {
     return response.data;
   }
 
+  // PATCH /api/VolunteerSchedule/coordinator/{scheduleId}/status - Update volunteer schedule status (Coordinator role)
+  async updateVolunteerScheduleStatus(
+    scheduleId: number,
+    data: UpdateVolunteerScheduleStatusDto
+  ): Promise<void> {
+    const response = await apiClient.patch(
+      `${this.baseUrl}/coordinator/${scheduleId}/status`,
+      data
+    );
+
+    if (!response.success) {
+      throw new Error("Failed to update volunteer schedule status");
+    }
+  }
+
   // DELETE /api/VolunteerSchedule/coordinator/{scheduleId} - Delete volunteer schedule (Coordinator role)
   async deleteVolunteerSchedule(scheduleId: number): Promise<boolean> {
     const response = await apiClient.delete<boolean>(
@@ -185,76 +195,9 @@ class VolunteerScheduleService {
     return response.data;
   }
 
+
+
   // === UTILITY METHODS ===
-
-  // Get schedule statistics (mock implementation since no backend endpoint exists)
-  async getScheduleStats(
-    organizationId?: number,
-    eventId?: number,
-    startDate?: string,
-    endDate?: string
-  ): Promise<VolunteerScheduleStatsDto> {
-    // This would need to be implemented in the backend
-    // For now, return mock data or derive from existing schedules
-    return {
-      totalSchedules: 0,
-      scheduledCount: 0,
-      inProgressCount: 0,
-      completedCount: 0,
-      cancelledCount: 0,
-      todaySchedules: 0,
-      thisWeekSchedules: 0,
-      thisMonthSchedules: 0,
-      upcomingSchedules: 0,
-      overdueSchedules: 0,
-      schedulesByType: {},
-      schedulesByPriority: {},
-      topVolunteers: [],
-    };
-  }
-
-  // Check for schedule conflicts
-  async checkScheduleConflicts(
-    conflictCheck: VolunteerScheduleConflictCheckDto
-  ): Promise<VolunteerScheduleDto[]> {
-    const response = await apiClient.post<VolunteerScheduleDto[]>(
-      `${this.baseUrl}/conflicts`,
-      conflictCheck
-    );
-    return this.extractDataFromNetResponse(response.data);
-  }
-
-  // Get volunteer availability (mock implementation)
-  async getVolunteerAvailability(
-    volunteerId: number,
-    date: string
-  ): Promise<VolunteerAvailabilityDto> {
-    // This would need to be implemented in the backend
-    // For now, return mock data
-    return {
-      volunteerId,
-      volunteerName: "",
-      date,
-      availableSlots: [],
-      existingSchedules: [],
-    };
-  }
-
-  // Bulk schedule assignment (mock implementation)
-  async createBulkSchedules(
-    bulkAssignment: BulkScheduleAssignmentDto
-  ): Promise<BulkScheduleResultDto> {
-    // This would need to be implemented in the backend
-    // For now, return mock data
-    return {
-      totalRequested: bulkAssignment.volunteerIds.length,
-      successCount: 0,
-      failureCount: 0,
-      createdSchedules: [],
-      conflicts: [],
-      errors: [],
-    };
-  }
 
   // Helper method to validate schedule data before creation/update
   validateScheduleData(

@@ -89,66 +89,10 @@ namespace ivan_api.DTOs.VolunteerSchedule
         public string? RecentActivity { get; set; }
     }
 
-    public class VolunteerScheduleConflictCheckDTO
+    // Additional DTOs for status update
+    public class UpdateVolunteerScheduleStatusDto
     {
-        public int VolunteerId { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime EndDateTime { get; set; }
-        public int? ExcludeScheduleId { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 
-    public class VolunteerAvailabilityDTO
-    {
-        public int VolunteerId { get; set; }
-        public string VolunteerName { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
-        public List<TimeSlotDTO> AvailableSlots { get; set; } = new();
-        public List<VolunteerScheduleDTO> ExistingSchedules { get; set; } = new();
-    }
-
-    public class TimeSlotDTO
-    {
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public bool IsAvailable { get; set; }
-        public string? ConflictReason { get; set; }
-    }
-
-    public class BulkScheduleAssignmentDTO
-    {
-        public int EventId { get; set; }
-        public List<int> VolunteerIds { get; set; } = new();
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime EndDateTime { get; set; }
-        public string? Location { get; set; }
-        public string? ScheduleType { get; set; }
-        public string? Priority { get; set; } = "Medium";
-        public bool IsAllDay { get; set; } = false;
-        public int ReminderMinutes { get; set; } = 60;
-        public string? Notes { get; set; }
-        public bool CheckConflicts { get; set; } = true;
-        public bool NotifyVolunteers { get; set; } = true;
-    }
-
-    public class BulkScheduleResultDTO
-    {
-        public int TotalRequested { get; set; }
-        public int SuccessCount { get; set; }
-        public int FailureCount { get; set; }
-        public List<VolunteerScheduleDTO> CreatedSchedules { get; set; } = new();
-        public List<ScheduleConflictDTO> Conflicts { get; set; } = new();
-        public List<string> Errors { get; set; } = new();
-    }
-
-    public class ScheduleConflictDTO
-    {
-        public int VolunteerId { get; set; }
-        public string VolunteerName { get; set; } = string.Empty;
-        public DateTime ConflictStart { get; set; }
-        public DateTime ConflictEnd { get; set; }
-        public string ConflictingScheduleTitle { get; set; } = string.Empty;
-        public string ConflictReason { get; set; } = string.Empty;
-    }
 }

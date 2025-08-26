@@ -45,7 +45,7 @@ export default function VolunteerSchedulePage() {
   const [filters, setFilters] = useState<VolunteerScheduleFilterDto>({
     page: 1,
     size: 20,
-    sortBy: "StartDateTime",
+    sortBy: "startDateTime",
     sortDirection: "desc",
   });
 
