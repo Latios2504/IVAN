@@ -10,6 +10,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
         Task<VolunteerScheduleDTO?> GetVolunteerScheduleByIdAsync(int organizationId, int scheduleId);
         Task<VolunteerScheduleDTO> CreateVolunteerScheduleAsync(int organizationId, VolunteerScheduleRequestDTO request, int createdByUserId);
         Task<VolunteerScheduleDTO> UpdateVolunteerScheduleAsync(int organizationId, int scheduleId, VolunteerScheduleRequestDTO request, int updatedByUserId);
+        Task<bool> UpdateScheduleStatusAsync(int organizationId, int scheduleId, string status, int updatedBy);
         Task<bool> DeleteVolunteerScheduleAsync(int organizationId, int scheduleId);
 
         // For Volunteer Role - Personal schedule management (FE-07 requirements)

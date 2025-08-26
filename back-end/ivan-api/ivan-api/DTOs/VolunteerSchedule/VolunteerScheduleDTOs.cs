@@ -89,5 +89,10 @@ namespace ivan_api.DTOs.VolunteerSchedule
         public string? RecentActivity { get; set; }
     }
 
+    // Additional DTOs for status update
+    public class UpdateVolunteerScheduleStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
+    }
 
 }

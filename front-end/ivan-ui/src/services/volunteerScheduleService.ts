@@ -5,6 +5,7 @@ import type {
   VolunteerScheduleDto,
   VolunteerScheduleRequestDto,
   VolunteerScheduleFilterDto,
+  UpdateVolunteerScheduleStatusDto,
 } from "../types/volunteerSchedule";
 import { DEFAULT_SCHEDULE_FILTER } from "../types/volunteerSchedule";
 
@@ -108,6 +109,21 @@ class VolunteerScheduleService {
       throw new Error("Failed to update volunteer schedule");
     }
     return response.data;
+  }
+
+  // PATCH /api/VolunteerSchedule/coordinator/{scheduleId}/status - Update volunteer schedule status (Coordinator role)
+  async updateVolunteerScheduleStatus(
+    scheduleId: number,
+    data: UpdateVolunteerScheduleStatusDto
+  ): Promise<void> {
+    const response = await apiClient.patch(
+      `${this.baseUrl}/coordinator/${scheduleId}/status`,
+      data
+    );
+
+    if (!response.success) {
+      throw new Error("Failed to update volunteer schedule status");
+    }
   }
 
   // DELETE /api/VolunteerSchedule/coordinator/{scheduleId} - Delete volunteer schedule (Coordinator role)

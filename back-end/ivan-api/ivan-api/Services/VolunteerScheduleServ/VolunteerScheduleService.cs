@@ -59,7 +59,7 @@ namespace ivan_api.Services.VolunteerScheduleServ
         public async Task<VolunteerScheduleDTO> CreateVolunteerScheduleAsync(int organizationId, VolunteerScheduleRequestDTO request, int createdByUserId)
         {
             // Verify volunteer exists
-            var volunteer = await _volunteerRepository.GetVolunteerProfileById(request.VolunteerId);
+            var volunteer = await _volunteerRepository.GetVolunteerProfileByVolunteerId(request.VolunteerId);
             if (volunteer == null)
                 throw new ArgumentException("Volunteer not found");
 
@@ -124,6 +124,33 @@ namespace ivan_api.Services.VolunteerScheduleServ
 
             var updatedSchedule = await _scheduleRepository.UpdateAsync(existingSchedule);
             return _mapper.Map<VolunteerScheduleDTO>(updatedSchedule);
+        }
+
+        public async Task<bool> UpdateScheduleStatusAsync(int organizationId, int scheduleId, string status, int updatedBy)
+        {
+            var schedule = await _scheduleRepository.GetByIdAsync(scheduleId);
+            
+            if (schedule == null)
+                throw new ArgumentException("Schedule not found");
+
+            // Verify the schedule belongs to the organization through event
+            if (schedule.Event?.OrganizationId != organizationId)
+                throw new UnauthorizedAccessException("Schedule does not belong to your organization");
+
+            // Validate status transition if current status exists
+            if (!string.IsNullOrEmpty(schedule.Status) && 
+                !ScheduleConstants.IsValidStatusTransition(schedule.Status, status))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid status transition from '{schedule.Status}' to '{status}'. " +
+                    $"Valid transitions from '{schedule.Status}' are: {string.Join(", ", ScheduleConstants.ValidStatusTransitions.GetValueOrDefault(schedule.Status, new List<string>()))}");
+            }
+
+            schedule.Status = status;
+            schedule.UpdatedAt = DateTime.UtcNow;
+
+            var updatedSchedule = await _scheduleRepository.UpdateAsync(schedule);
+            return updatedSchedule != null;
         }
 
         public async Task<bool> DeleteVolunteerScheduleAsync(int organizationId, int scheduleId)

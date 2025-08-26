@@ -278,6 +278,90 @@ namespace ivan_api.Controllers
             }
         }
 
+        /// <summary>
+        /// Update volunteer schedule status (Coordinator role)
+        /// </summary>
+        [HttpPatch("coordinator/{scheduleId}/status")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
+        public async Task<IActionResult> UpdateVolunteerScheduleStatus(int scheduleId, [FromBody] UpdateVolunteerScheduleStatusDto request)
+        {
+            try
+            {
+                // Validate status
+                if (string.IsNullOrEmpty(request.Status) || !ScheduleConstants.GetAllStatuses().Contains(request.Status))
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Invalid status value",
+                        Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                    });
+                }
+
+                var userId = _authenticationService.GetUserIdFromClaims(User);
+                var organizationId = await _coordinatorService.GetOrganizationIdByUserIdAsync(userId);
+                
+                if (organizationId == null)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator not found or not associated with any organization"
+                    });
+                }
+
+                var result = await _volunteerScheduleService.UpdateScheduleStatusAsync(organizationId.Value, scheduleId, request.Status, userId);
+                
+                if (!result)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Schedule not found"
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Schedule status updated successfully"
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while updating the schedule status",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
         /// Delete volunteer schedule (Coordinator role)
         [HttpDelete("coordinator/{scheduleId}")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]

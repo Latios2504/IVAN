@@ -9,6 +9,7 @@ namespace ivan_api.Repository.VolunteerProfileRepo
         Task<bool> AddVolunteerProfile(VolunteerProfile volunteerProfile);
         Task<bool> UpdateVolunteerProfile(VolunteerProfile volunteerProfile);
         Task<VolunteerProfile?> GetVolunteerProfileById(int userId);
+        Task<VolunteerProfile?> GetVolunteerProfileByVolunteerId(int volunteerId);
         Task<PagedResultDto<VolunteerProfileViewModel>> GetVolunteerProfilesAsync(int PageNumber, int PageSize);
         Task<PagedResultDto<PublicVolunteerDTO>> GetPublicVolunteersAsync(PublicVolunteerFiltersDTO filters);
         Task<PublicVolunteerDTO?> GetPublicVolunteerAsync(int id);

@@ -58,6 +58,10 @@ export interface VolunteerScheduleFilterDto {
   search?: string;
 }
 
+export interface UpdateVolunteerScheduleStatusDto {
+  status: string;
+}
+
 
 
 

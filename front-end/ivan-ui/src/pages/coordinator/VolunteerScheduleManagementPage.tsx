@@ -53,6 +53,7 @@ import type {
   VolunteerScheduleDto,
   VolunteerScheduleFilterDto,
   VolunteerScheduleRequestDto,
+  UpdateVolunteerScheduleStatusDto,
 } from "@/types/volunteerSchedule";
 import { eventsService } from "@/services/eventsService";
 import type { EventDto } from "@/types/events";
@@ -288,6 +289,14 @@ export default function VolunteerScheduleManagementPage() {
       const uniqueEvents = Array.from(uniqueEventsMap.values());
       const uniqueVolunteers = Array.from(uniqueVolunteersMap.values());
       
+      console.log("=== LOAD OPTIONS DEBUG ===");
+      console.log("Total schedules loaded:", allSchedulesResult.items.length);
+      console.log("Unique volunteers found:", uniqueVolunteers.length);
+      console.log("Volunteers data:", uniqueVolunteers);
+      console.log("Unique events found:", uniqueEvents.length);
+      console.log("Events data:", uniqueEvents);
+      console.log("===========================");
+      
       setEvents(uniqueEvents);
       setVolunteers(uniqueVolunteers);
     } catch (error) {
@@ -327,6 +336,14 @@ export default function VolunteerScheduleManagementPage() {
         reminderMinutes: formData.reminderMinutes,
         notes: formData.notes,
       };
+
+      console.log("=== CREATE SCHEDULE DEBUG ===");
+      console.log("Form Data:", formData);
+      console.log("Request Payload:", request);
+      console.log("Available Volunteers:", volunteers);
+      console.log("Selected Volunteer ID:", formData.volunteerId);
+      console.log("Selected Volunteer:", volunteers.find(v => v.volunteerId === formData.volunteerId));
+      console.log("==============================");
 
       await volunteerScheduleService.createVolunteerSchedule(request);
       toast.success("Volunteer schedule created successfully!");
@@ -370,6 +387,15 @@ export default function VolunteerScheduleManagementPage() {
         notes: formData.notes,
       };
 
+      console.log("=== EDIT SCHEDULE DEBUG ===");
+      console.log("Schedule ID:", schedule.scheduleId);
+      console.log("Form Data:", formData);
+      console.log("Request Payload:", request);
+      console.log("Available Volunteers:", volunteers);
+      console.log("Selected Volunteer ID:", formData.volunteerId);
+      console.log("Selected Volunteer:", volunteers.find(v => v.volunteerId === formData.volunteerId));
+      console.log("=============================");
+
       await volunteerScheduleService.updateVolunteerSchedule(
         schedule.scheduleId,
         request
@@ -400,6 +426,26 @@ export default function VolunteerScheduleManagementPage() {
     } catch (error) {
       console.error("Failed to delete schedule:", error);
       toast.error("Failed to delete volunteer schedule");
+    }
+  };
+
+  // Status update handler
+  const handleUpdateStatus = async (scheduleId: number, status: string) => {
+    try {
+      const updateData: UpdateVolunteerScheduleStatusDto = { status };
+      await volunteerScheduleService.updateVolunteerScheduleStatus(
+        scheduleId,
+        updateData
+      );
+      toast.success("Cập nhật trạng thái thành công");
+      loadSchedules(); // Refresh the list
+    } catch (error) {
+      console.error("Error updating status:", error);
+      if (error instanceof Error) {
+        toast.error(`Không thể cập nhật trạng thái: ${error.message}`);
+      } else {
+        toast.error("Không thể cập nhật trạng thái");
+      }
     }
   };
 
@@ -682,19 +728,36 @@ export default function VolunteerScheduleManagementPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusColor(schedule.status) as any}>
-                          {schedule.status === "Scheduled" && "Đã lên lịch"}
-                          {schedule.status === "InProgress" && "Đang thực hiện"}
-                          {schedule.status === "Completed" && "Hoàn thành"}
-                          {schedule.status === "Cancelled" && "Đã hủy"}
-                          {![
-                            "Scheduled",
-                            "InProgress",
-                            "Completed",
-                            "Cancelled",
-                          ].includes(schedule.status || "") &&
-                            (schedule.status || "Không xác định")}
-                        </Badge>
+                        <Select
+                          value={schedule.status || ""}
+                          onValueChange={(value) =>
+                            handleUpdateStatus(schedule.scheduleId, value)
+                          }
+                        >
+                          <SelectTrigger className="w-32 h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Scheduled">
+                              Đã lên lịch
+                            </SelectItem>
+                            <SelectItem value="In Progress">
+                              Đang thực hiện
+                            </SelectItem>
+                            <SelectItem value="Completed">
+                              Hoàn thành
+                            </SelectItem>
+                            <SelectItem value="Cancelled">
+                              Đã hủy
+                            </SelectItem>
+                            <SelectItem value="No Show">
+                              Vắng mặt
+                            </SelectItem>
+                            <SelectItem value="Checked In">
+                              Đã check-in
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Badge
