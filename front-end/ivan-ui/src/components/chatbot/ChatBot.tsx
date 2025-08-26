@@ -12,7 +12,8 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import { chatBotService } from "@/services/chatBotService";
+import { aiService } from "@/services/aiService";
+import { chatbotConfigurationService } from "@/services/chatbotConfigurationService";
 import type { ChatMessage } from "@/types/ai";
 
 interface ChatBotProps {
@@ -154,8 +155,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
     setIsLoading(true);
 
     try {
-      const response = await chatBotService.sendMessage({
-        message: inputMessage,
+      // Get default custom instruction ID for chatbot
+      const defaultCustomInstructionId = await chatbotConfigurationService.getDefaultCustomInstructionId();
+      
+      const response = await aiService.sendQuery({
+        query: inputMessage,
+        customInstructionId: defaultCustomInstructionId ?? undefined,
+        preferredModel: undefined,
+        includeContext: true,
         conversationId:
           conversationId && conversationId.length > 0
             ? conversationId
@@ -168,14 +175,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         id: (Date.now() + 1).toString(),
         message: "",
         response: response.response,
-        timestamp: new Date(response.timestamp),
+        timestamp: new Date(response.generatedAt || new Date()),
         isUser: false,
-        conversationId: response.conversationId,
+        conversationId: conversationId,
       };
 
       const updated = [...nextMessages, botMessage];
       setMessages(updated);
-      setConversationId(response.conversationId);
+      if (!conversationId) {
+        setConversationId(generateConversationId());
+      }
       // update summary with the latest
       const mem2 = buildClientMemory(updated);
       setSummary(mem2.clientSummary);
@@ -233,8 +242,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <Card
-        className={`w-80 ${
-          isMinimized ? "h-14" : "h-96"
+        className={`w-96 ${
+          isMinimized ? "h-14" : "h-[500px]"
         } shadow-xl border-2 border-blue-200 transition-all duration-300`}
       >
         <CardHeader className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -277,7 +286,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         </CardHeader>
 
         {!isMinimized && (
-          <CardContent className="p-0 flex flex-col h-80">
+          <CardContent className="p-0 flex flex-col h-[440px]">
             {" "}
             {/* Messages Area */}
             <div className="flex-1 p-3 overflow-y-auto">
