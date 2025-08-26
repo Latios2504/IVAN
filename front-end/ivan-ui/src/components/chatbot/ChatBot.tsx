@@ -78,7 +78,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         id: "welcome",
         message: "",
         response:
-          "Xin chào Admin! Tôi là trợ lý AI của hệ thống IVAN. Tôi có thể giúp bạn quản lý tình nguyện viên, tổ chức sự kiện, và các hoạt động khác trong hệ thống. Bạn cần hỗ trợ gì hôm nay?",
+          "Xin chào! Tôi là trợ lý AI của hệ thống IVAN. Tôi có thể giúp bạn quản lý tình nguyện viên, tổ chức sự kiện, và các hoạt động khác trong hệ thống. Bạn cần hỗ trợ gì hôm nay?",
         timestamp: new Date(),
         isUser: false,
         conversationId: "",
@@ -226,7 +226,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
       id: "welcome-new",
       message: "",
       response:
-        "Cuộc trò chuyện đã được làm mới. Tôi có thể giúp gì cho bạn khác?",
+        "Cuộc trò chuyện đã được làm mới. Tôi có thể giúp gì cho bạn?",
       timestamp: new Date(),
       isUser: false,
       conversationId: "",
@@ -237,7 +237,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-6 right-4 z-[9999]">
       <Card
         className={`w-96 ${
           isMinimized ? "h-14" : "h-[500px]"
