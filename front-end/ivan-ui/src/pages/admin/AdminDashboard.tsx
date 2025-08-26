@@ -8,18 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import AdminAnalyticsDashboard from "@/components/admin/AdminAnalyticsDashboard";
-import {
-  Users,
-  UserCheck,
-  BarChart3,
-  FileText,
-  Bell,
-  Shield,
-  MessageCircle,
-  Bot,
-  Award,
-  CheckCircle,
-} from "lucide-react";
+import { Users, Shield, MessageCircle, Bot, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
@@ -28,10 +17,10 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 p-6 bg-gradient-to-r from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30 rounded-2xl border border-emerald-200/50 dark:border-emerald-800/50 shadow-lg backdrop-blur-sm">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent mb-2">
-            Dashboard Quản trị viên
+            Trang quản trị
           </h1>
           <p className="text-emerald-700/80 dark:text-emerald-300/80 text-lg">
-            Quản lý toàn bộ hệ thống IVAN và giám sát hoạt động
+            Quản lý toàn bộ hệ thống tình nguyện và giám sát hoạt động
           </p>
         </div>
 
@@ -42,13 +31,13 @@ export default function AdminDashboard() {
               value="management"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
             >
-              Management
+              Quản lý
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
             >
-              Analytics
+              Phân tích
             </TabsTrigger>
           </TabsList>
 
@@ -127,7 +116,7 @@ export default function AdminDashboard() {
                       className="flex items-center gap-2"
                     >
                       <Bot className="w-4 h-4" />
-                      AI Instructions
+                      Hướng dẫn AI
                     </Link>
                   </Button>
                 </CardContent>

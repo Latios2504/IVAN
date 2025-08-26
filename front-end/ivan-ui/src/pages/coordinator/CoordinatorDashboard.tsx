@@ -12,13 +12,9 @@ import {
   Calendar,
   Users,
   Award,
-  BarChart3,
-  Settings,
-  UserPlus,
   HeartHandshake,
   MessageSquare,
   ClipboardList,
-  Target,
   CheckCircle,
   FileText,
 } from "lucide-react";
@@ -30,7 +26,7 @@ export default function CoordinatorDashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 p-6 bg-gradient-to-r from-blue-50/80 via-indigo-50/80 to-violet-50/80 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-violet-950/30 rounded-2xl border border-blue-200/50 dark:border-blue-800/50 shadow-lg backdrop-blur-sm">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 dark:from-blue-400 dark:via-indigo-400 dark:to-violet-400 bg-clip-text text-transparent mb-2">
-            Bảng điều khiển Coordinator
+            Trang quản trị
           </h1>
           <p className="text-blue-700/80 dark:text-blue-300/80 text-lg">
             Quản lý lịch trình và điều phối tình nguyện viên
@@ -40,8 +36,8 @@ export default function CoordinatorDashboard() {
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="management">Management</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="management">Quản lý</TabsTrigger>
+            <TabsTrigger value="analytics">Phân tích</TabsTrigger>
           </TabsList>
 
           <TabsContent value="management" className="space-y-6">
@@ -86,19 +82,6 @@ export default function CoordinatorDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/coordinator/onsite-tasks"
-                      className="flex items-center gap-2"
-                    >
-                      <Target className="w-4 h-4" />
-                      Quản lý nhiệm vụ tại chỗ
-                    </Link>
-                  </Button>
                   <Button
                     asChild
                     className="w-full justify-start"

@@ -108,7 +108,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
           setInstructions(result);
         } catch (err) {
           setError(
-            err instanceof Error ? err.message : "Failed to load instructions"
+            err instanceof Error ? err.message : "Không thể tải danh sách hướng dẫn"
           );
         } finally {
           setLoading(false);
@@ -413,7 +413,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                                     setError(
                                       err instanceof Error
                                         ? err.message
-                                        : "Failed to delete instruction"
+                                        : "Không thể xóa hướng dẫn"
                                     );
                                   }
                                 }}
@@ -475,8 +475,8 @@ const AIInstructionsManagementPageContent: React.FC = () => {
                       err instanceof Error
                         ? err.message
                         : selectedInstruction
-                        ? "Failed to update instruction"
-                        : "Failed to create instruction"
+                        ? "Không thể cập nhật hướng dẫn"
+                        : "Không thể tạo hướng dẫn mới"
                     );
                   }
                 }}

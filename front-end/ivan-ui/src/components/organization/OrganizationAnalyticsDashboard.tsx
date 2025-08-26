@@ -119,32 +119,32 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900 dark:via-violet-900 dark:to-indigo-900 rounded-lg p-4 border border-purple-200 dark:border-purple-800 shadow-md">
         <div>
-          <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100">Organization Analytics</h2>
+          <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-100">Phân tích tổ chức</h2>
           <p className="text-purple-700 dark:text-purple-300">
-            Track your organization's performance and impact
+            Theo dõi hiệu suất và tác động của tổ chức bạn
           </p>
         </div>
         <div className="flex items-center gap-4">
           <Select value={timePeriod.toString()} onValueChange={(value) => handleTimePeriodChange(parseInt(value) as TimePeriod)}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select time period" />
+              <SelectValue placeholder="Chọn khoảng thời gian" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TimePeriod.Last7Days.toString()}>Last 7 days</SelectItem>
+              <SelectItem value={TimePeriod.Last7Days.toString()}>7 ngày qua</SelectItem>
               <SelectItem value={TimePeriod.Last30Days.toString()}>
-                Last 30 days
+                30 ngày qua
               </SelectItem>
               <SelectItem value={TimePeriod.Last3Months.toString()}>
-                Last 3 months
+                3 tháng qua
               </SelectItem>
-              <SelectItem value={TimePeriod.LastYear.toString()}>Last year</SelectItem>
+              <SelectItem value={TimePeriod.LastYear.toString()}>Năm qua</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={fetchDashboardData} variant="outline" size="sm">
             <RefreshCw
               className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
             />
-            Refresh
+            Làm mới
           </Button>
         </div>
       </div>
@@ -153,33 +153,33 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-lg border border-blue-200 dark:border-blue-800 shadow-md">
           <StatsCard
-            title="Total Events"
+            title="Tổng số sự kiện"
             value={dashboardData.myTotalEvents}
             icon={Calendar}
-            description={`${dashboardData.myActiveEvents} active`}
+            description={`${dashboardData.myActiveEvents} đang hoạt động`}
           />
         </div>
         <div className="bg-gradient-to-br from-green-100 via-emerald-100 to-teal-100 dark:from-green-900 dark:via-emerald-900 dark:to-teal-900 rounded-lg border border-green-200 dark:border-green-800 shadow-md">
           <StatsCard
-            title="Volunteers Reached"
+            title="Tình nguyện viên tiếp cận"
             value={dashboardData.totalVolunteersReached}
             icon={Users}
           />
         </div>
         <div className="bg-gradient-to-br from-yellow-100 via-amber-100 to-orange-100 dark:from-yellow-900 dark:via-amber-900 dark:to-orange-900 rounded-lg border border-yellow-200 dark:border-yellow-800 shadow-md">
           <StatsCard
-            title="Volunteer Hours"
+            title="Giờ tình nguyện"
             value={dashboardData.totalVolunteerHours.toLocaleString()}
             icon={UserCheck}
-            description="Total contributed"
+            description="Tổng đóng góp"
           />
         </div>
         <div className="bg-gradient-to-br from-pink-100 via-rose-100 to-red-100 dark:from-pink-900 dark:via-rose-900 dark:to-red-900 rounded-lg border border-pink-200 dark:border-pink-800 shadow-md">
           <StatsCard
-            title="Average Rating"
+            title="Đánh giá trung bình"
             value={dashboardData.averageEventRating.toFixed(1)}
             icon={Star}
-            description="Event satisfaction"
+            description="Sự hài lòng sự kiện"
           />
         </div>
       </div>
@@ -187,9 +187,9 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
       {/* Charts Tabs */}
       <Tabs defaultValue="events" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900 dark:via-violet-900 dark:to-indigo-900 border border-purple-200 dark:border-purple-800 shadow-md">
-          <TabsTrigger value="events" className="text-purple-800 dark:text-purple-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800">Event Analytics</TabsTrigger>
+          <TabsTrigger value="events" className="text-purple-800 dark:text-purple-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800">Phân tích sự kiện</TabsTrigger>
           <TabsTrigger value="registrations" className="text-purple-800 dark:text-purple-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800">
-            Registration Analytics
+            Phân tích đăng ký
           </TabsTrigger>
         </TabsList>
 
@@ -198,9 +198,9 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
             {/* Events by Category */}
             <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 border border-blue-200 dark:border-blue-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-t-lg border-b border-blue-200 dark:border-blue-800">
-                <CardTitle className="text-blue-900 dark:text-blue-100">Events by Category</CardTitle>
+                <CardTitle className="text-blue-900 dark:text-blue-100">Sự kiện theo danh mục</CardTitle>
                 <CardDescription className="text-blue-700 dark:text-blue-300">
-                  Distribution of events across different categories
+                  Phân bố sự kiện theo các danh mục khác nhau
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -235,9 +235,9 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
             {/* Volunteer Participation by Category */}
             <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950 border border-green-200 dark:border-green-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-t-lg border-b border-green-200 dark:border-green-800">
-                <CardTitle className="text-green-900 dark:text-green-100">Volunteer Participation</CardTitle>
+                <CardTitle className="text-green-900 dark:text-green-100">Sự tham gia của tình nguyện viên</CardTitle>
                 <CardDescription className="text-green-700 dark:text-green-300">
-                  Number of volunteers by event category
+                  Số lượng tình nguyện viên theo danh mục sự kiện
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -272,9 +272,9 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
             {/* Registration Status */}
             <Card className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950 dark:via-amber-950 dark:to-yellow-950 border border-orange-200 dark:border-orange-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900 dark:to-amber-900 rounded-t-lg border-b border-orange-200 dark:border-orange-800">
-                <CardTitle className="text-orange-900 dark:text-orange-100">Registration Status</CardTitle>
+                <CardTitle className="text-orange-900 dark:text-orange-100">Trạng thái đăng ký</CardTitle>
                 <CardDescription className="text-orange-700 dark:text-orange-300">
-                  Current status of event registrations
+                  Trạng thái đăng ký hiện tại cho các sự kiện
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -314,9 +314,9 @@ const OrganizationAnalyticsDashboard: React.FC = () => {
             {/* Recent Events */}
             <Card className="bg-gradient-to-br from-pink-50 via-rose-50 to-red-50 dark:from-pink-950 dark:via-rose-950 dark:to-red-950 border border-pink-200 dark:border-pink-800 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900 dark:to-rose-900 rounded-t-lg border-b border-pink-200 dark:border-pink-800">
-                <CardTitle className="text-pink-900 dark:text-pink-100">Recent Events</CardTitle>
+                <CardTitle className="text-pink-900 dark:text-pink-100">Sự kiện gần đây</CardTitle>
                 <CardDescription className="text-pink-700 dark:text-pink-300">
-                  Your organization's latest events
+                  Các sự kiện mới nhất của tổ chức bạn
                 </CardDescription>
               </CardHeader>
               <CardContent>

@@ -92,20 +92,11 @@ const EventRegistrationPage = lazy(
 const EventFeedbackManagementPage = lazy(
   () => import("@/pages/organization/EventFeedbackManagementPage")
 );
-const FeedbackManagementPage = lazy(
-  () => import("@/pages/organization/FeedbackManagementPage")
-);
 const VolunteerCoordinatorManagementPage = lazy(
   () => import("@/pages/organization/VolunteerCoordinatorManagementPage")
 );
-const OnSiteTaskManagementPage = lazy(
-  () => import("@/pages/coordinator/OnSiteTaskManagementPage")
-);
 const CoordinatorTasksPage = lazy(
   () => import("@/pages/coordinator/CoordinatorTasksPage")
-);
-const MyOnSiteTasksPage = lazy(
-  () => import("@/pages/volunteer/MyOnSiteTasksPage")
 );
 
 const VolunteerEventRegistrationPage = lazy(
@@ -283,14 +274,6 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/coordinator/onsite-tasks"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
-              <OnSiteTaskManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/coordinator/my-tasks"
           element={
             <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
@@ -303,14 +286,6 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
               <VolunteerSchedulePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/volunteer/my-tasks"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.VOLUNTEER]}>
-              <MyOnSiteTasksPage />
             </ProtectedRoute>
           }
         />
@@ -423,14 +398,6 @@ export default function AppRoutes() {
               allowedRoles={[UserRole.ORGANIZATION, UserRole.COORDINATOR]}
             >
               <EventFeedbackManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/organization/feedback"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <FeedbackManagementPage />
             </ProtectedRoute>
           }
         />

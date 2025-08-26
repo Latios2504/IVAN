@@ -30,7 +30,7 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
       try {
         setLoading(true);
         if (!user.userId) {
-          throw new Error("User ID is required");
+          throw new Error("ID người dùng là bắt buộc");
         }
         const profile = await volunteerProfileService.getVolunteerProfile(
           user.userId

@@ -250,7 +250,13 @@ export default function SupportRequestManagementPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Pending":
-        return <Badge variant="secondary">Chờ duyệt</Badge>;
+        return <Badge variant="secondary">Chờ xử lý</Badge>;
+      case "In Progress":
+        return <Badge variant="secondary">Đang xử lý</Badge>;
+      case "Resolved":
+        return <Badge variant="default">Đã giải quyết</Badge>;
+      case "Closed":
+        return <Badge variant="outline">Đã đóng</Badge>;
       case "Approved":
         return <Badge variant="default">Đã duyệt</Badge>;
       case "Rejected":
@@ -261,15 +267,23 @@ export default function SupportRequestManagementPage() {
   };
 
   const getPriorityBadge = (priority: string) => {
+    const priorityTranslations = {
+      'High': 'Cao',
+      'Medium': 'Trung bình',
+      'Low': 'Thấp'
+    };
+    
+    const translatedPriority = priorityTranslations[priority as keyof typeof priorityTranslations] || priority;
+    
     switch (priority) {
       case "High":
-        return <Badge variant="destructive">Cao</Badge>;
+        return <Badge variant="destructive">{translatedPriority}</Badge>;
       case "Medium":
-        return <Badge variant="secondary">Trung bình</Badge>;
+        return <Badge variant="secondary">{translatedPriority}</Badge>;
       case "Low":
-        return <Badge variant="outline">Thấp</Badge>;
+        return <Badge variant="outline">{translatedPriority}</Badge>;
       default:
-        return <Badge variant="outline">{priority}</Badge>;
+        return <Badge variant="outline">{translatedPriority}</Badge>;
     }
   };
 
@@ -309,7 +323,10 @@ export default function SupportRequestManagementPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="Pending">Chờ duyệt</SelectItem>
+                <SelectItem value="Pending">Chờ xử lý</SelectItem>
+                <SelectItem value="In Progress">Đang xử lý</SelectItem>
+                <SelectItem value="Resolved">Đã giải quyết</SelectItem>
+                <SelectItem value="Closed">Đã đóng</SelectItem>
                 <SelectItem value="Approved">Đã duyệt</SelectItem>
                 <SelectItem value="Rejected">Đã từ chối</SelectItem>
               </SelectContent>

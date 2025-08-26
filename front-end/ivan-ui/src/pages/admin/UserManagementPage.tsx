@@ -538,7 +538,7 @@ export default function UserManagementPageNew() {
       <div className="relative z-10 flex justify-between items-center p-6 bg-gradient-to-r from-white/80 via-violet-50/50 to-purple-50/50 dark:from-slate-900/80 dark:via-violet-950/50 dark:to-purple-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 rounded-2xl shadow-xl">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
-            User Management
+            Quản lý người dùng
           </h1>
           <p className="text-violet-700 dark:text-violet-300">
             Quản lý người dùng trong hệ thống

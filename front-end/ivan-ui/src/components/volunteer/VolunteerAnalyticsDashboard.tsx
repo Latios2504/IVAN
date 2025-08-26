@@ -98,9 +98,9 @@ export function VolunteerAnalyticsDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Volunteer Analytics</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Phân tích tình nguyện viên</h2>
           <p className="text-muted-foreground">
-            Track your volunteer journey and achievements
+            Theo dõi hành trình tình nguyện và thành tích của bạn
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -109,23 +109,23 @@ export function VolunteerAnalyticsDashboard() {
             onValueChange={(value) => setTimePeriod(parseInt(value) as TimePeriod)}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select time period" />
+              <SelectValue placeholder="Chọn khoảng thời gian" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={TimePeriod.Last7Days.toString()}>
-                Last 7 Days
+                7 ngày qua
               </SelectItem>
               <SelectItem value={TimePeriod.Last30Days.toString()}>
-                Last 30 Days
+                30 ngày qua
               </SelectItem>
               <SelectItem value={TimePeriod.Last3Months.toString()}>
-                Last 3 Months
+                3 tháng qua
               </SelectItem>
               <SelectItem value={TimePeriod.Last6Months.toString()}>
-                Last 6 Months
+                6 tháng qua
               </SelectItem>
               <SelectItem value={TimePeriod.LastYear.toString()}>
-                Last Year
+                Năm qua
               </SelectItem>
             </SelectContent>
           </Select>
@@ -143,27 +143,27 @@ export function VolunteerAnalyticsDashboard() {
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Events Participated"
+          title="Sự kiện đã tham gia"
           value={dashboardData?.eventsParticipated || 0}
-          description="Total events joined"
+          description="Tổng số sự kiện đã tham gia"
           icon={Calendar}
         />
         <StatsCard
-          title="Events Completed"
+          title="Sự kiện đã hoàn thành"
           value={dashboardData?.eventsCompleted || 0}
-          description="Successfully completed events"
+          description="Sự kiện hoàn thành thành công"
           icon={Target}
         />
         <StatsCard
-          title="Volunteer Hours"
+          title="Giờ tình nguyện"
           value={dashboardData?.totalVolunteerHours || 0}
-          description="Total hours contributed"
+          description="Tổng số giờ đóng góp"
           icon={Clock}
         />
         <StatsCard
-          title="Skills Acquired"
+          title="Kỹ năng đã học"
           value={dashboardData?.skillsAcquired || 0}
-          description="New skills learned"
+          description="Kỹ năng mới đã học được"
           icon={Award}
         />
       </div>
@@ -171,9 +171,9 @@ export function VolunteerAnalyticsDashboard() {
       {/* Analytics Tabs */}
       <Tabs defaultValue="events" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="events">Event Analytics</TabsTrigger>
-          <TabsTrigger value="skills">Skills & Progress</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          <TabsTrigger value="events">Phân tích sự kiện</TabsTrigger>
+          <TabsTrigger value="skills">Kỹ năng & Tiến độ</TabsTrigger>
+          <TabsTrigger value="achievements">Thành tích</TabsTrigger>
         </TabsList>
 
         <TabsContent value="events" className="space-y-4">
@@ -181,9 +181,9 @@ export function VolunteerAnalyticsDashboard() {
             {/* Events by Category */}
             <Card>
               <CardHeader>
-                <CardTitle>Events by Category</CardTitle>
+                <CardTitle>Sự kiện theo danh mục</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Distribution of your volunteer activities
+                  Phân bố các hoạt động tình nguyện của bạn
                 </p>
               </CardHeader>
               <CardContent>
@@ -212,9 +212,9 @@ export function VolunteerAnalyticsDashboard() {
             {/* Volunteer Hours by Category */}
             <Card>
               <CardHeader>
-                <CardTitle>Volunteer Hours by Category</CardTitle>
+                <CardTitle>Giờ tình nguyện theo danh mục</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Time spent in different volunteer categories
+                  Thời gian dành cho các danh mục tình nguyện khác nhau
                 </p>
               </CardHeader>
               <CardContent>
@@ -224,7 +224,7 @@ export function VolunteerAnalyticsDashboard() {
                     <XAxis dataKey="categoryName" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="volunteerCount" fill="#8884d8" name="Hours" />
+                    <Bar dataKey="volunteerCount" fill="#8884d8" name="Giờ" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -237,9 +237,9 @@ export function VolunteerAnalyticsDashboard() {
             {/* Skills Progress */}
             <Card>
               <CardHeader>
-                <CardTitle>Skills Progress</CardTitle>
+                <CardTitle>Tiến độ kỹ năng</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Your skill development and proficiency levels
+                  Phát triển kỹ năng và mức độ thành thạo của bạn
                 </p>
               </CardHeader>
               <CardContent>
@@ -253,8 +253,8 @@ export function VolunteerAnalyticsDashboard() {
                         </span>
                       </div>
                       <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Events: {skill.eventsUsed}</span>
-                        <span>Experience: {skill.yearsOfExperience} years</span>
+                        <span>Sự kiện: {skill.eventsUsed}</span>
+                        <span>Kinh nghiệm: {skill.yearsOfExperience} năm</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
@@ -267,7 +267,7 @@ export function VolunteerAnalyticsDashboard() {
                     </div>
                   )) || (
                     <p className="text-center text-muted-foreground py-8">
-                      No skills data available for the selected period
+                      Không có dữ liệu kỹ năng cho khoảng thời gian đã chọn
                     </p>
                   )}
                 </div>
@@ -281,9 +281,9 @@ export function VolunteerAnalyticsDashboard() {
             {/* Recent Achievements */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Achievements</CardTitle>
+                <CardTitle>Thành tích gần đây</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Your latest accomplishments and milestones
+                  Những thành tựu và cột mốc mới nhất của bạn
                 </p>
               </CardHeader>
               <CardContent>
@@ -300,12 +300,12 @@ export function VolunteerAnalyticsDashboard() {
                         {achievement.description}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Achieved on {new Date(achievement.achievedDate).toLocaleDateString()}
+                        Đạt được vào {new Date(achievement.achievedDate).toLocaleDateString()}
                       </p>
                     </div>
                   )) || (
                     <p className="text-center text-muted-foreground py-8">
-                      No achievements data available for the selected period
+                      Không có dữ liệu thành tích cho khoảng thời gian đã chọn
                     </p>
                   )}
                 </div>
