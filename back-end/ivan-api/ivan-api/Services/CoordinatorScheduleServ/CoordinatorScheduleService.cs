@@ -56,30 +56,34 @@ namespace ivan_api.Services.CoordinatorScheduleServ
 
         public async Task<int?> CreateScheduleAsync(int organizationId, CreateCoordinatorScheduleDto createDto, int createdBy)
         {
+            Console.WriteLine($"[CreateScheduleAsync] Organization ID: {organizationId}");
+            Console.WriteLine($"[CreateScheduleAsync] Created by: {createdBy}");
+            Console.WriteLine($"[CreateScheduleAsync] DTO: {System.Text.Json.JsonSerializer.Serialize(createDto)}");
+            
             // Verify coordinator belongs to organization
             var coordinator = await _repository.GetCoordinatorByIdAsync(createDto.CoordinatorId);
+            Console.WriteLine($"[CreateScheduleAsync] Coordinator found: {coordinator != null}");
+            Console.WriteLine($"[CreateScheduleAsync] Coordinator org ID: {coordinator?.OrganizationId}");
+            
             if (coordinator?.OrganizationId != organizationId)
             {
+                Console.WriteLine($"[CreateScheduleAsync] Coordinator organization mismatch. Expected: {organizationId}, Got: {coordinator?.OrganizationId}");
                 return null;
             }
 
-            // Check for conflicts
-            var conflicts = await _repository.CheckConflictsAsync(
-                createDto.CoordinatorId, 
-                createDto.StartDateTime, 
-                createDto.EndDateTime);
 
-            if (conflicts.Any())
-            {
-                return null;
-            }
 
             var schedule = _mapper.Map<CoordinatorSchedule>(createDto);
             schedule.CreatedBy = createdBy;
             schedule.CreatedAt = DateTime.UtcNow;
             schedule.UpdatedAt = DateTime.UtcNow;
-
-            return await _repository.CreateAsync(schedule);
+            
+            Console.WriteLine($"[CreateScheduleAsync] Mapped schedule: {System.Text.Json.JsonSerializer.Serialize(schedule)}");
+            
+            var result = await _repository.CreateAsync(schedule);
+            Console.WriteLine($"[CreateScheduleAsync] Repository result: {result}");
+            
+            return result;
         }
 
         public async Task<bool> UpdateScheduleAsync(int organizationId, int scheduleId, UpdateCoordinatorScheduleDto updateDto, int updatedBy)
@@ -91,23 +95,7 @@ namespace ivan_api.Services.CoordinatorScheduleServ
                 return false;
             }
 
-            // Check for conflicts if time is being changed
-            if (updateDto.StartDateTime.HasValue || updateDto.EndDateTime.HasValue)
-            {
-                var startTime = updateDto.StartDateTime ?? existingSchedule.StartDateTime;
-                var endTime = updateDto.EndDateTime ?? existingSchedule.EndDateTime;
 
-                var conflicts = await _repository.CheckConflictsAsync(
-                    existingSchedule.CoordinatorId, 
-                    startTime, 
-                    endTime, 
-                    scheduleId);
-
-                if (conflicts.Any())
-                {
-                    return false;
-                }
-            }
 
             _mapper.Map(updateDto, existingSchedule);
             existingSchedule.UpdatedAt = DateTime.UtcNow;
@@ -216,16 +204,6 @@ namespace ivan_api.Services.CoordinatorScheduleServ
             return await _repository.BulkDeleteAsync(organizationId, scheduleIds);
         }
 
-        public async Task<List<CoordinatorScheduleSummaryDto>> CheckScheduleConflictsAsync(
-            int coordinatorId, DateTime startDateTime, DateTime endDateTime, int? excludeScheduleId = null)
-        {
-            var conflicts = await _repository.CheckConflictsAsync(coordinatorId, startDateTime, endDateTime, excludeScheduleId);
-            return _mapper.Map<List<CoordinatorScheduleSummaryDto>>(conflicts);
-        }
 
-        public async Task<VolunteerCoordinator?> GetCoordinatorByIdAsync(int coordinatorId)
-        {
-            return await _repository.GetCoordinatorByIdAsync(coordinatorId);
-        }
     }
 }

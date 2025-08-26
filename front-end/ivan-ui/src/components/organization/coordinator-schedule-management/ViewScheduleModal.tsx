@@ -1,4 +1,7 @@
+import React, { useState, useEffect } from "react";
 import type { CoordinatorScheduleDto } from "@/types/coordinatorSchedule";
+import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
+import type { EventDto } from "@/types/events";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,18 +13,89 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Calendar, Clock, MapPin, User, Tag, AlertCircle, FileText, Zap } from "lucide-react";
+import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
+import { eventsService } from "@/services/eventsService";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ViewScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   schedule: CoordinatorScheduleDto | null;
+  organizationId?: number;
 }
 
 export default function ViewScheduleModal({
   isOpen,
   onClose,
   schedule,
+  organizationId,
 }: ViewScheduleModalProps) {
+  const { user } = useAuth();
+  const [coordinator, setCoordinator] = useState<VolunteerCoordinatorDto | null>(null);
+  const [event, setEvent] = useState<EventDto | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const currentOrganizationId = organizationId || user?.organizationId;
+
+  // Load coordinator and event data when schedule changes
+  useEffect(() => {
+    if (!schedule || !isOpen || !currentOrganizationId) return;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load coordinator info
+        if (schedule.coordinatorId && currentOrganizationId) {
+          try {
+            const coordinatorResult = await volunteerCoordinatorService.getCoordinatorsByOrganization(
+              currentOrganizationId,
+              {
+                page: 1,
+                size: 100,
+                sortBy: "CreatedAt",
+                sortOrder: "desc"
+              }
+            );
+            const foundCoordinator = coordinatorResult.items?.find(
+              (c) => String(c.coordinatorId) === String(schedule.coordinatorId)
+            );
+            setCoordinator(foundCoordinator || null);
+          } catch (error) {
+            console.error('Error loading coordinator:', error);
+            setCoordinator(null);
+          }
+        }
+
+        // Load event info
+        if (schedule.eventId) {
+          try {
+            const eventResult = await eventsService.getEvents({
+              organizationId: currentOrganizationId || undefined,
+              size: 100,
+              page: 1,
+              sortBy: "CreatedAt",
+              sortDirection: "desc",
+            });
+            const foundEvent = eventResult.items?.find(
+              (e) => String(e.eventId) === String(schedule.eventId)
+            );
+            setEvent(foundEvent || null);
+          } catch (error) {
+            console.error('Error loading event:', error);
+            setEvent(null);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading schedule details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [schedule, isOpen, currentOrganizationId]);
+
   if (!schedule) return null;
 
   const formatDateTime = (dateTime: string) => {
@@ -114,21 +188,48 @@ export default function ViewScheduleModal({
               <User className="h-4 w-4 text-blue-500" />
               <span className="font-medium">Điều phối viên:</span>
               <span className="text-slate-900 dark:text-slate-100 font-semibold">
-                {schedule.coordinatorName || schedule.coordinatorEmail || 'Không xác định'}
+                {loading ? (
+                  "Đang tải..."
+                ) : coordinator ? (
+                  coordinator.user?.fullName || coordinator.user?.email || 'Không xác định'
+                ) : (
+                  schedule.coordinatorName || schedule.coordinatorEmail || 'Không xác định'
+                )}
               </span>
             </div>
+            {coordinator?.user?.email && coordinator.user.email !== coordinator.user?.fullName && (
+              <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                Email: {coordinator.user.email}
+              </div>
+            )}
           </div>
 
           {/* Event Info */}
-          {schedule.eventName && (
+          {(schedule.eventName || event) && (
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-lg p-4 border border-green-200 dark:border-green-800">
               <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                 <Tag className="h-4 w-4 text-green-500" />
                 <span className="font-medium">Sự kiện:</span>
                 <span className="text-green-900 dark:text-green-100 font-semibold">
-                  {schedule.eventName}
+                  {loading ? (
+                    "Đang tải..."
+                  ) : event ? (
+                    event.eventName
+                  ) : (
+                    schedule.eventName || 'Không xác định'
+                  )}
                 </span>
               </div>
+              {event?.description && (
+                <div className="mt-2 text-sm text-green-700 dark:text-green-300">
+                  Mô tả: {event.description}
+                </div>
+              )}
+              {event?.startDate && event?.endDate && (
+                <div className="mt-2 text-sm text-green-600 dark:text-green-400">
+                  Thời gian sự kiện: {new Date(event.startDate).toLocaleDateString('vi-VN')} - {new Date(event.endDate).toLocaleDateString('vi-VN')}
+                </div>
+              )}
             </div>
           )}
 

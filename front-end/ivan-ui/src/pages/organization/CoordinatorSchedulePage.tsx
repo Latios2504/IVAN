@@ -4,6 +4,9 @@ import { coordinatorScheduleService } from "@/services/coordinatorScheduleServic
 import type {
   CoordinatorScheduleDto,
   CoordinatorScheduleFilterDto,
+  UpdateScheduleStatusDto,
+  BulkUpdateStatusDto,
+  SCHEDULE_STATUS,
 } from "@/types/coordinatorSchedule";
 import { eventsService } from "@/services/eventsService";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
@@ -52,12 +55,12 @@ import {
   Eye,
   Download,
   Loader2,
+  RefreshCw,
+  Check,
 } from "lucide-react";
 import AddScheduleModal from "@/components/organization/coordinator-schedule-management/AddScheduleModal";
 import EditScheduleModal from "@/components/organization/coordinator-schedule-management/EditScheduleModal";
 import ViewScheduleModal from "@/components/organization/coordinator-schedule-management/ViewScheduleModal";
-
-
 
 export default function CoordinatorSchedulePage() {
   // Auth hook
@@ -78,13 +81,17 @@ export default function CoordinatorSchedulePage() {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
 
+  // Status update state
+  const [selectedSchedules, setSelectedSchedules] = useState<number[]>([]);
+  const [bulkUpdateLoading, setBulkUpdateLoading] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+
   // Modal hooks for managing dialog states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState<CoordinatorScheduleDto | null>(null);
-
-
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<CoordinatorScheduleDto | null>(null);
 
   // Load schedules from API
   const loadSchedules = async () => {
@@ -97,9 +104,7 @@ export default function CoordinatorSchedulePage() {
         status: selectedTab !== "all" ? selectedTab : undefined,
       };
 
-      const result = await coordinatorScheduleService.listSchedules(
-        filters
-      );
+      const result = await coordinatorScheduleService.listSchedules(filters);
       setSchedules(result.items);
       setTotalCount(result.totalCount);
     } catch (error) {
@@ -208,13 +213,29 @@ export default function CoordinatorSchedulePage() {
   const getPriorityBadge = (priority?: string | null) => {
     switch (priority) {
       case "High":
-        return <Badge className="bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/50 dark:to-rose-900/50 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">Cao</Badge>;
+        return (
+          <Badge className="bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/50 dark:to-rose-900/50 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700">
+            Cao
+          </Badge>
+        );
       case "Medium":
-        return <Badge className="bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/50 dark:to-amber-900/50 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">Trung bình</Badge>;
+        return (
+          <Badge className="bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/50 dark:to-amber-900/50 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">
+            Trung bình
+          </Badge>
+        );
       case "Low":
-        return <Badge className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700">Thấp</Badge>;
+        return (
+          <Badge className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700">
+            Thấp
+          </Badge>
+        );
       default:
-        return <Badge className="bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-900/50 dark:to-slate-900/50 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700">Không xác định</Badge>;
+        return (
+          <Badge className="bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-900/50 dark:to-slate-900/50 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700">
+            Không xác định
+          </Badge>
+        );
     }
   };
 
@@ -257,13 +278,14 @@ export default function CoordinatorSchedulePage() {
     setSelectedSchedule(null);
   };
 
-
   const handleDeleteSchedule = async (scheduleId: number) => {
     if (!confirm("Bạn có chắc chắn muốn xóa lịch trình này?")) return;
 
     try {
       setLoading(true);
-      await coordinatorScheduleService.bulkDelete({ scheduleIds: [scheduleId] });
+      await coordinatorScheduleService.bulkDelete({
+        scheduleIds: [scheduleId],
+      });
       toast.success("Xóa lịch trình thành công");
       loadSchedules(); // Refresh the list
     } catch (error) {
@@ -274,7 +296,80 @@ export default function CoordinatorSchedulePage() {
     }
   };
 
+  // Status update handlers
+  const handleUpdateStatus = async (scheduleId: number, status: string) => {
+    try {
+      setBulkUpdateLoading(true);
+      const updateData: UpdateScheduleStatusDto = { status };
+      await coordinatorScheduleService.updateScheduleStatus(
+        scheduleId,
+        updateData
+      );
+      toast.success("Cập nhật trạng thái thành công");
+      loadSchedules(); // Refresh the list
+    } catch (error) {
+      console.error("Error updating status:", error);
+      if (error instanceof Error) {
+        toast.error(`Không thể cập nhật trạng thái: ${error.message}`);
+      } else {
+        toast.error("Không thể cập nhật trạng thái");
+      }
+    } finally {
+      setBulkUpdateLoading(false);
+    }
+  };
 
+  const handleBulkUpdateStatus = async () => {
+    if (selectedSchedules.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một lịch trình");
+      return;
+    }
+
+    if (!selectedStatus) {
+      toast.error("Vui lòng chọn trạng thái");
+      return;
+    }
+
+    try {
+      setBulkUpdateLoading(true);
+      const bulkUpdateData: BulkUpdateStatusDto = {
+        scheduleIds: selectedSchedules,
+        status: selectedStatus,
+      };
+      await coordinatorScheduleService.bulkUpdateStatus(bulkUpdateData);
+      toast.success(
+        `Cập nhật trạng thái cho ${selectedSchedules.length} lịch trình thành công`
+      );
+      setSelectedSchedules([]);
+      setSelectedStatus("");
+      loadSchedules(); // Refresh the list
+    } catch (error) {
+      console.error("Error bulk updating status:", error);
+      if (error instanceof Error) {
+        toast.error(`Không thể cập nhật trạng thái: ${error.message}`);
+      } else {
+        toast.error("Không thể cập nhật trạng thái hàng loạt");
+      }
+    } finally {
+      setBulkUpdateLoading(false);
+    }
+  };
+
+  const handleSelectSchedule = (scheduleId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedSchedules((prev) => [...prev, scheduleId]);
+    } else {
+      setSelectedSchedules((prev) => prev.filter((id) => id !== scheduleId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedSchedules(filteredSchedules.map((s) => s.scheduleId));
+    } else {
+      setSelectedSchedules([]);
+    }
+  };
 
   const filteredSchedules = schedules.filter((schedule) => {
     const matchesSearch =
@@ -301,7 +396,10 @@ export default function CoordinatorSchedulePage() {
             Tạo và quản lý lịch trình cho các điều phối viên tình nguyện
           </p>
         </div>
-        <Button onClick={handleAddSchedule} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+        <Button
+          onClick={handleAddSchedule}
+          className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+        >
           <Plus className="h-4 w-4" />
           Tạo lịch trình mới
         </Button>
@@ -319,12 +417,58 @@ export default function CoordinatorSchedulePage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50"
+          >
             <Download className="h-4 w-4 mr-2" />
             Xuất Excel
           </Button>
         </div>
       </div>
+
+      {/* Bulk Update Controls */}
+      {selectedSchedules.length > 0 && (
+        <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            Đã chọn {selectedSchedules.length} lịch trình
+          </span>
+          <div className="flex items-center gap-2">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Chọn trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
+                <SelectItem value="In Progress">Đang thực hiện</SelectItem>
+                <SelectItem value="Completed">Hoàn thành</SelectItem>
+                <SelectItem value="Cancelled">Đã hủy</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleBulkUpdateStatus}
+              disabled={!selectedStatus || bulkUpdateLoading}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {bulkUpdateLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Cập nhật trạng thái
+            </Button>
+            <Button
+              onClick={() => setSelectedSchedules([])}
+              variant="outline"
+              size="sm"
+            >
+              Bỏ chọn
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Tabs
         value={selectedTab}
@@ -332,17 +476,44 @@ export default function CoordinatorSchedulePage() {
         className="w-full"
       >
         <TabsList className="bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/50 dark:via-violet-900/50 dark:to-indigo-900/50 border border-purple-200 dark:border-purple-800 p-1">
-          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-200 data-[state=active]:to-gray-200 dark:data-[state=active]:from-slate-700 dark:data-[state=active]:to-gray-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100">Tất cả</TabsTrigger>
-          <TabsTrigger value="Scheduled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-200 data-[state=active]:to-indigo-200 dark:data-[state=active]:from-blue-800 dark:data-[state=active]:to-indigo-800 data-[state=active]:text-blue-900 dark:data-[state=active]:text-blue-100">Đã lên lịch</TabsTrigger>
-          <TabsTrigger value="In Progress" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-200 data-[state=active]:to-amber-200 dark:data-[state=active]:from-yellow-800 dark:data-[state=active]:to-amber-800 data-[state=active]:text-yellow-900 dark:data-[state=active]:text-yellow-100">Đang thực hiện</TabsTrigger>
-          <TabsTrigger value="Completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-200 data-[state=active]:to-emerald-200 dark:data-[state=active]:from-green-800 dark:data-[state=active]:to-emerald-800 data-[state=active]:text-green-900 dark:data-[state=active]:text-green-100">Hoàn thành</TabsTrigger>
-          <TabsTrigger value="Cancelled" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-200 data-[state=active]:to-rose-200 dark:data-[state=active]:from-red-800 dark:data-[state=active]:to-rose-800 data-[state=active]:text-red-900 dark:data-[state=active]:text-red-100">Đã hủy</TabsTrigger>
+          <TabsTrigger
+            value="all"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-200 data-[state=active]:to-gray-200 dark:data-[state=active]:from-slate-700 dark:data-[state=active]:to-gray-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100"
+          >
+            Tất cả
+          </TabsTrigger>
+          <TabsTrigger
+            value="Scheduled"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-200 data-[state=active]:to-indigo-200 dark:data-[state=active]:from-blue-800 dark:data-[state=active]:to-indigo-800 data-[state=active]:text-blue-900 dark:data-[state=active]:text-blue-100"
+          >
+            Đã lên lịch
+          </TabsTrigger>
+          <TabsTrigger
+            value="In Progress"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-200 data-[state=active]:to-amber-200 dark:data-[state=active]:from-yellow-800 dark:data-[state=active]:to-amber-800 data-[state=active]:text-yellow-900 dark:data-[state=active]:text-yellow-100"
+          >
+            Đang thực hiện
+          </TabsTrigger>
+          <TabsTrigger
+            value="Completed"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-200 data-[state=active]:to-emerald-200 dark:data-[state=active]:from-green-800 dark:data-[state=active]:to-emerald-800 data-[state=active]:text-green-900 dark:data-[state=active]:text-green-100"
+          >
+            Hoàn thành
+          </TabsTrigger>
+          <TabsTrigger
+            value="Cancelled"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-200 data-[state=active]:to-rose-200 dark:data-[state=active]:from-red-800 dark:data-[state=active]:to-rose-800 data-[state=active]:text-red-900 dark:data-[state=active]:text-red-100"
+          >
+            Đã hủy
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
           <Card className="bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900/50 dark:via-gray-900/50 dark:to-zinc-900/50 border border-slate-200 dark:border-slate-700 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-b border-slate-200 dark:border-slate-700">
-              <CardTitle className="text-slate-900 dark:text-slate-100">Danh sách lịch trình</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-100">
+                Danh sách lịch trình
+              </CardTitle>
               <CardDescription className="text-slate-600 dark:text-slate-400">
                 Tổng cộng {totalCount} lịch trình
               </CardDescription>
@@ -351,38 +522,92 @@ export default function CoordinatorSchedulePage() {
               {loading ? (
                 <div className="flex items-center justify-center py-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
-                  <span className="ml-3 text-blue-700 dark:text-blue-300">Đang tải...</span>
+                  <span className="ml-3 text-blue-700 dark:text-blue-300">
+                    Đang tải...
+                  </span>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-b border-slate-200 dark:border-slate-700">
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Tiêu đề</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Điều phối viên</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Sự kiện</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Thời gian</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Địa điểm</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Trạng thái</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Ưu tiên</TableHead>
-                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Thao tác</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold w-12">
+                        <input
+                          type="checkbox"
+                          checked={
+                            selectedSchedules.length ===
+                              filteredSchedules.length &&
+                            filteredSchedules.length > 0
+                          }
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Tiêu đề
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Điều phối viên
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Sự kiện
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Thời gian
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Địa điểm
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Trạng thái
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Ưu tiên
+                      </TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">
+                        Thao tác
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredSchedules.map((schedule) => (
-                      <TableRow key={schedule.scheduleId} className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-900/30 dark:hover:to-gray-900/30 border-b border-slate-200 dark:border-slate-700">
+                      <TableRow
+                        key={schedule.scheduleId}
+                        className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-900/30 dark:hover:to-gray-900/30 border-b border-slate-200 dark:border-slate-700"
+                      >
+                        <TableCell className="w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedSchedules.includes(
+                              schedule.scheduleId
+                            )}
+                            onChange={(e) =>
+                              handleSelectSchedule(
+                                schedule.scheduleId,
+                                e.target.checked
+                              )
+                            }
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </TableCell>
                         <TableCell className="font-medium text-slate-900 dark:text-slate-100">
                           {schedule.title}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 px-2 py-1 rounded border border-blue-200/50 dark:border-blue-800/50">
                             <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-blue-700 dark:text-blue-300">{schedule.coordinatorName}</span>
+                            <span className="text-blue-700 dark:text-blue-300">
+                              {schedule.coordinatorName}
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">{schedule.eventName || "N/A"}</TableCell>
+                        <TableCell className="text-slate-700 dark:text-slate-300">
+                          {schedule.eventName || "N/A"}
+                        </TableCell>
                         <TableCell>
                           <div className="text-sm bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 px-2 py-1 rounded border border-purple-200/50 dark:border-purple-800/50">
-                            <div className="text-purple-700 dark:text-purple-300">{formatDateTime(schedule.startDateTime)}</div>
+                            <div className="text-purple-700 dark:text-purple-300">
+                              {formatDateTime(schedule.startDateTime)}
+                            </div>
                             <div className="text-purple-600 dark:text-purple-400 text-xs">
                               đến {formatDateTime(schedule.endDateTime)}
                             </div>
@@ -391,7 +616,9 @@ export default function CoordinatorSchedulePage() {
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 px-2 py-1 rounded border border-green-200/50 dark:border-green-800/50">
                             <MapPin className="h-3 w-3 text-green-600 dark:text-green-400" />
-                            <span className="text-green-700 dark:text-green-300">{schedule.location || "N/A"}</span>
+                            <span className="text-green-700 dark:text-green-300">
+                              {schedule.location || "N/A"}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge(schedule.status)}</TableCell>
@@ -400,6 +627,31 @@ export default function CoordinatorSchedulePage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
+                            <Select
+                              value={schedule.status || ""}
+                              onValueChange={(value) =>
+                                handleUpdateStatus(schedule.scheduleId, value)
+                              }
+                              disabled={bulkUpdateLoading}
+                            >
+                              <SelectTrigger className="w-32 h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Scheduled">
+                                  Đã lên lịch
+                                </SelectItem>
+                                <SelectItem value="In Progress">
+                                  Đang thực hiện
+                                </SelectItem>
+                                <SelectItem value="Completed">
+                                  Hoàn thành
+                                </SelectItem>
+                                <SelectItem value="Cancelled">
+                                  Đã hủy
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -443,19 +695,22 @@ export default function CoordinatorSchedulePage() {
         isOpen={isAddModalOpen}
         onClose={handleCloseModals}
         onSuccess={handleModalSuccess}
+        organizationId={user?.organizationId ?? undefined}
       />
-      
+
       <EditScheduleModal
         isOpen={isEditModalOpen}
         onClose={handleCloseModals}
         onSuccess={handleModalSuccess}
         schedule={selectedSchedule}
+        organizationId={user?.organizationId ?? undefined}
       />
-      
+
       <ViewScheduleModal
         isOpen={isViewModalOpen}
         onClose={handleCloseModals}
         schedule={selectedSchedule}
+        organizationId={user?.organizationId ?? undefined}
       />
     </div>
   );

@@ -10,7 +10,6 @@ import type {
   CoordinatorScheduleStatsDto,
   BulkUpdateStatusDto,
   BulkDeleteDto,
-  CheckConflictsDto,
   CoordinatorScheduleSummaryDto,
 } from "../types/coordinatorSchedule";
 
@@ -32,38 +31,38 @@ class CoordinatorScheduleService {
     filter: Partial<CoordinatorScheduleFilterDto> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const params = new URLSearchParams();
-    
+
     // Map frontend filter to backend query parameters
     if (filter.eventId !== undefined && filter.eventId !== null) {
-      params.append('eventId', filter.eventId.toString());
+      params.append("eventId", filter.eventId.toString());
     }
     if (filter.startDate) {
-      params.append('startDate', filter.startDate);
+      params.append("startDate", filter.startDate);
     }
     if (filter.endDate) {
-      params.append('endDate', filter.endDate);
+      params.append("endDate", filter.endDate);
     }
     if (filter.pageNumber !== undefined) {
-      params.append('page', filter.pageNumber.toString());
+      params.append("page", filter.pageNumber.toString());
     }
     if (filter.pageSize !== undefined) {
-      params.append('size', filter.pageSize.toString());
+      params.append("size", filter.pageSize.toString());
     }
 
     const queryString = params.toString();
-    const url = queryString ? `${this.baseUrl}/personal?${queryString}` : `${this.baseUrl}/personal`;
-    
+    const url = queryString
+      ? `${this.baseUrl}/personal?${queryString}`
+      : `${this.baseUrl}/personal`;
+
     const response = await apiClient.get(url);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return {
-          ...backendData.Data,
-          items: this.extractDataFromNetResponse(backendData.Data.items || []),
-        };
-      }
+      const pagedResult = response.data as PagedResultDto<CoordinatorScheduleDto>;
+      return {
+        ...pagedResult,
+        items: this.extractDataFromNetResponse(pagedResult.items || []),
+      };
     }
 
     return {
@@ -83,35 +82,33 @@ class CoordinatorScheduleService {
     filter: Partial<CoordinatorScheduleFilterDto> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const params = new URLSearchParams();
-    
+
     // Map frontend filter to backend query parameters
     if (filter.coordinatorId !== undefined && filter.coordinatorId !== null) {
-      params.append('coordinatorId', filter.coordinatorId.toString());
+      params.append("coordinatorId", filter.coordinatorId.toString());
     }
     if (filter.eventId !== undefined && filter.eventId !== null) {
-      params.append('eventId', filter.eventId.toString());
+      params.append("eventId", filter.eventId.toString());
     }
     if (filter.pageNumber !== undefined) {
-      params.append('page', filter.pageNumber.toString());
+      params.append("page", filter.pageNumber.toString());
     }
     if (filter.pageSize !== undefined) {
-      params.append('size', filter.pageSize.toString());
+      params.append("size", filter.pageSize.toString());
     }
 
     const queryString = params.toString();
     const url = queryString ? `${this.baseUrl}?${queryString}` : this.baseUrl;
-    
+
     const response = await apiClient.get(url);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return {
-          ...backendData.Data,
-          items: this.extractDataFromNetResponse(backendData.Data.items || []),
-        };
-      }
+      const pagedResult = response.data as PagedResultDto<CoordinatorScheduleDto>;
+      return {
+        ...pagedResult,
+        items: this.extractDataFromNetResponse(pagedResult.items || []),
+      };
     }
 
     return {
@@ -128,31 +125,25 @@ class CoordinatorScheduleService {
   // GET /api/CoordinatorSchedule/{id} - Get a specific schedule by ID
   async getSchedule(id: number): Promise<CoordinatorScheduleDto> {
     const response = await apiClient.get(`${this.baseUrl}/${id}`);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return this.extractDataFromNetResponse(backendData.Data);
-      }
+      return this.extractDataFromNetResponse(response.data);
     }
-    
-    throw new Error('Failed to get schedule');
+
+    throw new Error("Failed to get schedule");
   }
 
   // POST /api/CoordinatorSchedule - Create a new schedule
   async createSchedule(data: CreateCoordinatorScheduleDto): Promise<number> {
     const response = await apiClient.post(this.baseUrl, data);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
-    if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return backendData.Data;
-      }
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
+    if (response.success && response.data !== undefined) {
+      return response.data as number;
     }
-    
-    throw new Error('Failed to create schedule');
+
+    throw new Error("Failed to create schedule");
   }
 
   // PUT /api/CoordinatorSchedule/{id} - Update an existing schedule
@@ -161,16 +152,13 @@ class CoordinatorScheduleService {
     data: UpdateCoordinatorScheduleDto
   ): Promise<CoordinatorScheduleDto> {
     const response = await apiClient.put(`${this.baseUrl}/${id}`, data);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return this.extractDataFromNetResponse(backendData.Data);
-      }
+      return this.extractDataFromNetResponse(response.data);
     }
-    
-    throw new Error('Failed to update schedule');
+
+    throw new Error("Failed to update schedule");
   }
 
   // Note: Single schedule deletion is not supported by backend
@@ -179,16 +167,28 @@ class CoordinatorScheduleService {
   // GET /api/CoordinatorSchedule/stats - Get schedule statistics
   async getScheduleStats(): Promise<CoordinatorScheduleStatsDto> {
     const response = await apiClient.get(`${this.baseUrl}/stats`);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return backendData.Data;
-      }
+      return response.data as CoordinatorScheduleStatsDto;
     }
-    
-    throw new Error('Failed to get schedule stats');
+
+    // Return default stats structure to match CoordinatorScheduleStatsDto
+    return {
+      totalSchedules: 0,
+      scheduledCount: 0,
+      inProgressCount: 0,
+      completedCount: 0,
+      cancelledCount: 0,
+      todaySchedules: 0,
+      thisWeekSchedules: 0,
+      thisMonthSchedules: 0,
+      upcomingSchedules: 0,
+      overdueSchedules: 0,
+      schedulesByType: {},
+      schedulesByPriority: {},
+      topCoordinators: []
+    };
   }
 
   // GET /api/CoordinatorSchedule/calendar - Get calendar view
@@ -198,26 +198,23 @@ class CoordinatorScheduleService {
     coordinatorId?: number
   ): Promise<CoordinatorScheduleSummaryDto[]> {
     const params = new URLSearchParams();
-    
-    params.append('startDate', startDate);
-    params.append('endDate', endDate);
+
+    params.append("startDate", startDate);
+    params.append("endDate", endDate);
     if (coordinatorId !== undefined && coordinatorId !== null) {
-      params.append('coordinatorId', coordinatorId.toString());
+      params.append("coordinatorId", coordinatorId.toString());
     }
 
     const queryString = params.toString();
     const url = `${this.baseUrl}/calendar?${queryString}`;
-    
+
     const response = await apiClient.get(url);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+
+    // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return this.extractDataFromNetResponse(backendData.Data);
-      }
+      return this.extractDataFromNetResponse(response.data);
     }
-    
+
     return [];
   }
 
@@ -226,54 +223,40 @@ class CoordinatorScheduleService {
     scheduleId: number,
     data: UpdateScheduleStatusDto
   ): Promise<void> {
-    const response = await apiClient.patch(`${this.baseUrl}/${scheduleId}/status`, data);
-    
+    const response = await apiClient.patch(
+      `${this.baseUrl}/${scheduleId}/status`,
+      data
+    );
+
     if (!response.success) {
-      throw new Error('Failed to update schedule status');
+      throw new Error("Failed to update schedule status");
     }
   }
 
   // PATCH /api/CoordinatorSchedule/bulk/status - Bulk update status
   async bulkUpdateStatus(data: BulkUpdateStatusDto): Promise<void> {
     const response = await apiClient.patch(`${this.baseUrl}/bulk/status`, data);
-    
+
     if (!response.success) {
-      throw new Error('Failed to bulk update status');
+      throw new Error("Failed to bulk update status");
     }
   }
 
   // DELETE /api/CoordinatorSchedule/bulk - Bulk delete schedules
   async bulkDelete(data: BulkDeleteDto): Promise<void> {
     const response = await apiClient.delete(`${this.baseUrl}/bulk`, { data });
-    
+
     if (!response.success) {
-      throw new Error('Failed to bulk delete schedules');
+      throw new Error("Failed to bulk delete schedules");
     }
   }
-
-  // POST /api/CoordinatorSchedule/conflicts - Check schedule conflicts
-  async checkConflicts(data: CheckConflictsDto): Promise<CoordinatorScheduleSummaryDto[]> {
-    const response = await apiClient.post(`${this.baseUrl}/conflicts`, data);
-    
-    // Handle ApiResponseDTO wrapper - backend returns PascalCase
-    if (response.success && response.data) {
-      const backendData = response.data as any;
-      if (backendData.Success && backendData.Data) {
-        return this.extractDataFromNetResponse(backendData.Data);
-      }
-    }
-    
-    return [];
-  }
-
-
 
   // === HELPER METHODS FOR COMMON OPERATIONS ===
-  
+
   // Get schedules for a specific coordinator
   async getCoordinatorSchedules(
     coordinatorId: number,
-    filter: Omit<Partial<CoordinatorScheduleFilterDto>, 'coordinatorId'> = {}
+    filter: Omit<Partial<CoordinatorScheduleFilterDto>, "coordinatorId"> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const fullFilter: Partial<CoordinatorScheduleFilterDto> = {
       ...filter,
@@ -285,7 +268,7 @@ class CoordinatorScheduleService {
   // Get schedules for a specific event
   async getEventSchedules(
     eventId: number,
-    filter: Omit<Partial<CoordinatorScheduleFilterDto>, 'eventId'> = {}
+    filter: Omit<Partial<CoordinatorScheduleFilterDto>, "eventId"> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const fullFilter: Partial<CoordinatorScheduleFilterDto> = {
       ...filter,
@@ -298,7 +281,10 @@ class CoordinatorScheduleService {
   async getSchedulesByDateRange(
     startDate: string,
     endDate: string,
-    filter: Omit<Partial<CoordinatorScheduleFilterDto>, 'startDate' | 'endDate'> = {}
+    filter: Omit<
+      Partial<CoordinatorScheduleFilterDto>,
+      "startDate" | "endDate"
+    > = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const fullFilter: Partial<CoordinatorScheduleFilterDto> = {
       ...filter,
@@ -313,9 +299,20 @@ class CoordinatorScheduleService {
     coordinatorId?: number
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-    
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59
+    );
+
     const filter: Partial<CoordinatorScheduleFilterDto> = {
       startDate: startOfDay.toISOString(),
       endDate: endOfDay.toISOString(),
@@ -323,7 +320,7 @@ class CoordinatorScheduleService {
       sortBy: "StartDateTime",
       sortDirection: "asc",
     };
-    
+
     return this.listSchedules(filter);
   }
 
@@ -334,7 +331,7 @@ class CoordinatorScheduleService {
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const now = new Date();
     const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-    
+
     const filter: Partial<CoordinatorScheduleFilterDto> = {
       startDate: now.toISOString(),
       endDate: futureDate.toISOString(),
@@ -342,14 +339,14 @@ class CoordinatorScheduleService {
       sortBy: "StartDateTime",
       sortDirection: "asc",
     };
-    
+
     return this.listSchedules(filter);
   }
 
   // Search schedules by text
   async searchSchedules(
     searchTerm: string,
-    filter: Omit<Partial<CoordinatorScheduleFilterDto>, 'search'> = {}
+    filter: Omit<Partial<CoordinatorScheduleFilterDto>, "search"> = {}
   ): Promise<PagedResultDto<CoordinatorScheduleDto>> {
     const fullFilter: Partial<CoordinatorScheduleFilterDto> = {
       ...filter,
