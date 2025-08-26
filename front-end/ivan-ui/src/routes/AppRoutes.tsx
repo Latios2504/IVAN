@@ -71,9 +71,6 @@ const VolunteerSchedulePage = lazy(
 const CoordinatorTaskManagementPage = lazy(
   () => import("@/pages/organization/CoordinatorTaskManagementPage")
 );
-const PartnerCollaborationPage = lazy(
-  () => import("@/pages/organization/PartnerCollaborationPage")
-);
 const UserManagementPage = lazy(
   () => import("@/pages/admin/UserManagementPage")
 );
@@ -410,7 +407,7 @@ export default function AppRoutes() {
               <CoordinatorSchedulePage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/organization/volunteer-schedule"
           element={
@@ -418,7 +415,7 @@ export default function AppRoutes() {
               <VolunteerScheduleManagementPage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/organization/coordinator-tasks"
           element={
@@ -426,15 +423,7 @@ export default function AppRoutes() {
               <CoordinatorTaskManagementPage />
             </ProtectedRoute>
           }
-        />{" "}
-        <Route
-          path="/organization/partners"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <PartnerCollaborationPage />
-            </ProtectedRoute>
-          }
-        />{" "}
+        />
         <Route
           path="/admin/users"
           element={
@@ -442,7 +431,7 @@ export default function AppRoutes() {
               <UserManagementPage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/admin/ai-instructions"
           element={

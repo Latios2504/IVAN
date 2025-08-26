@@ -1,11 +1,9 @@
 import { useState } from "react";
 import {
   Plus,
-  Edit,
   Eye,
   MessageSquare,
   UserPlus,
-  Settings,
   CheckCircle,
   XCircle,
   Clock,
@@ -31,22 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toast } from "sonner";
 import { useModal, useModalWithData } from "@/hooks/useModal";
 import { DataTable } from "@/components/common/DataTable";
@@ -235,12 +218,17 @@ export default function OrganizationCoordinatorRequestPage() {
         {/* Header */}
         <div className="flex justify-between items-start bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 shadow-md">
           <div>
-            <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">Yêu cầu Coordinator</h1>
+            <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+              Yêu cầu Coordinator
+            </h1>
             <p className="text-blue-700 dark:text-blue-300 mt-2">
               Quản lý yêu cầu tạo tài khoản Coordinator cho tổ chức
             </p>
           </div>
-          <Button onClick={createDialog.open} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
+          <Button
+            onClick={createDialog.open}
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Yêu cầu Coordinator mới
           </Button>
@@ -256,7 +244,9 @@ export default function OrganizationCoordinatorRequestPage() {
               <UserPlus className="h-4 w-4 text-green-600 dark:text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-800 dark:text-green-200">{requests.length}</div>
+              <div className="text-2xl font-bold text-green-800 dark:text-green-200">
+                {requests.length}
+              </div>
               <p className="text-xs text-green-600 dark:text-green-400">
                 Tất cả yêu cầu đã gửi
               </p>
@@ -264,7 +254,9 @@ export default function OrganizationCoordinatorRequestPage() {
           </Card>
           <Card className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950 border border-yellow-200 dark:border-yellow-800 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900 dark:to-amber-900 rounded-t-lg border-b border-yellow-200 dark:border-yellow-800">
-              <CardTitle className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Chờ xử lý</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+                Chờ xử lý
+              </CardTitle>
               <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
             </CardHeader>
             <CardContent>
@@ -294,14 +286,18 @@ export default function OrganizationCoordinatorRequestPage() {
           </Card>
           <Card className="bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 border border-red-200 dark:border-red-800 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900 dark:to-rose-900 rounded-t-lg border-b border-red-200 dark:border-red-800">
-              <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">Từ chối</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">
+                Từ chối
+              </CardTitle>
               <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-800 dark:text-red-200">
                 {requests.filter((r) => r.status === "rejected").length}
               </div>
-              <p className="text-xs text-red-600 dark:text-red-400">Cần xem xét lại</p>
+              <p className="text-xs text-red-600 dark:text-red-400">
+                Cần xem xét lại
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -309,16 +305,38 @@ export default function OrganizationCoordinatorRequestPage() {
         {/* Request Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="bg-gradient-to-r from-slate-100 via-gray-100 to-zinc-100 dark:from-slate-800 dark:via-gray-800 dark:to-zinc-800 border border-slate-200 dark:border-slate-700 shadow-md">
-            <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg">Tất cả</TabsTrigger>
-            <TabsTrigger value="pending" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg">Chờ xử lý</TabsTrigger>
-            <TabsTrigger value="approved" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg">Đã phê duyệt</TabsTrigger>
-            <TabsTrigger value="rejected" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg">Từ chối</TabsTrigger>
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              Tất cả
+            </TabsTrigger>
+            <TabsTrigger
+              value="pending"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              Chờ xử lý
+            </TabsTrigger>
+            <TabsTrigger
+              value="approved"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              Đã phê duyệt
+            </TabsTrigger>
+            <TabsTrigger
+              value="rejected"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              Từ chối
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value={selectedTab} className="space-y-4">
             <Card className="bg-gradient-to-br from-white via-slate-50 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-gray-900 border border-slate-200 dark:border-slate-700 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900 rounded-t-lg border-b border-indigo-200 dark:border-indigo-800">
-                <CardTitle className="text-indigo-900 dark:text-indigo-100">Danh sách yêu cầu</CardTitle>
+                <CardTitle className="text-indigo-900 dark:text-indigo-100">
+                  Danh sách yêu cầu
+                </CardTitle>
                 <CardDescription className="text-indigo-700 dark:text-indigo-300">
                   {filteredRequests.length} yêu cầu được tìm thấy
                 </CardDescription>
@@ -338,7 +356,9 @@ export default function OrganizationCoordinatorRequestPage() {
         <Dialog open={createDialog.isOpen} onOpenChange={createDialog.close}>
           <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-slate-50 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-gray-900 border border-slate-200 dark:border-slate-700 shadow-xl">
             <DialogHeader className="bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-t-lg p-4 -m-6 mb-4 border-b border-blue-200 dark:border-blue-800">
-              <DialogTitle className="text-blue-900 dark:text-blue-100">Yêu cầu Coordinator mới</DialogTitle>
+              <DialogTitle className="text-blue-900 dark:text-blue-100">
+                Yêu cầu Coordinator mới
+              </DialogTitle>
               <DialogDescription className="text-blue-700 dark:text-blue-300">
                 Gửi yêu cầu tạo tài khoản Coordinator cho tổ chức của bạn
               </DialogDescription>
@@ -422,7 +442,9 @@ export default function OrganizationCoordinatorRequestPage() {
         <Dialog open={viewModal.isOpen} onOpenChange={viewModal.close}>
           <DialogContent className="max-w-2xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 border-gradient-to-r border-blue-200/50 dark:border-blue-800/50">
             <DialogHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/50 dark:to-purple-950/50 p-4 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
-              <DialogTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-semibold">Chi tiết yêu cầu Coordinator</DialogTitle>
+              <DialogTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-semibold">
+                Chi tiết yêu cầu Coordinator
+              </DialogTitle>
               <DialogDescription className="text-gray-600 dark:text-gray-300">
                 Thông tin chi tiết về yêu cầu tạo Coordinator
               </DialogDescription>
@@ -439,26 +461,34 @@ export default function OrganizationCoordinatorRequestPage() {
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-white/60 to-purple-50/60 dark:from-gray-800/60 dark:to-purple-900/60 p-3 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
-                    <Label className="text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Email</Label>
+                    <Label className="text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      Email
+                    </Label>
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                       {viewModal.data.coordinatorEmail}
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-white/60 to-green-50/60 dark:from-gray-800/60 dark:to-green-900/60 p-3 rounded-lg border border-green-200/30 dark:border-green-800/30">
-                    <Label className="text-sm font-medium bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Số điện thoại</Label>
+                    <Label className="text-sm font-medium bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                      Số điện thoại
+                    </Label>
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                       {viewModal.data.phoneNumber || "Không có"}
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-white/60 to-orange-50/60 dark:from-gray-800/60 dark:to-orange-900/60 p-3 rounded-lg border border-orange-200/30 dark:border-orange-800/30">
-                    <Label className="text-sm font-medium bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Trạng thái</Label>
+                    <Label className="text-sm font-medium bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                      Trạng thái
+                    </Label>
                     <div className="mt-1">
                       {getStatusBadge(viewModal.data.status)}
                     </div>
                   </div>
                 </div>
                 <div className="bg-gradient-to-r from-white/60 to-indigo-50/60 dark:from-gray-800/60 dark:to-indigo-900/60 p-4 rounded-lg border border-indigo-200/30 dark:border-indigo-800/30">
-                  <Label className="text-sm font-medium bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Lý do yêu cầu</Label>
+                  <Label className="text-sm font-medium bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    Lý do yêu cầu
+                  </Label>
                   <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 leading-relaxed">
                     {viewModal.data.justification}
                   </p>
@@ -470,20 +500,26 @@ export default function OrganizationCoordinatorRequestPage() {
                   <ul className="text-sm text-gray-700 dark:text-gray-300 mt-2 list-disc list-inside space-y-1">
                     {viewModal.data.expectedResponsibilities.map(
                       (responsibility: string, index: number) => (
-                        <li key={index} className="leading-relaxed">{responsibility}</li>
+                        <li key={index} className="leading-relaxed">
+                          {responsibility}
+                        </li>
                       )
                     )}
                   </ul>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gradient-to-r from-white/60 to-cyan-50/60 dark:from-gray-800/60 dark:to-cyan-900/60 p-3 rounded-lg border border-cyan-200/30 dark:border-cyan-800/30">
-                    <Label className="text-sm font-medium bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Ngày yêu cầu</Label>
+                    <Label className="text-sm font-medium bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                      Ngày yêu cầu
+                    </Label>
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                       {viewModal.data.requestDate}
                     </p>
                   </div>
                   <div className="bg-gradient-to-r from-white/60 to-emerald-50/60 dark:from-gray-800/60 dark:to-emerald-900/60 p-3 rounded-lg border border-emerald-200/30 dark:border-emerald-800/30">
-                    <Label className="text-sm font-medium bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Ngày phản hồi</Label>
+                    <Label className="text-sm font-medium bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                      Ngày phản hồi
+                    </Label>
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                       {viewModal.data.responseDate || "Chưa có"}
                     </p>
@@ -502,8 +538,8 @@ export default function OrganizationCoordinatorRequestPage() {
               </div>
             )}
             <DialogFooter className="bg-gradient-to-r from-gray-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/50 p-4 rounded-lg border-t border-gray-200/50 dark:border-gray-700/50">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={viewModal.close}
                 className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 text-gray-700 dark:text-gray-300"
               >

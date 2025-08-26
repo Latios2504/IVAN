@@ -1,11 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,11 +15,8 @@ import {
   Pencil,
   Trash2,
   Copy,
-  MoreHorizontal,
-  ChevronDown,
   Building2,
   Calendar,
-  Clock,
   User,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -308,7 +299,10 @@ export default function CertificateTemplateManagementPage() {
             Tạo và quản lý các mẫu chứng chỉ cho tổ chức của bạn
           </p>
         </div>
-        <Button className="mt-4 md:mt-0 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg" onClick={handleCreateTemplate}>
+        <Button
+          className="mt-4 md:mt-0 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg"
+          onClick={handleCreateTemplate}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Tạo mẫu mới
         </Button>
@@ -356,12 +350,18 @@ export default function CertificateTemplateManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50 border-blue-200/50 dark:border-blue-800/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Tổng mẫu</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Tổng mẫu
+            </CardTitle>
             <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</div>
-            <p className="text-xs text-blue-600 dark:text-blue-400">Tất cả mẫu</p>
+            <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+              {stats.total}
+            </div>
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              Tất cả mẫu
+            </p>
           </CardContent>
         </Card>
 
@@ -376,7 +376,9 @@ export default function CertificateTemplateManagementPage() {
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {stats.active}
             </div>
-            <p className="text-xs text-green-600 dark:text-green-400">Mẫu có thể sử dụng</p>
+            <p className="text-xs text-green-600 dark:text-green-400">
+              Mẫu có thể sử dụng
+            </p>
           </CardContent>
         </Card>
 
@@ -425,15 +427,32 @@ export default function CertificateTemplateManagementPage() {
         className="space-y-6"
       >
         <TabsList
-          className={`grid w-full ${isAdmin ? "grid-cols-2" : "grid-cols-1"} bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/50 dark:via-violet-900/50 dark:to-indigo-900/50 border border-purple-200/50 dark:border-purple-800/50 shadow-sm`}
+          className={`grid w-full ${
+            isAdmin ? "grid-cols-2" : "grid-cols-1"
+          } bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/50 dark:via-violet-900/50 dark:to-indigo-900/50 border border-purple-200/50 dark:border-purple-800/50 shadow-sm`}
         >
           {!isAdmin && (
-            <TabsTrigger value="my-templates" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800 data-[state=active]:text-purple-900 dark:data-[state=active]:text-purple-100">Mẫu của tổ chức</TabsTrigger>
+            <TabsTrigger
+              value="my-templates"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800 data-[state=active]:text-purple-900 dark:data-[state=active]:text-purple-100"
+            >
+              Mẫu của tổ chức
+            </TabsTrigger>
           )}
           {isAdmin && (
             <>
-              <TabsTrigger value="my-templates" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800 data-[state=active]:text-purple-900 dark:data-[state=active]:text-purple-100">Mẫu theo tổ chức</TabsTrigger>
-              <TabsTrigger value="all-templates" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-200 data-[state=active]:to-blue-200 dark:data-[state=active]:from-indigo-800 dark:data-[state=active]:to-blue-800 data-[state=active]:text-indigo-900 dark:data-[state=active]:text-indigo-100">Tất cả mẫu</TabsTrigger>
+              <TabsTrigger
+                value="my-templates"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-200 data-[state=active]:to-violet-200 dark:data-[state=active]:from-purple-800 dark:data-[state=active]:to-violet-800 data-[state=active]:text-purple-900 dark:data-[state=active]:text-purple-100"
+              >
+                Mẫu theo tổ chức
+              </TabsTrigger>
+              <TabsTrigger
+                value="all-templates"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-200 data-[state=active]:to-blue-200 dark:data-[state=active]:from-indigo-800 dark:data-[state=active]:to-blue-800 data-[state=active]:text-indigo-900 dark:data-[state=active]:text-indigo-100"
+              >
+                Tất cả mẫu
+              </TabsTrigger>
             </>
           )}
         </TabsList>
@@ -444,7 +463,9 @@ export default function CertificateTemplateManagementPage() {
               {loading ? (
                 <div className="text-center py-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50 rounded-lg border border-blue-200/50 dark:border-blue-800/50">
                   <CheckCircle className="h-8 w-8 mx-auto mb-2 animate-spin text-blue-600 dark:text-blue-400" />
-                  <p className="text-blue-700 dark:text-blue-300 font-medium">Đang tải...</p>
+                  <p className="text-blue-700 dark:text-blue-300 font-medium">
+                    Đang tải...
+                  </p>
                 </div>
               ) : templates.length === 0 ? (
                 <div className="text-center py-12 bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-950/50 dark:via-slate-950/50 dark:to-zinc-950/50 rounded-lg border border-gray-200/50 dark:border-gray-800/50">
@@ -455,7 +476,10 @@ export default function CertificateTemplateManagementPage() {
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     Bắt đầu bằng cách tạo mẫu chứng chỉ đầu tiên
                   </p>
-                  <Button onClick={handleCreateTemplate} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg">
+                  <Button
+                    onClick={handleCreateTemplate}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg"
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Tạo mẫu mới
                   </Button>
@@ -495,7 +519,9 @@ export default function CertificateTemplateManagementPage() {
                         <div
                           key={template.templateId}
                           className={`border border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-gradient-to-r from-white via-slate-50 to-gray-50 dark:from-slate-900/50 dark:via-slate-800/50 dark:to-gray-900/50 hover:shadow-lg hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 dark:hover:from-blue-950/30 dark:hover:via-indigo-950/30 dark:hover:to-purple-950/30 transition-all duration-200 ${
-                            isSelected ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50" : ""
+                            isSelected
+                              ? "ring-2 ring-blue-500 dark:ring-blue-400 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50"
+                              : ""
                           }`}
                         >
                           <div className="flex items-center justify-between">

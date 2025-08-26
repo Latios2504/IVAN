@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { eventsService } from "@/services/eventsService";
 import { useAuth } from "@/hooks/useAuth";
 import type {
   EventDto,
-  CreateEventDto,
-  UpdateEventDto,
   EventCategoryDto,
   EventStatusDto,
 } from "@/types/events";
@@ -119,8 +117,13 @@ export default function EventManagementPage() {
   if (eventsError) {
     return (
       <div className="p-6 bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 rounded-xl border border-red-200 dark:border-red-800 shadow-lg backdrop-blur-sm">
-        <div className="text-red-700 dark:text-red-300 font-medium">Error: {eventsError}</div>
-        <Button onClick={() => loadAllData()} className="mt-4 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600">
+        <div className="text-red-700 dark:text-red-300 font-medium">
+          Error: {eventsError}
+        </div>
+        <Button
+          onClick={() => loadAllData()}
+          className="mt-4 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600"
+        >
           Retry
         </Button>
       </div>
@@ -132,12 +135,17 @@ export default function EventManagementPage() {
       {/* Header */}
       <div className="flex justify-between items-center bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 shadow-md">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">Event Management</h1>
+          <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+            Event Management
+          </h1>
           <p className="text-blue-700 dark:text-blue-300">
             Manage your organization's volunteer events
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
+        <Button
+          onClick={() => setShowCreateDialog(true)}
+          className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Create Event
         </Button>
@@ -157,7 +165,10 @@ export default function EventManagementPage() {
           </CardHeader>
           <CardContent>
             <Link to="/organization/event-registrations">
-              <Button variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900">
+              <Button
+                variant="outline"
+                className="w-full border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900"
+              >
                 <FileText className="w-4 h-4 mr-2" />
                 Xem đăng ký sự kiện
               </Button>
@@ -177,7 +188,10 @@ export default function EventManagementPage() {
           </CardHeader>
           <CardContent>
             <Link to="/organization/volunteer-coordinators">
-              <Button variant="outline" className="w-full border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900">
+              <Button
+                variant="outline"
+                className="w-full border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 Quản lý Coordinators
               </Button>
@@ -201,7 +215,10 @@ export default function EventManagementPage() {
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             Create your first event to get started
           </p>
-          <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Event
           </Button>

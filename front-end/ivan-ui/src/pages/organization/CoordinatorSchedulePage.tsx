@@ -6,7 +6,6 @@ import type {
   CoordinatorScheduleFilterDto,
   UpdateScheduleStatusDto,
   BulkUpdateStatusDto,
-  SCHEDULE_STATUS,
 } from "@/types/coordinatorSchedule";
 import { eventsService } from "@/services/eventsService";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
@@ -23,7 +22,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -56,7 +54,6 @@ import {
   Download,
   Loader2,
   RefreshCw,
-  Check,
 } from "lucide-react";
 import AddScheduleModal from "@/components/organization/coordinator-schedule-management/AddScheduleModal";
 import EditScheduleModal from "@/components/organization/coordinator-schedule-management/EditScheduleModal";
