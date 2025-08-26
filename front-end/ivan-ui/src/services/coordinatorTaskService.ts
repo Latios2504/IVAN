@@ -12,6 +12,7 @@ import type {
   TaskPriority,
   TaskCategory,
 } from "../types/coordinatorTask";
+import type { PagedResultDto } from "../types/common";
 import {
   DEFAULT_COORDINATOR_TASK_FILTER,
   TASK_STATUS,
@@ -111,7 +112,68 @@ class CoordinatorTaskService {
 
   // === FILTERING AND SEARCH METHODS ===
 
-  // Get tasks with filtering (client-side implementation since backend doesn't have filtering endpoint)
+  // === NEW BACKEND ENDPOINTS ===
+
+  // GET /api/CoordinatorTask/organization - Get tasks for organization with server-side filtering
+  async getOrganizationTasks(
+    filter: Partial<CoordinatorTaskFilterDto> = {}
+  ): Promise<PagedResultDto<CoordinatorTaskDto>> {
+    const params = new URLSearchParams();
+    
+    // Add filter parameters
+    if (filter.coordinatorId) params.append('coordinatorId', filter.coordinatorId.toString());
+    if (filter.eventId) params.append('eventId', filter.eventId.toString());
+    if (filter.status) params.append('status', filter.status);
+    if (filter.priority) params.append('priority', filter.priority);
+    if (filter.dueFrom) params.append('dueFrom', filter.dueFrom);
+    if (filter.dueTo) params.append('dueTo', filter.dueTo);
+    if (filter.search) params.append('search', filter.search);
+    if (filter.sortBy) params.append('sortBy', filter.sortBy);
+    if (filter.sortDirection) params.append('sortDirection', filter.sortDirection);
+    if (filter.pageNumber) params.append('page', filter.pageNumber.toString());
+    if (filter.pageSize) params.append('size', filter.pageSize.toString());
+
+    const response = await apiClient.get<PagedResultDto<CoordinatorTaskDto>>(
+      `${this.baseUrl}/organization?${params.toString()}`
+    );
+    
+    if (!response.success || !response.data) {
+      throw new Error("Failed to load organization tasks");
+    }
+    
+    return response.data;
+  }
+
+  // GET /api/CoordinatorTask/personal - Get personal tasks for coordinator with server-side filtering
+  async getPersonalTasks(
+    filter: Partial<CoordinatorTaskFilterDto> = {}
+  ): Promise<PagedResultDto<CoordinatorTaskDto>> {
+    const params = new URLSearchParams();
+    
+    // Add filter parameters (no coordinatorId needed as it's determined by auth)
+    if (filter.eventId) params.append('eventId', filter.eventId.toString());
+    if (filter.status) params.append('status', filter.status);
+    if (filter.priority) params.append('priority', filter.priority);
+    if (filter.dueFrom) params.append('dueFrom', filter.dueFrom);
+    if (filter.dueTo) params.append('dueTo', filter.dueTo);
+    if (filter.search) params.append('search', filter.search);
+    if (filter.sortBy) params.append('sortBy', filter.sortBy);
+    if (filter.sortDirection) params.append('sortDirection', filter.sortDirection);
+    if (filter.pageNumber) params.append('page', filter.pageNumber.toString());
+    if (filter.pageSize) params.append('size', filter.pageSize.toString());
+
+    const response = await apiClient.get<PagedResultDto<CoordinatorTaskDto>>(
+      `${this.baseUrl}/personal?${params.toString()}`
+    );
+    
+    if (!response.success || !response.data) {
+      throw new Error("Failed to load personal tasks");
+    }
+    
+    return response.data;
+  }
+
+  // Legacy method - Get tasks with filtering (client-side implementation for backward compatibility)
   async getTasksWithFilter(
     filter: Partial<CoordinatorTaskFilterDto> = {}
   ): Promise<CoordinatorTaskListResponseDto> {
@@ -154,30 +216,23 @@ class CoordinatorTaskService {
       );
     }
 
-    // Filter by category
-    if (filterWithDefaults.category) {
-      filteredTasks = filteredTasks.filter(
-        (task) => task.category === filterWithDefaults.category
-      );
-    }
-
     // Filter by due date range
-    if (filterWithDefaults.dueDateFrom) {
+    if (filterWithDefaults.dueFrom) {
       filteredTasks = filteredTasks.filter(
         (task) =>
-          task.dueDate && task.dueDate >= filterWithDefaults.dueDateFrom!
+          task.dueDate && task.dueDate >= filterWithDefaults.dueFrom!
       );
     }
 
-    if (filterWithDefaults.dueDateTo) {
+    if (filterWithDefaults.dueTo) {
       filteredTasks = filteredTasks.filter(
-        (task) => task.dueDate && task.dueDate <= filterWithDefaults.dueDateTo!
+        (task) => task.dueDate && task.dueDate <= filterWithDefaults.dueTo!
       );
     }
 
     // Search in task name, description, notes
-    if (filterWithDefaults.searchTerm) {
-      const searchTerm = filterWithDefaults.searchTerm.toLowerCase();
+    if (filterWithDefaults.search) {
+      const searchTerm = filterWithDefaults.search.toLowerCase();
       filteredTasks = filteredTasks.filter(
         (task) =>
           task.taskName.toLowerCase().includes(searchTerm) ||
@@ -206,18 +261,18 @@ class CoordinatorTaskService {
     }
 
     // Apply pagination
-    const page = filterWithDefaults.page || 1;
-    const size = filterWithDefaults.size || 20;
-    const startIndex = (page - 1) * size;
-    const endIndex = startIndex + size;
+    const pageNumber = filterWithDefaults.pageNumber || 1;
+    const pageSize = filterWithDefaults.pageSize || 20;
+    const startIndex = (pageNumber - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
     const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
-    const totalPages = Math.ceil(filteredTasks.length / size);
+    const totalPages = Math.ceil(filteredTasks.length / pageSize);
 
     return {
       tasks: paginatedTasks,
       totalCount: filteredTasks.length,
-      page,
-      size,
+      page: pageNumber,
+      size: pageSize,
       totalPages,
     };
   }

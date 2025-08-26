@@ -55,20 +55,24 @@ export interface UpdateCoordinatorTaskDto {
   notes?: string | null;
 }
 
-// Filter DTO for searching/filtering tasks
+// Filter DTO for searching/filtering tasks - Updated to match backend exactly
 export interface CoordinatorTaskFilterDto {
-  eventId?: number;
+  // Paging - Match backend property names
+  pageNumber?: number;
+  pageSize?: number;
+  
+  // Sorting - Match backend property names
+  sortBy?: string; // DueDate|CreatedAt|TaskName|Priority|Status
+  sortDirection?: "asc" | "desc";
+  
+  // Filters - Match backend property names
   coordinatorId?: number;
+  eventId?: number;
   status?: string;
   priority?: string;
-  category?: string;
-  dueDateFrom?: string; // ISO date string
-  dueDateTo?: string; // ISO date string
-  searchTerm?: string; // Search in task name, description, notes
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDirection?: "asc" | "desc";
+  dueFrom?: string; // ISO date string - Match backend property name
+  dueTo?: string; // ISO date string - Match backend property name
+  search?: string; // Search in TaskName/Description - Match backend property name
 }
 
 // Response DTOs
@@ -142,12 +146,12 @@ export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 export type TaskPriority = (typeof TASK_PRIORITY)[keyof typeof TASK_PRIORITY];
 export type TaskCategory = (typeof TASK_CATEGORY)[keyof typeof TASK_CATEGORY];
 
-// Default filter for coordinator tasks
+// Default filter for coordinator tasks - Updated to match backend
 export const DEFAULT_COORDINATOR_TASK_FILTER: CoordinatorTaskFilterDto = {
-  page: 1,
-  size: 20,
-  sortBy: "dueDate",
-  sortDirection: "asc",
+  pageNumber: 1,
+  pageSize: 20,
+  sortBy: "DueDate",
+  sortDirection: "desc",
 };
 
 // Helper type for task form validation

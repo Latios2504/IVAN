@@ -37,9 +37,9 @@ import type {
   CoordinatorTaskDto,
   CreateCoordinatorTaskDto,
   UpdateCoordinatorTaskDto,
-  TaskStatus,
-  TaskPriority,
+  CoordinatorTaskFilterDto,
 } from "@/types/coordinatorTask";
+import type { PagedResultDto } from "@/types/common";
 import TaskDetailsModal from "@/components/organization/coordinator-task-management/TaskDetailsModal";
 import TaskFormModal from "@/components/organization/coordinator-task-management/TaskFormModal";
 import TaskStatusBadge from "@/components/organization/coordinator-task-management/TaskStatusBadge";
@@ -47,19 +47,18 @@ import TaskPriorityBadge from "@/components/organization/coordinator-task-manage
 
 import {
   TASK_STATUS,
-  TASK_PRIORITY,
-  TASK_CATEGORY,
   TASK_STATUS_OPTIONS,
   TASK_PRIORITY_OPTIONS,
-  TASK_CATEGORY_OPTIONS,
+  DEFAULT_COORDINATOR_TASK_FILTER,
 } from "@/types/coordinatorTask";
 
 export default function CoordinatorTaskManagementPage() {
-  const [tasks, setTasks] = useState<CoordinatorTaskDto[]>([]);
+  const [pagedResult, setPagedResult] =
+    useState<PagedResultDto<CoordinatorTaskDto> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [filter, setFilter] = useState<CoordinatorTaskFilterDto>(
+    DEFAULT_COORDINATOR_TASK_FILTER
+  );
   const [selectedTask, setSelectedTask] = useState<CoordinatorTaskDto | null>(
     null
   );
@@ -72,33 +71,28 @@ export default function CoordinatorTaskManagementPage() {
   const detailsModal = useModal();
   const formModal = useModal();
 
-  // Load tasks on component mount
+  // Load tasks on component mount and when filter changes
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [filter]);
 
   const loadTasks = async () => {
     try {
       setLoading(true);
-      const tasksData = await coordinatorTaskService.getAllTasks();
-      
-      // Validate data structure
-      if (!Array.isArray(tasksData)) {
-        console.warn("Tasks data is not an array:", tasksData);
-        setTasks([]);
-        toast.warning("Dữ liệu nhiệm vụ không hợp lệ");
-        return;
-      }
-      
-      setTasks(tasksData);
-      
-      if (tasksData.length === 0) {
+      // Use new organization tasks API with server-side filtering
+      const result = await coordinatorTaskService.getOrganizationTasks(filter);
+
+      setPagedResult(result);
+
+      if (result.items.length === 0 && result.totalCount === 0) {
         toast.info("Chưa có nhiệm vụ nào được tạo");
       }
     } catch (error) {
       console.error("Error loading tasks:", error);
-      setTasks([]);
-      toast.error("Không thể tải danh sách nhiệm vụ. Vui lòng kiểm tra kết nối backend.");
+      setPagedResult(null);
+      toast.error(
+        "Không thể tải danh sách nhiệm vụ. Vui lòng kiểm tra kết nối backend."
+      );
     } finally {
       setLoading(false);
     }
@@ -120,13 +114,18 @@ export default function CoordinatorTaskManagementPage() {
     formModal.open();
   };
 
-  const handleFormSubmit = async (data: CreateCoordinatorTaskDto | UpdateCoordinatorTaskDto) => {
+  const handleFormSubmit = async (
+    data: CreateCoordinatorTaskDto | UpdateCoordinatorTaskDto
+  ) => {
     try {
       setIsFormLoading(true);
-      
-      if ('taskId' in data) {
+
+      if ("taskId" in data) {
         // Update existing task
-        const updatedTask = await coordinatorTaskService.updateTask(Number(data.taskId), data);
+        const updatedTask = await coordinatorTaskService.updateTask(
+          Number(data.taskId),
+          data
+        );
         if (updatedTask) {
           toast.success("Cập nhật nhiệm vụ thành công");
           await loadTasks();
@@ -156,14 +155,14 @@ export default function CoordinatorTaskManagementPage() {
       if (!confirm("Bạn có chắc chắn muốn xóa nhiệm vụ này?")) {
         return;
       }
-      
+
       // Find the task to get required fields for update
-      const task = tasks.find(t => t.taskId === taskId);
+      const task = pagedResult?.items.find((t) => t.taskId === taskId);
       if (!task) {
         toast.error("Không tìm thấy nhiệm vụ");
         return;
       }
-      
+
       // Since backend doesn't have delete endpoint, update status to CANCELLED
       const updateData: UpdateCoordinatorTaskDto = {
         eventId: task.eventId,
@@ -177,9 +176,9 @@ export default function CoordinatorTaskManagementPage() {
         estimatedHours: task.estimatedHours,
         actualHours: task.actualHours,
         completedAt: task.completedAt,
-        notes: task.notes
+        notes: task.notes,
       };
-      
+
       await coordinatorTaskService.updateTask(taskId, updateData);
       toast.success("Đã hủy nhiệm vụ thành công");
       await loadTasks();
@@ -192,12 +191,12 @@ export default function CoordinatorTaskManagementPage() {
   const handleCompleteTask = async (taskId: number) => {
     try {
       // Find the task to get required fields for update
-      const task = tasks.find(t => t.taskId === taskId);
+      const task = pagedResult?.items.find((t) => t.taskId === taskId);
       if (!task) {
         toast.error("Không tìm thấy nhiệm vụ");
         return;
       }
-      
+
       const updateData: UpdateCoordinatorTaskDto = {
         eventId: task.eventId,
         coordinatorId: task.coordinatorId,
@@ -210,9 +209,9 @@ export default function CoordinatorTaskManagementPage() {
         estimatedHours: task.estimatedHours,
         actualHours: task.actualHours,
         completedAt: new Date().toISOString(),
-        notes: task.notes
+        notes: task.notes,
       };
-      
+
       await coordinatorTaskService.updateTask(taskId, updateData);
       toast.success("Đã hoàn thành nhiệm vụ");
       await loadTasks();
@@ -227,24 +226,42 @@ export default function CoordinatorTaskManagementPage() {
     toast.success("Đã làm mới danh sách nhiệm vụ");
   };
 
-  // Filter tasks based on search and filters
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      task.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesStatus =
-      statusFilter === "all" || task.status === statusFilter;
-    const matchesPriority =
-      priorityFilter === "all" || task.priority === priorityFilter;
+  // Update filter handlers
+  const handleSearchChange = (value: string) => {
+    setFilter((prev) => ({ ...prev, search: value, pageNumber: 1 }));
+  };
 
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  const handleStatusFilterChange = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      status: value === "all" ? undefined : value,
+      pageNumber: 1,
+    }));
+  };
 
-  // Task statistics
+  const handlePriorityFilterChange = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      priority: value === "all" ? undefined : value,
+      pageNumber: 1,
+    }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilter((prev) => ({ ...prev, pageNumber: page }));
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setFilter((prev) => ({ ...prev, pageSize: size, pageNumber: 1 }));
+  };
+
+  // Get current tasks and stats from paged result
+  const tasks = pagedResult?.items || [];
   const taskStats = {
-    total: tasks.length,
+    total: pagedResult?.totalCount || 0,
     pending: tasks.filter((t) => t.status === TASK_STATUS.NOT_STARTED).length,
-    inProgress: tasks.filter((t) => t.status === TASK_STATUS.IN_PROGRESS).length,
+    inProgress: tasks.filter((t) => t.status === TASK_STATUS.IN_PROGRESS)
+      .length,
     completed: tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length,
     onHold: tasks.filter((t) => t.status === TASK_STATUS.ON_HOLD).length,
     cancelled: tasks.filter((t) => t.status === TASK_STATUS.CANCELLED).length,
@@ -269,7 +286,7 @@ export default function CoordinatorTaskManagementPage() {
 
     const csvContent = [
       headers.join(","),
-      ...filteredTasks.map((task) =>
+      ...tasks.map((task) =>
         [
           task.eventId,
           task.coordinatorId,
@@ -337,7 +354,7 @@ export default function CoordinatorTaskManagementPage() {
       key: "priority",
       header: "Ưu tiên",
       render: (_, task) => (
-        <TaskPriorityBadge priority={task.priority || ''} showIcon />
+        <TaskPriorityBadge priority={task.priority || ""} showIcon />
       ),
     },
     {
@@ -345,18 +362,17 @@ export default function CoordinatorTaskManagementPage() {
       header: "Trạng thái",
       render: (_, task) => {
         // Check if task is overdue
-        const isOverdue = task.dueDate && 
-          new Date(task.dueDate) < new Date() && 
-          task.status !== TASK_STATUS.COMPLETED && 
+        const isOverdue =
+          task.dueDate &&
+          new Date(task.dueDate) < new Date() &&
+          task.status !== TASK_STATUS.COMPLETED &&
           task.status !== TASK_STATUS.CANCELLED;
-        
+
         return (
           <div className="flex items-center gap-2">
-            <TaskStatusBadge status={task.status || ''} showIcon />
+            <TaskStatusBadge status={task.status || ""} showIcon />
             {isOverdue && (
-              <Badge className="bg-red-100 text-red-800 text-xs">
-                Quá hạn
-              </Badge>
+              <Badge className="bg-red-100 text-red-800 text-xs">Quá hạn</Badge>
             )}
           </div>
         );
@@ -415,12 +431,14 @@ export default function CoordinatorTaskManagementPage() {
     {
       label: "Xem chi tiết",
       icon: <Eye />,
-      onClick: (task) => handleViewTask(task),
+      onClick: handleViewTask,
+      variant: "ghost",
     },
     {
       label: "Chỉnh sửa",
       icon: <Edit />,
-      onClick: (task) => handleEditTask(task),
+      onClick: handleEditTask,
+      variant: "ghost",
     },
     {
       label: "Đánh dấu hoàn thành",
@@ -430,12 +448,12 @@ export default function CoordinatorTaskManagementPage() {
           toast.error("Không thể xác định ID nhiệm vụ");
           return;
         }
-        
+
         if (task.status === TASK_STATUS.COMPLETED) {
           toast.info("Nhiệm vụ đã được hoàn thành");
           return;
         }
-        
+
         await handleCompleteTask(Number(task.taskId));
       },
       visible: (task) => task.status !== TASK_STATUS.COMPLETED,
@@ -448,21 +466,23 @@ export default function CoordinatorTaskManagementPage() {
           toast.error("Không thể xác định ID nhiệm vụ");
           return;
         }
-        
+
         if (task.status === TASK_STATUS.CANCELLED) {
           toast.info("Nhiệm vụ đã được hủy");
           return;
         }
-        
+
         if (task.status === TASK_STATUS.COMPLETED) {
           toast.info("Không thể hủy nhiệm vụ đã hoàn thành");
           return;
         }
-        
+
         await handleDeleteTask(Number(task.taskId));
       },
       variant: "destructive" as const,
-      visible: (task) => task.status !== TASK_STATUS.CANCELLED && task.status !== TASK_STATUS.COMPLETED,
+      visible: (task) =>
+        task.status !== TASK_STATUS.CANCELLED &&
+        task.status !== TASK_STATUS.COMPLETED,
     },
   ];
 
@@ -472,7 +492,9 @@ export default function CoordinatorTaskManagementPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-            <p className="text-slate-700 dark:text-slate-300">Đang tải danh sách nhiệm vụ...</p>
+            <p className="text-slate-700 dark:text-slate-300">
+              Đang tải danh sách nhiệm vụ...
+            </p>
           </div>
         </div>
       </div>
@@ -492,15 +514,26 @@ export default function CoordinatorTaskManagementPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={handleRefresh} variant="outline" className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-900/50 dark:hover:to-cyan-900/50">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-900/50 dark:hover:to-cyan-900/50"
+          >
             <RefreshCw className="w-4 h-4 mr-2" />
             Làm mới
           </Button>
-          <Button onClick={handleExportToExcel} variant="outline" className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50">
+          <Button
+            onClick={handleExportToExcel}
+            variant="outline"
+            className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50"
+          >
             <Download className="w-4 h-4 mr-2" />
             Xuất Excel
           </Button>
-          <Button onClick={handleCreateTask} className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg">
+          <Button
+            onClick={handleCreateTask}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 shadow-lg"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Tạo nhiệm vụ
           </Button>
@@ -549,7 +582,9 @@ export default function CoordinatorTaskManagementPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">Hoàn thành</p>
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                  Hoàn thành
+                </p>
                 <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                   {taskStats.completed}
                 </p>
@@ -565,7 +600,9 @@ export default function CoordinatorTaskManagementPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">Tổng giờ</p>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                  Tổng giờ
+                </p>
                 <p className="text-2xl font-bold text-red-900 dark:text-red-100">
                   {taskStats.totalHours}h
                 </p>
@@ -586,33 +623,65 @@ export default function CoordinatorTaskManagementPage() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500 dark:text-slate-400" />
               <Input
                 placeholder="Tìm kiếm theo tên nhiệm vụ, mô tả..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={filter.search || ""}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 bg-gradient-to-r from-white to-slate-50 dark:from-slate-700 dark:to-slate-600 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 hover:border-blue-300 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={filter.status || "all"}
+              onValueChange={handleStatusFilterChange}
+            >
               <SelectTrigger className="w-full sm:w-48 bg-gradient-to-r from-white to-slate-50 dark:from-slate-700 dark:to-slate-600 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 hover:border-purple-300 dark:hover:border-purple-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all duration-200">
-                <SelectValue placeholder="Lọc theo trạng thái" className="text-slate-600 dark:text-slate-400" />
+                <SelectValue
+                  placeholder="Lọc theo trạng thái"
+                  className="text-slate-600 dark:text-slate-400"
+                />
               </SelectTrigger>
               <SelectContent className="bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-600 shadow-xl">
-                <SelectItem value="all" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700">Tất cả trạng thái</SelectItem>
-                <SelectItem value="Pending" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 dark:hover:from-gray-700 dark:hover:to-slate-700">Chờ xử lý</SelectItem>
-                <SelectItem value="In Progress" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20">Đang thực hiện</SelectItem>
-                <SelectItem value="Completed" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-900/20 dark:hover:to-emerald-900/20">Hoàn thành</SelectItem>
-                <SelectItem value="Overdue" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-900/20 dark:hover:to-rose-900/20">Quá hạn</SelectItem>
+                <SelectItem
+                  value="all"
+                  className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700"
+                >
+                  Tất cả trạng thái
+                </SelectItem>
+                {TASK_STATUS_OPTIONS.map((status) => (
+                  <SelectItem
+                    key={status.value}
+                    value={status.value}
+                    className="text-slate-900 dark:text-slate-100"
+                  >
+                    {status.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <Select
+              value={filter.priority || "all"}
+              onValueChange={handlePriorityFilterChange}
+            >
               <SelectTrigger className="w-full sm:w-48 bg-gradient-to-r from-white to-slate-50 dark:from-slate-700 dark:to-slate-600 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 hover:border-orange-300 dark:hover:border-orange-500 focus:border-orange-500 dark:focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-800 transition-all duration-200">
-                <SelectValue placeholder="Lọc theo ưu tiên" className="text-slate-600 dark:text-slate-400" />
+                <SelectValue
+                  placeholder="Lọc theo ưu tiên"
+                  className="text-slate-600 dark:text-slate-400"
+                />
               </SelectTrigger>
               <SelectContent className="bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-slate-200 dark:border-slate-600 shadow-xl">
-                <SelectItem value="all" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700">Tất cả mức ưu tiên</SelectItem>
-                <SelectItem value="Low" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-900/20 dark:hover:to-emerald-900/20">Thấp</SelectItem>
-                <SelectItem value="Medium" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 dark:hover:from-yellow-900/20 dark:hover:to-amber-900/20">Trung bình</SelectItem>
-                <SelectItem value="High" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-orange-900/20 dark:hover:to-red-900/20">Cao</SelectItem>
-                <SelectItem value="Urgent" className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 dark:hover:from-red-900/20 dark:hover:to-rose-900/20">Khẩn cấp</SelectItem>
+                <SelectItem
+                  value="all"
+                  className="text-slate-900 dark:text-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-700 dark:hover:to-gray-700"
+                >
+                  Tất cả mức ưu tiên
+                </SelectItem>
+                {TASK_PRIORITY_OPTIONS.map((priority) => (
+                  <SelectItem
+                    key={priority.value}
+                    value={priority.value}
+                    className="text-slate-900 dark:text-slate-100"
+                  >
+                    {priority.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -623,31 +692,29 @@ export default function CoordinatorTaskManagementPage() {
       <Card className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-slate-200 dark:border-slate-700">
           <CardTitle className="text-slate-900 dark:text-slate-100 font-bold text-lg">
-            Danh sách nhiệm vụ ({filteredTasks.length})
+            Danh sách nhiệm vụ ({pagedResult?.totalCount || 0})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="overflow-x-auto">
             <DataTable
               columns={taskColumns}
-              data={filteredTasks}
+              data={tasks}
               actions={taskActions}
               className="cursor-pointer transition-colors"
+              pagination={{
+                currentPage: filter.pageNumber || 1,
+                totalPages: Math.ceil(
+                  (pagedResult?.totalCount || 0) / (filter.pageSize || 10)
+                ),
+                pageSize: filter.pageSize || 10,
+                totalItems: pagedResult?.totalCount || 0,
+                onPageChange: handlePageChange,
+              }}
+              showPagination={true}
+              emptyMessage="Chưa có nhiệm vụ nào"
             />
           </div>
-
-          {filteredTasks.length === 0 && (
-            <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-800 dark:to-gray-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <div className="p-4 bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-700 dark:to-gray-700 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                <FileText className="h-10 w-10 text-slate-500 dark:text-slate-400" />
-              </div>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">
-                {tasks.length === 0
-                  ? "Chưa có nhiệm vụ nào"
-                  : "Không tìm thấy nhiệm vụ phù hợp với bộ lọc"}
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
 

@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,52 +13,60 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  Users,
   Calendar,
-  Building,
   FileText,
-  TrendingUp,
   Search,
-  Filter,
-  MoreHorizontal,
-  Edit,
   Eye,
+  Badge,
 } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DataTable,
+  type TableColumn,
+  type TableAction,
+} from "@/components/common/DataTable";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import coordinatorTaskService from "@/services/coordinatorTaskService";
 import type {
   CoordinatorTaskDto,
-  TaskStatus,
-  TaskPriority,
+  CoordinatorTaskFilterDto,
 } from "@/types/coordinatorTask";
+import type { PagedResultDto } from "@/types/common";
+import {
+  DEFAULT_COORDINATOR_TASK_FILTER,
+  TASK_STATUS,
+} from "@/types/coordinatorTask";
+import TaskDetailsModal from "@/components/organization/coordinator-task-management/TaskDetailsModal";
+import TaskStatusBadge from "@/components/organization/coordinator-task-management/TaskStatusBadge";
+import TaskPriorityBadge from "@/components/organization/coordinator-task-management/TaskPriorityBadge";
+import { useModal } from "@/hooks/useModal";
 
 export default function CoordinatorTasksPage() {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState<CoordinatorTaskDto[]>([]);
+  const [pagedResult, setPagedResult] =
+    useState<PagedResultDto<CoordinatorTaskDto> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [selectedTask, setSelectedTask] = useState<CoordinatorTaskDto | null>(
+    null
+  );
+  const [filter, setFilter] = useState<CoordinatorTaskFilterDto>(
+    DEFAULT_COORDINATOR_TASK_FILTER
+  );
 
-  // Load tasks on component mount
+  // Modal hooks
+  const detailsModal = useModal();
+
+  // Load tasks on component mount and when filter changes
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [filter]);
 
   const loadTasks = async () => {
     try {
       setLoading(true);
-      // Get tasks for the current coordinator
-      const tasksData = await coordinatorTaskService.getAllTasks();
-      setTasks(tasksData);
+      // Use new personal tasks API with server-side filtering
+      const result = await coordinatorTaskService.getPersonalTasks(filter);
+      setPagedResult(result);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Không thể tải danh sách nhiệm vụ");
@@ -69,23 +75,73 @@ export default function CoordinatorTasksPage() {
     }
   };
 
-  // Filter tasks based on search and filters
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch =
-      task.taskName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      "";
-    const matchesStatus =
-      statusFilter === "all" || task.status === statusFilter;
-    const matchesPriority =
-      priorityFilter === "all" || task.priority === priorityFilter;
+  // Update filter handlers
+  const handleSearchChange = (value: string) => {
+    setFilter((prev) => ({ ...prev, search: value, pageNumber: 1 }));
+  };
 
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  const handleStatusFilterChange = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      status: value === "all" ? undefined : value,
+      pageNumber: 1,
+    }));
+  };
 
-  // Calculate stats from tasks
+  const handlePriorityFilterChange = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      priority: value === "all" ? undefined : value,
+      pageNumber: 1,
+    }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilter((prev) => ({ ...prev, pageNumber: page }));
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setFilter((prev) => ({ ...prev, pageSize: size, pageNumber: 1 }));
+  };
+
+  // Modal handlers
+  const handleViewTask = (task: CoordinatorTaskDto) => {
+    setSelectedTask(task);
+    detailsModal.open();
+  };
+
+  const handleCompleteTask = async (taskId: number) => {
+    try {
+      await coordinatorTaskService.updateTaskStatus(
+        taskId,
+        TASK_STATUS.COMPLETED
+      );
+      await loadTasks();
+      toast.success("Đã hoàn thành nhiệm vụ");
+    } catch (error) {
+      console.error("Error completing task:", error);
+      toast.error("Không thể hoàn thành nhiệm vụ");
+    }
+  };
+
+  const handleStartTask = async (taskId: number) => {
+    try {
+      await coordinatorTaskService.updateTaskStatus(
+        taskId,
+        TASK_STATUS.IN_PROGRESS
+      );
+      await loadTasks();
+      toast.success("Đã bắt đầu thực hiện nhiệm vụ");
+    } catch (error) {
+      console.error("Error starting task:", error);
+      toast.error("Không thể bắt đầu nhiệm vụ");
+    }
+  };
+
+  // Get current tasks and calculate stats from paged result
+  const tasks = pagedResult?.items || [];
   const stats = {
-    totalTasks: tasks.length,
+    totalTasks: pagedResult?.totalCount || 0,
     pendingTasks: tasks.filter((t) => t.status === "Pending").length,
     inProgressTasks: tasks.filter((t) => t.status === "In Progress").length,
     completedTasks: tasks.filter((t) => t.status === "Completed").length,
@@ -99,92 +155,131 @@ export default function CoordinatorTasksPage() {
     ),
   };
 
-  const handleUpdateTaskStatus = async (taskId: number, newStatus: string) => {
-    try {
-      // Call the update API using coordinatorTaskService
-      await coordinatorTaskService.updateTaskStatus(taskId, newStatus as any);
-      
-      // Update local state
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.taskId === taskId
-            ? {
-                ...task,
-                status: newStatus,
-                completedAt:
-                  newStatus === "Completed"
-                    ? new Date().toISOString()
-                    : task.completedAt,
-              }
-            : task
-        )
-      );
-      toast.success("Cập nhật trạng thái thành công");
-    } catch (error) {
-      console.error("Error updating task status:", error);
-      toast.error("Không thể cập nhật trạng thái");
-    }
-  };
+  // Get completed tasks for the completed tab
+  const completedTasks = tasks.filter(
+    (task) => task.status === TASK_STATUS.COMPLETED
+  );
 
-  const getPriorityColor = (priority?: string) => {
-    switch (priority) {
-      case "Khẩn cấp":
-      case "Urgent":
-        return "bg-red-100 text-red-800";
-      case "Cao":
-      case "High":
-        return "bg-orange-100 text-orange-800";
-      case "Trung bình":
-      case "Medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "Thấp":
-      case "Low":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  // DataTable columns configuration
+  const taskColumns: TableColumn<CoordinatorTaskDto>[] = [
+    {
+      key: "taskName",
+      header: "Nhiệm vụ",
+      render: (_, task) => (
+        <div>
+          <div className="font-medium">{task.taskName}</div>
+          <div className="text-sm text-gray-500 truncate max-w-64">
+            {task.description}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "priority",
+      header: "Ưu tiên",
+      render: (_, task) => (
+        <TaskPriorityBadge priority={task.priority || ""} showIcon />
+      ),
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      render: (_, task) => {
+        const isOverdue =
+          task.dueDate &&
+          new Date(task.dueDate) < new Date() &&
+          task.status !== TASK_STATUS.COMPLETED;
 
-  const getStatusIcon = (status?: string) => {
-    switch (status) {
-      case "Hoàn thành":
-      case "Completed":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "Đang thực hiện":
-      case "In Progress":
-        return <Clock className="h-4 w-4 text-blue-600" />;
-      case "Chờ xử lý":
-      case "Pending":
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
+        return (
+          <div className="flex items-center gap-2">
+            <TaskStatusBadge status={task.status || ""} showIcon />
+            {isOverdue && (
+              <Badge className="bg-red-100 text-red-800 text-xs">Quá hạn</Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "dueDate",
+      header: "Hạn chót",
+      render: (_, task) => {
+        if (!task.dueDate)
+          return <span className="text-gray-400">Chưa xác định</span>;
+        const isOverdue = coordinatorTaskService.isTaskOverdue(task);
+        return (
+          <div
+            className={`text-sm ${isOverdue ? "text-red-600 font-medium" : ""}`}
+          >
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              {new Date(task.dueDate).toLocaleDateString("vi-VN")}
+            </div>
+            {isOverdue && <div className="text-xs text-red-500">Quá hạn</div>}
+          </div>
+        );
+      },
+    },
+    {
+      key: "estimatedHours",
+      header: "Tiến độ",
+      render: (_, task) => {
+        const progress = coordinatorTaskService.getTaskProgress(task);
+        return (
+          <div className="space-y-1">
+            <div className="text-sm font-medium">{progress}%</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  progress === 100
+                    ? "bg-green-500"
+                    : progress > 50
+                    ? "bg-blue-500"
+                    : "bg-gray-400"
+                }`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="text-xs text-gray-500">
+              {task.actualHours || 0}h / {task.estimatedHours || 0}h
+            </div>
+          </div>
+        );
+      },
+    },
+  ];
 
-  const getStatusText = (status?: string) => {
-    switch (status) {
-      case "Completed":
-        return "Hoàn thành";
-      case "In Progress":
-        return "Đang thực hiện";
-      case "Pending":
-        return "Chờ xử lý";
-      case "Overdue":
-        return "Quá hạn";
-      default:
-        return status || "Không xác định";
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Chưa xác định";
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const taskActions: TableAction<CoordinatorTaskDto>[] = [
+    {
+      label: "Xem chi tiết",
+      icon: <Eye />,
+      onClick: (task) => handleViewTask(task),
+    },
+    {
+      label: "Bắt đầu thực hiện",
+      icon: <Clock />,
+      onClick: async (task) => {
+        if (!task.taskId) {
+          toast.error("Không thể xác định ID nhiệm vụ");
+          return;
+        }
+        await handleStartTask(Number(task.taskId));
+      },
+      visible: (task) => task.status === "Pending",
+    },
+    {
+      label: "Đánh dấu hoàn thành",
+      icon: <CheckCircle />,
+      onClick: async (task) => {
+        if (!task.taskId) {
+          toast.error("Không thể xác định ID nhiệm vụ");
+          return;
+        }
+        await handleCompleteTask(Number(task.taskId));
+      },
+      visible: (task) => task.status !== TASK_STATUS.COMPLETED,
+    },
+  ];
 
   if (loading) {
     return (
@@ -215,12 +310,18 @@ export default function CoordinatorTasksPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Tổng nhiệm vụ</CardTitle>
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+              Tổng nhiệm vụ
+            </CardTitle>
             <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.totalTasks}</div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">Được giao</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+              {stats.totalTasks}
+            </div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">
+              Được giao
+            </p>
           </CardContent>
         </Card>
 
@@ -232,8 +333,12 @@ export default function CoordinatorTasksPage() {
             <AlertTriangle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.pendingTasks}</div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">Cần thực hiện</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+              {stats.pendingTasks}
+            </div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">
+              Cần thực hiện
+            </p>
           </CardContent>
         </Card>
 
@@ -245,27 +350,47 @@ export default function CoordinatorTasksPage() {
             <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.inProgressTasks}</div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">Đang tiến hành</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+              {stats.inProgressTasks}
+            </div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">
+              Đang tiến hành
+            </p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Hoàn thành</CardTitle>
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+              Hoàn thành
+            </CardTitle>
             <CheckCircle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">{stats.completedTasks}</div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">Đã xong</p>
+            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
+              {stats.completedTasks}
+            </div>
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">
+              Đã xong
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-900/50 dark:via-purple-900/50 dark:to-pink-900/50 border-indigo-200 dark:border-indigo-800/50">
-          <TabsTrigger value="tasks" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800 dark:hover:to-purple-800 transition-all duration-300">Nhiệm vụ của tôi</TabsTrigger>
-          <TabsTrigger value="completed" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800 dark:hover:to-purple-800 transition-all duration-300">Đã hoàn thành</TabsTrigger>
+          <TabsTrigger
+            value="tasks"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800 dark:hover:to-purple-800 transition-all duration-300"
+          >
+            Nhiệm vụ của tôi
+          </TabsTrigger>
+          <TabsTrigger
+            value="completed"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800 dark:hover:to-purple-800 transition-all duration-300"
+          >
+            Đã hoàn thành
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-6">
@@ -277,12 +402,15 @@ export default function CoordinatorTasksPage() {
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Tìm kiếm nhiệm vụ..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={filter.search || ""}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-10"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                  value={filter.status || "all"}
+                  onValueChange={handleStatusFilterChange}
+                >
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Lọc theo trạng thái" />
                   </SelectTrigger>
@@ -294,8 +422,8 @@ export default function CoordinatorTasksPage() {
                   </SelectContent>
                 </Select>
                 <Select
-                  value={priorityFilter}
-                  onValueChange={setPriorityFilter}
+                  value={filter.priority || "all"}
+                  onValueChange={handlePriorityFilterChange}
                 >
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Lọc theo ưu tiên" />
@@ -314,139 +442,29 @@ export default function CoordinatorTasksPage() {
 
           <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
             <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-              <CardTitle className="text-indigo-700 dark:text-indigo-300">Danh sách nhiệm vụ ({filteredTasks.length})</CardTitle>
+              <CardTitle className="text-indigo-700 dark:text-indigo-300">
+                Danh sách nhiệm vụ ({pagedResult?.totalCount || 0})
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {filteredTasks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600">
-                      {tasks.length === 0
-                        ? "Chưa có nhiệm vụ nào được giao"
-                        : "Không tìm thấy nhiệm vụ phù hợp với bộ lọc"}
-                    </p>
-                  </div>
-                ) : (
-                  filteredTasks.map((task) => (
-                    <div
-                      key={`${task.taskId}-${task.coordinatorId}`}
-                      className="border border-indigo-200 dark:border-indigo-800/50 rounded-lg p-4 bg-gradient-to-br from-indigo-50/50 via-purple-50/50 to-pink-50/50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 hover:bg-gradient-to-br hover:from-indigo-100/70 hover:via-purple-100/70 hover:to-pink-100/70 dark:hover:from-indigo-900/30 dark:hover:via-purple-900/30 dark:hover:to-pink-900/30 cursor-pointer transition-all duration-300"
-                      onClick={() =>
-                        setSelectedTask(
-                          selectedTask ===
-                            `${task.taskId}-${task.coordinatorId}`
-                            ? null
-                            : `${task.taskId}-${task.coordinatorId}`
-                        )
-                      }
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            {getStatusIcon(task.status || undefined)}
-                            <h3 className="font-semibold">{task.taskName}</h3>
-                            {task.priority && (
-                              <Badge
-                                className={getPriorityColor(task.priority)}
-                              >
-                                {task.priority}
-                              </Badge>
-                            )}
-                          </div>
-                          {task.description && (
-                            <p className="text-sm text-gray-600 mb-2">
-                              {task.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            {task.dueDate && (
-                              <span>Hạn: {formatDate(task.dueDate)}</span>
-                            )}
-                            <span>
-                              Trạng thái:{" "}
-                              {getStatusText(task.status || undefined)}
-                            </span>
-                            {task.estimatedHours && (
-                              <span>Ước tính: {task.estimatedHours}h</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Xem chi tiết
-                              </DropdownMenuItem>
-                              {task.status !== "Completed" && (
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateTaskStatus(
-                                      task.taskId,
-                                      "Completed"
-                                    );
-                                  }}
-                                >
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Đánh dấu hoàn thành
-                                </DropdownMenuItem>
-                              )}
-                              {task.status === "Pending" && (
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateTaskStatus(
-                                      task.taskId,
-                                      "In Progress"
-                                    );
-                                  }}
-                                >
-                                  <Clock className="mr-2 h-4 w-4" />
-                                  Bắt đầu thực hiện
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-
-                      {selectedTask ===
-                        `${task.taskId}-${task.coordinatorId}` && (
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <strong>Danh mục:</strong>{" "}
-                              {task.category || "Chưa phân loại"}
-                            </div>
-                            <div>
-                              <strong>Thời gian thực tế:</strong>{" "}
-                              {task.actualHours || 0}h
-                            </div>
-                            {task.completedAt && (
-                              <div>
-                                <strong>Hoàn thành lúc:</strong>{" "}
-                                {formatDate(task.completedAt)}
-                              </div>
-                            )}
-                            {task.notes && (
-                              <div className="md:col-span-2">
-                                <strong>Ghi chú:</strong> {task.notes}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
+              <DataTable
+                data={tasks}
+                columns={taskColumns}
+                actions={taskActions}
+                loading={loading}
+                pagination={{
+                  currentPage: filter.pageNumber || 1,
+                  totalPages: Math.ceil(
+                    (pagedResult?.totalCount || 0) / (filter.pageSize || 10)
+                  ),
+                  pageSize: filter.pageSize || 10,
+                  totalItems: pagedResult?.totalCount || 0,
+                  onPageChange: handlePageChange,
+                }}
+                showPagination={true}
+                emptyMessage="Chưa có nhiệm vụ nào được giao"
+                className="cursor-pointer transition-colors"
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -454,59 +472,38 @@ export default function CoordinatorTasksPage() {
         <TabsContent value="completed" className="space-y-6">
           <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
             <CardHeader className="bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-              <CardTitle className="text-indigo-700 dark:text-indigo-300">Nhiệm vụ đã hoàn thành</CardTitle>
+              <CardTitle className="text-indigo-700 dark:text-indigo-300">
+                Nhiệm vụ đã hoàn thành ({completedTasks.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {tasks
-                  .filter((task) => task.status === "Completed")
-                  .map((task) => (
-                    <div
-                      key={`${task.taskId}-${task.coordinatorId}`}
-                      className="border border-green-200 dark:border-green-800/50 rounded-lg p-4 bg-gradient-to-br from-green-50/70 via-emerald-50/70 to-teal-50/70 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-teal-950/30"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <h3 className="font-semibold">{task.taskName}</h3>
-                            <Badge className="bg-green-100 text-green-800">
-                              Hoàn thành
-                            </Badge>
-                          </div>
-                          {task.description && (
-                            <p className="text-sm text-gray-600 mb-2">
-                              {task.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            {task.completedAt && (
-                              <span>
-                                Hoàn thành: {formatDate(task.completedAt)}
-                              </span>
-                            )}
-                            {task.actualHours && (
-                              <span>Thời gian: {task.actualHours}h</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                {tasks.filter((task) => task.status === "Completed").length ===
-                  0 && (
-                  <div className="text-center py-8">
-                    <CheckCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600">
-                      Chưa có nhiệm vụ nào hoàn thành
-                    </p>
-                  </div>
-                )}
-              </div>
+              <DataTable
+                data={completedTasks}
+                columns={taskColumns}
+                actions={[
+                  {
+                    label: "Xem chi tiết",
+                    icon: <Eye />,
+                    onClick: handleViewTask,
+                    variant: "ghost",
+                  },
+                ]}
+                loading={loading}
+                emptyMessage="Chưa có nhiệm vụ nào hoàn thành"
+                className="cursor-pointer transition-colors"
+              />
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Task Details Modal */}
+      <TaskDetailsModal
+        isOpen={detailsModal.isOpen}
+        onClose={detailsModal.close}
+        task={selectedTask}
+        onComplete={handleCompleteTask}
+      />
     </div>
   );
 }
