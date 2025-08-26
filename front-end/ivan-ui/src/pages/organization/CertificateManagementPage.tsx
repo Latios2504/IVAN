@@ -28,6 +28,7 @@ import { certificateService } from "@/services/certificateService";
 import type { CertificateViewModel } from "@/types/certificate";
 import CertificateDetailModal from "@/components/organization/certificates/CertificateDetailModal";
 import CreateCertificateModal from "@/components/organization/certificates/CreateCertificateModal";
+import { StatsCard } from "@/components/common/StatsCard";
 
 export default function CertificateManagementPage() {
   // State management
@@ -241,73 +242,30 @@ export default function CertificateManagementPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 border border-blue-200 dark:border-blue-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-t-lg border-b border-blue-200 dark:border-blue-800">
-            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Tổng chứng chỉ
-            </CardTitle>
-            <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
-              {stats.total}
-            </div>
-            <p className="text-xs text-blue-600 dark:text-blue-400">
-              Tất cả chứng chỉ
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950 border border-green-200 dark:border-green-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-t-lg border-b border-green-200 dark:border-green-800">
-            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">
-              Đã cấp
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.approved}
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400">
-              Chứng chỉ hợp lệ
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950 border border-yellow-200 dark:border-yellow-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900 dark:to-amber-900 rounded-t-lg border-b border-yellow-200 dark:border-yellow-800">
-            <CardTitle className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-              Chờ phê duyệt
-            </CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats.pending}
-            </div>
-            <p className="text-xs text-yellow-600 dark:text-yellow-400">
-              Cần xử lý
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-950 border border-cyan-200 dark:border-cyan-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 rounded-t-lg border-b border-cyan-200 dark:border-cyan-800">
-            <CardTitle className="text-sm font-medium text-cyan-900 dark:text-cyan-100">
-              Lượt tải
-            </CardTitle>
-            <Download className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.totalDownloads}
-            </div>
-            <p className="text-xs text-cyan-600 dark:text-cyan-400">
-              Tổng download
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tổng chứng chỉ"
+          value={stats.total}
+          description="Tất cả chứng chỉ"
+          icon={Award}
+        />
+        <StatsCard
+          title="Đã cấp"
+          value={stats.approved}
+          description="Chứng chỉ hợp lệ"
+          icon={CheckCircle}
+        />
+        <StatsCard
+          title="Chờ phê duyệt"
+          value={stats.pending}
+          description="Cần xử lý"
+          icon={Clock}
+        />
+        <StatsCard
+          title="Lượt tải"
+          value={stats.totalDownloads}
+          description="Tổng download"
+          icon={Download}
+        />
       </div>
 
       {/* Error State */}

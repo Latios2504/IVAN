@@ -139,33 +139,7 @@ export default function CoordinatorDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Reports Management */}
-              <Card className="bg-gradient-to-br from-violet-50/80 via-purple-50/80 to-pink-50/80 dark:from-violet-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border border-violet-200/50 dark:border-violet-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="border-b border-violet-200/50 dark:border-violet-800/50">
-                  <CardTitle className="text-violet-800 dark:text-violet-200 flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Quản lý báo cáo
-                  </CardTitle>
-                  <CardDescription className="text-violet-700/80 dark:text-violet-300/80">
-                    Tạo và quản lý báo cáo sự kiện
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-4">
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/coordinator/reports/create"
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Tạo báo cáo sự kiện
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+
 
               {/* Community & Support */}
               <Card className="bg-gradient-to-br from-cyan-50/80 via-sky-50/80 to-blue-50/80 dark:from-cyan-950/30 dark:via-sky-950/30 dark:to-blue-950/30 border border-cyan-200/50 dark:border-cyan-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">

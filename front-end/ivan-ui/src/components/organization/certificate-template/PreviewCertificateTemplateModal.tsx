@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
+import TemplateStatusBadge from "./TemplateStatusBadge";
 import type { CertificateTemplateViewModel } from "@/types/certificate";
 
 interface PreviewCertificateTemplateModalProps {
@@ -173,16 +174,11 @@ export default function PreviewCertificateTemplateModal({
                         {getTemplateTypeInfo(template.templateType).label}
                       </Badge>
                     )}
-                    {template.isDefault && (
-                      <Badge variant="outline">Hệ thống</Badge>
-                    )}
-                    {template.isActive ? (
-                      <Badge className="bg-green-100 text-green-800">
-                        Hoạt động
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">Tạm dừng</Badge>
-                    )}
+                    <TemplateStatusBadge
+                      isActive={template.isActive}
+                      isDefault={template.isDefault}
+                      size="sm"
+                    />
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -235,7 +231,9 @@ export default function PreviewCertificateTemplateModal({
                     <h4 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-1">
                       Mô tả
                     </h4>
-                    <p className="text-gray-700 dark:text-gray-300">{template.description}</p>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {template.description}
+                    </p>
                   </div>
                 )}
 
@@ -251,7 +249,11 @@ export default function PreviewCertificateTemplateModal({
                           (f) => f.value === field
                         );
                         return (
-                          <Badge key={field} variant="secondary" className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700">
+                          <Badge
+                            key={field}
+                            variant="secondary"
+                            className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700"
+                          >
                             {fieldInfo?.label || field}
                           </Badge>
                         );
@@ -405,14 +407,18 @@ export default function PreviewCertificateTemplateModal({
             {template.templateDesign && (
               <Card className="bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border border-green-200 dark:border-green-700 shadow-lg">
                 <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b border-green-200 dark:border-green-700">
-                  <CardTitle className="text-gray-800 dark:text-gray-200">Mã thiết kế</CardTitle>
+                  <CardTitle className="text-gray-800 dark:text-gray-200">
+                    Mã thiết kế
+                  </CardTitle>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     HTML/CSS được sử dụng để tạo ra mẫu chứng chỉ này
                   </p>
                 </CardHeader>
                 <CardContent className="bg-gradient-to-br from-white to-green-50/50 dark:from-gray-800/50 dark:to-green-900/10">
                   <pre className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg text-sm font-mono overflow-x-auto max-h-60 border border-gray-200 dark:border-gray-600 shadow-inner">
-                    <code className="text-gray-800 dark:text-gray-200">{template.templateDesign}</code>
+                    <code className="text-gray-800 dark:text-gray-200">
+                      {template.templateDesign}
+                    </code>
                   </pre>
                 </CardContent>
               </Card>

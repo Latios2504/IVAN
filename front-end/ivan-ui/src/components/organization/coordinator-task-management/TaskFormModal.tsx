@@ -25,19 +25,27 @@ import {
 import { CalendarIcon, Save, X, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import type { CoordinatorTaskDto, CreateCoordinatorTaskDto, UpdateCoordinatorTaskDto } from "@/types/coordinatorTask";
+import type {
+  CoordinatorTaskDto,
+  CreateCoordinatorTaskDto,
+  UpdateCoordinatorTaskDto,
+} from "@/types/coordinatorTask";
 import { TASK_STATUS, TASK_PRIORITY } from "@/types/coordinatorTask";
 import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 import type { EventDto } from "@/types/events";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
 import { eventsService } from "@/services/eventsService";
 import { useAuth } from "@/hooks/useAuth";
+import TaskPriorityBadge from "./TaskPriorityBadge";
+import TaskStatusBadge from "./TaskStatusBadge";
 
 interface TaskFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   task?: CoordinatorTaskDto | null;
-  onSubmit: (data: CreateCoordinatorTaskDto | UpdateCoordinatorTaskDto) => Promise<void>;
+  onSubmit: (
+    data: CreateCoordinatorTaskDto | UpdateCoordinatorTaskDto
+  ) => Promise<void>;
   isLoading?: boolean;
   organizationId?: number;
 }
@@ -67,7 +75,9 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>([]);
+  const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>(
+    []
+  );
   const [events, setEvents] = useState<EventDto[]>([]);
   const [coordinatorsLoading, setCoordinatorsLoading] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -85,13 +95,14 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const loadCoordinators = async () => {
     if (!currentOrganizationId) return;
-    
+
     setCoordinatorsLoading(true);
     try {
-      const result = await volunteerCoordinatorService.getCoordinatorsByOrganization(
-        currentOrganizationId,
-        { size: 100 } // Get all coordinators
-      );
+      const result =
+        await volunteerCoordinatorService.getCoordinatorsByOrganization(
+          currentOrganizationId,
+          { size: 100 } // Get all coordinators
+        );
       setCoordinators(result.items || []);
     } catch (error) {
       console.error("Error loading coordinators:", error);
@@ -103,7 +114,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const loadEvents = async () => {
     if (!currentOrganizationId) return;
-    
+
     setEventsLoading(true);
     try {
       const result = await eventsService.getEvents({
@@ -111,7 +122,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
         size: 100, // Get all events
         page: 1,
         sortBy: "CreatedAt",
-        sortDirection: "desc"
+        sortDirection: "desc",
       });
       setEvents(result.items || []);
     } catch (error) {
@@ -130,8 +141,15 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
         coordinatorId: task.coordinatorId?.toString() || "",
         eventId: task.eventId?.toString() || "",
         category: task.category || "",
-        priority: (task.priority && Object.values(TASK_PRIORITY).includes(task.priority as any)) ? task.priority as any : TASK_PRIORITY.MEDIUM,
-        status: (task.status && Object.values(TASK_STATUS).includes(task.status as any)) ? task.status as any : TASK_STATUS.ASSIGNED,
+        priority:
+          task.priority &&
+          Object.values(TASK_PRIORITY).includes(task.priority as any)
+            ? (task.priority as any)
+            : TASK_PRIORITY.MEDIUM,
+        status:
+          task.status && Object.values(TASK_STATUS).includes(task.status as any)
+            ? (task.status as any)
+            : TASK_STATUS.ASSIGNED,
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
         estimatedHours: task.estimatedHours || 0,
         actualHours: task.actualHours || 0,
@@ -188,7 +206,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -216,7 +234,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
       } else {
         await onSubmit(submitData as CreateCoordinatorTaskDto);
       }
-      
+
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -224,9 +242,9 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
   };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -260,15 +278,24 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">
               Thông tin cơ bản
             </h3>
-            <div className={`grid grid-cols-1 gap-4 ${isEditMode ? 'md:grid-cols-2' : ''}`}>
+            <div
+              className={`grid grid-cols-1 gap-4 ${
+                isEditMode ? "md:grid-cols-2" : ""
+              }`}
+            >
               <div className="md:col-span-2">
-                <Label htmlFor="taskName" className="text-slate-700 dark:text-slate-300">
+                <Label
+                  htmlFor="taskName"
+                  className="text-slate-700 dark:text-slate-300"
+                >
                   Tên nhiệm vụ *
                 </Label>
                 <Input
                   id="taskName"
                   value={formData.taskName}
-                  onChange={(e) => handleInputChange("taskName", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("taskName", e.target.value)
+                  }
                   placeholder="Nhập tên nhiệm vụ..."
                   className={`mt-1 ${errors.taskName ? "border-red-500" : ""}`}
                 />
@@ -278,13 +305,18 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </div>
 
               <div className="md:col-span-2">
-                <Label htmlFor="description" className="text-slate-700 dark:text-slate-300">
+                <Label
+                  htmlFor="description"
+                  className="text-slate-700 dark:text-slate-300"
+                >
                   Mô tả
                 </Label>
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                   placeholder="Nhập mô tả nhiệm vụ..."
                   rows={3}
                   className="mt-1"
@@ -292,14 +324,23 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="coordinatorId" className="text-slate-700 dark:text-slate-300">
+                <Label
+                  htmlFor="coordinatorId"
+                  className="text-slate-700 dark:text-slate-300"
+                >
                   Điều phối viên *
                 </Label>
                 <Select
                   value={formData.coordinatorId}
-                  onValueChange={(value) => handleInputChange("coordinatorId", value)}
+                  onValueChange={(value) =>
+                    handleInputChange("coordinatorId", value)
+                  }
                 >
-                  <SelectTrigger className={`mt-1 ${errors.coordinatorId ? "border-red-500" : ""}`}>
+                  <SelectTrigger
+                    className={`mt-1 ${
+                      errors.coordinatorId ? "border-red-500" : ""
+                    }`}
+                  >
                     <SelectValue placeholder="Chọn điều phối viên" />
                   </SelectTrigger>
                   <SelectContent>
@@ -318,26 +359,35 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                           key={coordinator.coordinatorId}
                           value={coordinator.coordinatorId.toString()}
                         >
-                          {coordinator.user?.fullName || coordinator.user?.email || 'Unknown'}
+                          {coordinator.user?.fullName ||
+                            coordinator.user?.email ||
+                            "Unknown"}
                         </SelectItem>
                       ))
                     )}
                   </SelectContent>
                 </Select>
                 {errors.coordinatorId && (
-                  <p className="text-red-500 text-sm mt-1">{errors.coordinatorId}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.coordinatorId}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="eventId" className="text-slate-700 dark:text-slate-300">
+                <Label
+                  htmlFor="eventId"
+                  className="text-slate-700 dark:text-slate-300"
+                >
                   Sự kiện *
                 </Label>
                 <Select
                   value={formData.eventId}
                   onValueChange={(value) => handleInputChange("eventId", value)}
                 >
-                  <SelectTrigger className={`mt-1 ${errors.eventId ? "border-red-500" : ""}`}>
+                  <SelectTrigger
+                    className={`mt-1 ${errors.eventId ? "border-red-500" : ""}`}
+                  >
                     <SelectValue placeholder="Chọn sự kiện" />
                   </SelectTrigger>
                   <SelectContent>
@@ -368,13 +418,18 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="category" className="text-slate-700 dark:text-slate-300">
+                <Label
+                  htmlFor="category"
+                  className="text-slate-700 dark:text-slate-300"
+                >
                   Danh mục
                 </Label>
                 <Input
                   id="category"
                   value={formData.category}
-                  onChange={(e) => handleInputChange("category", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("category", e.target.value)
+                  }
                   placeholder="Nhập danh mục..."
                   className="mt-1"
                 />
@@ -424,26 +479,37 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <h3 className="text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
               Trạng thái và Độ ưu tiên
             </h3>
-            <div className={`grid grid-cols-1 gap-4 ${isEditMode ? 'md:grid-cols-2' : ''}`}>
+            <div
+              className={`grid grid-cols-1 gap-4 ${
+                isEditMode ? "md:grid-cols-2" : ""
+              }`}
+            >
               <div>
                 <Label className="text-blue-700 dark:text-blue-300">
                   Độ ưu tiên
                 </Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value) => handleInputChange("priority", value)}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Chọn độ ưu tiên" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priorityOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-3 mt-2">
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) =>
+                      handleInputChange("priority", value)
+                    }
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Chọn độ ưu tiên" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {priorityOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.priority && (
+                    <TaskPriorityBadge priority={formData.priority} />
+                  )}
+                </div>
               </div>
 
               {isEditMode && (
@@ -451,21 +517,28 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   <Label className="text-blue-700 dark:text-blue-300">
                     Trạng thái
                   </Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleInputChange("status", value)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Chọn trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-3 mt-2">
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) =>
+                        handleInputChange("status", value)
+                      }
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Chọn trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formData.status && (
+                      <TaskStatusBadge status={formData.status} />
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -478,7 +551,10 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="estimatedHours" className="text-green-700 dark:text-green-300">
+                <Label
+                  htmlFor="estimatedHours"
+                  className="text-green-700 dark:text-green-300"
+                >
                   Thời gian ước tính (giờ)
                 </Label>
                 <Input
@@ -487,17 +563,26 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   min="0"
                   step="0.5"
                   value={formData.estimatedHours}
-                  onChange={(e) => handleInputChange("estimatedHours", Number(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange("estimatedHours", Number(e.target.value))
+                  }
                   placeholder="0"
-                  className={`mt-1 ${errors.estimatedHours ? "border-red-500" : ""}`}
+                  className={`mt-1 ${
+                    errors.estimatedHours ? "border-red-500" : ""
+                  }`}
                 />
                 {errors.estimatedHours && (
-                  <p className="text-red-500 text-sm mt-1">{errors.estimatedHours}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.estimatedHours}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="actualHours" className="text-green-700 dark:text-green-300">
+                <Label
+                  htmlFor="actualHours"
+                  className="text-green-700 dark:text-green-300"
+                >
                   Thời gian thực tế (giờ)
                 </Label>
                 <Input
@@ -506,12 +591,18 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                   min="0"
                   step="0.5"
                   value={formData.actualHours}
-                  onChange={(e) => handleInputChange("actualHours", Number(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange("actualHours", Number(e.target.value))
+                  }
                   placeholder="0"
-                  className={`mt-1 ${errors.actualHours ? "border-red-500" : ""}`}
+                  className={`mt-1 ${
+                    errors.actualHours ? "border-red-500" : ""
+                  }`}
                 />
                 {errors.actualHours && (
-                  <p className="text-red-500 text-sm mt-1">{errors.actualHours}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.actualHours}
+                  </p>
                 )}
               </div>
             </div>
@@ -523,7 +614,10 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
               Ghi chú
             </h3>
             <div>
-              <Label htmlFor="notes" className="text-amber-700 dark:text-amber-300">
+              <Label
+                htmlFor="notes"
+                className="text-amber-700 dark:text-amber-300"
+              >
                 Ghi chú bổ sung
               </Label>
               <Textarea
@@ -555,7 +649,11 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Save className="h-4 w-4 mr-2" />
-              {isLoading ? "Đang xử lý..." : isEditMode ? "Cập nhật" : "Tạo mới"}
+              {isLoading
+                ? "Đang xử lý..."
+                : isEditMode
+                ? "Cập nhật"
+                : "Tạo mới"}
             </Button>
           </div>
         </form>

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
+import CertificateStatusBadge from "./CertificateStatusBadge";
 import type { Certificate } from "@/types/certificate";
 
 interface BulkOperationsDialogProps {
@@ -125,36 +126,6 @@ export function BulkOperationsDialog({
 
   const statusCounts = getStatusCounts();
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "Bản nháp";
-      case "pending":
-        return "Chờ phê duyệt";
-      case "issued":
-        return "Đã cấp";
-      case "revoked":
-        return "Đã thu hồi";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "outline";
-      case "pending":
-        return "secondary";
-      case "issued":
-        return "default";
-      case "revoked":
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -200,12 +171,7 @@ export function BulkOperationsDialog({
                       #{cert.certificateNumber}
                     </span>
                   </div>
-                  <Badge
-                    variant={getStatusVariant(cert.status || "draft") as any}
-                    className="text-xs"
-                  >
-                    {getStatusLabel(cert.status || "draft")}
-                  </Badge>
+                  <CertificateStatusBadge status={cert.status} size="sm" />
                 </div>
               ))}
             </div>

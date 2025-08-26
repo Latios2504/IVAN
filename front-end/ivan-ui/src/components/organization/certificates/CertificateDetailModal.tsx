@@ -7,22 +7,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Award,
   Calendar,
-  User,
   FileText,
   Download,
   QrCode,
-  CheckCircle,
-  Clock,
-  AlertCircle,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { certificateService } from "@/services/certificateService";
+import CertificateStatusBadge from "./CertificateStatusBadge";
 import type { CertificateViewModel } from "@/types/certificate";
 import { toast } from "sonner";
 
@@ -42,34 +38,6 @@ export default function CertificateDetailModal({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Status configuration for UI
-  const statusConfig = {
-    draft: {
-      label: "Bản nháp",
-      variant: "outline" as const,
-      color: "text-gray-600",
-      icon: FileText,
-    },
-    pending: {
-      label: "Chờ duyệt",
-      variant: "secondary" as const,
-      color: "text-yellow-600",
-      icon: Clock,
-    },
-    issued: {
-      label: "Đã cấp",
-      variant: "default" as const,
-      color: "text-green-600",
-      icon: CheckCircle,
-    },
-    rejected: {
-      label: "Từ chối",
-      variant: "destructive" as const,
-      color: "text-red-600",
-      icon: AlertCircle,
-    },
-  };
 
   const fetchCertificateDetails = async (id: number) => {
     try {
@@ -113,12 +81,6 @@ export default function CertificateDetailModal({
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Chưa có";
     return new Date(dateString).toLocaleDateString("vi-VN");
-  };
-
-  const getStatusInfo = (status?: string) => {
-    return (
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.draft
-    );
   };
 
   if (!isOpen) return null;
@@ -181,16 +143,7 @@ export default function CertificateDetailModal({
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {(() => {
-                        const statusInfo = getStatusInfo(certificate.status);
-                        const StatusIcon = statusInfo.icon;
-                        return (
-                          <Badge variant={statusInfo.variant} className="gap-1">
-                            <StatusIcon className="h-3 w-3" />
-                            {statusInfo.label}
-                          </Badge>
-                        );
-                      })()}
+                      <CertificateStatusBadge status={certificate.status} />
                     </div>
                   </div>
                 </CardHeader>

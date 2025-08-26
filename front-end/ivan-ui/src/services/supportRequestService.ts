@@ -16,15 +16,6 @@ import { DEFAULT_SUPPORT_REQUEST_FILTER } from "../types/supportRequest";
 class SupportRequestService {
   private readonly baseUrl = "/supportrequest";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
-
   // === SUPPORT REQUEST MANAGEMENT ENDPOINTS ===
 
   // GET /api/supportrequest - Admin sees all, Organization sees only approved
@@ -46,7 +37,7 @@ class SupportRequestService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
     return Array.isArray(extractedData) ? extractedData : [];
   }
 
@@ -61,7 +52,7 @@ class SupportRequestService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
     return Array.isArray(extractedData) ? extractedData : [];
   }
 
@@ -131,7 +122,7 @@ class SupportRequestService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
     return Array.isArray(extractedData) ? extractedData : [];
   }
 

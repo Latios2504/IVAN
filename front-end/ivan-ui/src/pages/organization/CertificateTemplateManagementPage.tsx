@@ -28,6 +28,7 @@ import EditCertificateTemplateModal from "@/components/organization/certificate-
 import DeleteCertificateTemplateDialog from "@/components/organization/certificate-template/DeleteCertificateTemplateDialog";
 import PreviewCertificateTemplateModal from "@/components/organization/certificate-template/PreviewCertificateTemplateModal";
 import BulkActionsModal from "@/components/organization/certificate-template/BulkActionsModal";
+import { StatsCard } from "@/components/common/StatsCard";
 
 // Mock current user - replace with actual auth context
 const getCurrentUser = () => ({
@@ -348,56 +349,24 @@ export default function CertificateTemplateManagementPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50 border-blue-200/50 dark:border-blue-800/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Tổng mẫu
-            </CardTitle>
-            <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-              {stats.total}
-            </div>
-            <p className="text-xs text-blue-600 dark:text-blue-400">
-              Tất cả mẫu
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/50 dark:via-emerald-950/50 dark:to-teal-950/50 border-green-200/50 dark:border-green-800/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">
-              Đang hoạt động
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {stats.active}
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400">
-              Mẫu có thể sử dụng
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/50 dark:via-amber-950/50 dark:to-yellow-950/50 border-orange-200/50 dark:border-orange-800/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-900 dark:text-orange-100">
-              {isAdmin ? "Mẫu hiện tại" : "Mẫu của tổ chức"}
-            </CardTitle>
-            <Building2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-              {stats.myTemplates}
-            </div>
-            <p className="text-xs text-orange-600 dark:text-orange-400">
-              {isAdmin ? "Hiển thị" : "Mẫu riêng"}
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tổng mẫu"
+          value={stats.total}
+          description="Tất cả mẫu"
+          icon={FileText}
+        />
+        <StatsCard
+          title="Đang hoạt động"
+          value={stats.active}
+          description="Mẫu có thể sử dụng"
+          icon={CheckCircle}
+        />
+        <StatsCard
+          title={isAdmin ? "Mẫu hiện tại" : "Mẫu của tổ chức"}
+          value={stats.myTemplates}
+          description={isAdmin ? "Hiển thị" : "Mẫu riêng"}
+          icon={Building2}
+        />
       </div>
 
       {/* Error State */}

@@ -13,15 +13,6 @@ import type {
 class CertificateTemplateService {
   private readonly baseUrl = "/CertificateTemplate";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
-
   // === CERTIFICATE TEMPLATE OPERATIONS ===
 
   // GET /api/CertificateTemplate - Get Certificate Templates List
@@ -46,7 +37,7 @@ class CertificateTemplateService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     if (
       extractedData &&
@@ -131,7 +122,7 @@ class CertificateTemplateService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     if (
       extractedData &&

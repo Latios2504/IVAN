@@ -32,6 +32,7 @@ import { Loader2, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
+import CertificateStatusBadge from "./CertificateStatusBadge";
 import type { CertificateTemplateViewModel } from "@/types/certificate";
 
 // Form validation schema
@@ -443,17 +444,24 @@ export default function CreateCertificateModal({
                     <h4 className="font-semibold text-gray-900 mb-2">
                       Trạng thái
                     </h4>
-                    <ul className="space-y-1 text-gray-600 text-xs">
-                      <li>
-                        • <strong>Bản nháp:</strong> Có thể sửa
-                      </li>
-                      <li>
-                        • <strong>Chờ duyệt:</strong> Đã gửi
-                      </li>
-                      <li>
-                        • <strong>Đã cấp:</strong> Hoàn thành
-                      </li>
-                    </ul>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CertificateStatusBadge status="draft" />
+                        <span className="text-xs text-gray-600">
+                          Có thể sửa
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CertificateStatusBadge status="pending" />
+                        <span className="text-xs text-gray-600">Đã gửi</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CertificateStatusBadge status="issued" />
+                        <span className="text-xs text-gray-600">
+                          Hoàn thành
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -16,15 +16,6 @@ import type {
 class CoordinatorScheduleService {
   private readonly baseUrl = "/CoordinatorSchedule";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
-
   // === PERSONAL SCHEDULE ENDPOINTS (for coordinators viewing their assigned schedules) ===
   // GET /api/CoordinatorSchedule/personal - Get personal schedules for volunteer coordinators (READ-ONLY)
   async getPersonalSchedules(
@@ -58,10 +49,11 @@ class CoordinatorScheduleService {
 
     // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const pagedResult = response.data as PagedResultDto<CoordinatorScheduleDto>;
+      const pagedResult =
+        response.data as PagedResultDto<CoordinatorScheduleDto>;
       return {
         ...pagedResult,
-        items: this.extractDataFromNetResponse(pagedResult.items || []),
+        items: apiClient.extractDataFromNetResponse(pagedResult.items || []),
       };
     }
 
@@ -104,10 +96,11 @@ class CoordinatorScheduleService {
 
     // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      const pagedResult = response.data as PagedResultDto<CoordinatorScheduleDto>;
+      const pagedResult =
+        response.data as PagedResultDto<CoordinatorScheduleDto>;
       return {
         ...pagedResult,
-        items: this.extractDataFromNetResponse(pagedResult.items || []),
+        items: apiClient.extractDataFromNetResponse(pagedResult.items || []),
       };
     }
 
@@ -128,7 +121,7 @@ class CoordinatorScheduleService {
 
     // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      return this.extractDataFromNetResponse(response.data);
+      return apiClient.extractDataFromNetResponse(response.data);
     }
 
     throw new Error("Failed to get schedule");
@@ -155,7 +148,7 @@ class CoordinatorScheduleService {
 
     // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      return this.extractDataFromNetResponse(response.data);
+      return apiClient.extractDataFromNetResponse(response.data);
     }
 
     throw new Error("Failed to update schedule");
@@ -187,7 +180,7 @@ class CoordinatorScheduleService {
       overdueSchedules: 0,
       schedulesByType: {},
       schedulesByPriority: {},
-      topCoordinators: []
+      topCoordinators: [],
     };
   }
 
@@ -212,7 +205,7 @@ class CoordinatorScheduleService {
 
     // Backend returns ApiResponseDTO with PascalCase (Success, Data, Message)
     if (response.success && response.data) {
-      return this.extractDataFromNetResponse(response.data);
+      return apiClient.extractDataFromNetResponse(response.data);
     }
 
     return [];

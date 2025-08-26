@@ -13,14 +13,7 @@ import type {
 class ModerationService {
   private readonly baseUrl = "/Moderation";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
+
 
   // GET /api/Moderation - Get Events for Moderation (Admin only)
   async getEventsForModeration(
@@ -44,7 +37,7 @@ class ModerationService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If the entire response is wrapped, extract it
     if (

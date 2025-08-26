@@ -151,55 +151,6 @@ export default function EventManagementPage() {
         </Button>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950 border border-green-200 dark:border-green-800 shadow-lg">
-          <CardHeader className="pb-3 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-t-lg border-b border-green-200 dark:border-green-800">
-            <CardTitle className="text-lg flex items-center text-green-900 dark:text-green-100">
-              <Users className="w-5 h-5 mr-2" />
-              Quản lý đăng ký sự kiện
-            </CardTitle>
-            <CardDescription className="text-green-700 dark:text-green-300">
-              Xem và quản lý đăng ký tình nguyện viên cho các sự kiện
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/organization/event-registrations">
-              <Button
-                variant="outline"
-                className="w-full border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Xem đăng ký sự kiện
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950 dark:via-amber-950 dark:to-yellow-950 border border-orange-200 dark:border-orange-800 shadow-lg">
-          <CardHeader className="pb-3 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900 dark:to-amber-900 rounded-t-lg border-b border-orange-200 dark:border-orange-800">
-            <CardTitle className="text-lg flex items-center text-orange-900 dark:text-orange-100">
-              <Users className="w-5 h-5 mr-2" />
-              Quản lý Coordinators
-            </CardTitle>
-            <CardDescription className="text-orange-700 dark:text-orange-300">
-              Quản lý điều phối viên tình nguyện trong tổ chức
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/organization/volunteer-coordinators">
-              <Button
-                variant="outline"
-                className="w-full border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Quản lý Coordinators
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Filters */}
       <EventFilters categories={categories} statuses={statuses} />
 

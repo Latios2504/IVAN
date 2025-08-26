@@ -14,15 +14,6 @@ import type {
 class FeedbackService {
   private readonly baseUrl = "/Feedback";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
-
   // === PUBLIC ENDPOINTS (No Authentication Required) ===
 
   // POST /api/Feedback/listAllFeedbacks - Get All Feedbacks
@@ -46,7 +37,7 @@ class FeedbackService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If the entire response is wrapped, extract it
     if (
@@ -90,7 +81,7 @@ class FeedbackService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If the entire response is wrapped, extract it
     if (
@@ -134,7 +125,7 @@ class FeedbackService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If the entire response is wrapped, extract it
     if (
