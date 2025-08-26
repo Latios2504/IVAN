@@ -19,7 +19,7 @@ namespace ivan_api.Services.OnSiteTasks
         Task<bool> CompleteTask(int taskId, int volunteerId);
         Task<bool> UnassigTask(int taskId, int volunteerId);
         Task<IEnumerable<TaskAssignmentViewModel>> GetTaskAssignmentsById(int id);
-        Task<bool> AssignTask(int taskId, int volunteerId);
+        Task<bool> AssignTask(int taskId, int volunteerId, int assignedByUserId);
         Task<bool> StartTask(int taskId, int volunteerId);
         Task<TaskAssignmentViewModel> SearchTaskAssignment(int taskId, int volunteerId);
         Task<PagedResultDto<OnSiteTaskViewModel>> GetListForCoordinator(int pageNumber, int pageSize, string idValue);

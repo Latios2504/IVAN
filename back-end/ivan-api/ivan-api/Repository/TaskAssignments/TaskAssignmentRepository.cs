@@ -1,5 +1,7 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -113,6 +115,106 @@ namespace ivan_api.Repository.TaskAssignments
             if (query == null) return -1;
 
             return query.ToList().Last().AssignmentId;
+        }
+
+        public async Task<PagedResultDto<TaskAssignment>> GetVolunteerAssignmentsPaged(
+    int volunteerId,
+    int pageNumber,
+    int pageSize,
+    int? eventId,
+    int? statusId,
+    DateTime? from,
+    DateTime? to)
+        {
+            var query = _context.TaskAssignments
+                .AsNoTracking()
+                .Include(a => a.AssignedByNavigation)
+                .Include(a => a.Volunteer)
+                .Include(a => a.Task)                // include task
+                    .ThenInclude(t => t.Event)       // include event để FE có thể show nhanh tên sự kiện
+                .Include(a => a.Task)
+                    .ThenInclude(t => t.Status)      // include status của task
+                .Where(a => a.VolunteerId == volunteerId)
+                .AsQueryable();
+
+            if (eventId.HasValue)
+                query = query.Where(a => a.Task.EventId == eventId.Value);
+
+            if (statusId.HasValue)
+                query = query.Where(a => a.Task.StatusId == statusId.Value);
+
+            if (from.HasValue)
+                query = query.Where(a => a.Task.StartTime >= from.Value);
+
+            if (to.HasValue)
+                query = query.Where(a => a.Task.EndTime <= to.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(a => a.Task.StartTime)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResultDto<TaskAssignment>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<PagedResultDto<CoordinatorAssignedTaskListItemDto>> GetAssignmentsByAssignedByPaged(
+    int assignedByUserId, int pageNumber, int pageSize,
+    int? eventId, int? statusId, int? volunteerId, DateTime? from, DateTime? to)
+        {
+            // KHÔNG Include user navigation để tránh kéo passwordHash/salt
+            var q = _context.TaskAssignments
+                .AsNoTracking()
+                .Where(x => x.AssignedBy == assignedByUserId);
+
+            if (eventId.HasValue) q = q.Where(x => x.Task.EventId == eventId.Value);
+            if (statusId.HasValue) q = q.Where(x => x.Task.StatusId == statusId.Value);
+            if (volunteerId.HasValue) q = q.Where(x => x.VolunteerId == volunteerId.Value);
+            if (from.HasValue) q = q.Where(x => x.Task.StartTime >= from.Value);
+            if (to.HasValue) q = q.Where(x => x.Task.EndTime <= to.Value);
+
+            var total = await q.CountAsync();
+
+            // Projection => chỉ chọn trường cần (sẽ tạo JOIN vừa đủ, không kéo full object)
+            var items = await q
+                .OrderByDescending(x => x.Task.StartTime)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new CoordinatorAssignedTaskListItemDto
+                {
+                    AssignmentId = a.AssignmentId,
+                    TaskId = a.TaskId,
+                    EventId = a.Task.EventId,
+                    EventName = a.Task.Event.EventName,
+                    TaskName = a.Task.TaskName,
+                    TaskStatusName = a.Task.Status.StatusName,
+                    VolunteerId = a.VolunteerId,
+                    VolunteerDisplay =
+                        a.Volunteer.User != null
+                            ? (a.Volunteer.User.UserProfiles.FirstOrDefault().FullName)
+                            : ("Volunteer #" + a.VolunteerId),
+                    StartTime = a.Task.StartTime,
+                    EndTime = a.Task.EndTime,
+                    Location = a.Task.Location,
+                    AssignmentStatus = a.Status
+                })
+                .ToListAsync();
+
+            return new PagedResultDto<CoordinatorAssignedTaskListItemDto>
+            {
+                Items = items,
+                TotalCount = total,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
     }
 }

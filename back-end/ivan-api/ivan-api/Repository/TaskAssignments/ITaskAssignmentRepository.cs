@@ -1,4 +1,6 @@
 ﻿using DocumentFormat.OpenXml.InkML;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,5 +17,24 @@ namespace ivan_api.Repository.TaskAssignments
         Task<IEnumerable<TaskAssignment>> SearchTaskAssignmentsByEventId(int eventId);
         Task<IEnumerable<TaskAssignment>> GetAllTaskAssignments();
         Task<int> GetLastId();
+
+        Task<PagedResultDto<TaskAssignment>> GetVolunteerAssignmentsPaged(
+            int volunteerId,
+            int pageNumber,
+            int pageSize,
+            int? eventId,
+            int? statusId,
+            DateTime? from,
+            DateTime? to);
+
+        Task<PagedResultDto<CoordinatorAssignedTaskListItemDto>> GetAssignmentsByAssignedByPaged(
+    int assignedByUserId,
+    int pageNumber,
+    int pageSize,
+    int? eventId,
+    int? statusId,
+    int? volunteerId,
+    DateTime? from,
+    DateTime? to);
     }
 }

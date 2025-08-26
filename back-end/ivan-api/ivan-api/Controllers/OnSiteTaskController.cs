@@ -592,7 +592,8 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var result = await _service.AssignTask(id, volunteerId);
+                var currentUserId = GetUserId();
+                var result = await _service.AssignTask(id, volunteerId, currentUserId);
                 var data = await _service.SearchTaskAssignment(id, volunteerId);
 
                 if (!result)
@@ -713,6 +714,101 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "An error occurred while retrieving my tasks",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// Volunteer — lấy on-site tasks của chính mình (có phân trang & bộ lọc)
+        /// </summary>
+        /// <remarks>
+        /// Query:
+        /// - pageNumber, pageSize
+        /// - eventId: lọc theo sự kiện
+        /// - statusId: lọc theo OnSiteTask.StatusId
+        /// - from / to: lọc theo khoảng thời gian OnSiteTask.StartTime / EndTime (UTC)
+        /// </remarks>
+        [HttpGet("volunteer/mine")]
+        [Authorize(Roles = AuthenticationConstants.Roles.Volunteer)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetVolunteerMyOnSiteTasks(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] int? eventId = null,
+            [FromQuery] int? statusId = null,
+            [FromQuery] DateTime? from = null,
+            [FromQuery] DateTime? to = null)
+        {
+            try
+            {
+                var currentUserId = GetUserId();
+
+                // Lấy VolunteerId từ UserId qua AuthenticationService (đã có trong dự án)
+                var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(currentUserId);
+                if (userInfo?.VolunteerId == null)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Volunteer profile not found",
+                        Errors = new List<string> { "User does not have a volunteer profile" }
+                    });
+                }
+
+                var result = await _taskAssignmentService.GetVolunteerAssignmentsPagedAsync(
+                    userInfo.VolunteerId.Value, pageNumber, pageSize, eventId, statusId, from, to);
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "My on-site tasks retrieved successfully",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving my on-site tasks",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        /// <summary>
+        /// Coordinator — xem các on-site task mình đã giao (theo AssignedBy), có phân trang & bộ lọc
+        /// </summary>
+        [HttpGet("coordinator/mine-assigned")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetCoordinatorAssignedTasks(
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] int? eventId = null,
+    [FromQuery] int? statusId = null,
+    [FromQuery] int? volunteerId = null,
+    [FromQuery] DateTime? from = null,
+    [FromQuery] DateTime? to = null)
+        {
+            try
+            {
+                var currentUserId = GetUserId();
+                var result = await _taskAssignmentService.GetAssignmentsAssignedByCoordinatorAsync(
+                    currentUserId, pageNumber, pageSize, eventId, statusId, volunteerId, from, to);
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Coordinator assigned on-site tasks retrieved successfully",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Failed to retrieve assigned on-site tasks",
                     Errors = new List<string> { ex.Message }
                 });
             }

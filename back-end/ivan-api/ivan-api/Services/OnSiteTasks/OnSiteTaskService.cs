@@ -382,21 +382,21 @@ namespace ivan_api.Services.OnSiteTasks
             return assignmenResult;
         }
 
-        //public async Task<bool> AssignTask(int taskId, int volunteerId)
-        //{
-        //    var assignment = await _taskAssignmentRepository.SearchTaskAssignment(taskId, volunteerId);
-        //    if (assignment == null)
-        //    {
-        //        throw new Exception("Task Assignment not found");
-        //    }
+        public async Task<bool> AssignTask(int taskId, int volunteerId, int assignedByUserId)
+        {
+            // Dùng logic gán cũ
+            var result = await AssignTask(taskId, volunteerId);
+            if (!result) return false;
 
-        //    assignment.UpdatedAt = DateTime.Now;
-        //    assignment.AssignedDate = DateTime.Now;
-        //    assignment.Status = "Assigned";
-        //    var assignmenResult = await _taskAssignmentRepository.UpdateTaskAssignment(assignment);
+            // Ghi nhận người giao
+            var assignment = await _taskAssignmentRepository.SearchTaskAssignment(taskId, volunteerId);
+            if (assignment == null) return false;
 
-        //    return assignmenResult;
-        //}
+            assignment.AssignedBy = assignedByUserId;
+            if (assignment.AssignedDate == null) assignment.AssignedDate = DateTime.Now;
+
+            return await _taskAssignmentRepository.UpdateTaskAssignment(assignment);
+        }
 
         //public async Task<bool> StartTask(int taskId, int volunteerId)
         //{

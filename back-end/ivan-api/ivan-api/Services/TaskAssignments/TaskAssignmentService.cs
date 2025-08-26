@@ -1,7 +1,9 @@
 using AutoMapper;
-using ivan_api.Repository.TaskAssignments;
-using ivan_api.Models;
+using ivan_api.DTOs.Common;
+using ivan_api.DTOs.OnSiteTasks;
 using ivan_api.DTOs.TaskAssignments;
+using ivan_api.Models;
+using ivan_api.Repository.TaskAssignments;
 using System.Linq;
 
 namespace ivan_api.Services.TaskAssignments
@@ -119,6 +121,27 @@ namespace ivan_api.Services.TaskAssignments
             }).ToList();
             
             return result;
+        }
+
+        public async Task<PagedResultDto<TaskAssignment>> GetVolunteerAssignmentsPagedAsync(
+            int volunteerId,
+            int pageNumber,
+            int pageSize,
+            int? eventId,
+            int? statusId,
+            DateTime? from,
+            DateTime? to)
+        {
+            return await _repository.GetVolunteerAssignmentsPaged(
+                volunteerId, pageNumber, pageSize, eventId, statusId, from, to);
+        }
+
+        public Task<PagedResultDto<CoordinatorAssignedTaskListItemDto>> GetAssignmentsAssignedByCoordinatorAsync(
+    int coordinatorUserId, int pageNumber, int pageSize,
+    int? eventId, int? statusId, int? volunteerId, DateTime? from, DateTime? to)
+        {
+            return _repository.GetAssignmentsByAssignedByPaged(
+                coordinatorUserId, pageNumber, pageSize, eventId, statusId, volunteerId, from, to);
         }
     }
 }
