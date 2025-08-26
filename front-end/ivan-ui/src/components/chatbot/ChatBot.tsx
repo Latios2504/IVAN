@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { aiService } from "@/services/aiService";
 import type { ChatMessage } from "@/types/ai";
+import MarkdownRenderer from "./MarkdownRenderer";
 
 interface ChatBotProps {
   isOpen: boolean;
@@ -319,7 +320,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
                         }`}
                       >
                         <div className="whitespace-pre-wrap">
-                          {message.isUser ? message.message : message.response}
+                          {message.isUser ? (
+                            message.message
+                          ) : (
+                            <MarkdownRenderer content={message.response || ""} />
+                          )}
                         </div>
                         <div
                           className={`text-xs mt-1 ${
