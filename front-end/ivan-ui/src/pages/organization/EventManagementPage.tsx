@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { eventsService } from "@/services/eventsService";
 import { useAuth } from "@/hooks/useAuth";
 import type {
@@ -10,6 +10,7 @@ import { EventList } from "@/components/organization/event-management/EventList"
 import { EventFilters } from "@/components/organization/event-management/EventFilters";
 import { CreateEventDialog } from "@/components/organization/event-management/CreateEventDialog";
 import { LoadingState } from "@/components/common/LoadingState";
+import { StatsCard } from "@/components/common/StatsCard";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Users, FileText } from "lucide-react";
+import { Plus, Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function EventManagementPage() {
@@ -43,14 +44,14 @@ export default function EventManagementPage() {
     if (user?.organizationId) {
       loadAllData();
     } else if (user && !user.organizationId) {
-      setEventsError("Organization profile not found. Please contact support.");
+      setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
     }
   }, [user?.organizationId]);
 
   const loadAllData = async () => {
     // Check if user has organization profile
     if (!user?.organizationId) {
-      setEventsError("Organization profile not found. Please contact support.");
+      setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
       return;
     }
 
@@ -69,7 +70,7 @@ export default function EventManagementPage() {
       setEvents(result.items);
     } catch (err) {
       setEventsError(
-        err instanceof Error ? err.message : "Failed to load events"
+        err instanceof Error ? err.message : "Không thể tải danh sách sự kiện"
       );
     } finally {
       setEventsLoading(false);
@@ -81,7 +82,7 @@ export default function EventManagementPage() {
       const categoriesResult = await eventsService.getEventCategories();
       setCategories(categoriesResult);
     } catch (err) {
-      console.warn("Failed to load categories:", err);
+      console.warn("Không thể tải danh mục:", err);
     } finally {
       setCategoriesLoading(false);
     }
@@ -92,7 +93,7 @@ export default function EventManagementPage() {
       const statusesResult = await eventsService.getEventStatuses();
       setStatuses(statusesResult);
     } catch (err) {
-      console.warn("Failed to load statuses:", err);
+      console.warn("Không thể tải trạng thái:", err);
     } finally {
       setStatusesLoading(false);
     }
@@ -107,6 +108,20 @@ export default function EventManagementPage() {
     loadAllData(); // Refresh events data
   };
 
+  // Calculate event statistics - must be before any early returns
+  const eventStats = useMemo(() => {
+    const total = events.length;
+    const active = events.filter(event => event.statusName?.toLowerCase() === 'ongoing' || event.statusName?.toLowerCase() === 'published').length;
+    const upcoming = events.filter(event => {
+      const startDate = new Date(event.startDate);
+      const now = new Date();
+      return startDate > now;
+    }).length;
+    const completed = events.filter(event => event.statusName?.toLowerCase() === 'completed').length;
+    
+    return { total, active, upcoming, completed };
+  }, [events]);
+
   // Determine loading state
   const isLoading = eventsLoading;
 
@@ -116,39 +131,63 @@ export default function EventManagementPage() {
 
   if (eventsError) {
     return (
-      <div className="p-6 bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 rounded-xl border border-red-200 dark:border-red-800 shadow-lg backdrop-blur-sm">
-        <div className="text-red-700 dark:text-red-300 font-medium">
-          Error: {eventsError}
+      <div className="p-6 bg-destructive/10 rounded-xl border border-destructive/20">
+        <div className="text-destructive font-medium">
+          Lỗi: {eventsError}
         </div>
         <Button
           onClick={() => loadAllData()}
-          className="mt-4 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600"
+          className="mt-4"
+          variant="destructive"
         >
-          Retry
+          Thử lại
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-xl border border-blue-200 dark:border-blue-800 shadow-lg backdrop-blur-sm">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 shadow-md">
+      <div className="flex justify-between items-center bg-muted/50 rounded-lg p-4 border">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-            Event Management
+          <h1 className="text-3xl font-bold">
+            Quản lý Sự kiện
           </h1>
-          <p className="text-blue-700 dark:text-blue-300">
-            Manage your organization's volunteer events
+          <p className="text-muted-foreground">
+            Quản lý các sự kiện tình nguyện của tổ chức
           </p>
         </div>
         <Button
           onClick={() => setShowCreateDialog(true)}
-          className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Create Event
+          Tạo Sự kiện
         </Button>
+      </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Tổng Sự kiện"
+          value={eventStats.total}
+          icon={Calendar}
+        />
+        <StatsCard
+          title="Sự kiện Đang diễn ra"
+          value={eventStats.active}
+          icon={CheckCircle}
+        />
+        <StatsCard
+          title="Sự kiện Sắp tới"
+          value={eventStats.upcoming}
+          icon={Clock}
+        />
+        <StatsCard
+          title="Sự kiện Đã hoàn thành"
+          value={eventStats.completed}
+          icon={XCircle}
+        />
       </div>
 
       {/* Filters */}
@@ -158,20 +197,19 @@ export default function EventManagementPage() {
       {events.length > 0 ? (
         <EventList events={events} onEventUpdated={handleEditSuccess} />
       ) : (
-        <div className="text-center py-12 bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-950 dark:via-slate-950 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-lg backdrop-blur-sm">
-          <Plus className="h-12 w-12 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
-            No events found
+        <div className="text-center py-12 bg-muted/50 rounded-xl border">
+          <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">
+            Không tìm thấy sự kiện nào
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Create your first event to get started
+          <p className="text-muted-foreground mb-4">
+            Tạo sự kiện đầu tiên để bắt đầu
           </p>
           <Button
             onClick={() => setShowCreateDialog(true)}
-            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create Event
+            Tạo Sự kiện
           </Button>
         </div>
       )}

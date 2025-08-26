@@ -67,9 +67,20 @@ export default function CertificateDetailModal({
     if (!certificate) return;
 
     try {
-      await certificateService.downloadCertificateFile(
+      const downloadResponse = await certificateService.downloadCertificate(
         certificate.certificateId
       );
+      
+      // Create download link
+      const url = window.URL.createObjectURL(downloadResponse.fileContent);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = downloadResponse.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
       toast.success("Tải xuống chứng chỉ thành công");
     } catch (err) {
       const errorMessage =
@@ -143,7 +154,7 @@ export default function CertificateDetailModal({
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CertificateStatusBadge status={certificate.status} />
+                      <CertificateStatusBadge status={certificate.status || "Draft"} />
                     </div>
                   </div>
                 </CardHeader>

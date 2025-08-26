@@ -56,10 +56,14 @@ class CertificateService {
       ) {
         pagedResult.items = (pagedResult.items as any).$values;
       }
+      // Process DateTime fields for all items
+      pagedResult.items = pagedResult.items.map(item => this.processCertificateFromBackend(item));
       return pagedResult;
     }
 
-    return extractedData as PagedResultDto<CertificateViewModel>;
+    const result = extractedData as PagedResultDto<CertificateViewModel>;
+    result.items = result.items.map(item => this.processCertificateFromBackend(item));
+    return result;
   }
 
   // GET /api/Certificate/by-organization/{organizationId} - Get Certificates by Organization
@@ -100,19 +104,26 @@ class CertificateService {
       ) {
         pagedResult.items = (pagedResult.items as any).$values;
       }
+      // Process DateTime fields for all items
+      pagedResult.items = pagedResult.items.map(item => this.processCertificateFromBackend(item));
       return pagedResult;
     }
 
-    return extractedData as PagedResultDto<CertificateViewModel>;
+    const result = extractedData as PagedResultDto<CertificateViewModel>;
+    result.items = result.items.map(item => this.processCertificateFromBackend(item));
+    return result;
   }
 
   // POST /api/Certificate/filter - Get Filtered Certificates
   async getFilteredCertificates(
     filter: CertificateFilterModel
   ): Promise<CertificateViewModel[]> {
+    // Process filter dates for backend
+    const processedFilter = this.processFilterForBackend(filter);
+    
     const response = await apiClient.post<CertificateViewModel[]>(
       `${this.baseUrl}/filter`,
-      filter
+      processedFilter
     );
 
     if (!response.data) {
@@ -120,7 +131,8 @@ class CertificateService {
     }
 
     const extractedData = apiClient.extractDataFromNetResponse(response.data);
-    return Array.isArray(extractedData) ? extractedData : [];
+    const certificates = Array.isArray(extractedData) ? extractedData : [];
+    return certificates.map(cert => this.processCertificateFromBackend(cert));
   }
 
   // GET /api/Certificate/get/{id} - Get Certificate by ID
@@ -131,7 +143,7 @@ class CertificateService {
     if (!response.data) {
       throw new Error("Certificate not found");
     }
-    return response.data;
+    return this.processCertificateFromBackend(response.data);
   }
 
   // POST /api/Certificate/add - Create Certificate
@@ -164,7 +176,7 @@ class CertificateService {
       throw new Error("Failed to create certificate");
     }
 
-    return response.data;
+    return this.processCertificateFromBackend(response.data);
   }
 
   // PUT /api/Certificate/update/{id} - Update Certificate
@@ -175,6 +187,8 @@ class CertificateService {
     const updateModel: CertificateUpdateModel = {
       certificateId: id,
       ...updateData,
+      // Process expiryDate if provided
+      expiryDate: updateData.expiryDate ? this.formatDateForBackend(updateData.expiryDate) : updateData.expiryDate
     };
 
     const response = await apiClient.put<CertificateViewModel>(
@@ -186,7 +200,7 @@ class CertificateService {
       throw new Error("Failed to update certificate");
     }
 
-    return response.data;
+    return this.processCertificateFromBackend(response.data);
   }
 
   // DELETE /api/Certificate/delete/{id} - Delete Certificate
@@ -212,7 +226,7 @@ class CertificateService {
       throw new Error("Failed to approve certificate");
     }
 
-    return response.data;
+    return this.processCertificateFromBackend(response.data);
   }
 
   // PUT /api/Certificate/reject/{id} - Reject Certificate
@@ -228,7 +242,7 @@ class CertificateService {
       throw new Error("Failed to reject certificate");
     }
 
-    return response.data;
+    return this.processCertificateFromBackend(response.data);
   }
 
   // === BULK OPERATIONS ===
@@ -325,6 +339,55 @@ class CertificateService {
   generateVerificationCode(): string {
     const timestamp = Date.now();
     return `VERIFY-${timestamp}`;
+  }
+
+  // === DATE/TIME CONVERSION UTILITIES ===
+
+  // Convert Date to ISO string for backend (DateTime fields)
+  private formatDateForBackend(date: Date | string | null | undefined): string | undefined {
+    if (!date) return undefined;
+    
+    if (typeof date === 'string') {
+      // If already a string, validate and return
+      const parsedDate = new Date(date);
+      return isNaN(parsedDate.getTime()) ? undefined : parsedDate.toISOString();
+    }
+    
+    return date.toISOString();
+  }
+
+  // Convert backend DateTime string to frontend display format
+  private formatDateFromBackend(dateString: string | null | undefined): string | undefined {
+    if (!dateString) return undefined;
+    
+    try {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? undefined : date.toISOString();
+    } catch {
+      return undefined;
+    }
+  }
+
+  // Process certificate data from backend (convert DateTime fields)
+  private processCertificateFromBackend(certificate: any): CertificateViewModel {
+    return {
+      ...certificate,
+      issueDate: this.formatDateFromBackend(certificate.issueDate),
+      expiryDate: this.formatDateFromBackend(certificate.expiryDate),
+      lastDownloadDate: this.formatDateFromBackend(certificate.lastDownloadDate),
+      createdAt: this.formatDateFromBackend(certificate.createdAt),
+      // Ensure hoursCompleted is properly handled as number
+      hoursCompleted: certificate.hoursCompleted ? Number(certificate.hoursCompleted) : undefined
+    };
+  }
+
+  // Process filter data for backend (convert date strings to DateTime)
+  private processFilterForBackend(filter: CertificateFilterModel): any {
+    return {
+      ...filter,
+      issuedDateFrom: this.formatDateForBackend(filter.issuedDateFrom),
+      issuedDateTo: this.formatDateForBackend(filter.issuedDateTo)
+    };
   }
 
   // Validate certificate data before submission

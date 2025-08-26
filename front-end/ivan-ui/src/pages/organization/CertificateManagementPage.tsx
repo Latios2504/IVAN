@@ -136,7 +136,18 @@ export default function CertificateManagementPage() {
     certificateNumber: string
   ) => {
     try {
-      await certificateService.downloadCertificateFile(certificateId);
+      const downloadResponse = await certificateService.downloadCertificate(certificateId);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(downloadResponse.fileContent);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = downloadResponse.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
       toast.success("Certificate downloaded successfully");
     } catch (err) {
       const errorMessage =
@@ -486,15 +497,7 @@ export default function CertificateManagementPage() {
                             </Button>
                           )}
 
-                          {/* TODO: Add edit modal functionality
-                          {(certificate.status === "Draft" ||
-                            certificate.status === "Pending") && (
-                            <Button variant="outline" size="sm" disabled>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Chỉnh sửa
-                            </Button>
-                          )}
-                          */}
+
 
                           {certificate.status === "Pending" && (
                             <Button
