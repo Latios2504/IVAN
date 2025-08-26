@@ -153,7 +153,7 @@ export default function VolunteerEventRegistrationPage() {
       <div className="max-w-4xl mx-auto p-6">
         <LoadingState loading={true} />
         <p className="text-center text-gray-600 dark:text-gray-300 mt-4">
-          Loading event details...
+          Đang tải thông tin sự kiện...
         </p>
       </div>
     );
@@ -167,7 +167,7 @@ export default function VolunteerEventRegistrationPage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
         <Button onClick={loadEvent} className="mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-700 dark:to-indigo-700 dark:hover:from-blue-800 dark:hover:to-indigo-800 text-white border-0 shadow-lg" variant="outline">
-          Try Again
+          Thử Lại
         </Button>
       </div>
     );
@@ -181,18 +181,18 @@ export default function VolunteerEventRegistrationPage() {
             <div className="text-center">
               <CheckCircle className="h-16 w-16 text-green-500 dark:text-green-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-green-700 dark:text-green-300 mb-2">
-                Registration Submitted Successfully!
+                Đăng Ký Thành Công!
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Your registration for "{event?.eventName}" has been submitted.
-                You will be notified about the approval status.
+                Đăng ký của bạn cho sự kiện "{event?.eventName}" đã được gửi.
+                Bạn sẽ được thông báo về trạng thái phê duyệt.
               </p>
               <div className="space-x-4">
                 <Button onClick={() => navigate("/volunteer/dashboard")} className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 dark:from-green-700 dark:to-emerald-700 dark:hover:from-green-800 dark:hover:to-emerald-800 text-white border-0 shadow-lg">
-                  Go to Dashboard
+                  Về Trang Chủ
                 </Button>
                 <Button variant="outline" onClick={() => navigate("/events")} className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-600 dark:hover:to-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
-                  Browse More Events
+                  Xem Thêm Sự Kiện
                 </Button>
               </div>
             </div>
@@ -239,7 +239,7 @@ export default function VolunteerEventRegistrationPage() {
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30">
                   <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                   <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Registration deadline:{" "}
+                    Hạn đăng ký:{" "}
                     {formatDate(event.registrationEndDate)}
                   </span>
                 </div>
@@ -254,7 +254,7 @@ export default function VolunteerEventRegistrationPage() {
         <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-2 text-white">
             <Users className="h-5 w-5" />
-            Register for Event
+            Đăng Ký Tham Gia Sự Kiện
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -262,7 +262,7 @@ export default function VolunteerEventRegistrationPage() {
             <Alert className="mb-6">
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Registration period for this event has ended.
+                Thời gian đăng ký cho sự kiện này đã kết thúc.
               </AlertDescription>
             </Alert>
           )}
@@ -290,11 +290,11 @@ export default function VolunteerEventRegistrationPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="motivationLetter" className="text-gray-700 dark:text-gray-300 font-medium">
-                Motivation Letter <span className="text-red-500">*</span>
+                Thư Động Lực <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="motivationLetter"
-                placeholder="Tell us why you want to volunteer for this event..."
+                placeholder="Hãy cho chúng tôi biết tại sao bạn muốn tham gia tình nguyện cho sự kiện này..."
                 value={formData.motivationLetter}
                 onChange={(e) =>
                   handleInputChange("motivationLetter", e.target.value)
@@ -305,15 +305,15 @@ export default function VolunteerEventRegistrationPage() {
                 required
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {formData.motivationLetter.length}/2000 characters
+                {formData.motivationLetter.length}/2000 ký tự
               </p>
             </div>
 
             <div>
-              <Label htmlFor="additionalInfo" className="text-gray-700 dark:text-gray-300 font-medium">Additional Information</Label>
+              <Label htmlFor="additionalInfo" className="text-gray-700 dark:text-gray-300 font-medium">Thông Tin Bổ Sung</Label>
               <Textarea
                 id="additionalInfo"
-                placeholder="Any additional information you'd like to share (skills, experience, etc.)"
+                placeholder="Thông tin bổ sung bạn muốn chia sẻ (kỹ năng, kinh nghiệm, v.v.)"
                 value={formData.additionalInfo}
                 onChange={(e) =>
                   handleInputChange("additionalInfo", e.target.value)
@@ -323,7 +323,7 @@ export default function VolunteerEventRegistrationPage() {
                 maxLength={1000}
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {formData.additionalInfo.length}/1000 characters
+                {formData.additionalInfo.length}/1000 ký tự
               </p>
             </div>
 
@@ -333,7 +333,7 @@ export default function VolunteerEventRegistrationPage() {
                 disabled={submitting || !isRegistrationOpen()}
                 className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 dark:from-green-700 dark:to-emerald-700 dark:hover:from-green-800 dark:hover:to-emerald-800 text-white border-0 shadow-lg"
               >
-                {submitting ? "Submitting..." : "Submit Registration"}
+                {submitting ? "Đang Gửi..." : "Gửi Đăng Ký"}
               </Button>
               <Button
                 type="button"
@@ -341,7 +341,7 @@ export default function VolunteerEventRegistrationPage() {
                 onClick={() => navigate(-1)}
                 className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-600 dark:hover:to-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
               >
-                Cancel
+                Hủy
               </Button>
             </div>
           </form>

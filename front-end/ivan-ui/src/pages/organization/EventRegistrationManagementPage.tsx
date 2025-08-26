@@ -50,7 +50,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     const loadEvents = async () => {
       // Only load events if user is authenticated and has organizationId
       if (!user?.organizationId) {
-        setEventsError("Organization ID not found");
+        setEventsError("Không tìm thấy ID tổ chức");
         return;
       }
 
@@ -68,7 +68,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         setEvents(result.items);
       } catch (err) {
         setEventsError(
-          err instanceof Error ? err.message : "Failed to load events"
+          err instanceof Error ? err.message : "Không thể tải danh sách sự kiện"
         );
       } finally {
         setEventsLoading(false);
@@ -107,7 +107,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Select Event
+          Chọn Sự Kiện
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -126,18 +126,18 @@ const EventSelector: React.FC<EventSelectorProps> = ({
                 <SelectValue
                   placeholder={
                     eventsLoading
-                      ? "Loading your events..."
+                      ? "Đang tải sự kiện..."
                       : events.length === 0
-                      ? "No events found for your organization"
-                      : "Choose an event to manage registrations"
+                      ? "Không tìm thấy sự kiện nào cho tổ chức của bạn"
+                      : "Chọn sự kiện để quản lý đăng ký"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">
                   {events.length === 0
-                    ? "No events available"
-                    : "Select an event..."}
+                    ? "Không có sự kiện nào"
+                    : "Chọn một sự kiện..."}
                 </SelectItem>
                 {events?.map((event: EventDto) => (
                   <SelectItem
@@ -239,10 +239,10 @@ const EventRegistrationManagement: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Event Registration Management
+            Quản Lý Đăng Ký Sự Kiện
           </h1>
           <p className="text-muted-foreground">
-            Manage volunteer registrations for your events
+            Quản lý đăng ký tình nguyện viên cho các sự kiện của bạn
           </p>
         </div>
       </div>
@@ -257,28 +257,28 @@ const EventRegistrationManagement: React.FC = () => {
           {/* Registration Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
-              title="Total Registrations"
+              title="Tổng Đăng Ký"
               value={registrationStats.total}
               icon={Users}
-              description="All volunteer registrations"
+              description="Tất cả đăng ký tình nguyện viên"
             />
             <StatsCard
-              title="Pending Review"
+              title="Chờ Duyệt"
               value={registrationStats.pending}
               icon={Clock}
-              description="Awaiting approval"
+              description="Đang chờ phê duyệt"
             />
             <StatsCard
-              title="Approved"
+              title="Đã Duyệt"
               value={registrationStats.approved}
               icon={UserCheck}
-              description="Confirmed volunteers"
+              description="Tình nguyện viên đã xác nhận"
             />
             <StatsCard
-              title="Rejected"
+              title="Đã Từ Chối"
               value={registrationStats.rejected}
               icon={UserX}
-              description="Declined applications"
+              description="Đơn đăng ký bị từ chối"
             />
           </div>
 
@@ -296,7 +296,7 @@ const EventRegistrationManagement: React.FC = () => {
         <Card>
           <CardContent className="text-center py-8">
             <p className="text-muted-foreground font-medium">
-              Please select an event to view and manage registrations.
+              Vui lòng chọn một sự kiện để xem và quản lý đăng ký.
             </p>
           </CardContent>
         </Card>

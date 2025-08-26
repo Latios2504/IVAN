@@ -208,7 +208,7 @@ export function BulkOperationsDialog({
                       #{cert.certificateNumber}
                     </span>
                   </div>
-                  <CertificateStatusBadge status={cert.status} size="sm" />
+                  <CertificateStatusBadge status={cert.status || "draft"} size="sm" />
                 </div>
               ))}
             </div>

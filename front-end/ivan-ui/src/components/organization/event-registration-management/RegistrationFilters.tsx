@@ -50,27 +50,27 @@ export default function RegistrationFilters({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           <Filter className="h-5 w-5" />
-          <span>Filter Registrations</span>
+          <span>Lọc Danh Sách Đăng Ký</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Status Filter */}
           <div className="space-y-2">
-            <Label htmlFor="status">Registration Status</Label>
+            <Label htmlFor="status">Trạng Thái Đăng Ký</Label>
             <Select
               value={filters.status || "all"}
               onValueChange={handleStatusChange}
               disabled={loading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
+                <SelectValue placeholder="Tất cả trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Approved">Approved</SelectItem>
-                <SelectItem value="Rejected">Rejected</SelectItem>
+                <SelectItem value="all">Tất Cả Trạng Thái</SelectItem>
+                <SelectItem value="Pending">Chờ Duyệt</SelectItem>
+                <SelectItem value="Approved">Đã Duyệt</SelectItem>
+                <SelectItem value="Rejected">Đã Từ Chối</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -85,7 +85,7 @@ export default function RegistrationFilters({
               className="flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset Filter
+              Đặt Lại Bộ Lọc
             </Button>
           </div>
         </div>
@@ -94,12 +94,12 @@ export default function RegistrationFilters({
         {hasActiveFilters && (
           <div className="pt-2 border-t">
             <div className="text-sm text-muted-foreground mb-2">
-              Active filter:
+              Bộ lọc đang áp dụng:
             </div>
             <div className="flex flex-wrap gap-2">
               {filters.status && (
                 <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-secondary-foreground text-xs">
-                  Status: {filters.status}
+                  Trạng thái: {filters.status === "Pending" ? "Chờ Duyệt" : filters.status === "Approved" ? "Đã Duyệt" : filters.status === "Rejected" ? "Đã Từ Chối" : filters.status}
                 </span>
               )}
             </div>

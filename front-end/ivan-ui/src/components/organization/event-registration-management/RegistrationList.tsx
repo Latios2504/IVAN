@@ -248,21 +248,21 @@ export default function RegistrationList({
     () => [
       {
         key: "user",
-        header: "Volunteer",
+        header: "Tình Nguyện Viên",
         render: (_, registration) => renderUserInfo(registration),
       },
       {
         key: "statusName",
-        header: "Status",
+        header: "Trạng Thái",
         render: (value) => (
           <Badge variant={getStatusBadgeVariant(value || "pending")}>
-            {value || "Pending"}
+            {value === "Pending" ? "Chờ Duyệt" : value === "Approved" ? "Đã Duyệt" : value === "Rejected" ? "Đã Từ Chối" : value || "Chờ Duyệt"}
           </Badge>
         ),
       },
       {
         key: "applicationDate",
-        header: "Application Date",
+        header: "Ngày Đăng Ký",
         render: (value) => (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -272,7 +272,7 @@ export default function RegistrationList({
       },
       {
         key: "approvedDate",
-        header: "Approved Date",
+        header: "Ngày Duyệt",
         render: (value) =>
           value ? new Date(value).toLocaleDateString() : "--",
       },
@@ -284,29 +284,29 @@ export default function RegistrationList({
   const actions: TableAction<RegistrationDTO>[] = useMemo(
     () => [
       {
-        label: "View Details",
+        label: "Xem Chi Tiết",
         icon: <Eye className="h-4 w-4" />,
         onClick: handleViewDetails,
         variant: "outline",
-        tooltip: "View registration details",
+        tooltip: "Xem chi tiết đăng ký",
       },
       {
-        label: "Approve",
+        label: "Duyệt",
         icon: <CheckCircle className="h-4 w-4" />,
         onClick: handleShowApprovalDialog,
         variant: "default",
         visible: (registration) =>
           registration.statusName?.toLowerCase() === "pending",
-        tooltip: "Approve this registration",
+        tooltip: "Duyệt đăng ký này",
       },
       {
-        label: "Reject",
+        label: "Từ Chối",
         icon: <XCircle className="h-4 w-4" />,
         onClick: handleShowRejectionDialog,
         variant: "destructive",
         visible: (registration) =>
           registration.statusName?.toLowerCase() === "pending",
-        tooltip: "Reject this registration",
+        tooltip: "Từ chối đăng ký này",
       },
     ],
     []
@@ -318,7 +318,7 @@ export default function RegistrationList({
         <CardContent className="p-6">
           <EmptyState
             icon={AlertCircle}
-            title="Error loading registrations"
+            title="Lỗi tải danh sách đăng ký"
             description={error}
             show={true}
           />
@@ -332,9 +332,9 @@ export default function RegistrationList({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Event Registrations</span>
+            <span>Danh Sách Đăng Ký Sự Kiện</span>
             <div className="flex items-center gap-2">
-              <Badge variant="outline">{pagination.totalItems} total</Badge>
+              <Badge variant="outline">{pagination.totalItems} tổng cộng</Badge>
               <Button
                 variant="outline"
                 size="sm"
@@ -354,7 +354,7 @@ export default function RegistrationList({
             columns={columns}
             actions={actions}
             loading={loading}
-            emptyMessage="No volunteer registrations found for this event."
+            emptyMessage="Không tìm thấy đăng ký tình nguyện viên nào cho sự kiện này."
             showPagination={true}
             pagination={{
               currentPage: pagination.page,
