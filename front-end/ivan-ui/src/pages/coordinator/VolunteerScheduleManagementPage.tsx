@@ -728,36 +728,19 @@ export default function VolunteerScheduleManagementPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={schedule.status || ""}
-                          onValueChange={(value) =>
-                            handleUpdateStatus(schedule.scheduleId, value)
-                          }
-                        >
-                          <SelectTrigger className="w-32 h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Scheduled">
-                              Đã lên lịch
-                            </SelectItem>
-                            <SelectItem value="In Progress">
-                              Đang thực hiện
-                            </SelectItem>
-                            <SelectItem value="Completed">
-                              Hoàn thành
-                            </SelectItem>
-                            <SelectItem value="Cancelled">
-                              Đã hủy
-                            </SelectItem>
-                            <SelectItem value="No Show">
-                              Vắng mặt
-                            </SelectItem>
-                            <SelectItem value="Checked In">
-                              Đã check-in
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Badge variant={getStatusColor(schedule.status) as any}>
+                          {schedule.status === "Draft" && "Nháp"}
+                          {schedule.status === "Scheduled" && "Đã lên lịch"}
+                          {schedule.status === "In Progress" && "Đang thực hiện"}
+                          {schedule.status === "Completed" && "Hoàn thành"}
+                          {schedule.status === "Cancelled" && "Đã hủy"}
+                          {schedule.status === "No Show" && "Vắng mặt"}
+                          {schedule.status === "Checked In" && "Đã check-in"}
+                          {!["Draft", "Scheduled", "In Progress", "Completed", "Cancelled", "No Show", "Checked In"].includes(
+                            schedule.status || ""
+                          ) &&
+                            (schedule.status || "Không xác định")}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -773,7 +756,60 @@ export default function VolunteerScheduleManagementPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          {/* Status transition buttons based on current status */}
+                          {schedule.status === "Scheduled" && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpdateStatus(schedule.scheduleId, "Checked In")}
+                                className="text-xs px-2 py-1 h-7"
+                              >
+                                Check-in
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpdateStatus(schedule.scheduleId, "Cancelled")}
+                                className="text-xs px-2 py-1 h-7"
+                              >
+                                Hủy
+                              </Button>
+                            </>
+                          )}
+                          {schedule.status === "Checked In" && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpdateStatus(schedule.scheduleId, "In Progress")}
+                                className="text-xs px-2 py-1 h-7"
+                              >
+                                Bắt đầu
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpdateStatus(schedule.scheduleId, "No Show")}
+                                className="text-xs px-2 py-1 h-7"
+                              >
+                                Vắng mặt
+                              </Button>
+                            </>
+                          )}
+                          {schedule.status === "In Progress" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUpdateStatus(schedule.scheduleId, "Completed")}
+                              className="text-xs px-2 py-1 h-7"
+                            >
+                              Hoàn thành
+                            </Button>
+                          )}
+                          
+                          {/* Always show edit and delete buttons */}
                           <Button
                             variant="ghost"
                             size="sm"

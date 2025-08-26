@@ -34,28 +34,6 @@ interface Event {
   endDate: string;
 }
 
-// Mock events data - replace with actual API call
-const mockEvents: Event[] = [
-  {
-    eventId: 1,
-    eventName: "Charity Run 2024",
-    startDate: "2024-03-15",
-    endDate: "2024-03-16",
-  },
-  {
-    eventId: 2,
-    eventName: "Food Drive",
-    startDate: "2024-03-20",
-    endDate: "2024-03-21",
-  },
-  {
-    eventId: 3,
-    eventName: "Community Clean-up",
-    startDate: "2024-03-25",
-    endDate: "2024-03-26",
-  },
-];
-
 const OnSiteTaskManagementPage: React.FC = () => {
   const [tasks, setTasks] = useState<OnSiteTaskDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,10 +50,16 @@ const OnSiteTaskManagementPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
   const pageSize = 12;
 
   useEffect(() => {
     fetchTasks();
+  }, []);
+
+  useEffect(() => {
+    loadEvents();
   }, []);
 
   const fetchTasks = async (page: number = 1) => {
@@ -102,12 +86,48 @@ const OnSiteTaskManagementPage: React.FC = () => {
     }
   };
 
+  const loadEvents = async () => {
+    try {
+      setLoadingOptions(true);
+      // Get all tasks to extract unique events
+      const allTasksResult = await onSiteTaskService.getAll({
+        pageNumber: 1,
+        pageSize: 1000, // Get a large number to capture all events
+      });
+      
+      // Extract unique events from tasks
+      const uniqueEventsMap = new Map<number, Event>();
+      
+      allTasksResult.items.forEach(task => {
+        if (task.eventId && task.eventName && !uniqueEventsMap.has(task.eventId)) {
+          uniqueEventsMap.set(task.eventId, {
+            eventId: task.eventId,
+            eventName: task.eventName,
+            startDate: task.createdAt || new Date().toISOString(),
+            endDate: task.updatedAt || new Date().toISOString()
+          });
+        }
+      });
+      
+      // Convert map to array
+      const uniqueEvents = Array.from(uniqueEventsMap.values());
+      setEvents(uniqueEvents);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+      // Fallback to empty array if loading fails
+      setEvents([]);
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
+
   const handleCreateTask = async (taskData: OnSiteTaskInputDto) => {
     try {
       await onSiteTaskService.createOnSiteTask(taskData);
       toast.success("Đã tạo nhiệm vụ mới");
       setIsCreateDialogOpen(false);
       await fetchTasks(currentPage);
+      loadEvents(); // Reload events after creating task
     } catch (error) {
       console.error("Error creating task:", error);
       toast.error("Không thể tạo nhiệm vụ");
@@ -129,6 +149,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
       setIsEditDialogOpen(false);
       setTaskToEdit(null);
       await fetchTasks(currentPage);
+      loadEvents(); // Reload events after updating task
     } catch (error) {
       console.error("Error updating task:", error);
       toast.error("Không thể cập nhật nhiệm vụ");
@@ -141,6 +162,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
       await onSiteTaskService.deleteOnSiteTask(taskId);
       toast.success("Đã xóa nhiệm vụ");
       await fetchTasks(currentPage);
+      loadEvents(); // Reload events after deleting task
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Không thể xóa nhiệm vụ");
@@ -363,7 +385,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
         onFiltersChange={handleFiltersChange}
         onSearch={handleSearch}
         searchTerm={searchTerm}
-        events={mockEvents}
+        events={events}
       />
 
       {/* Tasks Table */}
@@ -382,7 +404,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onSubmit={handleCreateTask}
-        events={mockEvents}
+        events={events}
       />
 
       {/* Edit Task Dialog */}
@@ -391,7 +413,7 @@ const OnSiteTaskManagementPage: React.FC = () => {
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           onSubmit={handleUpdateTaskSubmit}
-          events={mockEvents}
+          events={events}
           task={taskToEdit}
         />
       )}
