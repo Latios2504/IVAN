@@ -8,6 +8,7 @@ using ivan_api.Models;
 using ivan_api.Repository.EventRegistrationRepo;
 using ivan_api.Repository.OnSiteTasks;
 using ivan_api.Repository.TaskAssignments;
+using ivan_api.Repository.UserManagement;
 
 namespace ivan_api.Services.OnSiteTasks
 {
@@ -17,16 +18,18 @@ namespace ivan_api.Services.OnSiteTasks
         private readonly IMapper _mapper;
         private readonly ITaskAssignmentRepository _taskAssignmentRepository;
         private readonly IEventRegistrationRepository _eventRegistrationRepository;
+        private readonly IUserRepository _userRepository;
 
-        public OnSiteTaskService(IOnSiteTaskRepository repository, IMapper mapper, ITaskAssignmentRepository taskAssignmentRepository, IEventRegistrationRepository eventRegistrationRepository)
+        public OnSiteTaskService(IOnSiteTaskRepository repository, IMapper mapper, ITaskAssignmentRepository taskAssignmentRepository, IEventRegistrationRepository eventRegistrationRepository, IUserRepository userRepository)
         {
             _repository = repository;
             _mapper = mapper;
             _taskAssignmentRepository = taskAssignmentRepository;
             _eventRegistrationRepository = eventRegistrationRepository;
+            _userRepository = userRepository;
         }
 
-        public async Task<bool> AddOnSiteTask(OnSiteTaskInputModel onSiteTaskInputModel)
+        public async Task<bool> AddOnSiteTask(OnSiteTaskInputModel onSiteTaskInputModel, int createdById)
         {
             var task = _mapper.Map<OnSiteTask>(onSiteTaskInputModel);
             task.CreatedAt = DateTime.Now;
@@ -42,6 +45,7 @@ namespace ivan_api.Services.OnSiteTasks
                 task.EstimatedHours = null;
             }
             task.StatusId = 4;//On Hold
+            task.CreatedBy = createdById;
 
             return await _repository.AddOnSiteTask(task);
         }
@@ -449,6 +453,16 @@ namespace ivan_api.Services.OnSiteTasks
         public async Task<PagedResultDto<OnSiteTaskViewModel>> GetList(int pageNumber, int pageSize)
         {
             return await _repository.GetOnSiteTasksAsync(pageNumber, pageSize);
+        }
+
+        public async Task<PagedResultDto<OnSiteTaskViewModel>> GetListForCoordinator(int pageNumber, int pageSize, string idValue)
+        {
+            var user = await _userRepository.GetUserForRoleDetectionAsync(int.Parse(idValue));
+
+            if (user.RoleId != 4)//!= coordinator
+                throw new Exception("Invalid user role");
+
+            return await _repository.GetOnSiteTasksByCreatedByIdAsync(pageNumber, pageSize, user.UserId);
         }
 
         public async Task<int> GetLastId() => await _repository.GetLastId();

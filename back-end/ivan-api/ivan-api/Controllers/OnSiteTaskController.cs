@@ -58,6 +58,37 @@ namespace ivan_api.Controllers
             }
         }
 
+        [HttpGet("coordinator")]
+        [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetListForCoordinator([FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                    throw new Exception("Invalid Claim");
+
+                var result = await _service.GetListForCoordinator(pageNumber, pageSize, userIdClaim.Value);
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "On-site tasks retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while retrieving on-site tasks",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
         /// Get on-site task details by ID (Coordinator and Volunteer can view)
         [HttpGet("get/{id}")]
         [Authorize(Roles =
@@ -127,7 +158,9 @@ namespace ivan_api.Controllers
 
             try
             {
-                var result = await _service.AddOnSiteTask(input);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+                var result = await _service.AddOnSiteTask(input, int.Parse(userIdClaim.Value));
 
                 if (!result)
                 {

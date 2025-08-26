@@ -141,6 +141,35 @@ namespace ivan_api.Repository.OnSiteTasks
             };
         }
 
+        public async Task<PagedResultDto<OnSiteTaskViewModel>> GetOnSiteTasksByCreatedByIdAsync(int PageNumber, int PageSize, int id)
+        {
+            var query = _context.OnSiteTasks
+                .Include(x => x.Category)
+                .Include(x => x.CompletedByNavigation)
+                .Include(x => x.CreatedByNavigation)
+                .Include(x => x.Event)
+                .Include(x => x.Status)
+                .Include(x => x.VerifiedByNavigation)
+                .Where(x => x.CreatedBy == id)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .ProjectTo<OnSiteTaskViewModel>(_mapper.ConfigurationProvider)//
+                .ToListAsync();
+
+            return new PagedResultDto<OnSiteTaskViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            };
+        }
+
         public async Task<OnSiteTask> GetOnSiteTaskById(int id)
         {
             var task = await _context.OnSiteTasks

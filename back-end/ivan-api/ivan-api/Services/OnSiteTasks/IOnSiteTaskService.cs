@@ -6,7 +6,7 @@ namespace ivan_api.Services.OnSiteTasks
 {
     public interface IOnSiteTaskService
     {
-        Task<bool> AddOnSiteTask(OnSiteTaskInputModel onSiteTaskInputModel);
+        Task<bool> AddOnSiteTask(OnSiteTaskInputModel onSiteTaskInputModel, int createdById);
         Task<bool> UpdateOnSiteTask(OnSiteTaskUpdateModel OnSiteTaskUpdateModel, int id);
         Task<bool> DeleteOnSiteTask(int taskId);
         Task<IEnumerable<OnSiteTaskViewModel>> ListOnSiteTask(OnSiteTaskFilterModel filter);
@@ -22,5 +22,6 @@ namespace ivan_api.Services.OnSiteTasks
         Task<bool> AssignTask(int taskId, int volunteerId);
         Task<bool> StartTask(int taskId, int volunteerId);
         Task<TaskAssignmentViewModel> SearchTaskAssignment(int taskId, int volunteerId);
+        Task<PagedResultDto<OnSiteTaskViewModel>> GetListForCoordinator(int pageNumber, int pageSize, string idValue);
     }
 }
