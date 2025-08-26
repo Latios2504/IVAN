@@ -5,6 +5,7 @@ import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorServ
 import type { EventDto } from "@/types/events";
 import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,11 +55,14 @@ export default function AddScheduleModal({
   onSuccess,
   organizationId,
 }: AddScheduleModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [coordinatorsLoading, setCoordinatorsLoading] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>([]);
   const [events, setEvents] = useState<EventDto[]>([]);
+
+  const currentOrganizationId = organizationId || user?.organizationId;
 
   const [formData, setFormData] = useState<ScheduleFormData>({
     coordinatorId: null,
@@ -77,15 +81,15 @@ export default function AddScheduleModal({
 
   // Load coordinators for dropdown
   const loadCoordinators = async () => {
-    if (!organizationId) return;
+    if (!currentOrganizationId) return;
     
     try {
       setCoordinatorsLoading(true);
-      const result = await volunteerCoordinatorService.getOrganizationCoordinators(
-        { page: 1, size: 100 },
-        organizationId
+      const result = await volunteerCoordinatorService.getCoordinatorsByOrganization(
+        currentOrganizationId,
+        { page: 1, size: 100 }
       );
-      setCoordinators(result.items);
+      setCoordinators(result.items || []);
     } catch (error) {
       console.error("Error loading coordinators:", error);
       toast.error("Không thể tải danh sách điều phối viên");
@@ -96,6 +100,8 @@ export default function AddScheduleModal({
 
   // Load events for dropdown
   const loadEvents = async () => {
+    if (!currentOrganizationId) return;
+    
     try {
       setEventsLoading(true);
       const result = await eventsService.getEvents({
@@ -103,9 +109,9 @@ export default function AddScheduleModal({
         size: 100,
         sortBy: "eventName",
         sortDirection: "asc",
-        organizationId: organizationId || undefined,
+        organizationId: currentOrganizationId,
       });
-      setEvents(result.items);
+      setEvents(result.items || []);
     } catch (error) {
       console.error("Error loading events:", error);
       toast.error("Không thể tải danh sách sự kiện");
@@ -115,15 +121,24 @@ export default function AddScheduleModal({
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && currentOrganizationId) {
       loadCoordinators();
       loadEvents();
     }
-  }, [isOpen, organizationId]);
+  }, [isOpen, currentOrganizationId]);
 
   const handleSubmit = async () => {
     if (!formData.coordinatorId || !formData.title || !formData.startDateTime || !formData.endDateTime) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    // Validate end time is after start time
+    const startDate = new Date(formData.startDateTime);
+    const endDate = new Date(formData.endDateTime);
+    
+    if (endDate <= startDate) {
+      toast.error("Thời gian kết thúc phải sau thời gian bắt đầu");
       return;
     }
 
@@ -134,8 +149,8 @@ export default function AddScheduleModal({
         eventId: formData.eventId,
         title: formData.title,
         description: formData.description,
-        startDateTime: formData.startDateTime,
-        endDateTime: formData.endDateTime,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
         location: formData.location,
         scheduleType: formData.scheduleType,
         priority: formData.priority,
@@ -144,12 +159,24 @@ export default function AddScheduleModal({
         notes: formData.notes,
       };
 
+      console.log("Creating schedule with data:", createData);
+      console.log("Current organization ID:", currentOrganizationId);
+      console.log("User info:", user);
+
       await coordinatorScheduleService.createSchedule(createData);
       toast.success("Tạo lịch trình thành công");
       onSuccess();
       handleClose();
     } catch (error) {
       console.error("Error creating schedule:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", {
+          message: error.message,
+          response: (error as any).response?.data,
+          status: (error as any).response?.status,
+          statusText: (error as any).response?.statusText
+        });
+      }
       toast.error("Không thể tạo lịch trình");
     } finally {
       setLoading(false);

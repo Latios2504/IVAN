@@ -1,37 +1,83 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ivan_api.DTOs.CoordinatorSchedule
 {
     // Request DTOs
     public class CreateCoordinatorScheduleDto
     {
+        [Required]
         public int CoordinatorId { get; set; }
+        
         public int? EventId { get; set; }
+        
+        [Required]
+        [StringLength(200)]
         public string Title { get; set; } = string.Empty;
+        
+        [StringLength(2000)]
         public string? Description { get; set; }
+        
+        [Required]
         public DateTime StartDateTime { get; set; }
+        
+        [Required]
         public DateTime EndDateTime { get; set; }
+        
+        [StringLength(200)]
         public string? Location { get; set; }
+        
+        [StringLength(50)]
         public string? ScheduleType { get; set; } = "Event"; // Event, Meeting, Training, etc.
+        
+        [StringLength(20)]
         public string? Priority { get; set; } = "Medium"; // High, Medium, Low
+        
+        [StringLength(50)]
         public string? Status { get; set; } = "Scheduled"; // Scheduled, In Progress, Completed, Cancelled
+        
         public bool IsAllDay { get; set; } = false;
+        
+        [Range(0, 10080)] // 0 to 7 days in minutes
         public int ReminderMinutes { get; set; } = 60;
+        
+        [StringLength(1000)]
         public string? Notes { get; set; }
     }
 
     public class UpdateCoordinatorScheduleDto
     {
         public int? EventId { get; set; }
+        
         public int? CoordinatorId { get; set; }
+        
+        [StringLength(200)]
         public string? Title { get; set; }
+        
+        [StringLength(2000)]
         public string? Description { get; set; }
+        
         public DateTime? StartDateTime { get; set; }
+        
         public DateTime? EndDateTime { get; set; }
+        
+        [StringLength(200)]
         public string? Location { get; set; }
+        
+        [StringLength(50)]
         public string? ScheduleType { get; set; }
+        
+        [StringLength(20)]
         public string? Priority { get; set; }
+        
+        [StringLength(50)]
         public string? Status { get; set; }
+        
         public bool? IsAllDay { get; set; }
+        
+        [Range(0, 10080)] // 0 to 7 days in minutes
         public int? ReminderMinutes { get; set; }
+        
+        [StringLength(1000)]
         public string? Notes { get; set; }
     }
 
@@ -146,11 +192,5 @@ namespace ivan_api.DTOs.CoordinatorSchedule
         public List<int> ScheduleIds { get; set; } = new();
     }
 
-    public class CheckConflictsDto
-    {
-        public int CoordinatorId { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime EndDateTime { get; set; }
-        public int? ExcludeScheduleId { get; set; }
-    }
+
 }

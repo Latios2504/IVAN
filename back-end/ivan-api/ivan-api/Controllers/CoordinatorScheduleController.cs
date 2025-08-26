@@ -142,7 +142,7 @@ namespace ivan_api.Controllers
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (claim == null)
             {
-                return Unauthorized(new ApiResponseDTO<CoordinatorScheduleDto>
+                return Unauthorized(new ApiResponseDTO<bool>
                 {
                     Success = false,
                     Message = "User not authenticated or missing user ID claim"
@@ -151,7 +151,7 @@ namespace ivan_api.Controllers
 
             if (!int.TryParse(claim.Value, out var userId))
             {
-                return BadRequest(new ApiResponseDTO<CoordinatorScheduleDto>
+                return BadRequest(new ApiResponseDTO<bool>
                 {
                     Success = false,
                     Message = "Invalid user ID format"
@@ -162,7 +162,7 @@ namespace ivan_api.Controllers
 
             if (userInfo?.OrganizationId == null)
             {
-                return BadRequest(new ApiResponseDTO<CoordinatorScheduleDto>
+                return BadRequest(new ApiResponseDTO<bool>
                 {
                     Success = false,
                     Message = "Organization not found for this user"
@@ -244,7 +244,7 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Failed to create schedule",
-                    Errors = new List<string> { "Invalid coordinator or schedule conflict detected" }
+                    Errors = new List<string> { "Invalid coordinator or unable to create schedule" }
                 });
             }
 
@@ -261,13 +261,13 @@ namespace ivan_api.Controllers
         // For Organization: Update a schedule
         [HttpPut("{scheduleId}")]
         [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<CoordinatorScheduleDto>>> UpdateSchedule(int scheduleId,
+        public async Task<ActionResult<ApiResponseDTO<bool>>> UpdateSchedule(int scheduleId,
             [FromBody] UpdateCoordinatorScheduleDto request)
         {
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.GetErrorMessages();
-                return BadRequest(new ApiResponseDTO<CoordinatorScheduleDto>
+                return BadRequest(new ApiResponseDTO<bool>
                 {
                     Success = false,
                     Message = "Validation failed",
@@ -310,22 +310,18 @@ namespace ivan_api.Controllers
                     request, userId);
             if (!result)
             {
-                return NotFound(new ApiResponseDTO<CoordinatorScheduleDto>
+                return BadRequest(new ApiResponseDTO<bool>
                 {
                     Success = false,
-                    Message = "Failed to update schedule",
-                    Errors = new List<string> { "Schedule not found or update conflict detected" }
+                    Message = "Failed to update schedule"
                 });
             }
 
-            // Get the updated schedule to return
-            var updatedSchedule =
-                await _coordinatorScheduleService.GetScheduleByIdAsync(userInfo.OrganizationId.Value, scheduleId);
-            return Ok(new ApiResponseDTO<CoordinatorScheduleDto>
+            return Ok(new ApiResponseDTO<bool>
             {
                 Success = true,
                 Message = "Schedule updated successfully",
-                Data = updatedSchedule
+                Data = result
             });
         }
 
@@ -613,21 +609,6 @@ namespace ivan_api.Controllers
             });
         }
 
-        // POST: api/CoordinatorSchedule/conflicts - Check for schedule conflicts
-        [HttpPost("conflicts")]
-        [Authorize(Roles = AuthenticationConstants.Roles.Organization)]
-        public async Task<ActionResult<ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>>> CheckConflicts(
-            [FromBody] CheckConflictsDto request)
-        {
-            var conflicts = await _coordinatorScheduleService.CheckScheduleConflictsAsync(
-                request.CoordinatorId, request.StartDateTime, request.EndDateTime, request.ExcludeScheduleId);
 
-            return Ok(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
-            {
-                Success = true,
-                Message = conflicts.Any() ? "Schedule conflicts found" : "No conflicts found",
-                Data = conflicts
-            });
-        }
     }
 }

@@ -4,6 +4,7 @@ import { eventsService } from "@/services/eventsService";
 import type { CoordinatorScheduleDto, UpdateCoordinatorScheduleDto } from "@/types/coordinatorSchedule";
 import type { EventDto } from "@/types/events";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,9 +55,12 @@ export default function EditScheduleModal({
   schedule,
   organizationId,
 }: EditScheduleModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [events, setEvents] = useState<EventDto[]>([]);
+
+  const currentOrganizationId = organizationId || user?.organizationId;
 
   const [formData, setFormData] = useState<ScheduleFormData>({
     eventId: undefined,
@@ -74,6 +78,8 @@ export default function EditScheduleModal({
 
   // Load events for dropdown
   const loadEvents = async () => {
+    if (!currentOrganizationId) return;
+    
     try {
       setEventsLoading(true);
       const result = await eventsService.getEvents({
@@ -81,9 +87,9 @@ export default function EditScheduleModal({
         size: 100,
         sortBy: "eventName",
         sortDirection: "asc",
-        organizationId: organizationId || undefined,
+        organizationId: currentOrganizationId,
       });
-      setEvents(result.items);
+      setEvents(result.items || []);
     } catch (error) {
       console.error("Error loading events:", error);
       toast.error("Không thể tải danh sách sự kiện");
@@ -112,14 +118,23 @@ export default function EditScheduleModal({
   }, [schedule, isOpen]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && currentOrganizationId) {
       loadEvents();
     }
-  }, [isOpen, organizationId]);
+  }, [isOpen, currentOrganizationId]);
 
   const handleSubmit = async () => {
     if (!formData.title || !formData.startDateTime || !formData.endDateTime) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    // Validate end time is after start time
+    const startDate = new Date(formData.startDateTime);
+    const endDate = new Date(formData.endDateTime);
+    
+    if (endDate <= startDate) {
+      toast.error("Thời gian kết thúc phải sau thời gian bắt đầu");
       return;
     }
 
@@ -129,8 +144,8 @@ export default function EditScheduleModal({
         eventId: formData.eventId,
         title: formData.title,
         description: formData.description,
-        startDateTime: formData.startDateTime,
-        endDateTime: formData.endDateTime,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
         location: formData.location,
         scheduleType: formData.scheduleType,
         priority: formData.priority,
@@ -143,12 +158,26 @@ export default function EditScheduleModal({
         toast.error("Không tìm thấy thông tin lịch trình");
         return;
       }
+      
+      console.log("Updating schedule with data:", updateData);
+      console.log("Schedule ID:", schedule.scheduleId);
+      console.log("Current organization ID:", currentOrganizationId);
+      console.log("User info:", user);
+      
       await coordinatorScheduleService.updateSchedule(schedule.scheduleId, updateData);
       toast.success("Cập nhật lịch trình thành công");
       onSuccess();
       handleClose();
     } catch (error) {
       console.error("Error updating schedule:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", {
+          message: error.message,
+          response: (error as any).response?.data,
+          status: (error as any).response?.status,
+          statusText: (error as any).response?.statusText
+        });
+      }
       toast.error("Không thể cập nhật lịch trình");
     } finally {
       setLoading(false);

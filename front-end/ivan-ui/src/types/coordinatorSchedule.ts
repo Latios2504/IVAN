@@ -172,12 +172,7 @@ export interface BulkDeleteDto {
   scheduleIds: number[];
 }
 
-export interface CheckConflictsDto {
-  coordinatorId: number;
-  startDateTime: string; // ISO date string
-  endDateTime: string; // ISO date string
-  excludeScheduleId?: number | null;
-}
+
 
 // Calendar view request DTO
 export interface CalendarViewRequestDto {
