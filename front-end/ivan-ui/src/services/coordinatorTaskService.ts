@@ -4,6 +4,7 @@ import type {
   CoordinatorTaskDto,
   CreateCoordinatorTaskDto,
   UpdateCoordinatorTaskDto,
+   UpdateTaskStatusDto,
   CoordinatorTaskFilterDto,
   CoordinatorTaskStatsDto,
   CoordinatorTaskListResponseDto,
@@ -397,7 +398,7 @@ class CoordinatorTaskService {
       (task) => task.status === TASK_STATUS.IN_PROGRESS
     ).length;
     const pendingTasks = tasks.filter(
-      (task) => task.status === TASK_STATUS.NOT_STARTED
+      (task) => task.status === TASK_STATUS.ASSIGNED
     ).length;
 
     const currentDate = new Date().toISOString();
@@ -450,32 +451,25 @@ class CoordinatorTaskService {
 
   // === UTILITY METHODS ===
 
-  // Update task status
+  // Update task status using dedicated PATCH endpoint
   async updateTaskStatus(
     taskId: number,
     status: TaskStatus
   ): Promise<CoordinatorTaskDto> {
-    const task = await this.getTaskById(taskId);
-    const updateDto: UpdateCoordinatorTaskDto = {
-      eventId: task.eventId,
-      coordinatorId: task.coordinatorId,
-      taskName: task.taskName,
-      description: task.description,
-      dueDate: task.dueDate,
-      priority: task.priority,
-      status,
-      category: task.category,
-      estimatedHours: task.estimatedHours,
-      actualHours: task.actualHours,
-      notes: task.notes,
-      // Set completion date if marking as completed
-      completedAt:
-        status === TASK_STATUS.COMPLETED
-          ? new Date().toISOString()
-          : task.completedAt || undefined,
+    const updateDto: UpdateTaskStatusDto = {
+      status: status,
     };
-
-    return this.updateTask(taskId, updateDto);
+    
+    const response = await apiClient.patch<CoordinatorTaskDto>(
+      `${this.baseUrl}/${taskId}/status`,
+      updateDto
+    );
+    
+    if (!response.data) {
+      throw new Error("Failed to update task status");
+    }
+    
+    return response.data;
   }
 
   // Mark task as completed
@@ -598,7 +592,7 @@ class CoordinatorTaskService {
     if (task.status === TASK_STATUS.CANCELLED) return 0;
     if (task.status === TASK_STATUS.IN_PROGRESS) return 50;
     if (task.status === TASK_STATUS.ON_HOLD) return 25;
-    return 0; // NOT_STARTED
+    return 0; // ASSIGNED or other statuses
   }
 
   // Helper method to get time remaining for task

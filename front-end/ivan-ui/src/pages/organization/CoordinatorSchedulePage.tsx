@@ -259,16 +259,16 @@ export default function CoordinatorSchedulePage() {
 
 
   const handleDeleteSchedule = async (scheduleId: number) => {
-    if (!confirm("Are you sure you want to delete this schedule?")) return;
+    if (!confirm("Bạn có chắc chắn muốn xóa lịch trình này?")) return;
 
     try {
       setLoading(true);
-      await coordinatorScheduleService.deleteSchedule(scheduleId);
-      toast.success("Schedule deleted successfully");
+      await coordinatorScheduleService.bulkDelete({ scheduleIds: [scheduleId] });
+      toast.success("Xóa lịch trình thành công");
       loadSchedules(); // Refresh the list
     } catch (error) {
       console.error("Error deleting schedule:", error);
-      toast.error("Failed to delete schedule");
+      toast.error("Không thể xóa lịch trình");
     } finally {
       setLoading(false);
     }

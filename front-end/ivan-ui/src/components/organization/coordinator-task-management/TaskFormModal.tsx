@@ -22,11 +22,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Save, X } from "lucide-react";
+import { CalendarIcon, Save, X, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import type { CoordinatorTaskDto, CreateCoordinatorTaskDto, UpdateCoordinatorTaskDto } from "@/types/coordinatorTask";
 import { TASK_STATUS, TASK_PRIORITY } from "@/types/coordinatorTask";
+import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
+import type { EventDto } from "@/types/events";
+import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
+import { eventsService } from "@/services/eventsService";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -34,6 +39,7 @@ interface TaskFormModalProps {
   task?: CoordinatorTaskDto | null;
   onSubmit: (data: CreateCoordinatorTaskDto | UpdateCoordinatorTaskDto) => Promise<void>;
   isLoading?: boolean;
+  organizationId?: number;
 }
 
 const TaskFormModal: React.FC<TaskFormModalProps> = ({
@@ -42,7 +48,9 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
   task,
   onSubmit,
   isLoading = false,
+  organizationId,
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     taskName: "",
     description: "",
@@ -50,7 +58,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
     eventId: "",
     category: "",
     priority: TASK_PRIORITY.MEDIUM,
-    status: TASK_STATUS.NOT_STARTED,
+    status: TASK_STATUS.ASSIGNED,
     dueDate: undefined as Date | undefined,
     estimatedHours: 0,
     actualHours: 0,
@@ -59,8 +67,60 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>([]);
+  const [events, setEvents] = useState<EventDto[]>([]);
+  const [coordinatorsLoading, setCoordinatorsLoading] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   const isEditMode = !!task;
+  const currentOrganizationId = organizationId || user?.organizationId;
+
+  // Load coordinators and events when modal opens
+  useEffect(() => {
+    if (isOpen && currentOrganizationId) {
+      loadCoordinators();
+      loadEvents();
+    }
+  }, [isOpen, currentOrganizationId]);
+
+  const loadCoordinators = async () => {
+    if (!currentOrganizationId) return;
+    
+    setCoordinatorsLoading(true);
+    try {
+      const result = await volunteerCoordinatorService.getCoordinatorsByOrganization(
+        currentOrganizationId,
+        { size: 100 } // Get all coordinators
+      );
+      setCoordinators(result.items || []);
+    } catch (error) {
+      console.error("Error loading coordinators:", error);
+      setCoordinators([]);
+    } finally {
+      setCoordinatorsLoading(false);
+    }
+  };
+
+  const loadEvents = async () => {
+    if (!currentOrganizationId) return;
+    
+    setEventsLoading(true);
+    try {
+      const result = await eventsService.getEvents({
+        organizationId: currentOrganizationId,
+        size: 100, // Get all events
+        page: 1,
+        sortBy: "CreatedAt",
+        sortDirection: "desc"
+      });
+      setEvents(result.items || []);
+    } catch (error) {
+      console.error("Error loading events:", error);
+      setEvents([]);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (task) {
@@ -71,7 +131,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
         eventId: task.eventId?.toString() || "",
         category: task.category || "",
         priority: (task.priority && Object.values(TASK_PRIORITY).includes(task.priority as any)) ? task.priority as any : TASK_PRIORITY.MEDIUM,
-        status: (task.status && Object.values(TASK_STATUS).includes(task.status as any)) ? task.status as any : TASK_STATUS.NOT_STARTED,
+        status: (task.status && Object.values(TASK_STATUS).includes(task.status as any)) ? task.status as any : TASK_STATUS.ASSIGNED,
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
         estimatedHours: task.estimatedHours || 0,
         actualHours: task.actualHours || 0,
@@ -85,7 +145,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
         eventId: "",
         category: "",
         priority: TASK_PRIORITY.MEDIUM,
-        status: TASK_STATUS.NOT_STARTED,
+        status: TASK_STATUS.ASSIGNED,
         dueDate: undefined,
         estimatedHours: 0,
         actualHours: 0,
@@ -103,15 +163,11 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
     }
 
     if (!formData.coordinatorId.trim()) {
-      newErrors.coordinatorId = "ID điều phối viên là bắt buộc";
-    } else if (isNaN(Number(formData.coordinatorId))) {
-      newErrors.coordinatorId = "ID điều phối viên phải là số";
+      newErrors.coordinatorId = "Điều phối viên là bắt buộc";
     }
 
     if (!formData.eventId.trim()) {
-      newErrors.eventId = "ID sự kiện là bắt buộc";
-    } else if (isNaN(Number(formData.eventId))) {
-      newErrors.eventId = "ID sự kiện phải là số";
+      newErrors.eventId = "Sự kiện là bắt buộc";
     }
 
     if (formData.estimatedHours < 0) {
@@ -145,7 +201,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
         eventId: Number(formData.eventId),
         category: formData.category.trim() || undefined,
         priority: formData.priority,
-        status: formData.status,
+        ...(isEditMode && { status: formData.status }), // Only include status when editing
         dueDate: formData.dueDate?.toISOString(),
         estimatedHours: formData.estimatedHours || undefined,
         actualHours: formData.actualHours || undefined,
@@ -182,7 +238,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
   ];
 
   const statusOptions = [
-    { value: TASK_STATUS.NOT_STARTED, label: "Chưa bắt đầu" },
+    { value: TASK_STATUS.ASSIGNED, label: "Đã giao" },
     { value: TASK_STATUS.IN_PROGRESS, label: "Đang thực hiện" },
     { value: TASK_STATUS.COMPLETED, label: "Hoàn thành" },
     { value: TASK_STATUS.CANCELLED, label: "Đã hủy" },
@@ -204,7 +260,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">
               Thông tin cơ bản
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`grid grid-cols-1 gap-4 ${isEditMode ? 'md:grid-cols-2' : ''}`}>
               <div className="md:col-span-2">
                 <Label htmlFor="taskName" className="text-slate-700 dark:text-slate-300">
                   Tên nhiệm vụ *
@@ -237,16 +293,37 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
               <div>
                 <Label htmlFor="coordinatorId" className="text-slate-700 dark:text-slate-300">
-                  ID Điều phối viên *
+                  Điều phối viên *
                 </Label>
-                <Input
-                  id="coordinatorId"
-                  type="number"
+                <Select
                   value={formData.coordinatorId}
-                  onChange={(e) => handleInputChange("coordinatorId", e.target.value)}
-                  placeholder="Nhập ID điều phối viên..."
-                  className={`mt-1 ${errors.coordinatorId ? "border-red-500" : ""}`}
-                />
+                  onValueChange={(value) => handleInputChange("coordinatorId", value)}
+                >
+                  <SelectTrigger className={`mt-1 ${errors.coordinatorId ? "border-red-500" : ""}`}>
+                    <SelectValue placeholder="Chọn điều phối viên" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {coordinatorsLoading ? (
+                      <SelectItem value="loading" disabled>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Đang tải...
+                      </SelectItem>
+                    ) : coordinators.length === 0 ? (
+                      <SelectItem value="empty" disabled>
+                        Không có điều phối viên nào
+                      </SelectItem>
+                    ) : (
+                      coordinators.map((coordinator) => (
+                        <SelectItem
+                          key={coordinator.coordinatorId}
+                          value={coordinator.coordinatorId.toString()}
+                        >
+                          {coordinator.user?.fullName || coordinator.user?.email || 'Unknown'}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
                 {errors.coordinatorId && (
                   <p className="text-red-500 text-sm mt-1">{errors.coordinatorId}</p>
                 )}
@@ -254,16 +331,37 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
               <div>
                 <Label htmlFor="eventId" className="text-slate-700 dark:text-slate-300">
-                  ID Sự kiện *
+                  Sự kiện *
                 </Label>
-                <Input
-                  id="eventId"
-                  type="number"
+                <Select
                   value={formData.eventId}
-                  onChange={(e) => handleInputChange("eventId", e.target.value)}
-                  placeholder="Nhập ID sự kiện..."
-                  className={`mt-1 ${errors.eventId ? "border-red-500" : ""}`}
-                />
+                  onValueChange={(value) => handleInputChange("eventId", value)}
+                >
+                  <SelectTrigger className={`mt-1 ${errors.eventId ? "border-red-500" : ""}`}>
+                    <SelectValue placeholder="Chọn sự kiện" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventsLoading ? (
+                      <SelectItem value="loading" disabled>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Đang tải...
+                      </SelectItem>
+                    ) : events.length === 0 ? (
+                      <SelectItem value="empty" disabled>
+                        Không có sự kiện nào
+                      </SelectItem>
+                    ) : (
+                      events.map((event) => (
+                        <SelectItem
+                          key={event.eventId}
+                          value={event.eventId.toString()}
+                        >
+                          {event.eventName}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
                 {errors.eventId && (
                   <p className="text-red-500 text-sm mt-1">{errors.eventId}</p>
                 )}
@@ -326,7 +424,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
             <h3 className="text-lg font-semibold mb-4 text-blue-900 dark:text-blue-100">
               Trạng thái và Độ ưu tiên
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`grid grid-cols-1 gap-4 ${isEditMode ? 'md:grid-cols-2' : ''}`}>
               <div>
                 <Label className="text-blue-700 dark:text-blue-300">
                   Độ ưu tiên
@@ -348,26 +446,28 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 </Select>
               </div>
 
-              <div>
-                <Label className="text-blue-700 dark:text-blue-300">
-                  Trạng thái
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleInputChange("status", value)}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Chọn trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {isEditMode && (
+                <div>
+                  <Label className="text-blue-700 dark:text-blue-300">
+                    Trạng thái
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => handleInputChange("status", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Chọn trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
 

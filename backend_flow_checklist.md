@@ -130,10 +130,10 @@ Ngoài đối chiếu với `flows.md`, còn có thể đối chiếu với `iva
 
 #### CoordinatorScheduleController.cs
 
-- [ ] **Self Schedule Management**:
-  - [ ] **Coordinator** có thể tạo lịch cho chính mình
-  - [ ] **Authorization**: Validate `CreatedBy` là chính Coordinator đó (CoordinatorId trong VolunteerCoordinators)
-  - [ ] Create record in `CoordinatorSchedules` table với `CreatedBy` = Coordinator's UserId
+- [ ] **CoordinatorCoordinator Schedule Management**:
+  - [ ] **Organization** có thể tạo lịch cho Coordinator
+  - [ ] **Authorization**: Validate `CreatedBy` là Organization (UserId trong Bảng User)
+  - [ ] Create record in `CoordinatorSchedules` table với `CreatedBy` = Organization's UserId
   - [ ] Validate `CoordinatorId` exists in `VolunteerCoordinators` table
   - [ ] Validate `EventId` exists and is active
   - [ ] Set `StartDateTime` and `EndDateTime` within event duration
@@ -152,7 +152,7 @@ Ngoài đối chiếu với `flows.md`, còn có thể đối chiếu với `iva
 
 - [ ] **Schedule Assignment by Coordinator**:
   - [ ] **Coordinator** có thể tạo lịch cho volunteers trong event của mình
-  - [ ] **Authorization**: Validate `CreatedBy` là Coordinator được assign cho event này
+  - [ ] **Authorization**: Validate `CreatedBy` là Coordinator được assign cho event này (UserId trong Bảng User)
   - [ ] Create record in `VolunteerSchedules` table với `CreatedBy` = Coordinator's UserId
   - [ ] Validate `VolunteerProfileId` exists và đã register cho event
   - [ ] Validate volunteer is registered for the event
@@ -190,7 +190,7 @@ Ngoài đối chiếu với `flows.md`, còn có thể đối chiếu với `iva
 ### Controllers cần kiểm tra:
 
 - [ ] **OnSiteTaskController.cs**
-- [ ] **TaskAssignments Management**
+- [ ] **TaskAssignments Management** (đang nằm trong OnSiteTaskController)
 
 ### Checklist chi tiết:
 

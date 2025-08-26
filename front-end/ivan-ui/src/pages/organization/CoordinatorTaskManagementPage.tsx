@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Select,
   SelectContent,
@@ -33,6 +34,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import coordinatorTaskService from "@/services/coordinatorTaskService";
+import volunteerCoordinatorService from "@/services/volunteerCoordinatorService";
+import eventsService from "@/services/eventsService";
 import type {
   CoordinatorTaskDto,
   CreateCoordinatorTaskDto,
@@ -40,6 +43,8 @@ import type {
   CoordinatorTaskFilterDto,
 } from "@/types/coordinatorTask";
 import type { PagedResultDto } from "@/types/common";
+import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
+import type { EventDto } from "@/types/events";
 import TaskDetailsModal from "@/components/organization/coordinator-task-management/TaskDetailsModal";
 import TaskFormModal from "@/components/organization/coordinator-task-management/TaskFormModal";
 import TaskStatusBadge from "@/components/organization/coordinator-task-management/TaskStatusBadge";
@@ -53,6 +58,8 @@ import {
 } from "@/types/coordinatorTask";
 
 export default function CoordinatorTaskManagementPage() {
+  const { user } = useAuth();
+  const organizationId = user?.organizationId;
   const [pagedResult, setPagedResult] =
     useState<PagedResultDto<CoordinatorTaskDto> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -66,6 +73,10 @@ export default function CoordinatorTaskManagementPage() {
     null
   );
   const [isFormLoading, setIsFormLoading] = useState(false);
+  const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>([]);
+  const [events, setEvents] = useState<EventDto[]>([]);
+  const [coordinatorsLoading, setCoordinatorsLoading] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   // Hooks
   const detailsModal = useModal();
@@ -75,6 +86,58 @@ export default function CoordinatorTaskManagementPage() {
   useEffect(() => {
     loadTasks();
   }, [filter]);
+
+  // Load coordinators and events when component mounts
+  useEffect(() => {
+    if (organizationId) {
+      loadCoordinators();
+      loadEvents();
+    }
+  }, [organizationId]);
+
+  const loadCoordinators = async () => {
+    if (!organizationId) return;
+    
+    try {
+      setCoordinatorsLoading(true);
+      const result = await volunteerCoordinatorService.getCoordinatorsByOrganization(
+        organizationId,
+        {
+          page: 1,
+          size: 100,
+          sortBy: "CreatedAt",
+          sortOrder: "desc"
+        }
+      );
+      setCoordinators(result.items || []);
+    } catch (error) {
+      console.error('Error loading coordinators:', error);
+      toast.error('Không thể tải danh sách điều phối viên');
+    } finally {
+      setCoordinatorsLoading(false);
+    }
+  };
+
+  const loadEvents = async () => {
+    if (!organizationId) return;
+    
+    try {
+      setEventsLoading(true);
+      const result = await eventsService.getEvents({
+        organizationId: organizationId,
+        page: 1,
+        size: 100,
+        sortBy: "CreatedAt",
+        sortDirection: "desc"
+      });
+      setEvents(result.items);
+    } catch (error) {
+      console.error('Error loading events:', error);
+      toast.error('Không thể tải danh sách sự kiện');
+    } finally {
+      setEventsLoading(false);
+    }
+  };
 
   const loadTasks = async () => {
     try {
@@ -156,30 +219,8 @@ export default function CoordinatorTaskManagementPage() {
         return;
       }
 
-      // Find the task to get required fields for update
-      const task = pagedResult?.items.find((t) => t.taskId === taskId);
-      if (!task) {
-        toast.error("Không tìm thấy nhiệm vụ");
-        return;
-      }
-
-      // Since backend doesn't have delete endpoint, update status to CANCELLED
-      const updateData: UpdateCoordinatorTaskDto = {
-        eventId: task.eventId,
-        coordinatorId: task.coordinatorId,
-        taskName: task.taskName,
-        description: task.description,
-        dueDate: task.dueDate,
-        priority: task.priority,
-        status: TASK_STATUS.CANCELLED,
-        category: task.category,
-        estimatedHours: task.estimatedHours,
-        actualHours: task.actualHours,
-        completedAt: task.completedAt,
-        notes: task.notes,
-      };
-
-      await coordinatorTaskService.updateTask(taskId, updateData);
+      // Use new updateTaskStatus method to cancel the task
+      await coordinatorTaskService.updateTaskStatus(taskId, TASK_STATUS.CANCELLED);
       toast.success("Đã hủy nhiệm vụ thành công");
       await loadTasks();
     } catch (error) {
@@ -188,38 +229,7 @@ export default function CoordinatorTaskManagementPage() {
     }
   };
 
-  const handleCompleteTask = async (taskId: number) => {
-    try {
-      // Find the task to get required fields for update
-      const task = pagedResult?.items.find((t) => t.taskId === taskId);
-      if (!task) {
-        toast.error("Không tìm thấy nhiệm vụ");
-        return;
-      }
 
-      const updateData: UpdateCoordinatorTaskDto = {
-        eventId: task.eventId,
-        coordinatorId: task.coordinatorId,
-        taskName: task.taskName,
-        description: task.description,
-        dueDate: task.dueDate,
-        priority: task.priority,
-        status: TASK_STATUS.COMPLETED,
-        category: task.category,
-        estimatedHours: task.estimatedHours,
-        actualHours: task.actualHours,
-        completedAt: new Date().toISOString(),
-        notes: task.notes,
-      };
-
-      await coordinatorTaskService.updateTask(taskId, updateData);
-      toast.success("Đã hoàn thành nhiệm vụ");
-      await loadTasks();
-    } catch (error) {
-      console.error("Error completing task:", error);
-      toast.error("Không thể hoàn thành nhiệm vụ. Vui lòng thử lại.");
-    }
-  };
 
   const handleRefresh = async () => {
     await loadTasks();
@@ -259,7 +269,7 @@ export default function CoordinatorTaskManagementPage() {
   const tasks = pagedResult?.items || [];
   const taskStats = {
     total: pagedResult?.totalCount || 0,
-    pending: tasks.filter((t) => t.status === TASK_STATUS.NOT_STARTED).length,
+    pending: tasks.filter((t) => t.status === TASK_STATUS.ASSIGNED).length,
     inProgress: tasks.filter((t) => t.status === TASK_STATUS.IN_PROGRESS)
       .length,
     completed: tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length,
@@ -319,6 +329,19 @@ export default function CoordinatorTaskManagementPage() {
     document.body.removeChild(link);
   };
 
+  // Helper functions
+  const getCoordinatorName = (coordinatorId: number) => {
+    if (!Array.isArray(coordinators)) return coordinatorId.toString();
+    const coordinator = coordinators.find(c => c.coordinatorId === coordinatorId);
+    return coordinator ? (coordinator.user?.fullName || coordinator.user?.email || 'Không có tên') : coordinatorId.toString();
+  };
+
+  const getEventName = (eventId: number) => {
+    if (!Array.isArray(events)) return eventId.toString();
+    const event = events.find(e => e.eventId === eventId);
+    return event ? event.eventName : eventId.toString();
+  };
+
   // DataTable columns configuration
   const taskColumns: TableColumn<CoordinatorTaskDto>[] = [
     {
@@ -339,7 +362,9 @@ export default function CoordinatorTaskManagementPage() {
       render: (_, task) => (
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-gray-400" />
-          <span>ID: {task.coordinatorId}</span>
+          <span>
+            {coordinatorsLoading ? "Đang tải..." : getCoordinatorName(task.coordinatorId)}
+          </span>
         </div>
       ),
     },
@@ -347,7 +372,9 @@ export default function CoordinatorTaskManagementPage() {
       key: "eventId",
       header: "Sự kiện",
       render: (_, task) => (
-        <div className="text-sm">Event ID: {task.eventId}</div>
+        <div className="text-sm">
+          {eventsLoading ? "Đang tải..." : getEventName(task.eventId)}
+        </div>
       ),
     },
     {
@@ -440,24 +467,7 @@ export default function CoordinatorTaskManagementPage() {
       onClick: handleEditTask,
       variant: "ghost",
     },
-    {
-      label: "Đánh dấu hoàn thành",
-      icon: <CheckCircle />,
-      onClick: async (task) => {
-        if (!task.taskId) {
-          toast.error("Không thể xác định ID nhiệm vụ");
-          return;
-        }
 
-        if (task.status === TASK_STATUS.COMPLETED) {
-          toast.info("Nhiệm vụ đã được hoàn thành");
-          return;
-        }
-
-        await handleCompleteTask(Number(task.taskId));
-      },
-      visible: (task) => task.status !== TASK_STATUS.COMPLETED,
-    },
     {
       label: "Hủy nhiệm vụ",
       icon: <Trash2 />,
@@ -724,18 +734,18 @@ export default function CoordinatorTaskManagementPage() {
         onClose={detailsModal.close}
         task={selectedTask}
         onEdit={handleEditTask}
-        onComplete={handleCompleteTask}
         onDelete={handleDeleteTask}
       />
 
       {/* Task Form Modal */}
-      <TaskFormModal
-        isOpen={formModal.isOpen}
-        onClose={formModal.close}
-        task={editingTask}
-        onSubmit={handleFormSubmit}
-        isLoading={isFormLoading}
-      />
+        <TaskFormModal
+          isOpen={formModal.isOpen}
+          onClose={formModal.close}
+          task={editingTask}
+          onSubmit={handleFormSubmit}
+          isLoading={isFormLoading}
+          organizationId={organizationId!}
+        />
     </div>
   );
 }

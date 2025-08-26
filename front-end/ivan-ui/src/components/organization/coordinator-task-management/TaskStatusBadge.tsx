@@ -6,7 +6,8 @@ import {
   CheckCircle, 
   XCircle, 
   Pause,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from "lucide-react";
 import { TASK_STATUS } from "@/types/coordinatorTask";
 
@@ -23,11 +24,11 @@ const statusConfig: Record<string, {
   icon: React.ComponentType<any>;
   darkClassName: string;
 }> = {
-  [TASK_STATUS.NOT_STARTED]: {
-    label: "Chưa bắt đầu",
-    className: "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200",
-    icon: Clock,
-    darkClassName: "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600",
+  [TASK_STATUS.ASSIGNED]: {
+    label: "Đã giao",
+    className: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+    icon: UserCheck,
+    darkClassName: "dark:bg-orange-900/30 dark:text-orange-200 dark:border-orange-600",
   },
   [TASK_STATUS.IN_PROGRESS]: {
     label: "Đang thực hiện",

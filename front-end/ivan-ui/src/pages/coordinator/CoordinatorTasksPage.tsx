@@ -18,6 +18,8 @@ import {
   Search,
   Eye,
   Badge,
+  X,
+  Pause,
 } from "lucide-react";
 import {
   DataTable,
@@ -138,13 +140,41 @@ export default function CoordinatorTasksPage() {
     }
   };
 
+  const handlePauseTask = async (taskId: number) => {
+    try {
+      await coordinatorTaskService.updateTaskStatus(
+        taskId,
+        TASK_STATUS.ON_HOLD
+      );
+      await loadTasks();
+      toast.success("Đã tạm dừng nhiệm vụ");
+    } catch (error) {
+      console.error("Error pausing task:", error);
+      toast.error("Không thể tạm dừng nhiệm vụ");
+    }
+  };
+
+  const handleCancelTask = async (taskId: number) => {
+    try {
+      await coordinatorTaskService.updateTaskStatus(
+        taskId,
+        TASK_STATUS.CANCELLED
+      );
+      await loadTasks();
+      toast.success("Đã hủy nhiệm vụ");
+    } catch (error) {
+      console.error("Error cancelling task:", error);
+      toast.error("Không thể hủy nhiệm vụ");
+    }
+  };
+
   // Get current tasks and calculate stats from paged result
   const tasks = pagedResult?.items || [];
   const stats = {
     totalTasks: pagedResult?.totalCount || 0,
-    pendingTasks: tasks.filter((t) => t.status === "Pending").length,
-    inProgressTasks: tasks.filter((t) => t.status === "In Progress").length,
-    completedTasks: tasks.filter((t) => t.status === "Completed").length,
+    pendingTasks: tasks.filter((t) => t.status === TASK_STATUS.ASSIGNED).length,
+    inProgressTasks: tasks.filter((t) => t.status === TASK_STATUS.IN_PROGRESS).length,
+    completedTasks: tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length,
     totalEstimatedHours: tasks.reduce(
       (sum, task) => sum + (task.estimatedHours || 0),
       0
@@ -265,7 +295,7 @@ export default function CoordinatorTasksPage() {
         }
         await handleStartTask(Number(task.taskId));
       },
-      visible: (task) => task.status === "Pending",
+      visible: (task) => task.status === TASK_STATUS.ASSIGNED,
     },
     {
       label: "Đánh dấu hoàn thành",
@@ -277,7 +307,31 @@ export default function CoordinatorTasksPage() {
         }
         await handleCompleteTask(Number(task.taskId));
       },
-      visible: (task) => task.status !== TASK_STATUS.COMPLETED,
+      visible: (task) => task.status === TASK_STATUS.IN_PROGRESS,
+    },
+    {
+      label: "Tạm dừng",
+      icon: <Pause />,
+      onClick: async (task) => {
+        if (!task.taskId) {
+          toast.error("Không thể xác định ID nhiệm vụ");
+          return;
+        }
+        await handlePauseTask(Number(task.taskId));
+      },
+      visible: (task) => task.status === TASK_STATUS.ASSIGNED || task.status === TASK_STATUS.IN_PROGRESS,
+    },
+    {
+      label: "Hủy nhiệm vụ",
+      icon: <X />,
+      onClick: async (task) => {
+        if (!task.taskId) {
+          toast.error("Không thể xác định ID nhiệm vụ");
+          return;
+        }
+        await handleCancelTask(Number(task.taskId));
+      },
+      visible: (task) => task.status === TASK_STATUS.ASSIGNED || task.status === TASK_STATUS.IN_PROGRESS || task.status === TASK_STATUS.ON_HOLD,
     },
   ];
 

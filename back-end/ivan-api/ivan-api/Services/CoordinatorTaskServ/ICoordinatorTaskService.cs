@@ -12,6 +12,7 @@ namespace ivan_api.Services.CoordinatorTaskServ
         Task<CoordinatorTaskDto> GetTaskByIdAsync(int id);
         Task<CoordinatorTaskDto> CreateTaskAsync(CreateCoordinatorTaskDto dto, int createdBy);
         Task<CoordinatorTaskDto?> UpdateTaskAsync(int id, UpdateCoordinatorTaskDto dto);
+        Task<CoordinatorTaskDto?> UpdateTaskStatusAsync(int id, string status);
 
         // NEW:
         Task<PagedResultDto<CoordinatorTaskDto>> GetOrgTasksPagedAsync(int organizationId, CoordinatorTaskFilterDto filter);

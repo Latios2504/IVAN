@@ -1,4 +1,4 @@
-﻿using ivan_api.Constants;
+using ivan_api.Constants;
 using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.DTOs.Common;
 using ivan_api.Services.CoordinatorTaskServ;
@@ -205,6 +205,61 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "An error occurred while updating coordinator task",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
+
+        /// Update task status (Both Organization and Coordinator can update status)
+        [HttpPatch("{id}/status")]
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Status))
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid input data",
+                    Errors = new List<string> { "Status is required" }
+                });
+            }
+
+            try
+            {
+                var task = await _service.UpdateTaskStatusAsync(id, dto.Status);
+                if (task == null)
+                {
+                    return NotFound(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Coordinator task not found",
+                        Errors = new List<string> { $"Coordinator task with ID {id} was not found" }
+                    });
+                }
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = task,
+                    Message = "Task status updated successfully"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid status transition",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while updating task status",
                     Errors = new List<string> { ex.Message }
                 });
             }

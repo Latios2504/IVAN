@@ -55,6 +55,11 @@ export interface UpdateCoordinatorTaskDto {
   notes?: string | null;
 }
 
+// DTO for updating task status only
+export interface UpdateTaskStatusDto {
+  status: string;
+}
+
 // Filter DTO for searching/filtering tasks - Updated to match backend exactly
 export interface CoordinatorTaskFilterDto {
   // Paging - Match backend property names
@@ -114,13 +119,13 @@ export interface TaskCategoryStatsDto {
   percentage: number;
 }
 
-// Constants for task statuses and priorities
+// Constants for task statuses and priorities - Match backend TaskConstants
 export const TASK_STATUS = {
-  NOT_STARTED: "Chưa bắt đầu",
-  IN_PROGRESS: "Đang thực hiện",
-  COMPLETED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
-  ON_HOLD: "Tạm dừng",
+  ASSIGNED: "Assigned", 
+  IN_PROGRESS: "In Progress",
+  COMPLETED: "Completed",
+  ON_HOLD: "On Hold",
+  CANCELLED: "Cancelled",
 } as const;
 
 export const TASK_PRIORITY = {
@@ -185,10 +190,10 @@ export interface TaskCategoryOption {
 // Status options with colors and icons
 export const TASK_STATUS_OPTIONS: TaskStatusOption[] = [
   {
-    value: TASK_STATUS.NOT_STARTED,
-    label: "Chưa bắt đầu",
-    color: "gray",
-    icon: "clock",
+    value: TASK_STATUS.ASSIGNED,
+    label: "Đã giao",
+    color: "orange",
+    icon: "user-check",
   },
   {
     value: TASK_STATUS.IN_PROGRESS,
@@ -203,16 +208,16 @@ export const TASK_STATUS_OPTIONS: TaskStatusOption[] = [
     icon: "check",
   },
   {
-    value: TASK_STATUS.CANCELLED,
-    label: "Đã hủy",
-    color: "red",
-    icon: "x",
-  },
-  {
     value: TASK_STATUS.ON_HOLD,
     label: "Tạm dừng",
     color: "yellow",
     icon: "pause",
+  },
+  {
+    value: TASK_STATUS.CANCELLED,
+    label: "Đã hủy",
+    color: "red",
+    icon: "x",
   },
 ];
 

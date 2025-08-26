@@ -1,7 +1,8 @@
-﻿using ivan_api.DTOs.Common;
+using ivan_api.DTOs.Common;
 using ivan_api.DTOs.CoordinatorTask;
 using ivan_api.Models;
 using ivan_api.Repository.CoordinatorTaskRepo;
+using ivan_api.Constants;
 
 namespace ivan_api.Services.CoordinatorTaskServ
 {
@@ -14,6 +15,46 @@ namespace ivan_api.Services.CoordinatorTaskServ
         {
             _repository = repository;
             _context = context;
+        }
+
+        /// <summary>
+        /// Updates only the status of a coordinator task with validation
+        /// </summary>
+        /// <param name="id">Task ID</param>
+        /// <param name="newStatus">New status to set</param>
+        /// <returns>Updated task DTO or null if not found</returns>
+        public async Task<CoordinatorTaskDto?> UpdateTaskStatusAsync(int id, string newStatus)
+        {
+            var existingTask = await _repository.GetByIdAsync(id);
+            if (existingTask == null) return null;
+
+            // Validate status transition
+            if (!TaskConstants.IsValidStatusTransition(existingTask.Status, newStatus))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid status transition from '{existingTask.Status}' to '{newStatus}'. " +
+                    $"Valid transitions from '{existingTask.Status}' are: {string.Join(", ", TaskConstants.ValidStatusTransitions.GetValueOrDefault(existingTask.Status ?? "", new List<string>()))}");
+            }
+
+            // Update status and related fields
+            existingTask.Status = newStatus;
+            existingTask.UpdatedAt = DateTime.UtcNow;
+
+            // Set completion timestamp if task is completed
+            if (newStatus == TaskConstants.Status.Completed && existingTask.CompletedAt == null)
+            {
+                existingTask.CompletedAt = DateTime.UtcNow;
+            }
+            // Clear completion timestamp if task is moved away from completed status
+            else if (newStatus != TaskConstants.Status.Completed && existingTask.CompletedAt != null)
+            {
+                existingTask.CompletedAt = null;
+            }
+
+            _repository.Update(existingTask);
+            await _repository.SaveChangesAsync();
+
+            return MapToDto(existingTask);
         }
 
         public async Task<IEnumerable<CoordinatorTaskDto>> GetAllTasksAsync()
@@ -77,7 +118,7 @@ namespace ivan_api.Services.CoordinatorTaskServ
                 Description = dto.Description,
                 DueDate = dto.DueDate,
                 Priority = dto.Priority,
-                Status = dto.Status ?? "Chưa bắt đầu",
+                Status = dto.Status ?? TaskConstants.Status.Assigned,
                 Category = dto.Category,
                 EstimatedHours = dto.EstimatedHours,
                 Notes = dto.Notes,
@@ -114,6 +155,17 @@ namespace ivan_api.Services.CoordinatorTaskServ
         {
             var existingTask = await _repository.GetByIdAsync(id);
             if (existingTask == null) return null;
+
+            // Validate status transition if status is being changed
+            if (!string.IsNullOrEmpty(dto.Status) && dto.Status != existingTask.Status)
+            {
+                if (!TaskConstants.IsValidStatusTransition(existingTask.Status, dto.Status))
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid status transition from '{existingTask.Status}' to '{dto.Status}'. " +
+                        $"Valid transitions from '{existingTask.Status}' are: {string.Join(", ", TaskConstants.ValidStatusTransitions.GetValueOrDefault(existingTask.Status ?? "", new List<string>()))}");
+                }
+            }
 
             existingTask.EventId = dto.EventId;
             existingTask.CoordinatorId = dto.CoordinatorId;

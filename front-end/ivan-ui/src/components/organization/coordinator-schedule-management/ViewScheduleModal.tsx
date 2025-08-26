@@ -36,12 +36,14 @@ export default function ViewScheduleModal({
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      Pending: { color: "bg-yellow-100 text-yellow-800 border-yellow-300", label: "Chờ xử lý" },
-      Confirmed: { color: "bg-green-100 text-green-800 border-green-300", label: "Đã xác nhận" },
+      Scheduled: { color: "bg-blue-100 text-blue-800 border-blue-300", label: "Đã lên lịch" },
+      "Checked In": { color: "bg-yellow-100 text-yellow-800 border-yellow-300", label: "Đã check-in" },
+      "In Progress": { color: "bg-orange-100 text-orange-800 border-orange-300", label: "Đang thực hiện" },
+      Completed: { color: "bg-green-100 text-green-800 border-green-300", label: "Hoàn thành" },
       Cancelled: { color: "bg-red-100 text-red-800 border-red-300", label: "Đã hủy" },
-      Completed: { color: "bg-blue-100 text-blue-800 border-blue-300", label: "Hoàn thành" },
+      "No Show": { color: "bg-gray-100 text-gray-800 border-gray-300", label: "Vắng mặt" },
     };
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Pending;
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Scheduled;
     return (
       <Badge className={`${config.color} border font-medium`}>
         {config.label}

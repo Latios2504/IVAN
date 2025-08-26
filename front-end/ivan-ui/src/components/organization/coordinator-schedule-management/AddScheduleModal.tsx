@@ -27,18 +27,18 @@ import {
 import { Loader2 } from "lucide-react";
 
 interface ScheduleFormData {
-  coordinatorId: number;
-  eventId?: number;
+  coordinatorId: number | null;
+  eventId: number | null;
   title: string;
-  description?: string;
+  description: string;
   startDateTime: string;
   endDateTime: string;
-  location?: string;
-  scheduleType: "Meeting" | "Event" | "Training" | "Other";
-  priority: "Low" | "Medium" | "High";
+  location: string;
+  scheduleType: string;
+  priority: string;
   isAllDay: boolean;
   reminderMinutes: number;
-  notes?: string;
+  notes: string;
 }
 
 interface AddScheduleModalProps {
@@ -61,8 +61,8 @@ export default function AddScheduleModal({
   const [events, setEvents] = useState<EventDto[]>([]);
 
   const [formData, setFormData] = useState<ScheduleFormData>({
-    coordinatorId: 0,
-    eventId: undefined,
+    coordinatorId: null,
+    eventId: null,
     title: "",
     description: "",
     startDateTime: "",
@@ -129,8 +129,8 @@ export default function AddScheduleModal({
 
     try {
       setLoading(true);
-      const scheduleData = {
-        coordinatorId: formData.coordinatorId,
+      const createData = {
+        coordinatorId: formData.coordinatorId!,
         eventId: formData.eventId,
         title: formData.title,
         description: formData.description,
@@ -144,7 +144,7 @@ export default function AddScheduleModal({
         notes: formData.notes,
       };
 
-      await coordinatorScheduleService.createSchedule(scheduleData);
+      await coordinatorScheduleService.createSchedule(createData);
       toast.success("Tạo lịch trình thành công");
       onSuccess();
       handleClose();
@@ -158,8 +158,8 @@ export default function AddScheduleModal({
 
   const handleClose = () => {
     setFormData({
-      coordinatorId: 0,
-      eventId: undefined,
+      coordinatorId: null,
+      eventId: null,
       title: "",
       description: "",
       startDateTime: "",
@@ -201,11 +201,25 @@ export default function AddScheduleModal({
           </div>
 
           <div className="grid gap-2">
+            <Label htmlFor="description" className="text-slate-900 dark:text-slate-100 font-semibold">
+              Mô tả
+            </Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Nhập mô tả lịch trình"
+              rows={3}
+              className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 resize-none"
+            />
+          </div>
+
+          <div className="grid gap-2">
             <Label htmlFor="coordinator" className="text-slate-900 dark:text-slate-100 font-semibold">
               Điều phối viên *
             </Label>
             <Select
-              value={formData.coordinatorId.toString()}
+              value={formData.coordinatorId?.toString() || ""}
               onValueChange={(value) => setFormData({ ...formData, coordinatorId: parseInt(value) })}
             >
               <SelectTrigger className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400">
@@ -240,7 +254,7 @@ export default function AddScheduleModal({
               onValueChange={(value) =>
                 setFormData({
                   ...formData,
-                  eventId: value === "none" ? undefined : parseInt(value),
+                  eventId: value === "none" ? null : parseInt(value),
                 })
               }
             >
@@ -312,7 +326,7 @@ export default function AddScheduleModal({
               </Label>
               <Select
                 value={formData.scheduleType}
-                onValueChange={(value: "Meeting" | "Event" | "Training" | "Other") =>
+                onValueChange={(value: string) =>
                   setFormData({ ...formData, scheduleType: value })
                 }
               >
@@ -333,7 +347,7 @@ export default function AddScheduleModal({
               </Label>
               <Select
                 value={formData.priority}
-                onValueChange={(value: "Low" | "Medium" | "High") =>
+                onValueChange={(value: string) =>
                   setFormData({ ...formData, priority: value })
                 }
               >

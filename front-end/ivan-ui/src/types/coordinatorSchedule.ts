@@ -1,7 +1,7 @@
 // Coordinator Schedule Types - Matching backend CoordinatorScheduleController
 import type { PagedResultDto } from "./common";
 
-// Core DTOs
+// Core DTOs - Matching backend exactly
 export interface CoordinatorScheduleDto {
   scheduleId: number;
   coordinatorId: number;
@@ -27,7 +27,7 @@ export interface CoordinatorScheduleDto {
   updatedAt?: string | null; // ISO date string
 }
 
-// Request DTOs (for create/update operations)
+// Request DTOs (for create/update operations) - Matching backend exactly
 export interface CreateCoordinatorScheduleDto {
   coordinatorId: number;
   eventId?: number | null;
@@ -36,17 +36,16 @@ export interface CreateCoordinatorScheduleDto {
   startDateTime: string; // ISO date string
   endDateTime: string; // ISO date string
   location?: string | null;
-  scheduleType?: string | null;
-  priority?: string | null;
-  status?: string | null;
-  isAllDay?: boolean;
-  reminderMinutes?: number;
+  scheduleType?: string | null; // Default: "Event"
+  priority?: string | null; // Default: "Medium"
+  status?: string | null; // Default: "Scheduled"
+  isAllDay: boolean; // Default: false
+  reminderMinutes: number; // Default: 60
   notes?: string | null;
 }
 
 export interface UpdateCoordinatorScheduleDto {
   eventId?: number | null;
-  coordinatorId?: number | null;
   title?: string | null;
   description?: string | null;
   startDateTime?: string | null; // ISO date string
@@ -60,7 +59,7 @@ export interface UpdateCoordinatorScheduleDto {
   notes?: string | null;
 }
 
-// Filter DTO for searching/filtering schedules - Updated to match backend exactly
+// Filter DTO for searching/filtering schedules - Matching backend exactly
 export interface CoordinatorScheduleFilterDto {
   pageNumber?: number;
   pageSize?: number;
@@ -80,7 +79,7 @@ export interface CoordinatorScheduleFilterDto {
   search?: string | null;
 }
 
-// Stats DTO for dashboard/analytics
+// Stats DTO for dashboard/analytics - Matching backend exactly
 export interface CoordinatorScheduleStatsDto {
   totalSchedules: number;
   scheduledCount: number;
@@ -105,7 +104,7 @@ export interface CoordinatorScheduleStatsItem {
   completionRate: number;
 }
 
-// Summary DTO for Calendar Views
+// Summary DTO for Calendar Views - Matching backend exactly
 export interface CoordinatorScheduleSummaryDto {
   scheduleId: number;
   title: string;
@@ -135,20 +134,21 @@ export const SCHEDULE_PRIORITY = {
 
 export const SCHEDULE_STATUS = {
   SCHEDULED: "Scheduled",
-  IN_PROGRESS: "In Progress",
+  CHECKED_IN: "Checked In",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
+  NO_SHOW: "No Show",
 } as const;
 
 export type ScheduleType = typeof SCHEDULE_TYPE[keyof typeof SCHEDULE_TYPE];
 export type SchedulePriority = typeof SCHEDULE_PRIORITY[keyof typeof SCHEDULE_PRIORITY];
 export type ScheduleStatus = typeof SCHEDULE_STATUS[keyof typeof SCHEDULE_STATUS];
 
-// Default filter values
+// Default filter values - Matching backend exactly
 export const DEFAULT_COORDINATOR_SCHEDULE_FILTER: CoordinatorScheduleFilterDto = {
   pageNumber: 1,
   pageSize: 20,
-  sortBy: "StartDateTime",
+  sortBy: "StartDateTime", // PascalCase to match backend
   sortDirection: "asc",
 };
 

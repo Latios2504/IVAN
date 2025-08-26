@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,11 @@ import {
 } from "lucide-react";
 import type { CoordinatorTaskDto } from "@/types/coordinatorTask";
 import { TASK_STATUS, TASK_PRIORITY } from "@/types/coordinatorTask";
+import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
+import type { EventDto } from "@/types/events";
+import volunteerCoordinatorService from "@/services/volunteerCoordinatorService";
+import eventsService from "@/services/eventsService";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TaskDetailsModalProps {
   isOpen: boolean;
@@ -36,7 +41,7 @@ const priorityColors: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  [TASK_STATUS.NOT_STARTED]: "bg-gray-100 text-gray-800 border-gray-300",
+  [TASK_STATUS.ASSIGNED]: "bg-purple-100 text-purple-800 border-purple-300",
   [TASK_STATUS.IN_PROGRESS]: "bg-blue-100 text-blue-800 border-blue-300",
   [TASK_STATUS.COMPLETED]: "bg-green-100 text-green-800 border-green-300",
   [TASK_STATUS.CANCELLED]: "bg-gray-100 text-gray-600 border-gray-300",
@@ -45,8 +50,8 @@ const statusColors: Record<string, string> = {
 
 const getStatusText = (status: string): string => {
   switch (status) {
-    case TASK_STATUS.NOT_STARTED:
-      return "Chưa bắt đầu";
+    case TASK_STATUS.ASSIGNED:
+      return "Đã giao";
     case TASK_STATUS.IN_PROGRESS:
       return "Đang thực hiện";
     case TASK_STATUS.COMPLETED:
@@ -93,10 +98,74 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   onDelete,
   onComplete,
 }) => {
+  const { user } = useAuth();
+  const [coordinator, setCoordinator] = useState<VolunteerCoordinatorDto | null>(null);
+  const [event, setEvent] = useState<EventDto | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Load coordinator and event data when task changes
+  useEffect(() => {
+    if (!task || !isOpen || !user?.organizationId) return;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load coordinator info
+        if (task.coordinatorId && user.organizationId) {
+          try {
+            const coordinatorResult = await volunteerCoordinatorService.getCoordinatorsByOrganization(
+              user.organizationId,
+              {
+                page: 1,
+                size: 100,
+                sortBy: "CreatedAt",
+                sortOrder: "desc"
+              }
+            );
+            const foundCoordinator = coordinatorResult.items?.find(
+              (c) => String(c.coordinatorId) === String(task.coordinatorId)
+            );
+            setCoordinator(foundCoordinator || null);
+          } catch (error) {
+            console.error('Error loading coordinator:', error);
+            setCoordinator(null);
+          }
+        }
+
+        // Load event info
+        if (task.eventId) {
+          try {
+            const eventResult = await eventsService.getEvents({
+              organizationId: user.organizationId || undefined,
+              size: 100,
+              page: 1,
+              sortBy: "CreatedAt",
+              sortDirection: "desc",
+            });
+            const foundEvent = eventResult.items?.find(
+              (e) => String(e.eventId) === String(task.eventId)
+            );
+            setEvent(foundEvent || null);
+          } catch (error) {
+            console.error('Error loading event:', error);
+            setEvent(null);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading task details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [task, isOpen, user?.organizationId]);
+
   if (!task) return null;
 
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== TASK_STATUS.COMPLETED;
-  const canComplete = task.status !== TASK_STATUS.COMPLETED && task.status !== TASK_STATUS.CANCELLED;
+  const canComplete = task.status === TASK_STATUS.IN_PROGRESS;
   const progressPercentage = task.estimatedHours 
     ? Math.min(((task.actualHours || 0) / task.estimatedHours) * 100, 100)
     : 0;
@@ -194,19 +263,49 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                 <div className="flex justify-between items-center p-2 bg-white/50 dark:bg-slate-800/50 rounded border">
                   <span className="text-sm text-blue-700 dark:text-blue-300 font-medium flex items-center">
                     <User className="h-4 w-4 mr-1" />
-                    ID Điều phối viên:
+                    Điều phối viên:
                   </span>
-                  <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                    {task.coordinatorId}
-                  </span>
+                  <div className="text-right">
+                    {loading ? (
+                      <span className="text-sm text-blue-600 dark:text-blue-400">Đang tải...</span>
+                    ) : coordinator ? (
+                      <div>
+                        <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                          {coordinator.user?.fullName || coordinator.user?.email || 'Không có tên'}
+                        </span>
+                        <div className="text-xs text-blue-600 dark:text-blue-400">
+                          ID: {task.coordinatorId}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                        ID: {task.coordinatorId}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between items-center p-2 bg-white/50 dark:bg-slate-800/50 rounded border">
                   <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                    ID Sự kiện:
+                    Sự kiện:
                   </span>
-                  <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                    {task.eventId}
-                  </span>
+                  <div className="text-right">
+                    {loading ? (
+                      <span className="text-sm text-blue-600 dark:text-blue-400">Đang tải...</span>
+                    ) : event ? (
+                      <div>
+                        <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                          {event.eventName}
+                        </span>
+                        <div className="text-xs text-blue-600 dark:text-blue-400">
+                          ID: {task.eventId}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                        ID: {task.eventId}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between items-center p-2 bg-white/50 dark:bg-slate-800/50 rounded border">
                   <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">

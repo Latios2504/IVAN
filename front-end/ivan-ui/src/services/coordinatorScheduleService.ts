@@ -11,6 +11,7 @@ import type {
   BulkUpdateStatusDto,
   BulkDeleteDto,
   CheckConflictsDto,
+  CoordinatorScheduleSummaryDto,
 } from "../types/coordinatorSchedule";
 
 class CoordinatorScheduleService {
@@ -172,14 +173,8 @@ class CoordinatorScheduleService {
     throw new Error('Failed to update schedule');
   }
 
-  // DELETE /api/CoordinatorSchedule/{id} - Delete a schedule
-  async deleteSchedule(id: number): Promise<void> {
-    const response = await apiClient.delete(`${this.baseUrl}/${id}`);
-    
-    if (!response.success) {
-      throw new Error('Failed to delete schedule');
-    }
-  }
+  // Note: Single schedule deletion is not supported by backend
+  // Use bulkDelete method instead with a single schedule ID
 
   // GET /api/CoordinatorSchedule/stats - Get schedule statistics
   async getScheduleStats(): Promise<CoordinatorScheduleStatsDto> {
@@ -198,24 +193,20 @@ class CoordinatorScheduleService {
 
   // GET /api/CoordinatorSchedule/calendar - Get calendar view
   async getCalendarView(
-    startDate?: string,
-    endDate?: string,
+    startDate: string,
+    endDate: string,
     coordinatorId?: number
-  ): Promise<CoordinatorScheduleDto[]> {
+  ): Promise<CoordinatorScheduleSummaryDto[]> {
     const params = new URLSearchParams();
     
-    if (startDate) {
-      params.append('startDate', startDate);
-    }
-    if (endDate) {
-      params.append('endDate', endDate);
-    }
+    params.append('startDate', startDate);
+    params.append('endDate', endDate);
     if (coordinatorId !== undefined && coordinatorId !== null) {
       params.append('coordinatorId', coordinatorId.toString());
     }
 
     const queryString = params.toString();
-    const url = queryString ? `${this.baseUrl}/calendar?${queryString}` : `${this.baseUrl}/calendar`;
+    const url = `${this.baseUrl}/calendar?${queryString}`;
     
     const response = await apiClient.get(url);
     
@@ -230,21 +221,21 @@ class CoordinatorScheduleService {
     return [];
   }
 
-  // PUT /api/CoordinatorSchedule/{id}/status - Update schedule status
+  // PATCH /api/CoordinatorSchedule/{scheduleId}/status - Update schedule status
   async updateScheduleStatus(
-    id: number,
+    scheduleId: number,
     data: UpdateScheduleStatusDto
   ): Promise<void> {
-    const response = await apiClient.put(`${this.baseUrl}/${id}/status`, data);
+    const response = await apiClient.patch(`${this.baseUrl}/${scheduleId}/status`, data);
     
     if (!response.success) {
       throw new Error('Failed to update schedule status');
     }
   }
 
-  // PUT /api/CoordinatorSchedule/bulk-status - Bulk update status
+  // PATCH /api/CoordinatorSchedule/bulk/status - Bulk update status
   async bulkUpdateStatus(data: BulkUpdateStatusDto): Promise<void> {
-    const response = await apiClient.put(`${this.baseUrl}/bulk-status`, data);
+    const response = await apiClient.patch(`${this.baseUrl}/bulk/status`, data);
     
     if (!response.success) {
       throw new Error('Failed to bulk update status');
@@ -260,20 +251,20 @@ class CoordinatorScheduleService {
     }
   }
 
-  // POST /api/CoordinatorSchedule/check-conflicts - Check schedule conflicts
-   async checkConflicts(data: CheckConflictsDto): Promise<boolean> {
-     const response = await apiClient.post(`${this.baseUrl}/check-conflicts`, data);
-     
-     // Handle ApiResponseDTO wrapper - backend returns PascalCase
-     if (response.success && response.data) {
-       const backendData = response.data as any;
-       if (backendData.Success && backendData.Data !== undefined) {
-         return backendData.Data;
-       }
-     }
-     
-     throw new Error('Failed to check conflicts');
-   }
+  // POST /api/CoordinatorSchedule/conflicts - Check schedule conflicts
+  async checkConflicts(data: CheckConflictsDto): Promise<CoordinatorScheduleSummaryDto[]> {
+    const response = await apiClient.post(`${this.baseUrl}/conflicts`, data);
+    
+    // Handle ApiResponseDTO wrapper - backend returns PascalCase
+    if (response.success && response.data) {
+      const backendData = response.data as any;
+      if (backendData.Success && backendData.Data) {
+        return this.extractDataFromNetResponse(backendData.Data);
+      }
+    }
+    
+    return [];
+  }
 
 
 

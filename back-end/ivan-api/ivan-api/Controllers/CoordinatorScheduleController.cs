@@ -17,7 +17,8 @@ namespace ivan_api.Controllers
         private readonly ICoordinatorScheduleService _coordinatorScheduleService;
         private readonly IAuthenticationService _authenticationService;
 
-        public CoordinatorScheduleController(ICoordinatorScheduleService coordinatorScheduleService, IAuthenticationService authenticationService)
+        public CoordinatorScheduleController(ICoordinatorScheduleService coordinatorScheduleService,
+            IAuthenticationService authenticationService)
         {
             _coordinatorScheduleService = coordinatorScheduleService;
             _authenticationService = authenticationService;
@@ -104,7 +105,7 @@ namespace ivan_api.Controllers
             }
 
             var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-            
+
             if (userInfo?.OrganizationId == null)
             {
                 return BadRequest(new ApiResponseDTO<PagedResultDto<CoordinatorScheduleDto>>
@@ -122,8 +123,9 @@ namespace ivan_api.Controllers
                 PageSize = size
             };
 
-            var result = await _coordinatorScheduleService.GetOrganizationSchedulesAsync(userInfo.OrganizationId.Value, filter);
-            
+            var result =
+                await _coordinatorScheduleService.GetOrganizationSchedulesAsync(userInfo.OrganizationId.Value, filter);
+
             return Ok(new ApiResponseDTO<PagedResultDto<CoordinatorScheduleDto>>
             {
                 Success = true,
@@ -157,7 +159,7 @@ namespace ivan_api.Controllers
             }
 
             var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-            
+
             if (userInfo?.OrganizationId == null)
             {
                 return BadRequest(new ApiResponseDTO<CoordinatorScheduleDto>
@@ -167,7 +169,8 @@ namespace ivan_api.Controllers
                 });
             }
 
-            var result = await _coordinatorScheduleService.GetScheduleByIdAsync(userInfo.OrganizationId.Value, scheduleId);
+            var result =
+                await _coordinatorScheduleService.GetScheduleByIdAsync(userInfo.OrganizationId.Value, scheduleId);
             if (result == null)
             {
                 return NotFound(new ApiResponseDTO<CoordinatorScheduleDto>
@@ -223,7 +226,7 @@ namespace ivan_api.Controllers
             }
 
             var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-            
+
             if (userInfo?.OrganizationId == null)
             {
                 return BadRequest(new ApiResponseDTO<int>
@@ -233,7 +236,8 @@ namespace ivan_api.Controllers
                 });
             }
 
-            var result = await _coordinatorScheduleService.CreateScheduleAsync(userInfo.OrganizationId.Value, request, userId);
+            var result =
+                await _coordinatorScheduleService.CreateScheduleAsync(userInfo.OrganizationId.Value, request, userId);
             if (result == null)
             {
                 return BadRequest(new ApiResponseDTO<int>
@@ -291,7 +295,7 @@ namespace ivan_api.Controllers
             }
 
             var userInfo = await _authenticationService.GetUserInfoWithProfileAsync(userId);
-            
+
             if (userInfo?.OrganizationId == null)
             {
                 return BadRequest(new ApiResponseDTO<CoordinatorScheduleDto>
@@ -302,7 +306,8 @@ namespace ivan_api.Controllers
             }
 
             var result =
-                await _coordinatorScheduleService.UpdateScheduleAsync(userInfo.OrganizationId.Value, scheduleId, request, userId);
+                await _coordinatorScheduleService.UpdateScheduleAsync(userInfo.OrganizationId.Value, scheduleId,
+                    request, userId);
             if (!result)
             {
                 return NotFound(new ApiResponseDTO<CoordinatorScheduleDto>
@@ -314,7 +319,8 @@ namespace ivan_api.Controllers
             }
 
             // Get the updated schedule to return
-            var updatedSchedule = await _coordinatorScheduleService.GetScheduleByIdAsync(userInfo.OrganizationId.Value, scheduleId);
+            var updatedSchedule =
+                await _coordinatorScheduleService.GetScheduleByIdAsync(userInfo.OrganizationId.Value, scheduleId);
             return Ok(new ApiResponseDTO<CoordinatorScheduleDto>
             {
                 Success = true,
@@ -403,7 +409,7 @@ namespace ivan_api.Controllers
 
             var calendarData = await _coordinatorScheduleService.GetCalendarViewAsync(
                 userInfo.OrganizationId.Value, startDate, endDate, coordinatorId);
-            
+
             return Ok(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
             {
                 Success = true,
@@ -454,13 +460,14 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Invalid status value",
-                    Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                    Errors = new List<string>
+                        { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
                 });
             }
 
             var result = await _coordinatorScheduleService.UpdateScheduleStatusAsync(
                 userInfo.OrganizationId.Value, scheduleId, request.Status, userId);
-            
+
             if (!result)
             {
                 return NotFound(new ApiResponseDTO<object>
@@ -519,7 +526,8 @@ namespace ivan_api.Controllers
                 {
                     Success = false,
                     Message = "Invalid status value",
-                    Errors = new List<string> { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
+                    Errors = new List<string>
+                        { $"Status must be one of: {string.Join(", ", ScheduleConstants.GetAllStatuses())}" }
                 });
             }
 
@@ -535,7 +543,7 @@ namespace ivan_api.Controllers
 
             var result = await _coordinatorScheduleService.BulkUpdateStatusAsync(
                 userInfo.OrganizationId.Value, request.ScheduleIds, request.Status, userId);
-            
+
             if (!result)
             {
                 return BadRequest(new ApiResponseDTO<object>
@@ -588,7 +596,7 @@ namespace ivan_api.Controllers
 
             var result = await _coordinatorScheduleService.BulkDeleteAsync(
                 userInfo.OrganizationId.Value, request.ScheduleIds);
-            
+
             if (!result)
             {
                 return BadRequest(new ApiResponseDTO<object>
@@ -613,7 +621,7 @@ namespace ivan_api.Controllers
         {
             var conflicts = await _coordinatorScheduleService.CheckScheduleConflictsAsync(
                 request.CoordinatorId, request.StartDateTime, request.EndDateTime, request.ExcludeScheduleId);
-            
+
             return Ok(new ApiResponseDTO<List<CoordinatorScheduleSummaryDto>>
             {
                 Success = true,

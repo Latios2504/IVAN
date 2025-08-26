@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { coordinatorScheduleService } from "@/services/coordinatorScheduleService";
 import { eventsService } from "@/services/eventsService";
-import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
 import type { CoordinatorScheduleDto, UpdateCoordinatorScheduleDto } from "@/types/coordinatorSchedule";
 import type { EventDto } from "@/types/events";
-import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +26,6 @@ import {
 import { Loader2 } from "lucide-react";
 
 interface ScheduleFormData {
-  coordinatorId: number;
   eventId?: number;
   title: string;
   description?: string;
@@ -58,13 +55,10 @@ export default function EditScheduleModal({
   organizationId,
 }: EditScheduleModalProps) {
   const [loading, setLoading] = useState(false);
-  const [coordinatorsLoading, setCoordinatorsLoading] = useState(false);
   const [eventsLoading, setEventsLoading] = useState(false);
-  const [coordinators, setCoordinators] = useState<VolunteerCoordinatorDto[]>([]);
   const [events, setEvents] = useState<EventDto[]>([]);
 
   const [formData, setFormData] = useState<ScheduleFormData>({
-    coordinatorId: 0,
     eventId: undefined,
     title: "",
     description: "",
@@ -77,25 +71,6 @@ export default function EditScheduleModal({
     reminderMinutes: 60,
     notes: "",
   });
-
-  // Load coordinators for dropdown
-  const loadCoordinators = async () => {
-    if (!organizationId) return;
-    
-    try {
-      setCoordinatorsLoading(true);
-      const result = await volunteerCoordinatorService.getOrganizationCoordinators(
-        { page: 1, size: 100 },
-        organizationId
-      );
-      setCoordinators(result.items);
-    } catch (error) {
-      console.error("Error loading coordinators:", error);
-      toast.error("Không thể tải danh sách điều phối viên");
-    } finally {
-      setCoordinatorsLoading(false);
-    }
-  };
 
   // Load events for dropdown
   const loadEvents = async () => {
@@ -121,7 +96,6 @@ export default function EditScheduleModal({
   useEffect(() => {
     if (schedule && isOpen) {
       setFormData({
-        coordinatorId: schedule.coordinatorId,
         eventId: schedule.eventId || undefined,
         title: schedule.title,
         description: schedule.description || "",
@@ -139,13 +113,12 @@ export default function EditScheduleModal({
 
   useEffect(() => {
     if (isOpen) {
-      loadCoordinators();
       loadEvents();
     }
   }, [isOpen, organizationId]);
 
   const handleSubmit = async () => {
-    if (!schedule || !formData.title || !formData.startDateTime || !formData.endDateTime) {
+    if (!formData.title || !formData.startDateTime || !formData.endDateTime) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
     }
@@ -166,6 +139,10 @@ export default function EditScheduleModal({
         notes: formData.notes,
       };
 
+      if (!schedule) {
+        toast.error("Không tìm thấy thông tin lịch trình");
+        return;
+      }
       await coordinatorScheduleService.updateSchedule(schedule.scheduleId, updateData);
       toast.success("Cập nhật lịch trình thành công");
       onSuccess();
@@ -180,7 +157,6 @@ export default function EditScheduleModal({
 
   const handleClose = () => {
     setFormData({
-      coordinatorId: 0,
       eventId: undefined,
       title: "",
       description: "",
@@ -222,36 +198,7 @@ export default function EditScheduleModal({
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="coordinator" className="text-slate-900 dark:text-slate-100 font-semibold">
-              Điều phối viên *
-            </Label>
-            <Select
-              value={formData.coordinatorId.toString()}
-              onValueChange={(value) => setFormData({ ...formData, coordinatorId: parseInt(value) })}
-            >
-              <SelectTrigger className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400">
-                <SelectValue placeholder="Chọn điều phối viên" />
-              </SelectTrigger>
-              <SelectContent>
-                {coordinatorsLoading ? (
-                  <SelectItem value="loading" disabled>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Đang tải...
-                  </SelectItem>
-                ) : (
-                  coordinators.map((coordinator) => (
-                    <SelectItem
-                      key={coordinator.coordinatorId}
-                      value={coordinator.coordinatorId.toString()}
-                    >
-                      {coordinator.user?.fullName || coordinator.user?.email || 'Unknown'}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+
 
           <div className="grid gap-2">
             <Label htmlFor="event" className="text-slate-900 dark:text-slate-100 font-semibold">

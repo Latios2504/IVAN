@@ -45,6 +45,8 @@ import {
   CalendarDays,
   Loader2,
   RefreshCw,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -130,11 +132,11 @@ export default function CoordinatorPersonalSchedulePage() {
             Đã lên lịch
           </Badge>
         );
-      case "In Progress":
+      case "Checked In":
         return (
           <Badge className="bg-yellow-100 text-yellow-800">
-            <Clock className="h-3 w-3 mr-1" />
-            Đang thực hiện
+            <LogIn className="h-3 w-3 mr-1" />
+            Đã check-in
           </Badge>
         );
       case "Completed":
@@ -149,6 +151,13 @@ export default function CoordinatorPersonalSchedulePage() {
           <Badge className="bg-red-100 text-red-800">
             <AlertCircle className="h-3 w-3 mr-1" />
             Đã hủy
+          </Badge>
+        );
+      case "No Show":
+        return (
+          <Badge className="bg-orange-100 text-orange-800">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Vắng mặt
           </Badge>
         );
       default:
@@ -189,6 +198,52 @@ export default function CoordinatorPersonalSchedulePage() {
 
   const handleViewSchedule = (schedule: CoordinatorScheduleDto) => {
     viewModal.openWith(schedule);
+  };
+
+  // Handle check-in/check-out actions
+  const handleCheckIn = async (schedule: CoordinatorScheduleDto) => {
+    try {
+      await coordinatorScheduleService.updateScheduleStatus(schedule.scheduleId, {
+        status: "Checked In"
+      });
+      toast.success("Check-in thành công!");
+      loadPersonalSchedules(); // Reload to get updated status
+    } catch (error) {
+      console.error("Error checking in:", error);
+      toast.error("Không thể check-in. Vui lòng thử lại.");
+    }
+  };
+
+  const handleCheckOut = async (schedule: CoordinatorScheduleDto) => {
+    try {
+      await coordinatorScheduleService.updateScheduleStatus(schedule.scheduleId, {
+        status: "Completed"
+      });
+      toast.success("Check-out thành công!");
+      loadPersonalSchedules(); // Reload to get updated status
+    } catch (error) {
+      console.error("Error checking out:", error);
+      toast.error("Không thể check-out. Vui lòng thử lại.");
+    }
+  };
+
+  // Check if schedule can be checked in (must be Scheduled and within time range)
+  const canCheckIn = (schedule: CoordinatorScheduleDto) => {
+    if (schedule.status !== "Scheduled") return false;
+    
+    const now = new Date();
+    const startTime = new Date(schedule.startDateTime);
+    const endTime = new Date(schedule.endDateTime);
+    
+    // Allow check-in 30 minutes before start time and until end time
+    const checkInWindow = new Date(startTime.getTime() - 30 * 60 * 1000);
+    
+    return now >= checkInWindow && now <= endTime;
+  };
+
+  // Check if schedule can be checked out (must be Checked In)
+  const canCheckOut = (schedule: CoordinatorScheduleDto) => {
+    return schedule.status === "Checked In";
   };
 
   const filteredSchedules = schedules.filter((schedule) => {
@@ -275,10 +330,10 @@ export default function CoordinatorPersonalSchedulePage() {
             Đã lên lịch
           </TabsTrigger>
           <TabsTrigger
-            value="In Progress"
+            value="Checked In"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
-            Đang thực hiện
+            Đã check-in
           </TabsTrigger>
           <TabsTrigger
             value="Completed"
@@ -291,6 +346,12 @@ export default function CoordinatorPersonalSchedulePage() {
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Đã hủy
+          </TabsTrigger>
+          <TabsTrigger
+            value="No Show"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+          >
+            Vắng mặt
           </TabsTrigger>
         </TabsList>
 
@@ -349,6 +410,26 @@ export default function CoordinatorPersonalSchedulePage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
+                            {canCheckIn(schedule) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCheckIn(schedule)}
+                                className="text-green-600 border-green-600 hover:bg-green-50"
+                              >
+                                <LogIn className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canCheckOut(schedule) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCheckOut(schedule)}
+                                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                              >
+                                <LogOut className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
