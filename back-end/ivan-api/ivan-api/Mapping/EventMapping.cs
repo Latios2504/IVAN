@@ -31,9 +31,11 @@ namespace ivan_api.Mapping
                 .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status != null ? src.Status.StatusName : string.Empty))
                 .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization != null ? src.Organization.OrganizationName : string.Empty))
                 .ForMember(dest => dest.MinVolunteers, opt => opt.MapFrom(src => src.MinVolunteers ?? 1))
-                .ForMember(dest => dest.VolunteersRegistered, opt => opt.MapFrom(src => src.EventRegistrations != null ? src.EventRegistrations.Count(r => r.StatusId == 2) : 0))
+                .ForMember(dest => dest.VolunteersRegistered, opt => opt.MapFrom(s => s.CurrentVolunteers ?? 0))
                 .ForMember(dest => dest.IsFeatured, opt => opt.MapFrom(src => src.IsFeatured ?? false))
                 .ForMember(dest => dest.IsUrgent, opt => opt.MapFrom(src => src.IsUrgent ?? false))
+                .ForMember(d => d.CurrentVolunteers, o => o.MapFrom(s => s.CurrentVolunteers ?? 0))
+                .ForMember(d => d.RegistrationCount, o => o.MapFrom(s => s.RegistrationCount ?? 0))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt ?? DateTime.MinValue))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt ?? DateTime.MinValue));
 

@@ -1,4 +1,4 @@
-using ivan_api.DTOs.Common;
+﻿using ivan_api.DTOs.Common;
 using ivan_api.DTOs.EventRegistration;
 using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -184,27 +184,31 @@ namespace ivan_api.Repository.EventRegistrationRepo
 
         public async Task<bool> UpdateEventStatisticsAsync(int eventId)
         {
-            // Get the event
-            var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
-            if (eventEntity == null) return false;
+            var evt = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            if (evt == null) return false;
 
-            // Count approved registrations for this event
+            // Lấy StatusId theo tên (song ngữ nếu sau này đổi seed)
+            var approvedId = await _context.RegistrationStatuses
+                .Where(s => s.StatusName == "Approved" || s.StatusName == "Đã duyệt")
+                .Select(s => s.StatusId)
+                .FirstOrDefaultAsync();
+
+            var cancelledId = await _context.RegistrationStatuses
+                .Where(s => s.StatusName == "Cancelled" || s.StatusName == "Đã hủy" || s.StatusName == "Đã huỷ")
+                .Select(s => s.StatusId)
+                .FirstOrDefaultAsync();
+
             var approvedCount = await _context.EventRegistrations
-                .Include(r => r.Status)
-                .CountAsync(r => r.EventId == eventId && r.Status.StatusName == "Approved");
+                .CountAsync(r => r.EventId == eventId && r.StatusId == approvedId);
 
-            // Count total registrations for this event (excluding cancelled)
-            var totalRegistrationsCount = await _context.EventRegistrations
-                .Include(r => r.Status)
-                .CountAsync(r => r.EventId == eventId && r.Status.StatusName != "Cancelled");
+            var totalRegistrations = await _context.EventRegistrations
+                .CountAsync(r => r.EventId == eventId && r.StatusId != cancelledId);
 
-            // Update event statistics
-            eventEntity.CurrentVolunteers = approvedCount;
-            eventEntity.RegistrationCount = totalRegistrationsCount;
-            eventEntity.UpdatedAt = DateTime.UtcNow;
+            evt.CurrentVolunteers = approvedCount;
+            evt.RegistrationCount = totalRegistrations;
+            evt.UpdatedAt = DateTime.UtcNow;
 
-            // Save changes
-            return await SaveChangesAsync();
+            return (await _context.SaveChangesAsync()) > 0;
         }
 
         public async Task<RegistrationStatus?> GetRegistrationStatusByNameAsync(string statusName)
