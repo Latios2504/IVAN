@@ -52,8 +52,8 @@ export interface CertificateUpdateModel {
 }
 
 export interface CertificateFilterModel {
-  pageNumber?: number;
-  pageSize?: number;
+  pageNumber: number;
+  pageSize: number;
   organizationId?: number;
   status?: string;
   volunteerId?: number;
@@ -110,7 +110,7 @@ export interface CertificateTemplateInputModel {
 
 export interface CertificateTemplateUpdateModel {
   templateId: number;
-  templateName?: string;
+  templateName: string;
   description?: string;
   templateType?: string;
   templateDesign?: string;
@@ -121,8 +121,8 @@ export interface CertificateTemplateUpdateModel {
 }
 
 export interface CertificateTemplateFilterModel {
-  pageNumber?: number;
-  pageSize?: number;
+  pageNumber: number;
+  pageSize: number;
   organizationId?: number;
   searchTerm?: string;
 }
