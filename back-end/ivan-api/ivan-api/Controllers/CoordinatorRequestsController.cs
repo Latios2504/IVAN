@@ -1,9 +1,12 @@
 ﻿using ivan_api.DTOs.Common;
 using ivan_api.DTOs.CoordinatorRequests;
+using ivan_api.Models;
 using ivan_api.Services.CoordinatorRequestServ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ivan_api.Controllers
@@ -13,23 +16,24 @@ namespace ivan_api.Controllers
     public class CoordinatorRequestsController : ControllerBase
     {
         private readonly ICoordinatorRequestService _service;
+        private readonly VolunteerManagementSystemContext _db;
         private readonly ILogger<CoordinatorRequestsController> _logger;
 
         public CoordinatorRequestsController(
             ICoordinatorRequestService service,
-            ILogger<CoordinatorRequestsController> logger)
+            ILogger<CoordinatorRequestsController> logger, VolunteerManagementSystemContext db)
         {
             _service = service;
             _logger = logger;
+            _db = db;
         }
 
         /// <summary>
         /// Organization gửi yêu cầu tạo Coordinator
         /// </summary>
-        [HttpPost("orgs/{organizationId:int}/coordinator-requests")]
+        [HttpPost("orgs/owner/coordinator-requests")]
         [Authorize(Roles = "Organization")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Create(
-            [FromRoute] int organizationId,
             [FromBody] CreateCoordinatorRequestDto dto)
         {
             if (!ModelState.IsValid)
@@ -42,6 +46,17 @@ namespace ivan_api.Controllers
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var requesterUserId))
                 return Unauthorized(ApiResponseDTO<object>.Fail("INVALID_TOKEN"));
 
+            var realOrgId = await _db.Organizations
+            .Where(o => o.UserId == requesterUserId)
+            .Select(o => o.OrganizationId)
+            .FirstOrDefaultAsync();
+            
+             if (realOrgId == 0)
+                 return Forbid();
+            
+             // Dùng orgId lấy từ DB; bỏ qua path param để tránh spoofing
+            int organizationId = realOrgId;
+            
             var result = await _service.CreateAsync(organizationId, requesterUserId, dto);
 
             if (!result.Success)
