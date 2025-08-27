@@ -36,15 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supportRequestService } from "@/services/supportRequestService";
 import type { SupportRequestResponseDto } from "@/types/supportRequest";
-import {
-  Search,
-  Eye,
-  MessageCircle,
-  Plus,
-  Upload,
-  X,
-  FileText,
-} from "lucide-react";
+import { Search, Eye, MessageCircle, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -59,10 +51,6 @@ export default function SupportRequestHistoryPage() {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [comment, setComment] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [attachments, setAttachments] = useState<
-    { name: string; url: string }[]
-  >([]);
 
   useEffect(() => {
     fetchMyRequests();
@@ -95,18 +83,15 @@ export default function SupportRequestHistoryPage() {
 
     setIsUpdating(true);
     try {
-      const attachmentUrls = attachments.map((att) => att.url);
       await supportRequestService.addCommentWithAttachment(
         selectedRequest.requestId,
         comment,
-        false, // Public comment for users
-        attachmentUrls.length > 0 ? attachmentUrls : undefined
+        false // Public comment for users
       );
 
       // Refresh the request details
       await handleViewDetails(selectedRequest.requestId);
       setComment("");
-      setAttachments([]);
       toast.success("Đã gửi bình luận thành công");
     } catch (error) {
       console.error("Error adding comment:", error);
@@ -116,82 +101,16 @@ export default function SupportRequestHistoryPage() {
     }
   };
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    setUploadingFiles(true);
-    try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        // Validate file size (10MB max)
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`Tệp ${file.name} quá lớn (tối đa 10MB)`);
-          return null;
-        }
-
-        // Validate file type
-        const allowedTypes = [
-          "image/jpeg",
-          "image/jpg",
-          "image/png",
-          "image/gif",
-          "application/pdf",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "text/plain",
-        ];
-
-        if (!allowedTypes.includes(file.type)) {
-          toast.error(`Định dạng tệp ${file.name} không được hỗ trợ`);
-          return null;
-        }
-
-        try {
-          const url = await supportRequestService.uploadAttachment(file);
-          return { name: file.name, url };
-        } catch (error) {
-          toast.error(`Lỗi tải lên tệp ${file.name}`);
-          return null;
-        }
-      });
-
-      const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter((result) => result !== null) as {
-        name: string;
-        url: string;
-      }[];
-
-      setAttachments((prev) => [...prev, ...successfulUploads]);
-
-      if (successfulUploads.length > 0) {
-        toast.success(`Đã tải lên ${successfulUploads.length} tệp thành công`);
-      }
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      toast.error("Có lỗi xảy ra khi tải lên tệp");
-    } finally {
-      setUploadingFiles(false);
-      // Reset file input
-      if (event.target) {
-        event.target.value = "";
-      }
-    }
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Pending":
-        return <Badge variant="secondary">Chờ duyệt</Badge>;
+      case "Open":
+        return <Badge variant="secondary">Mở</Badge>;
       case "Approved":
         return <Badge variant="default">Đã duyệt</Badge>;
       case "Rejected":
         return <Badge variant="destructive">Đã từ chối</Badge>;
+      case "Resolved":
+        return <Badge variant="outline">Đã giải quyết</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -227,12 +146,17 @@ export default function SupportRequestHistoryPage() {
         <CardHeader className="bg-gradient-to-br from-violet-50 via-indigo-50 to-blue-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-blue-950/40 rounded-t-lg border-b border-violet-200/50 dark:border-violet-800/50">
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">Lịch sử Yêu cầu Hỗ trợ</CardTitle>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
+                Lịch sử Yêu cầu Hỗ trợ
+              </CardTitle>
               <CardDescription className="text-muted-foreground mt-1">
                 Xem và theo dõi các yêu cầu hỗ trợ của bạn
               </CardDescription>
             </div>
-            <Button onClick={() => navigate("/support-request/create")} className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+            <Button
+              onClick={() => navigate("/support-request/create")}
+              className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Tạo yêu cầu mới
             </Button>
@@ -259,9 +183,10 @@ export default function SupportRequestHistoryPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="Pending">Chờ duyệt</SelectItem>
+                  <SelectItem value="Open">Mở</SelectItem>
                   <SelectItem value="Approved">Đã duyệt</SelectItem>
                   <SelectItem value="Rejected">Đã từ chối</SelectItem>
+                  <SelectItem value="Resolved">Đã giải quyết</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -299,14 +224,19 @@ export default function SupportRequestHistoryPage() {
                   </TableRow>
                 ) : (
                   statusFilteredRequests.map((request) => (
-                    <TableRow key={request.requestId} className="bg-gradient-to-r from-slate-50/30 via-gray-50/30 to-zinc-50/30 dark:from-slate-950/20 dark:via-gray-950/20 dark:to-zinc-950/20 hover:from-slate-100/50 hover:via-gray-100/50 hover:to-zinc-100/50 dark:hover:from-slate-900/30 dark:hover:via-gray-900/30 dark:hover:to-zinc-900/30 border-b border-slate-200/50 dark:border-slate-800/50 transition-all duration-300">
+                    <TableRow
+                      key={request.requestId}
+                      className="bg-gradient-to-r from-slate-50/30 via-gray-50/30 to-zinc-50/30 dark:from-slate-950/20 dark:via-gray-950/20 dark:to-zinc-950/20 hover:from-slate-100/50 hover:via-gray-100/50 hover:to-zinc-100/50 dark:hover:from-slate-900/30 dark:hover:via-gray-900/30 dark:hover:to-zinc-900/30 border-b border-slate-200/50 dark:border-slate-800/50 transition-all duration-300"
+                    >
                       <TableCell className="font-medium text-foreground">
                         #{request.requestId}
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-foreground">
                         {request.subject}
                       </TableCell>
-                      <TableCell className="text-foreground">{request.categoryName}</TableCell>
+                      <TableCell className="text-foreground">
+                        {request.categoryName}
+                      </TableCell>
                       <TableCell>
                         {getPriorityBadge(request.priority)}
                       </TableCell>
@@ -428,140 +358,6 @@ export default function SupportRequestHistoryPage() {
                   </div>
                 </div>
               )}
-
-              {/* Comments */}
-              <div>
-                <Label className="text-sm font-medium">Trao đổi</Label>
-                <div className="mt-2 space-y-3 max-h-60 overflow-y-auto">
-                  {selectedRequest.comments &&
-                  selectedRequest.comments.length > 0 ? (
-                    selectedRequest.comments
-                      .filter((comment) => !comment.isInternal) // Only show public comments to users
-                      .map((comment, index) => (
-                        <div key={index} className="p-3 rounded-md bg-gray-50">
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="text-sm font-medium">
-                              {comment.userName}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {comment.createdAt
-                                ? new Date(comment.createdAt).toLocaleString(
-                                    "vi-VN"
-                                  )
-                                : "N/A"}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                            {comment.comment}
-                          </p>
-                          {/* Comment Attachments */}
-                          {comment.attachmentUrls &&
-                            comment.attachmentUrls.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                <p className="text-xs text-gray-500">
-                                  Tệp đính kèm:
-                                </p>
-                                {comment.attachmentUrls.map((url, idx) => (
-                                  <a
-                                    key={idx}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
-                                  >
-                                    <FileText className="h-3 w-3" />
-                                    {url.split("/").pop() || "Tệp đính kèm"}
-                                  </a>
-                                ))}
-                              </div>
-                            )}
-                        </div>
-                      ))
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">
-                      Chưa có trao đổi nào
-                    </p>
-                  )}
-                </div>
-
-                {/* Add Comment - Only if request is not closed */}
-                {selectedRequest.status !== "Closed" && (
-                  <div className="mt-4 space-y-3">
-                    <Textarea
-                      placeholder="Thêm bình luận hoặc cung cấp thêm thông tin..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      rows={3}
-                    />
-
-                    {/* File Upload */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label
-                          htmlFor="file-upload-user"
-                          className="text-sm font-medium"
-                        >
-                          Đính kèm tệp:
-                        </Label>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={uploadingFiles}
-                          onClick={() =>
-                            document.getElementById("file-upload-user")?.click()
-                          }
-                        >
-                          <Upload className="h-4 w-4 mr-1" />
-                          {uploadingFiles ? "Đang tải lên..." : "Chọn tệp"}
-                        </Button>
-                        <input
-                          id="file-upload-user"
-                          type="file"
-                          multiple
-                          accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                        />
-                      </div>
-
-                      {/* Attachment List */}
-                      {attachments.length > 0 && (
-                        <div className="space-y-1">
-                          {attachments.map((attachment, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                            >
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-gray-500" />
-                                <span className="text-sm text-gray-700">
-                                  {attachment.name}
-                                </span>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeAttachment(index)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <Button
-                      onClick={handleAddComment}
-                      disabled={!comment.trim() || isUpdating}
-                      size="sm"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      {isUpdating ? "Đang gửi..." : "Gửi bình luận"}
-                    </Button>
-                  </div>
-                )}
-              </div>
             </div>
           )}
 

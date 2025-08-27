@@ -179,17 +179,10 @@ export default function Navbar() {
                           "text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                         )}
                       >
-                        {user?.role === "admin" ? (
-                          <>
-                            <Shield className="w-4 h-4 mr-2" />
-                            Quản trị
-                          </>
-                        ) : (
-                          <>
-                            <LayoutDashboard className="w-4 h-4 mr-2" />
-                            Dashboard
-                          </>
-                        )}
+                        <>
+                          <LayoutDashboard className="w-4 h-4 mr-2" />
+                          Quản trị
+                        </>
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
@@ -202,11 +195,19 @@ export default function Navbar() {
 
           {/* Right side - Auth and User Menu */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle - always visible */}
+            <ThemeToggle />
+
+            {/* Support Request Button - always visible */}
+            <Button asChild variant="outline" size="sm">
+              <Link to="/support-request/create">
+                <HeartHandshake className="h-4 w-4 mr-1" />
+                Yêu cầu hỗ trợ
+              </Link>
+            </Button>
+
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                {/* Theme Toggle */}
-                <ThemeToggle />
-
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -274,17 +275,6 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                {/* Theme Toggle */}
-                <ThemeToggle />
-
-                {/* Create Support Request for anonymous users */}
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/support-request/create">
-                    <HeartHandshake className="h-4 w-4 mr-1" />
-                    Yêu cầu hỗ trợ
-                  </Link>
-                </Button>
-
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/login">Đăng nhập</Link>
                 </Button>

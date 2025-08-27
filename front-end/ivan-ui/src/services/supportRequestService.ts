@@ -520,25 +520,7 @@ class SupportRequestService {
     return this.addComment(requestId, commentData);
   }
 
-  // Upload attachment method using the actual upload endpoint
-  async uploadAttachment(file: File): Promise<string> {
-    try {
-      // Use the uploadFile method from apiClient
-      const response = await apiClient.uploadFile<{ fileUrl: string }>(
-        "/Upload/support-request-attachment",
-        file
-      );
-
-      if (!response.data?.fileUrl) {
-        throw new Error("Upload failed - no file URL returned");
-      }
-
-      return response.data.fileUrl;
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      throw error;
-    }
-  }
+  // Note: File upload functionality removed - using direct links instead
 }
 
 export const supportRequestService = new SupportRequestService();

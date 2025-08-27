@@ -10,7 +10,7 @@ namespace ivan_api.Services.CoordinatorRequestServ
     public class CoordinatorRequestService : ICoordinatorRequestService
     {
         private readonly VolunteerManagementSystemContext _db;
-        private const string CategoryName_Account = "CreateCoordinator"; // seed có sẵn
+        private const string CategoryName_Account = "Tạo tài khoản cho điều phối viên"; // seed có sẵn
 
         public CoordinatorRequestService(VolunteerManagementSystemContext db)
         {
@@ -83,7 +83,7 @@ namespace ivan_api.Services.CoordinatorRequestServ
                 Subject = subject,
                 Description = description,
                 Priority = "High",
-                Status = "Open",               // map với API status "PENDING"
+                Status = "Open", // map với API status "PENDING"
                 AssignedTo = null,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -151,9 +151,13 @@ namespace ivan_api.Services.CoordinatorRequestServ
                         return orgId.GetInt32();
                 }
             }
-            catch { }
+            catch
+            {
+            }
+
             return 0;
         }
+
         private string ExtractCandidateEmail(string description)
         {
             try
@@ -167,9 +171,13 @@ namespace ivan_api.Services.CoordinatorRequestServ
                         return email.GetString() ?? "";
                 }
             }
-            catch { }
+            catch
+            {
+            }
+
             return "";
         }
+
         private string MapStatus(string statusDb)
         {
             return statusDb switch
@@ -181,7 +189,8 @@ namespace ivan_api.Services.CoordinatorRequestServ
             };
         }
 
-        public async Task<ApiResponseDTO<object>> UpdateAsync(int requestId, int adminUserId, UpdateCoordinatorRequestDto dto)
+        public async Task<ApiResponseDTO<object>> UpdateAsync(int requestId, int adminUserId,
+            UpdateCoordinatorRequestDto dto)
         {
             var sr = await _db.SupportRequests.FirstOrDefaultAsync(x => x.RequestId == requestId);
             if (sr == null)
@@ -211,44 +220,54 @@ namespace ivan_api.Services.CoordinatorRequestServ
                 using var doc = JsonDocument.Parse(json);
 
                 // Safely extract properties with null checks
-                if (!doc.RootElement.TryGetProperty("organizationId", out var orgIdElement) || orgIdElement.ValueKind == JsonValueKind.Null)
+                if (!doc.RootElement.TryGetProperty("organizationId", out var orgIdElement) ||
+                    orgIdElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: organizationId is missing or null");
                 var orgId = orgIdElement.GetInt32();
-                
-                if (!doc.RootElement.TryGetProperty("CandidateEmail", out var emailElement) || emailElement.ValueKind == JsonValueKind.Null)
+
+                if (!doc.RootElement.TryGetProperty("CandidateEmail", out var emailElement) ||
+                    emailElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: CandidateEmail is missing or null");
                 var email = emailElement.GetString()!;
-                
-                if (!doc.RootElement.TryGetProperty("FullName", out var fullNameElement) || fullNameElement.ValueKind == JsonValueKind.Null)
+
+                if (!doc.RootElement.TryGetProperty("FullName", out var fullNameElement) ||
+                    fullNameElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: FullName is missing or null");
                 var fullName = fullNameElement.GetString()!;
-                
-                if (!doc.RootElement.TryGetProperty("Position", out var positionElement) || positionElement.ValueKind == JsonValueKind.Null)
+
+                if (!doc.RootElement.TryGetProperty("Position", out var positionElement) ||
+                    positionElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: Position is missing or null");
                 var position = positionElement.GetString()!;
-                
-                if (!doc.RootElement.TryGetProperty("Department", out var departmentElement) || departmentElement.ValueKind == JsonValueKind.Null)
+
+                if (!doc.RootElement.TryGetProperty("Department", out var departmentElement) ||
+                    departmentElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: Department is missing or null");
                 var department = departmentElement.GetString()!;
-                
-                if (!doc.RootElement.TryGetProperty("Responsibilities", out var responsibilitiesElement) || responsibilitiesElement.ValueKind == JsonValueKind.Null)
+
+                if (!doc.RootElement.TryGetProperty("Responsibilities", out var responsibilitiesElement) ||
+                    responsibilitiesElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: Responsibilities is missing or null");
                 var responsibilities = responsibilitiesElement.GetString()!;
-                
-                if (!doc.RootElement.TryGetProperty("HireDate", out var hireDateElement) || hireDateElement.ValueKind == JsonValueKind.Null)
+
+                if (!doc.RootElement.TryGetProperty("HireDate", out var hireDateElement) ||
+                    hireDateElement.ValueKind == JsonValueKind.Null)
                     return ApiResponseDTO<object>.Fail("INVALID_METADATA: HireDate is missing or null");
                 var hireDate = DateOnly.Parse(hireDateElement.GetString()!);
-                
-                var managerUserId = doc.RootElement.TryGetProperty("ManagerUserId", out var mgr) && mgr.ValueKind != JsonValueKind.Null ? mgr.GetInt32() : (int?)null;
+
+                var managerUserId =
+                    doc.RootElement.TryGetProperty("ManagerUserId", out var mgr) && mgr.ValueKind != JsonValueKind.Null
+                        ? mgr.GetInt32()
+                        : (int?)null;
 
                 // 1) Lấy roleId cho Coordinator
                 var roleId = await _db.UserRoles.Where(r => r.RoleName == "Coordinator")
-                                .Select(r => r.RoleId)
-                                .FirstOrDefaultAsync();
+                    .Select(r => r.RoleId)
+                    .FirstOrDefaultAsync();
                 if (roleId == 0) return ApiResponseDTO<object>.Fail("ROLE_COORDINATOR_NOT_FOUND");
 
                 var tempPassword = "123456";
-                var salt =  PasswordHashGenerate.GenerateSaltBase64();
+                var salt = PasswordHashGenerate.GenerateSaltBase64();
                 var passwordHash = PasswordHashGenerate.HashPasswordWithSalt(tempPassword, salt);
 
                 var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
@@ -275,7 +294,8 @@ namespace ivan_api.Services.CoordinatorRequestServ
                 }
 
                 // 3) Tạo VolunteerCoordinator
-                var vc = await _db.VolunteerCoordinators.FirstOrDefaultAsync(x => x.UserId == user.UserId && x.OrganizationId == orgId);
+                var vc = await _db.VolunteerCoordinators.FirstOrDefaultAsync(x =>
+                    x.UserId == user.UserId && x.OrganizationId == orgId);
                 if (vc == null)
                 {
                     vc = new VolunteerCoordinator
@@ -295,21 +315,20 @@ namespace ivan_api.Services.CoordinatorRequestServ
                     };
                     _db.VolunteerCoordinators.Add(vc);
                 }
-                
-                
+
 
                 // 3) ĐẢM BẢO tạo UserProfile cho tài khoản Coordinator vừa tạo
                 if (!await _db.UserProfiles.AnyAsync(p => p.UserId == user.UserId))
                 {
                     // Tách họ tên (nếu có). fullName đã được parse ở trên từ metadata.
                     string firstName = string.Empty;
-                    string lastName  = string.Empty;
+                    string lastName = string.Empty;
                     if (!string.IsNullOrWhiteSpace(fullName))
                     {
                         var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         if (parts.Length > 1)
                         {
-                            lastName  = parts[^1];
+                            lastName = parts[^1];
                             firstName = string.Join(" ", parts[..^1]);
                         }
                         else
@@ -320,10 +339,10 @@ namespace ivan_api.Services.CoordinatorRequestServ
 
                     _db.UserProfiles.Add(new UserProfile
                     {
-                        UserId    = user.UserId,
-                        FirstName = firstName,          // DB cho phép null, nhưng dùng "" an toàn hơn
-                        LastName  = lastName,
-                        CreatedAt = DateTime.UtcNow     // cột này đã có default (getdate()), set tay cũng ok
+                        UserId = user.UserId,
+                        FirstName = firstName, // DB cho phép null, nhưng dùng "" an toàn hơn
+                        LastName = lastName,
+                        CreatedAt = DateTime.UtcNow // cột này đã có default (getdate()), set tay cũng ok
                     });
                     await _db.SaveChangesAsync();
                 }

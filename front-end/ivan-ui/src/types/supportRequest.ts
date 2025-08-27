@@ -30,7 +30,6 @@ export interface SupportRequestResponseDto {
   attachmentUrls?: string[];
   createdAt?: string;
   updatedAt?: string;
-  comments?: SupportRequestCommentDto[];
 }
 
 export interface SupportRequestUpdateDto {

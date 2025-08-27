@@ -70,7 +70,7 @@ namespace ivan_api.Repository.SupportRequestRepo
         {
             request.CreatedAt = DateTime.Now;
             request.UpdatedAt = DateTime.Now;
-            request.Status = "Pending";
+            request.Status = "Open";
             
             _context.SupportRequests.Add(request);
             await _context.SaveChangesAsync();

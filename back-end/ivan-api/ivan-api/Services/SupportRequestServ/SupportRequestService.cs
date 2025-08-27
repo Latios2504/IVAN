@@ -117,7 +117,7 @@ namespace ivan_api.Services.SupportRequestServ
                     Subject = dto.Subject,
                     Description = dto.Description,
                     Priority = dto.Priority,
-                    Status = "Pending", // Set initial status to Pending for approval workflow
+                    Status = "Open", // Set initial status to Open
                     AttachmentUrls = dto.AttachmentUrls != null && dto.AttachmentUrls.Any() 
                         ? string.Join(",", dto.AttachmentUrls) 
                         : null
@@ -333,7 +333,7 @@ namespace ivan_api.Services.SupportRequestServ
                 Subject = request.Subject,
                 Description = request.Description,
                 Priority = request.Priority ?? "Medium",
-                Status = request.Status ?? "Pending",
+                Status = request.Status ?? "Open",
                 AssignedTo = request.AssignedTo,
                 AssignedToName = request.AssignedToNavigation?.UserProfiles?.FirstOrDefault()?.FullName ?? 
                                request.AssignedToNavigation?.Email,

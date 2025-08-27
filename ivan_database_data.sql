@@ -163,7 +163,7 @@ INSERT INTO SupportCategories (CategoryName, Description, Priority, ExpectedResp
 (N'Hỗ trợ nhà ở', N'Sửa chữa nhà, nhà tình thương', N'Medium', 168),
 (N'Hỗ trợ thiên tai', N'Cứu trợ lũ lụt, hạn hán, sạt lở...', N'High', 12),
 (N'Kêu gọi hiến máu', N'Đề nghị tổ chức/đồng hành hiến máu', N'Medium', 48),
-('CreateCoordinator','Request for creating Coordinator Account by Organization','High',3600,1);
+(N'Tạo tài khoản cho điều phối viên', N'Yêu cầu tạo tài khoản cho điều phối viên', N'High', 3600, 1);
 -- Insert User Profiles
 INSERT INTO UserProfiles (UserId, FirstName, LastName, PhoneNumber, DateOfBirth, Gender, Address, District, Province, EmergencyContactName, EmergencyContactPhone) VALUES
 (1, N'Nguyễn', N'Văn An', '0912345678', '2002-05-15', N'Nam', N'123 Trần Duy Hưng', N'Cầu Giấy', N'Hà Nội', N'Nguyễn Thị Bình', '0987654321'),

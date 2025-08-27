@@ -23,15 +23,12 @@ import type {
   SupportCategoryDto,
 } from "@/types/supportRequest";
 import { toast } from "sonner";
-import { Send, Upload, X, FileText } from "lucide-react";
+import { Send, Link } from "lucide-react";
 
 export default function CreateSupportRequestPage() {
   const [categories, setCategories] = useState<SupportCategoryDto[]>([]);
   const [loading, setLoading] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [attachments, setAttachments] = useState<
-    { name: string; url: string }[]
-  >([]);
+  const [attachmentLinks, setAttachmentLinks] = useState<string>("");
   const [formData, setFormData] = useState<SupportRequestCreateDto>({
     categoryId: 0,
     subject: "",
@@ -54,71 +51,13 @@ export default function CreateSupportRequestPage() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    try {
-      setUploadingFiles(true);
-      const uploadPromises = Array.from(files).map(async (file) => {
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`File ${file.name} quá lớn (tối đa 10MB)`);
-          return null;
-        }
-
-        // Validate file type
-        const allowedTypes = [
-          "image/jpeg",
-          "image/png",
-          "image/gif",
-          "application/pdf",
-          "application/msword",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "text/plain",
-        ];
-
-        if (!allowedTypes.includes(file.type)) {
-          toast.error(`File ${file.name} không được hỗ trợ`);
-          return null;
-        }
-
-        const url = await supportRequestService.uploadAttachment(file);
-        return { name: file.name, url };
-      });
-
-      const results = await Promise.all(uploadPromises);
-      const validUploads = results.filter((result) => result !== null) as {
-        name: string;
-        url: string;
-      }[];
-
-      setAttachments((prev) => [...prev, ...validUploads]);
-      setFormData((prev) => ({
-        ...prev,
-        attachmentUrls: [
-          ...(prev.attachmentUrls || []),
-          ...validUploads.map((upload) => upload.url),
-        ],
-      }));
-
-      toast.success(`Đã tải lên ${validUploads.length} file thành công`);
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      toast.error("Có lỗi xảy ra khi tải file");
-    } finally {
-      setUploadingFiles(false);
-      // Reset input
-      e.target.value = "";
-    }
-  };
-
-  const removeAttachment = (index: number) => {
-    const newAttachments = attachments.filter((_, i) => i !== index);
-    setAttachments(newAttachments);
+  const handleAttachmentLinksChange = (value: string) => {
+    setAttachmentLinks(value);
+    // Convert comma-separated links to array
+    const links = value.split(',').map(link => link.trim()).filter(link => link.length > 0);
     setFormData((prev) => ({
       ...prev,
-      attachmentUrls: newAttachments.map((att) => att.url),
+      attachmentUrls: links,
     }));
   };
 
@@ -150,7 +89,7 @@ export default function CreateSupportRequestPage() {
         priority: "Medium",
         attachmentUrls: [],
       });
-      setAttachments([]);
+      setAttachmentLinks("");
     } catch (error) {
       console.error("Error creating support request:", error);
       toast.error("Có lỗi xảy ra khi gửi yêu cầu");
@@ -275,72 +214,23 @@ export default function CreateSupportRequestPage() {
               </p>
             </div>
 
-            {/* File Attachments */}
+            {/* Attachment Links */}
             <div>
-              <Label htmlFor="attachments">Tệp đính kèm</Label>
-              <div className="mt-1 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="attachments"
-                    type="file"
-                    onChange={handleFileUpload}
-                    multiple
-                    className="flex-1"
-                    disabled={uploadingFiles}
-                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
-                  />
-                  {uploadingFiles ? (
-                    <Button disabled variant="outline" size="sm">
-                      Đang tải...
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        document.getElementById("attachments")?.click()
-                      }
-                    >
-                      <Upload className="h-4 w-4 mr-1" />
-                      Tải lên
-                    </Button>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Hỗ trợ: JPG, PNG, GIF, PDF, DOC, DOCX, TXT (tối đa 10MB)
-                </p>
-
-                {/* Attachment List */}
-                {attachments.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    <p className="text-sm font-medium">Tệp đã tải lên:</p>
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-md border border-blue-200/50 dark:border-blue-800/30"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-blue-500" />
-                            <span className="text-sm truncate max-w-xs">
-                              {file.name}
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                          >
-                            <X className="h-4 w-4 text-gray-500" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Label htmlFor="attachmentLinks">
+                <Link className="h-4 w-4 inline mr-1" />
+                Link đính kèm (tùy chọn)
+              </Label>
+              <Textarea
+                id="attachmentLinks"
+                value={attachmentLinks}
+                onChange={(e) => handleAttachmentLinksChange(e.target.value)}
+                placeholder="Nhập các link hình ảnh, tài liệu minh chứng (mỗi link một dòng hoặc cách nhau bằng dấu phẩy)&#10;Ví dụ:&#10;https://example.com/image1.jpg&#10;https://example.com/document.pdf"
+                className="mt-1"
+                rows={3}
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Có thể nhập nhiều link, cách nhau bằng dấu phẩy hoặc xuống dòng
+              </p>
             </div>
             <div className="flex justify-end space-x-4">
               <Button
@@ -354,7 +244,7 @@ export default function CreateSupportRequestPage() {
                     priority: "Medium",
                     attachmentUrls: [],
                   });
-                  setAttachments([]);
+                  setAttachmentLinks("");
                 }}
                 disabled={loading}
               >
