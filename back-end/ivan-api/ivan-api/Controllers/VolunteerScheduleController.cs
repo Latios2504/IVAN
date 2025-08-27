@@ -78,6 +78,7 @@ namespace ivan_api.Controllers
             }
         }
 
+
         /// Get volunteer schedule by ID (Coordinator role)
         [HttpGet("coordinator/{scheduleId}")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]

@@ -65,7 +65,7 @@ namespace ivan_api.Repository.EventRepo
             var query = _context.Events
                 .Include(e => e.Category)
                 .Include(e => e.Status)
-                .Include(e => e.Organization)
+                .Include(e => e.Organization).Where(e => e.IsActive == true) // Only active events
                 .AsQueryable();
 
             // Apply filters
