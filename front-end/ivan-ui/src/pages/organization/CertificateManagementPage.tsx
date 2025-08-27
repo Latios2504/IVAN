@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -31,18 +31,6 @@ import CreateCertificateModal from "@/components/organization/certificates/Creat
 import { StatsCard } from "@/components/common/StatsCard";
 import { toast } from "sonner";
 
-// Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
 export default function CertificateManagementPage() {
   // State management
   const [certificates, setCertificates] = useState<CertificateViewModel[]>([]);
@@ -63,52 +51,31 @@ export default function CertificateManagementPage() {
 
   // Status configuration for UI
   const statusConfig = {
-    Draft: {
-      label: "Bản nháp",
-      variant: "outline" as const,
-      color: "text-gray-600",
-    },
     Pending: {
       label: "Chờ phê duyệt",
       variant: "outline" as const,
       color: "text-yellow-600",
     },
-    Approved: {
-      label: "Đã cấp",
+    Published: {
+      label: "Đã xuất bản",
       variant: "default" as const,
       color: "text-green-600",
     },
-    Rejected: {
-      label: "Bị từ chối",
-      variant: "destructive" as const,
-      color: "text-red-600",
-    },
-    Revoked: {
-      label: "Đã thu hồi",
-      variant: "destructive" as const,
-      color: "text-red-600",
-    },
   };
 
-  // Load certificates from API using filter endpoint
+  // Load certificates from API using GET endpoint
   const loadCertificates = async () => {
     try {
       setLoading(true);
 
-      // Use the filter endpoint instead of basic getCertificates
-      const filterData = {
-        pageNumber: currentPage,
-        pageSize: pageSize,
-        status: selectedTab === "all" ? undefined : selectedTab,
-        searchTerm: searchTerm.trim() || undefined,
-      };
-
-      const response = await certificateService.getFilteredCertificates(
-        filterData
+      const response = await certificateService.getCertificates(
+        currentPage,
+        pageSize
       );
-      setCertificates(response);
-      // Note: The filtered endpoint returns array, not paged result
-      // So we need to handle pagination differently or use a different endpoint
+
+      setCertificates(response.items);
+      setTotalPages(response.totalPages);
+      setTotalCount(response.totalCount);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load certificates";
@@ -118,44 +85,44 @@ export default function CertificateManagementPage() {
     }
   };
 
-  // Debounced search handler
-  const debouncedSearch = useCallback(
-    debounce(() => {
-      setCurrentPage(1); // Reset to first page when searching
-      loadCertificates();
-    }, 500),
-    [selectedTab]
-  );
-
-  // Load certificates on component mount and when dependencies change
+  // Load certificates on component mount and when page changes
   useEffect(() => {
     loadCertificates();
-  }, [currentPage, pageSize, selectedTab]);
+  }, [currentPage, pageSize]);
 
-  // Handle search term changes with debouncing
+  // Reset to first page when tab changes
   useEffect(() => {
-    if (searchTerm !== "") {
-      debouncedSearch();
-    } else {
+    if (currentPage !== 1) {
       setCurrentPage(1);
+    } else {
       loadCertificates();
     }
-  }, [searchTerm, debouncedSearch]);
+  }, [selectedTab]);
 
-  // No need for client-side filtering since we're using server-side filtering
-  const filteredCertificates = certificates;
+  // Filter certificates based on selected tab and search term (client-side)
+  const filteredCertificates = certificates.filter((cert) => {
+    const matchesSearch =
+      cert.certificateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cert.certificateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cert.verificationCode.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (selectedTab === "all") return matchesSearch;
+    return matchesSearch && cert.status === selectedTab;
+  });
 
   // Calculate statistics - Note: These are only for current page, not total
   const getCertificateStats = () => {
     const total = totalCount || certificates.length;
-    const approved = certificates.filter((c) => c.status === "Approved").length;
+    const published = certificates.filter(
+      (c) => c.status === "Published"
+    ).length;
     const pending = certificates.filter((c) => c.status === "Pending").length;
     const totalDownloads = certificates.reduce(
       (sum, c) => sum + (c.downloadCount || 0),
       0
     );
 
-    return { total, approved, pending, totalDownloads };
+    return { total, published, pending, totalDownloads };
   };
 
   const stats = getCertificateStats();
@@ -232,23 +199,6 @@ export default function CertificateManagementPage() {
     }
   };
 
-  // Handle certificate rejection
-  const handleReject = async (certificateId: number) => {
-    try {
-      await certificateService.rejectCertificate({
-        certificateId,
-        rejectionReason: "Rejected via management interface",
-        // rejectedBy will be set by backend from JWT token
-      });
-      toast.success("Certificate rejected successfully");
-      loadCertificates(); // Reload to get updated data
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to reject certificate";
-      toast.error(errorMessage);
-    }
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-purple-950 dark:via-pink-950 dark:to-rose-950 rounded-xl border border-purple-200 dark:border-purple-800 shadow-lg backdrop-blur-sm">
       {/* Header */}
@@ -292,9 +242,9 @@ export default function CertificateManagementPage() {
           icon={Award}
         />
         <StatsCard
-          title="Đã cấp"
-          value={stats.approved}
-          description="Chứng chỉ hợp lệ"
+          title="Đã xuất bản"
+          value={stats.published}
+          description="Chứng chỉ đã xuất bản"
           icon={CheckCircle}
         />
         <StatsCard
@@ -319,7 +269,7 @@ export default function CertificateManagementPage() {
         onValueChange={setSelectedTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900 dark:via-violet-900 dark:to-indigo-900 border border-purple-200 dark:border-purple-800 shadow-md">
+        <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900 dark:via-violet-900 dark:to-indigo-900 border border-purple-200 dark:border-purple-800 shadow-md">
           <TabsTrigger
             value="all"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white"
@@ -327,34 +277,16 @@ export default function CertificateManagementPage() {
             Tất cả
           </TabsTrigger>
           <TabsTrigger
-            value="Draft"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white"
-          >
-            Bản nháp
-          </TabsTrigger>
-          <TabsTrigger
             value="Pending"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white"
           >
-            Chờ duyệt
+            Chờ phê duyệt
           </TabsTrigger>
           <TabsTrigger
-            value="Approved"
+            value="Published"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
           >
-            Đã cấp
-          </TabsTrigger>
-          <TabsTrigger
-            value="Rejected"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white"
-          >
-            Bị từ chối
-          </TabsTrigger>
-          <TabsTrigger
-            value="Revoked"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
-          >
-            Đã thu hồi
+            Đã xuất bản
           </TabsTrigger>
         </TabsList>
 
@@ -495,7 +427,7 @@ export default function CertificateManagementPage() {
                             Xem chi tiết
                           </Button>
 
-                          {certificate.status === "Approved" && (
+                          {certificate.status === "Published" && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -523,19 +455,6 @@ export default function CertificateManagementPage() {
                               Phê duyệt
                             </Button>
                           )}
-
-                          {certificate.status === "Pending" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700"
-                              onClick={() =>
-                                handleReject(certificate.certificateId)
-                              }
-                            >
-                              Từ chối
-                            </Button>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -544,11 +463,11 @@ export default function CertificateManagementPage() {
               )}
 
               {/* Pagination */}
-              {!loading && filteredCertificates.length > 0 && (
+              {!loading && certificates.length > 0 && totalPages > 1 && (
                 <div className="flex items-center justify-between mt-6">
                   <div className="text-sm text-gray-600">
-                    Hiển thị {filteredCertificates.length} chứng chỉ
-                    {totalCount > 0 && ` / Tổng cộng ${totalCount}`}
+                    Trang {currentPage} / {totalPages}
+                    {totalCount > 0 && ` (Tổng cộng ${totalCount} chứng chỉ)`}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -568,9 +487,7 @@ export default function CertificateManagementPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        filteredCertificates.length < pageSize || loading
-                      }
+                      disabled={currentPage >= totalPages || loading}
                     >
                       Sau
                     </Button>
