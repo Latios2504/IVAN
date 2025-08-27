@@ -31,7 +31,7 @@ namespace ivan_api.Controllers
         /// <summary>
         /// Organization gửi yêu cầu tạo Coordinator
         /// </summary>
-        [HttpPost("orgs/owner/coordinator-requests")]
+        [HttpPost("api/orgs/owner/coordinator-requests")]
         [Authorize(Roles = "Organization")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Create(
             [FromBody] CreateCoordinatorRequestDto dto)
@@ -47,16 +47,16 @@ namespace ivan_api.Controllers
                 return Unauthorized(ApiResponseDTO<object>.Fail("INVALID_TOKEN"));
 
             var realOrgId = await _db.Organizations
-            .Where(o => o.UserId == requesterUserId)
-            .Select(o => o.OrganizationId)
-            .FirstOrDefaultAsync();
-            
-             if (realOrgId == 0)
-                 return Forbid();
-            
-             // Dùng orgId lấy từ DB; bỏ qua path param để tránh spoofing
+                .Where(o => o.UserId == requesterUserId)
+                .Select(o => o.OrganizationId)
+                .FirstOrDefaultAsync();
+
+            if (realOrgId == 0)
+                return Forbid();
+
+            // Dùng orgId lấy từ DB; bỏ qua path param để tránh spoofing
             int organizationId = realOrgId;
-            
+
             var result = await _service.CreateAsync(organizationId, requesterUserId, dto);
 
             if (!result.Success)
@@ -77,9 +77,10 @@ namespace ivan_api.Controllers
         /// <summary>
         /// Admin xem danh sách yêu cầu tạo Coordinator
         /// </summary>
-        [HttpGet("admin/coordinator-requests")]
+        [HttpGet("api/admin/coordinator-requests")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<ApiResponseDTO<List<CoordinatorRequestListItemDto>>>> GetList([FromQuery] string? status = null)
+        public async Task<ActionResult<ApiResponseDTO<List<CoordinatorRequestListItemDto>>>> GetList(
+            [FromQuery] string? status = null)
         {
             var result = await _service.ListAsync(status);
             if (!result.Success)
@@ -91,7 +92,7 @@ namespace ivan_api.Controllers
         /// <summary>
         /// Admin duyệt hoặc từ chối yêu cầu tạo Coordinator
         /// </summary>
-        [HttpPatch("admin/coordinator-requests/{id:int}")]
+        [HttpPatch("api/admin/coordinator-requests/{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Update(
             [FromRoute] int id,
@@ -116,5 +117,5 @@ namespace ivan_api.Controllers
 
             return Ok(result);
         }
-    } 
+    }
 }

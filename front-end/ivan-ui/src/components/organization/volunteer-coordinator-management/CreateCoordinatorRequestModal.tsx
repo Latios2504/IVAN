@@ -32,12 +32,11 @@ interface CreateCoordinatorRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  organizationId: number;
 }
 
 export const CreateCoordinatorRequestModal: React.FC<
   CreateCoordinatorRequestModalProps
-> = ({ isOpen, onClose, onSuccess, organizationId }) => {
+> = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CoordinatorRequestCreatePayload>({
@@ -79,7 +78,6 @@ export const CreateCoordinatorRequestModal: React.FC<
 
       // Submit request
       await coordinatorRequestService.createCoordinatorRequest(
-        organizationId,
         formData
       );
 

@@ -294,7 +294,6 @@ const VolunteerCoordinatorManagementPage = () => {
         isOpen={showRequestModal}
         onClose={() => setShowRequestModal(false)}
         onSuccess={handleRequestSuccess}
-        organizationId={organizationId!}
       />
     </div>
   );

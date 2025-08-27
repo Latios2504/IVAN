@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { eventsService } from "@/services/eventsService";
 import { feedbackService } from "@/services/feedbackService";
+import { coordinatorRequestService } from "@/services/coordinatorRequestService";
 import type { RejectEventRequestDto } from "@/types/events";
 import type { EventDto } from "@/types/events";
 import type { FeedbackListDto, FeedbackListParams } from "@/types/feedback";
+import type { CoordinatorRequestListItemDto, UpdateCoordinatorRequestDto } from "@/types/coordinatorRequest";
 import { useAuth } from "@/hooks/useAuth";
 import {
   AlertCircle,
@@ -13,6 +15,8 @@ import {
   RefreshCw,
   MessageSquare,
   Star,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +27,8 @@ import { ModerationEventsList } from "@/components/admin/moderation/ModerationEv
 import { RejectEventDialog } from "@/components/admin/moderation/RejectEventDialog";
 import { FeedbackList } from "@/components/admin/moderation/FeedbackList";
 import { FeedbackManagementModal } from "@/components/admin/moderation/FeedbackManagementModal";
+import { CoordinatorRequestsList } from "@/components/admin/moderation/CoordinatorRequestsList";
+import { CoordinatorRequestDetailsModal } from "@/components/admin/moderation/CoordinatorRequestDetailsModal";
 
 interface ModerationStats {
   totalPendingEvents: number;
@@ -36,6 +42,13 @@ interface FeedbackStats {
   feedbacksThisMonth: number;
 }
 
+interface CoordinatorRequestStats {
+  pendingRequests: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+  totalRequests: number;
+}
+
 export default function ModerationManagementPage() {
   const { user: currentUser } = useAuth();
 
@@ -44,6 +57,18 @@ export default function ModerationManagementPage() {
 
   // Event moderation state
   const [events, setEvents] = useState<EventDto[]>([]);
+
+  // Coordinator requests state
+  const [coordinatorRequests, setCoordinatorRequests] = useState<CoordinatorRequestListItemDto[]>([]);
+  const [selectedCoordinatorRequest, setSelectedCoordinatorRequest] = useState<CoordinatorRequestListItemDto | null>(null);
+  const [isCoordinatorRequestModalOpen, setIsCoordinatorRequestModalOpen] = useState(false);
+  const [isProcessingCoordinatorRequest, setIsProcessingCoordinatorRequest] = useState(false);
+  const [coordinatorRequestStats, setCoordinatorRequestStats] = useState<CoordinatorRequestStats>({
+    pendingRequests: 0,
+    approvedRequests: 0,
+    rejectedRequests: 0,
+    totalRequests: 0,
+  });
   const [selectedEvent, setSelectedEvent] =
     useState<EventDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -231,12 +256,91 @@ export default function ModerationManagementPage() {
     loadFeedbacks(feedbackCurrentPage);
   };
 
+  // Load coordinator requests
+  const loadCoordinatorRequests = async () => {
+    try {
+      setIsLoading(true);
+      const requests = await coordinatorRequestService.getCoordinatorRequests();
+      setCoordinatorRequests(requests);
+
+      // Calculate stats
+      const stats = {
+        totalRequests: requests.length,
+        pendingRequests: requests.filter(r => r.status === 'pending').length,
+        approvedRequests: requests.filter(r => r.status === 'approved').length,
+        rejectedRequests: requests.filter(r => r.status === 'rejected').length,
+      };
+      setCoordinatorRequestStats(stats);
+    } catch (error) {
+      console.error('Error loading coordinator requests:', error);
+      toast.error('Failed to load coordinator requests.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle view coordinator request details
+  const handleViewCoordinatorRequestDetails = (request: CoordinatorRequestListItemDto) => {
+    setSelectedCoordinatorRequest(request);
+    setIsCoordinatorRequestModalOpen(true);
+  };
+
+  // Handle approve coordinator request
+  const handleApproveCoordinatorRequest = async (requestId: string, note?: string) => {
+    try {
+      setIsProcessingCoordinatorRequest(true);
+      const updateData: UpdateCoordinatorRequestDto = {
+        action: 'approve',
+        note: note || undefined,
+      };
+      
+      await coordinatorRequestService.updateCoordinatorRequest(Number(requestId), updateData);
+      toast.success('Coordinator request has been approved successfully.');
+      
+      // Refresh list and close modal
+      await loadCoordinatorRequests();
+      setIsCoordinatorRequestModalOpen(false);
+      setSelectedCoordinatorRequest(null);
+    } catch (error) {
+      console.error('Error approving coordinator request:', error);
+      toast.error('Failed to approve coordinator request. Please try again.');
+    } finally {
+      setIsProcessingCoordinatorRequest(false);
+    }
+  };
+
+  // Handle reject coordinator request
+  const handleRejectCoordinatorRequest = async (requestId: string, note: string) => {
+    try {
+      setIsProcessingCoordinatorRequest(true);
+      const updateData: UpdateCoordinatorRequestDto = {
+        action: 'reject',
+        note,
+      };
+      
+      await coordinatorRequestService.updateCoordinatorRequest(Number(requestId), updateData);
+      toast.success('Coordinator request has been rejected.');
+      
+      // Refresh list and close modal
+      await loadCoordinatorRequests();
+      setIsCoordinatorRequestModalOpen(false);
+      setSelectedCoordinatorRequest(null);
+    } catch (error) {
+      console.error('Error rejecting coordinator request:', error);
+      toast.error('Failed to reject coordinator request. Please try again.');
+    } finally {
+      setIsProcessingCoordinatorRequest(false);
+    }
+  };
+
   // Handle refresh
   const handleRefresh = () => {
     if (activeTab === "events") {
       loadEvents(currentPage);
-    } else {
+    } else if (activeTab === "feedbacks") {
       loadFeedbacks(feedbackCurrentPage);
+    } else if (activeTab === "coordinator-requests") {
+      loadCoordinatorRequests();
     }
   };
 
@@ -245,6 +349,8 @@ export default function ModerationManagementPage() {
     setActiveTab(value);
     if (value === "feedbacks" && feedbacks.length === 0) {
       loadFeedbacks();
+    } else if (value === "coordinator-requests" && coordinatorRequests.length === 0) {
+      loadCoordinatorRequests();
     }
   };
 
@@ -281,7 +387,7 @@ export default function ModerationManagementPage() {
             Admin Moderation
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage events and feedback submissions
+            Manage events, feedback submissions, and coordinator requests
           </p>
         </div>
         <Button
@@ -300,7 +406,7 @@ export default function ModerationManagementPage() {
         onValueChange={handleTabChange}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="events" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Event Moderation
@@ -308,6 +414,10 @@ export default function ModerationManagementPage() {
           <TabsTrigger value="feedbacks" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Feedback Management
+          </TabsTrigger>
+          <TabsTrigger value="coordinator-requests" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Coordinator Requests
           </TabsTrigger>
         </TabsList>
 
@@ -487,6 +597,87 @@ export default function ModerationManagementPage() {
             </div>
           )}
         </TabsContent>
+
+        {/* Coordinator Requests Tab */}
+        <TabsContent value="coordinator-requests" className="space-y-6">
+          {/* Coordinator Request Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Requests
+                </CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {coordinatorRequestStats.totalRequests}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  All coordinator requests
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Pending
+                </CardTitle>
+                <AlertCircle className="h-4 w-4 text-yellow-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {coordinatorRequestStats.pendingRequests}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting review
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Approved
+                </CardTitle>
+                <UserCheck className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {coordinatorRequestStats.approvedRequests}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Successfully approved
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Rejected
+                </CardTitle>
+                <AlertCircle className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {coordinatorRequestStats.rejectedRequests}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Declined requests
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Coordinator Requests List */}
+          <CoordinatorRequestsList
+            requests={coordinatorRequests}
+            onViewDetails={handleViewCoordinatorRequestDetails}
+            isLoading={isLoading}
+          />
+        </TabsContent>
       </Tabs>
 
       {/* Event Details Modal */}
@@ -520,6 +711,19 @@ export default function ModerationManagementPage() {
         onClose={() => setIsFeedbackModalOpen(false)}
         feedback={selectedFeedback}
         onUpdate={handleFeedbackUpdate}
+      />
+
+      {/* Coordinator Request Details Modal */}
+      <CoordinatorRequestDetailsModal
+        request={selectedCoordinatorRequest}
+        isOpen={isCoordinatorRequestModalOpen}
+        onClose={() => {
+          setIsCoordinatorRequestModalOpen(false);
+          setSelectedCoordinatorRequest(null);
+        }}
+        onApprove={handleApproveCoordinatorRequest}
+        onReject={handleRejectCoordinatorRequest}
+        isLoading={isProcessingCoordinatorRequest}
       />
     </div>
   );

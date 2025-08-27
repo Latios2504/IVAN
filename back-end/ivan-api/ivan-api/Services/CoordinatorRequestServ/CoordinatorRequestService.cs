@@ -1,4 +1,4 @@
-﻿using ivan_api.Configuration;
+using ivan_api.Configuration;
 using ivan_api.DTOs.Common;
 using ivan_api.DTOs.CoordinatorRequests;
 using ivan_api.Models;
@@ -210,14 +210,36 @@ namespace ivan_api.Services.CoordinatorRequestServ
                 var json = sr.Description.Substring(jsonStart);
                 using var doc = JsonDocument.Parse(json);
 
-                var orgId = doc.RootElement.GetProperty("organizationId").GetInt32();
-                var email = doc.RootElement.GetProperty("CandidateEmail").GetString()!;
-                var fullName = doc.RootElement.GetProperty("FullName").GetString()!;
-                var position = doc.RootElement.GetProperty("Position").GetString()!;
-                var department = doc.RootElement.GetProperty("Department").GetString()!;
-                var responsibilities = doc.RootElement.GetProperty("Responsibilities").GetString()!;
-                var hireDate = DateOnly.Parse(doc.RootElement.GetProperty("HireDate").GetString()!);
-                var managerUserId = doc.RootElement.TryGetProperty("ManagerUserId", out var mgr) ? mgr.GetInt32() : (int?)null;
+                // Safely extract properties with null checks
+                if (!doc.RootElement.TryGetProperty("organizationId", out var orgIdElement) || orgIdElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: organizationId is missing or null");
+                var orgId = orgIdElement.GetInt32();
+                
+                if (!doc.RootElement.TryGetProperty("CandidateEmail", out var emailElement) || emailElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: CandidateEmail is missing or null");
+                var email = emailElement.GetString()!;
+                
+                if (!doc.RootElement.TryGetProperty("FullName", out var fullNameElement) || fullNameElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: FullName is missing or null");
+                var fullName = fullNameElement.GetString()!;
+                
+                if (!doc.RootElement.TryGetProperty("Position", out var positionElement) || positionElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: Position is missing or null");
+                var position = positionElement.GetString()!;
+                
+                if (!doc.RootElement.TryGetProperty("Department", out var departmentElement) || departmentElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: Department is missing or null");
+                var department = departmentElement.GetString()!;
+                
+                if (!doc.RootElement.TryGetProperty("Responsibilities", out var responsibilitiesElement) || responsibilitiesElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: Responsibilities is missing or null");
+                var responsibilities = responsibilitiesElement.GetString()!;
+                
+                if (!doc.RootElement.TryGetProperty("HireDate", out var hireDateElement) || hireDateElement.ValueKind == JsonValueKind.Null)
+                    return ApiResponseDTO<object>.Fail("INVALID_METADATA: HireDate is missing or null");
+                var hireDate = DateOnly.Parse(hireDateElement.GetString()!);
+                
+                var managerUserId = doc.RootElement.TryGetProperty("ManagerUserId", out var mgr) && mgr.ValueKind != JsonValueKind.Null ? mgr.GetInt32() : (int?)null;
 
                 // 1) Lấy roleId cho Coordinator
                 var roleId = await _db.UserRoles.Where(r => r.RoleName == "Coordinator")

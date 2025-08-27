@@ -17,26 +17,28 @@ class CoordinatorRequestService {
 
   // === ORGANIZATION ENDPOINTS ===
 
-  // POST /api/orgs/{organizationId}/coordinator-requests - Create Coordinator Request (Organization role)
+  // POST /api/orgs/owner/coordinator-requests - Create Coordinator Request (Organization role)
   async createCoordinatorRequest(
-    organizationId: number,
     request: CoordinatorRequestCreatePayload
   ): Promise<void> {
     // Convert Date to ISO string if needed
     const payload: CreateCoordinatorRequestDto = {
       ...request,
-      hireDate: typeof request.hireDate === 'string' 
-        ? request.hireDate 
-        : request.hireDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+      hireDate:
+        typeof request.hireDate === "string"
+          ? request.hireDate
+          : request.hireDate.toISOString().split("T")[0], // Convert to YYYY-MM-DD format
     };
 
     const response = await apiClient.post(
-      `/orgs/${organizationId}/coordinator-requests`,
+      `/orgs/owner/coordinator-requests`,
       payload
     );
 
     if (!response.success) {
-      throw new Error(response.message || "Failed to create coordinator request");
+      throw new Error(
+        response.message || "Failed to create coordinator request"
+      );
     }
   }
 
@@ -57,7 +59,10 @@ class CoordinatorRequestService {
     );
 
     if (!response.success || !response.data) {
-      console.warn("Failed to load coordinator requests or received empty data:", response);
+      console.warn(
+        "Failed to load coordinator requests or received empty data:",
+        response
+      );
       return [];
     }
 
@@ -88,14 +93,18 @@ class CoordinatorRequestService {
     );
 
     if (!response.success) {
-      throw new Error(response.message || "Failed to update coordinator request");
+      throw new Error(
+        response.message || "Failed to update coordinator request"
+      );
     }
   }
 
   // === UTILITY METHODS ===
 
   // Helper method to validate coordinator request data before creation
-  validateCoordinatorRequestData(data: CoordinatorRequestCreatePayload): CoordinatorRequestValidationResult {
+  validateCoordinatorRequestData(
+    data: CoordinatorRequestCreatePayload
+  ): CoordinatorRequestValidationResult {
     const errors: string[] = [];
 
     if (!data.candidateEmail?.trim()) {
@@ -134,7 +143,7 @@ class CoordinatorRequestService {
       const hireDate = new Date(data.hireDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (hireDate < today) {
         errors.push("Hire date cannot be in the past");
       }
@@ -147,12 +156,14 @@ class CoordinatorRequestService {
   }
 
   // Helper method to validate update request data
-  validateUpdateRequestData(data: UpdateCoordinatorRequestDto): CoordinatorRequestValidationResult {
+  validateUpdateRequestData(
+    data: UpdateCoordinatorRequestDto
+  ): CoordinatorRequestValidationResult {
     const errors: string[] = [];
 
     if (!data.action?.trim()) {
       errors.push("Action is required");
-    } else if (!['APPROVE', 'REJECT'].includes(data.action)) {
+    } else if (!["APPROVE", "REJECT"].includes(data.action)) {
       errors.push("Action must be either APPROVE or REJECT");
     }
 
@@ -220,7 +231,7 @@ class CoordinatorRequestService {
   // Helper method to format hire date for display
   formatHireDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString("vi-VN");
   }
 
   // Helper method to calculate days until hire date
@@ -229,10 +240,10 @@ class CoordinatorRequestService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     hireDate.setHours(0, 0, 0, 0);
-    
+
     const diffTime = hireDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   }
 
@@ -243,31 +254,31 @@ class CoordinatorRequestService {
   }
 
   // Helper method to get request urgency level
-  getRequestUrgency(hireDateString: string): 'high' | 'medium' | 'low' {
+  getRequestUrgency(hireDateString: string): "high" | "medium" | "low" {
     const daysUntil = this.getDaysUntilHireDate(hireDateString);
-    
+
     if (daysUntil < 0) {
-      return 'high'; // Overdue
+      return "high"; // Overdue
     } else if (daysUntil <= 3) {
-      return 'high'; // Very urgent
+      return "high"; // Very urgent
     } else if (daysUntil <= 7) {
-      return 'medium'; // Urgent
+      return "medium"; // Urgent
     } else {
-      return 'low'; // Normal
+      return "low"; // Normal
     }
   }
 
   // Helper method to get urgency color
-  getUrgencyColor(urgency: 'high' | 'medium' | 'low'): string {
+  getUrgencyColor(urgency: "high" | "medium" | "low"): string {
     switch (urgency) {
-      case 'high':
-        return 'red';
-      case 'medium':
-        return 'orange';
-      case 'low':
-        return 'green';
+      case "high":
+        return "red";
+      case "medium":
+        return "orange";
+      case "low":
+        return "green";
       default:
-        return 'gray';
+        return "gray";
     }
   }
 }
