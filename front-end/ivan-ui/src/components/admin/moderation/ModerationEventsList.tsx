@@ -34,7 +34,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="card-hover rounded-2xl">
         <CardHeader>
           <CardTitle>Sự kiện chờ kiểm duyệt</CardTitle>
         </CardHeader>
@@ -49,7 +49,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
 
   if (events.length === 0) {
     return (
-      <Card>
+      <Card className="card-hover rounded-2xl">
         <CardHeader>
           <CardTitle>Sự kiện chờ kiểm duyệt</CardTitle>
         </CardHeader>
@@ -63,7 +63,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
   }
 
   return (
-    <Card>
+    <Card className="card-hover rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
@@ -146,7 +146,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onViewDetails(event.eventId)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 rounded-xl"
                     >
                       <Eye className="h-4 w-4" />
                       Xem chi tiết

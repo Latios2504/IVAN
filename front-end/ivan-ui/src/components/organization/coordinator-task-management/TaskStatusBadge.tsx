@@ -23,45 +23,35 @@ const statusConfig: Record<
     label: string;
     className: string;
     icon: React.ComponentType<any>;
-    darkClassName: string;
   }
 > = {
   [TASK_STATUS.ASSIGNED]: {
     label: "Đã giao",
     className:
-      "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+      "bg-orange-100/80 text-orange-800 border-orange-200/50 hover:bg-orange-200/80 dark:bg-orange-950/30 dark:text-orange-200 dark:border-orange-800/50",
     icon: UserCheck,
-    darkClassName:
-      "dark:bg-orange-900/30 dark:text-orange-200 dark:border-orange-600",
   },
   [TASK_STATUS.IN_PROGRESS]: {
     label: "Đang thực hiện",
-    className: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200",
+    className:
+      "bg-blue-100/80 text-blue-800 border-blue-200/50 hover:bg-blue-200/80 dark:bg-blue-950/30 dark:text-blue-200 dark:border-blue-800/50",
     icon: Play,
-    darkClassName:
-      "dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-600",
   },
   [TASK_STATUS.COMPLETED]: {
     label: "Hoàn thành",
-    className:
-      "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+    className: "status-active",
     icon: CheckCircle,
-    darkClassName:
-      "dark:bg-green-900/30 dark:text-green-200 dark:border-green-600",
   },
   [TASK_STATUS.CANCELLED]: {
     label: "Đã hủy",
-    className: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200",
+    className:
+      "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20",
     icon: XCircle,
-    darkClassName: "dark:bg-red-900/30 dark:text-red-200 dark:border-red-600",
   },
   [TASK_STATUS.ON_HOLD]: {
     label: "Tạm dừng",
-    className:
-      "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+    className: "status-pending",
     icon: Pause,
-    darkClassName:
-      "dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-600",
   },
 };
 
@@ -85,9 +75,8 @@ const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({
 }) => {
   const config = statusConfig[status] || {
     label: status,
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "bg-muted text-muted-foreground border-border",
     icon: AlertCircle,
-    darkClassName: "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600",
   };
 
   const IconComponent = config.icon;
@@ -98,7 +87,6 @@ const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({
     <Badge
       className={`
         ${config.className} 
-        ${config.darkClassName} 
         ${sizeClass}
         font-semibold 
         border 

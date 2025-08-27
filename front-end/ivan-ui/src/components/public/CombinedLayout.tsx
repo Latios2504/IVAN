@@ -39,7 +39,6 @@ export interface CombinedLayoutProps {
   pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
 
-
   // List items
   listItems: ReactNode[];
   onItemSelect?: (itemId: string) => void;
@@ -102,20 +101,24 @@ export function CombinedLayout({
 
     const detailPanel = detailPanelRef.current;
     const listPanel = listPanelRef.current;
-    
+
     // Get the detail panel's content height
     const detailRect = detailPanel.getBoundingClientRect();
     const listPanelRect = listPanel.getBoundingClientRect();
-    
+
     // Calculate available height for list content (excluding header and pagination)
-    const listHeader = listPanel.querySelector('[data-list-header]');
-    const listPagination = listPanel.querySelector('[data-list-pagination]');
-    
+    const listHeader = listPanel.querySelector("[data-list-header]");
+    const listPagination = listPanel.querySelector("[data-list-pagination]");
+
     const headerHeight = listHeader?.getBoundingClientRect().height || 0;
-    const paginationHeight = listPagination?.getBoundingClientRect().height || 0;
-    
+    const paginationHeight =
+      listPagination?.getBoundingClientRect().height || 0;
+
     // Set list height to match detail panel height minus header and pagination
-    const availableHeight = Math.max(400, detailRect.height - headerHeight - paginationHeight - 32); // 32px for margins
+    const availableHeight = Math.max(
+      400,
+      detailRect.height - headerHeight - paginationHeight - 32
+    ); // 32px for margins
     setListHeight(availableHeight);
   }, [isMobile]);
 
@@ -128,10 +131,10 @@ export function CombinedLayout({
         setTimeout(updateListHeight, 100);
       }
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, [updateListHeight]);
 
   useEffect(() => {
@@ -170,7 +173,7 @@ export function CombinedLayout({
     if (selectedItemId) {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [selectedItemId]);
@@ -231,7 +234,7 @@ export function CombinedLayout({
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6 min-h-[600px]">
           {/* List Panel */}
-          <div 
+          <div
             ref={listPanelRef}
             className={cn(
               "lg:w-1/3 xl:w-2/5 flex flex-col",
@@ -240,17 +243,22 @@ export function CombinedLayout({
             )}
           >
             {/* List Header */}
-            <div data-list-header className="flex items-center justify-between mb-4 flex-shrink-0 p-3 rounded-xl bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200/50 dark:border-indigo-700/50">
+            <div
+              data-list-header
+              className="flex items-center justify-between mb-4 flex-shrink-0 p-3 rounded-xl bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200/50 dark:border-indigo-700/50"
+            >
               <h2 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                {resultCount !== undefined ? `${resultCount} kết quả` : 'Danh sách'}
+                {resultCount !== undefined
+                  ? `${resultCount} kết quả`
+                  : "Danh sách"}
               </h2>
             </div>
 
             {/* List Content */}
-            <div 
+            <div
               className="flex flex-col min-h-0"
               style={{
-                height: isMobile ? 'auto' : `${listHeight}px`
+                height: isMobile ? "auto" : `${listHeight}px`,
               }}
             >
               {loading && (
@@ -265,8 +273,12 @@ export function CombinedLayout({
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center">
                       <SearchIcon className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2 text-red-700 dark:text-red-300">Có lỗi xảy ra</h3>
-                    <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                    <h3 className="text-lg font-semibold mb-2 text-red-700 dark:text-red-300">
+                      Có lỗi xảy ra
+                    </h3>
+                    <p className="text-red-600 dark:text-red-400 mb-4">
+                      {error}
+                    </p>
                     {onRetry && (
                       <Button onClick={onRetry} variant="outline" size="sm">
                         Thử lại
@@ -282,18 +294,22 @@ export function CombinedLayout({
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gray-400 to-slate-500 flex items-center justify-center">
                       <SearchIcon className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">Không tìm thấy kết quả</h3>
-                    <p className="text-gray-600 dark:text-gray-400">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                      Không tìm thấy kết quả
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+                    </p>
                   </div>
                 </div>
               )}
 
               {!loading && !error && !isEmpty && (
-                <div 
-                  ref={listContainerRef} 
+                <div
+                  ref={listContainerRef}
                   className="flex-1 overflow-y-auto pr-2 space-y-2 min-h-0"
                   style={{
-                    maxHeight: isMobile ? 'none' : `${listHeight - 80}px` // Reserve space for potential margins
+                    maxHeight: isMobile ? "none" : `${listHeight - 80}px`, // Reserve space for potential margins
                   }}
                 >
                   {listItems.map((item, index) => (
@@ -307,7 +323,10 @@ export function CombinedLayout({
 
             {/* Pagination */}
             {pagination && onPageChange && !loading && !error && !isEmpty && (
-              <div data-list-pagination className="mt-4 pt-4 border-t flex-shrink-0">
+              <div
+                data-list-pagination
+                className="mt-4 pt-4 border-t flex-shrink-0"
+              >
                 <Pagination
                   pagination={pagination}
                   onPageChange={onPageChange}
@@ -319,7 +338,7 @@ export function CombinedLayout({
           </div>
 
           {/* Detail Panel */}
-          <div 
+          <div
             ref={detailPanelRef}
             className={cn(
               "lg:w-2/3 xl:w-3/5 flex flex-col",
@@ -350,8 +369,12 @@ export function CombinedLayout({
                     <div className="h-16 w-16 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <SearchIcon className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">Chọn một mục để xem chi tiết</h3>
-                    <p className="text-slate-600 dark:text-slate-400">Nhấp vào một mục trong danh sách để xem thông tin chi tiết</p>
+                    <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                      Chọn một mục để xem chi tiết
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      Nhấp vào một mục trong danh sách để xem thông tin chi tiết
+                    </p>
                   </div>
                 </div>
               )}
@@ -368,10 +391,18 @@ export function CombinedLayout({
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center">
                       <SearchIcon className="h-8 w-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2 text-red-700 dark:text-red-300">Có lỗi xảy ra</h3>
-                    <p className="text-red-600 dark:text-red-400 mb-4">{detailError}</p>
+                    <h3 className="text-lg font-semibold mb-2 text-red-700 dark:text-red-300">
+                      Có lỗi xảy ra
+                    </h3>
+                    <p className="text-red-600 dark:text-red-400 mb-4">
+                      {detailError}
+                    </p>
                     {onDetailRetry && (
-                      <Button onClick={onDetailRetry} variant="outline" size="sm">
+                      <Button
+                        onClick={onDetailRetry}
+                        variant="outline"
+                        size="sm"
+                      >
                         Thử lại
                       </Button>
                     )}
@@ -380,9 +411,7 @@ export function CombinedLayout({
               )}
 
               {!detailLoading && !detailError && detailContent && (
-                <div className="h-full overflow-y-auto">
-                  {detailContent}
-                </div>
+                <div className="h-full overflow-y-auto">{detailContent}</div>
               )}
             </div>
           </div>

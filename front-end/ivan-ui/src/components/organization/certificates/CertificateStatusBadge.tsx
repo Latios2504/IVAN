@@ -21,44 +21,34 @@ const statusConfig: Record<
     label: string;
     className: string;
     icon: React.ComponentType<any>;
-    darkClassName: string;
   }
 > = {
   draft: {
     label: "Bản nháp",
-    className:
-      "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200",
+    className: "status-inactive",
     icon: FileText,
-    darkClassName:
-      "dark:bg-gray-900/30 dark:text-gray-200 dark:border-gray-600",
   },
   pending: {
     label: "Chờ duyệt",
-    className:
-      "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+    className: "status-pending",
     icon: Clock,
-    darkClassName:
-      "dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-600",
   },
   issued: {
     label: "Đã cấp",
-    className:
-      "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+    className: "status-active",
     icon: CheckCircle,
-    darkClassName:
-      "dark:bg-green-900/30 dark:text-green-200 dark:border-green-600",
   },
   rejected: {
     label: "Từ chối",
-    className: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200",
+    className:
+      "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20",
     icon: XCircle,
-    darkClassName: "dark:bg-red-900/30 dark:text-red-200 dark:border-red-600",
   },
   revoked: {
     label: "Đã thu hồi",
-    className: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200",
+    className:
+      "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20",
     icon: XCircle,
-    darkClassName: "dark:bg-red-900/30 dark:text-red-200 dark:border-red-600",
   },
 };
 
@@ -82,9 +72,8 @@ const CertificateStatusBadge: React.FC<CertificateStatusBadgeProps> = ({
 }) => {
   const config = statusConfig[status] || {
     label: status,
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "bg-muted text-muted-foreground border-border",
     icon: AlertCircle,
-    darkClassName: "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600",
   };
 
   const IconComponent = config.icon;
@@ -95,7 +84,6 @@ const CertificateStatusBadge: React.FC<CertificateStatusBadgeProps> = ({
     <Badge
       className={`
         ${config.className} 
-        ${config.darkClassName} 
         ${sizeClass}
         font-semibold 
         border 

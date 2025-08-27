@@ -228,11 +228,11 @@ const AIInstructionsManagementPageContent: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <Bot className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <Bot className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Truy cập bị từ chối
           </h2>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Bạn cần quyền admin để truy cập trang quản lý AI Instructions.
           </p>
         </div>
@@ -245,11 +245,11 @@ const AIInstructionsManagementPageContent: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Đã xảy ra lỗi
           </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-muted-foreground mb-4">{error}</p>
           <div className="space-x-2">
             <Button onClick={() => setError(null)}>Thử lại</Button>
             <Button variant="outline" onClick={() => window.location.reload()}>
@@ -264,10 +264,10 @@ const AIInstructionsManagementPageContent: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
           🤖 Quản lý AI Instructions
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Quản lý các hướng dẫn tùy chỉnh cho AI Assistant
         </p>
       </div>
@@ -333,7 +333,7 @@ const AIInstructionsManagementPageContent: React.FC = () => {
               {/* Search */}
               <div className="flex items-center space-x-2 mb-4">
                 <div className="relative flex-1">
-                  <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                  <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
                   <Input
                     placeholder="Tìm kiếm instructions..."
                     value={searchQuery}

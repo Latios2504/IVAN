@@ -46,7 +46,7 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
 
   if (requests.length === 0) {
     return (
-      <Card>
+      <Card className="card-hover rounded-2xl">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -92,7 +92,7 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
   };
 
   return (
-    <Card>
+    <Card className="card-hover rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
@@ -145,7 +145,7 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
                       variant="outline"
                       size="sm"
                       onClick={() => onViewDetails(request)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 rounded-xl"
                     >
                       <Eye className="h-4 w-4" />
                       Xem chi tiết

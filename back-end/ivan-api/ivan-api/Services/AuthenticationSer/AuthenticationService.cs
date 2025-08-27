@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ivan_api.Models;
 using ivan_api.DTOs.Authentication;
+using ivan_api.DTOs.AI;
 using ivan_api.Services.PasswordHashingSer;
 using ivan_api.Services.JwtTokenSer;
 using ivan_api.Services.EmailSer;
@@ -404,5 +405,88 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogError(ex, "Error retrieving user info with profile for user ID: {UserId}", userId);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Get user context information for AI queries with role-specific IDs
+    /// This method provides complete user context including profile IDs for data access control
+    /// </summary>
+    public async Task<UserContextInfo> GetUserContextForAiAsync(int userId)
+    {
+        try
+        {
+            // Get user with role information
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with ID {userId} not found");
+            }
+
+            var userContext = new UserContextInfo
+            {
+                UserId = user.UserId,
+                RoleName = user.Role.RoleName,
+                RoleId = user.RoleId
+            };
+
+            // Get profile-specific IDs based on user role
+            switch (user.Role.RoleName.ToLower())
+            {
+                case "organization":
+                    var organization = await _context.Organizations
+                        .FirstOrDefaultAsync(o => o.UserId == userId);
+                    userContext.OrganizationId = organization?.OrganizationId;
+                    break;
+
+                case "partner":
+                    var partner = await _context.Partners
+                        .FirstOrDefaultAsync(p => p.UserId == userId);
+                    userContext.PartnerId = partner?.PartnerId;
+                    break;
+
+                case "volunteer":
+                    var volunteer = await _context.VolunteerProfiles
+                        .FirstOrDefaultAsync(v => v.UserId == userId);
+                    userContext.VolunteerId = volunteer?.VolunteerId;
+                    break;
+
+                case "coordinator":
+                case "volunteer coordinator":
+                    var coordinator = await _context.VolunteerCoordinators
+                        .FirstOrDefaultAsync(c => c.UserId == userId);
+                    userContext.CoordinatorId = coordinator?.CoordinatorId;
+                    break;
+
+                case "admin":
+                    // Admin users don't have a specific profile, all IDs remain null
+                    // Admin has full access to all data
+                    break;
+
+                default:
+                    _logger.LogWarning("Unknown role name: {RoleName} for user ID: {UserId}", user.Role.RoleName,
+                        userId);
+                    break;
+            }
+
+            _logger.LogInformation("Retrieved user context for AI: {Context}", userContext.GetContextDescription());
+            return userContext;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user context for AI for user ID: {UserId}", userId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Get user context from ClaimsPrincipal for AI queries
+    /// </summary>
+    public async Task<UserContextInfo> GetUserContextForAiAsync(ClaimsPrincipal user)
+    {
+        var userId = GetUserIdFromClaims(user);
+        return await GetUserContextForAiAsync(userId);
     }
 }

@@ -95,12 +95,12 @@ export function UserProfileTabs({ user }: UserProfileTabsProps) {
 
   return (
     <Tabs defaultValue="basic" className="w-full">
-      <TabsList className={`grid w-full ${gridCols} gap-2 p-1 h-auto mb-4 bg-gradient-to-r from-blue-100/80 via-indigo-100/80 to-purple-100/80 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 border border-blue-200/50 dark:border-blue-800/50 shadow-lg`}>
+      <TabsList className={`grid w-full ${gridCols} gap-2 p-1 h-auto mb-4 bg-muted/30 border border-border shadow-lg rounded-xl`}>
         {tabs.map((tab) => (
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="text-sm px-4 py-2 text-blue-700 dark:text-blue-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-200 data-[state=active]:via-indigo-200 data-[state=active]:to-purple-200 dark:data-[state=active]:from-blue-800/50 dark:data-[state=active]:via-indigo-800/50 dark:data-[state=active]:to-purple-800/50 data-[state=active]:text-blue-900 dark:data-[state=active]:text-blue-100 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-blue-300/50 dark:data-[state=active]:border-blue-700/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all duration-200"
+            className="text-sm px-4 py-2 text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-border hover:bg-muted/50 transition-all duration-200 rounded-lg"
           >
             {tab.label}
           </TabsTrigger>
@@ -111,7 +111,7 @@ export function UserProfileTabs({ user }: UserProfileTabsProps) {
         <TabsContent
           key={tab.value}
           value={tab.value}
-          className="mt-0 space-y-4 w-full bg-gradient-to-br from-blue-50/30 via-indigo-50/30 to-purple-50/30 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 p-4 rounded-lg border border-blue-200/30 dark:border-blue-800/30 shadow-sm"
+          className="mt-0 space-y-4 w-full bg-muted/30 p-4 rounded-2xl border border-border shadow-sm"
         >
           {tab.component}
         </TabsContent>

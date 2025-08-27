@@ -56,27 +56,27 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 dark:border-emerald-400"></div>
-        <span className="ml-2 text-emerald-700 dark:text-emerald-300">Đang tải thông tin tình nguyện viên...</span>
+      <div className="flex items-center justify-center py-8 bg-muted/30 rounded-2xl border border-border">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2 text-foreground">Đang tải thông tin tình nguyện viên...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 rounded-lg border border-red-200 dark:border-red-800">
-        <XCircle className="h-12 w-12 mx-auto mb-4 text-red-500 dark:text-red-400" />
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+      <div className="text-center py-8 bg-muted/30 rounded-2xl border border-border">
+        <XCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+        <p className="text-destructive">{error}</p>
       </div>
     );
   }
 
   if (!volunteerProfile) {
     return (
-      <div className="text-center py-8 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-950 dark:to-slate-950 rounded-lg border border-gray-200 dark:border-gray-800">
-        <User className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-        <p className="text-gray-600 dark:text-gray-400">Chưa có thông tin hồ sơ tình nguyện viên</p>
+      <div className="text-center py-8 bg-muted/30 rounded-2xl border border-border">
+        <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <p className="text-muted-foreground">Chưa có thông tin hồ sơ tình nguyện viên</p>
       </div>
     );
   }
@@ -84,33 +84,33 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
   return (
     <div className="space-y-6">
       {/* Academic Information */}
-      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 shadow-sm">
-        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-emerald-800 dark:text-emerald-200">
-          <GraduationCap className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+      <div className="bg-muted/30 p-4 rounded-2xl border border-border shadow-sm">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+          <GraduationCap className="h-5 w-5 text-primary" />
           Thông tin học vấn
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label className="text-emerald-700 dark:text-emerald-300">Mã sinh viên</Label>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            <Label className="text-foreground">Mã sinh viên</Label>
+            <p className="text-sm text-muted-foreground">
               {volunteerProfile.studentId || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-emerald-700 dark:text-emerald-300">Trường đại học</Label>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            <Label className="text-foreground">Trường đại học</Label>
+            <p className="text-sm text-muted-foreground">
               {volunteerProfile.university || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-emerald-700 dark:text-emerald-300">Chuyên ngành</Label>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            <Label className="text-foreground">Chuyên ngành</Label>
+            <p className="text-sm text-muted-foreground">
               {volunteerProfile.major || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-emerald-700 dark:text-emerald-300">Năm học</Label>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            <Label className="text-foreground">Năm học</Label>
+            <p className="text-sm text-muted-foreground">
               {volunteerProfile.yearOfStudy
                 ? `Năm ${volunteerProfile.yearOfStudy}`
                 : "Chưa cập nhật"}
@@ -119,83 +119,83 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
         </div>
       </div>
 
-      <Separator className="bg-emerald-200 dark:bg-emerald-800" />
+      <Separator className="bg-border" />
 
       {/* Volunteer Information */}
-      <div className="bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950 p-4 rounded-lg border border-teal-200 dark:border-teal-800 shadow-sm">
-        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-teal-800 dark:text-teal-200">
-          <Award className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+      <div className="bg-muted/30 p-4 rounded-2xl border border-border shadow-sm">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+          <Award className="h-5 w-5 text-primary" />
           Thông tin tình nguyện
         </h3>
         <div className="space-y-4">
           <div>
-            <Label className="text-teal-700 dark:text-teal-300">Động lực tham gia</Label>
-            <p className="text-sm text-teal-600 dark:text-teal-400 bg-gradient-to-r from-white to-teal-50 dark:from-gray-800 dark:to-teal-950 p-3 rounded border border-teal-200 dark:border-teal-700">
+            <Label className="text-foreground">Động lực tham gia</Label>
+            <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-xl border border-border">
               {volunteerProfile.motivation || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-teal-700 dark:text-teal-300">Kinh nghiệm</Label>
-            <p className="text-sm text-teal-600 dark:text-teal-400 bg-gradient-to-r from-white to-teal-50 dark:from-gray-800 dark:to-teal-950 p-3 rounded border border-teal-200 dark:border-teal-700">
+            <Label className="text-foreground">Kinh nghiệm</Label>
+            <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-xl border border-border">
               {volunteerProfile.experience || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-teal-700 dark:text-teal-300">Thời gian có thể tham gia</Label>
-            <p className="text-sm text-teal-600 dark:text-teal-400">
+            <Label className="text-foreground">Thời gian có thể tham gia</Label>
+            <p className="text-sm text-muted-foreground">
               {volunteerProfile.availability || "Chưa cập nhật"}
             </p>
           </div>
         </div>
       </div>
 
-      <Separator className="bg-teal-200 dark:bg-teal-800" />
+      <Separator className="bg-border" />
 
       {/* Statistics */}
-      <div className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 p-4 rounded-lg border border-cyan-200 dark:border-cyan-800 shadow-sm">
-        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-cyan-800 dark:text-cyan-200">
-          <Star className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+      <div className="bg-muted/30 p-4 rounded-2xl border border-border shadow-sm">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+          <Star className="h-5 w-5 text-primary" />
           Thống kê hoạt động
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm">
+          <div className="bg-muted/30 p-4 rounded-xl border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <span className="font-medium text-blue-800 dark:text-blue-200">Giờ tình nguyện</span>
+              <Clock className="h-5 w-5 text-primary" />
+              <span className="font-medium text-foreground">Giờ tình nguyện</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <p className="text-2xl font-bold text-primary">
               {volunteerProfile.totalHoursVolunteered || 0}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950 dark:to-amber-950 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 shadow-sm">
+          <div className="bg-muted/30 p-4 rounded-xl border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-              <span className="font-medium text-yellow-800 dark:text-yellow-200">Đánh giá</span>
+              <Star className="h-5 w-5 text-primary" />
+              <span className="font-medium text-foreground">Đánh giá</span>
             </div>
-            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            <p className="text-2xl font-bold text-primary">
               {volunteerProfile.rating?.toFixed(1) || "0.0"}
             </p>
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+            <p className="text-xs text-muted-foreground">
               ({volunteerProfile.ratingCount} lượt đánh giá)
             </p>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 p-4 rounded-lg border border-green-200 dark:border-green-800 shadow-sm">
+          <div className="bg-muted/30 p-4 rounded-xl border border-border shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               {volunteerProfile.isVerified ? (
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <CheckCircle className="h-5 w-5 text-primary" />
               ) : (
-                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                <XCircle className="h-5 w-5 text-destructive" />
               )}
-              <span className="font-medium text-green-800 dark:text-green-200">Trạng thái</span>
+              <span className="font-medium text-foreground">Trạng thái</span>
             </div>
             <Badge
               variant={volunteerProfile.isVerified ? "default" : "secondary"}
-              className="text-sm bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-sm"
+              className="text-sm shadow-sm"
             >
               {volunteerProfile.isVerified ? "Đã xác minh" : "Chưa xác minh"}
             </Badge>
             {volunteerProfile.verifiedAt && (
-              <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {new Date(volunteerProfile.verifiedAt).toLocaleDateString(
                   "vi-VN"
                 )}
@@ -208,11 +208,11 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
       {/* Skills */}
       {volunteerProfile.skills && (
         <>
-          <Separator className="bg-cyan-200 dark:bg-cyan-800" />
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4 text-blue-800 dark:text-blue-200">Kỹ năng</h3>
-            <div className="bg-gradient-to-r from-white to-blue-50 dark:from-gray-800 dark:to-blue-950 p-4 rounded border border-blue-200 dark:border-blue-700">
-              <p className="text-sm text-blue-700 dark:text-blue-300">{volunteerProfile.skills}</p>
+          <Separator className="bg-border" />
+          <div className="bg-muted/30 p-4 rounded-2xl border border-border shadow-sm">
+            <h3 className="text-lg font-semibold mb-4 text-foreground">Kỹ năng</h3>
+            <div className="bg-muted/30 p-4 rounded-xl border border-border">
+              <p className="text-sm text-muted-foreground">{volunteerProfile.skills}</p>
             </div>
           </div>
         </>
@@ -221,10 +221,10 @@ export function VolunteerProfileTab({ user }: VolunteerProfileTabProps) {
       {/* Activity Summary */}
       {volunteerProfile.updatedAt && (
         <>
-          <Separator className="bg-blue-200 dark:bg-blue-800" />
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-sm">
-            <Label className="text-indigo-700 dark:text-indigo-300">Cập nhật gần nhất</Label>
-            <p className="text-sm text-indigo-600 dark:text-indigo-400">
+          <Separator className="bg-border" />
+          <div className="bg-muted/30 p-4 rounded-2xl border border-border shadow-sm">
+            <Label className="text-foreground">Cập nhật gần nhất</Label>
+            <p className="text-sm text-muted-foreground">
               {new Date(volunteerProfile.updatedAt).toLocaleString("vi-VN")}
             </p>
           </div>

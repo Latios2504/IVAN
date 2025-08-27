@@ -93,7 +93,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -187,7 +187,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Thêm ghi chú về quyết định của bạn..."
-                    className="min-h-[100px]"
+                    className="min-h-[100px] bg-background border-border rounded-xl"
                     maxLength={1000}
                   />
                   <div className="text-sm text-muted-foreground text-right">
@@ -200,7 +200,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
         </div>
 
         <DialogFooter className="flex gap-3">
-          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+          <Button variant="outline" onClick={handleClose} disabled={isLoading} className="rounded-xl">
             Đóng
           </Button>
           
@@ -210,7 +210,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
                 variant="destructive"
                 onClick={handleReject}
                 disabled={isLoading || !note.trim()}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 rounded-xl"
               >
                 <XCircle className="h-4 w-4" />
                 {isLoading ? "Đang từ chối..." : "Từ chối"}
@@ -219,7 +219,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
               <Button
                 onClick={handleApprove}
                 disabled={isLoading}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                className="flex items-center gap-2 rounded-xl bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="h-4 w-4" />
                 {isLoading ? "Đang phê duyệt..." : "Phê duyệt"}

@@ -1,12 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowDown, 
-  Minus, 
-  ArrowUp, 
-  AlertTriangle,
-  Zap
-} from "lucide-react";
+import { ArrowDown, Minus, ArrowUp, AlertTriangle, Zap } from "lucide-react";
 import { TASK_PRIORITY } from "@/types/coordinatorTask";
 
 interface TaskPriorityBadgeProps {
@@ -16,35 +10,37 @@ interface TaskPriorityBadgeProps {
   size?: "sm" | "md" | "lg";
 }
 
-const priorityConfig: Record<string, {
-  label: string;
-  className: string;
-  icon: React.ComponentType<any>;
-  darkClassName: string;
-}> = {
+const priorityConfig: Record<
+  string,
+  {
+    label: string;
+    className: string;
+    icon: React.ComponentType<any>;
+  }
+> = {
   [TASK_PRIORITY.LOW]: {
     label: "Thấp",
-    className: "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+    className:
+      "bg-green-100/80 text-green-800 border-green-200/50 hover:bg-green-200/80 dark:bg-green-950/30 dark:text-green-200 dark:border-green-800/50",
     icon: ArrowDown,
-    darkClassName: "dark:bg-green-900/30 dark:text-green-200 dark:border-green-600",
   },
   [TASK_PRIORITY.MEDIUM]: {
     label: "Trung bình",
-    className: "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+    className:
+      "bg-yellow-100/80 text-yellow-800 border-yellow-200/50 hover:bg-yellow-200/80 dark:bg-yellow-950/30 dark:text-yellow-200 dark:border-yellow-800/50",
     icon: Minus,
-    darkClassName: "dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-600",
   },
   [TASK_PRIORITY.HIGH]: {
     label: "Cao",
-    className: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+    className:
+      "bg-orange-100/80 text-orange-800 border-orange-200/50 hover:bg-orange-200/80 dark:bg-orange-950/30 dark:text-orange-200 dark:border-orange-800/50",
     icon: ArrowUp,
-    darkClassName: "dark:bg-orange-900/30 dark:text-orange-200 dark:border-orange-600",
   },
   [TASK_PRIORITY.URGENT]: {
     label: "Khẩn cấp",
-    className: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200",
+    className:
+      "bg-red-100/80 text-red-800 border-red-200/50 hover:bg-red-200/80 dark:bg-red-950/30 dark:text-red-200 dark:border-red-800/50",
     icon: Zap,
-    darkClassName: "dark:bg-red-900/30 dark:text-red-200 dark:border-red-600",
   },
 };
 
@@ -68,9 +64,8 @@ const TaskPriorityBadge: React.FC<TaskPriorityBadgeProps> = ({
 }) => {
   const config = priorityConfig[priority] || {
     label: priority,
-    className: "bg-gray-100 text-gray-800 border-gray-300",
+    className: "bg-muted text-muted-foreground border-border",
     icon: AlertTriangle,
-    darkClassName: "dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600",
   };
 
   const IconComponent = config.icon;
@@ -81,7 +76,6 @@ const TaskPriorityBadge: React.FC<TaskPriorityBadgeProps> = ({
     <Badge
       className={`
         ${config.className} 
-        ${config.darkClassName} 
         ${sizeClass}
         font-semibold 
         border 

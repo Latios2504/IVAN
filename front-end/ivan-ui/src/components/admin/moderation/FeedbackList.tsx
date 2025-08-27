@@ -54,7 +54,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="card-hover rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -72,7 +72,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
 
   if (feedbacks.length === 0) {
     return (
-      <Card>
+      <Card className="card-hover rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -93,7 +93,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
   }
 
   return (
-    <Card>
+    <Card className="card-hover rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
@@ -163,7 +163,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => onViewDetails(feedback)}
-                      className="flex items-center gap-1 text-xs h-8"
+                      className="flex items-center gap-1 text-xs h-8 rounded-xl"
                     >
                       <Eye className="h-3 w-3" />
                       Quản lý

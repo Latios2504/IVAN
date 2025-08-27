@@ -13,29 +13,29 @@ import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 p-6 bg-gradient-to-r from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30 rounded-2xl border border-emerald-200/50 dark:border-emerald-800/50 shadow-lg backdrop-blur-sm">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent mb-2">
+        <div className="mb-8 p-6 bg-muted/30 rounded-2xl border border-border shadow-lg">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
             Trang quản trị
           </h1>
-          <p className="text-emerald-700/80 dark:text-emerald-300/80 text-lg">
+          <p className="text-muted-foreground text-lg">
             Quản lý toàn bộ hệ thống tình nguyện và giám sát hoạt động
           </p>
         </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30 border border-emerald-200/50 dark:border-emerald-800/50 shadow-lg backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/30 border border-border shadow-lg">
             <TabsTrigger
               value="management"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
             >
               Quản lý
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
             >
               Phân tích
             </TabsTrigger>
@@ -44,13 +44,13 @@ export default function AdminDashboard() {
           <TabsContent value="management" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* User Management */}
-              <Card className="bg-gradient-to-br from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/30 dark:via-teal-950/30 dark:to-cyan-950/30 border border-emerald-200/50 dark:border-emerald-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="border-b border-emerald-200/50 dark:border-emerald-800/50">
-                  <CardTitle className="text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
+              <Card className="bg-muted/30 border border-border shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
+                <CardHeader className="border-b border-border">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <Users className="w-5 h-5" />
                     Quản lý người dùng
                   </CardTitle>
-                  <CardDescription className="text-emerald-700/80 dark:text-emerald-300/80">
+                  <CardDescription className="text-muted-foreground">
                     Tài khoản, phân quyền và xác thực
                   </CardDescription>
                 </CardHeader>
@@ -69,13 +69,13 @@ export default function AdminDashboard() {
               </Card>
 
               {/* System Management */}
-              <Card className="bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-purple-50/80 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border border-blue-200/50 dark:border-blue-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="border-b border-blue-200/50 dark:border-blue-800/50">
-                  <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
+              <Card className="bg-muted/30 border border-border shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl">
+                <CardHeader className="border-b border-border">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <Shield className="w-5 h-5" />
                     Quản lý hệ thống
                   </CardTitle>
-                  <CardDescription className="text-blue-700/80 dark:text-blue-300/80">
+                  <CardDescription className="text-muted-foreground">
                     Kiểm duyệt, thông báo và hỗ trợ
                   </CardDescription>
                 </CardHeader>

@@ -116,9 +116,9 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
 
   if (!coordinatorProfile) {
     return (
-      <div className="text-center py-8 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-800/20 dark:to-slate-700/20 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-        <UserCheck className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-        <p className="text-gray-600 dark:text-gray-400 font-medium">
+      <div className="text-center py-8 bg-muted/30 border-border rounded-2xl shadow-lg">
+        <UserCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <p className="text-muted-foreground font-medium">
           Chưa có thông tin hồ sơ điều phối viên
         </p>
       </div>
@@ -128,43 +128,43 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
   return (
     <div className="space-y-6">
       {/* Job Information */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-800/20 backdrop-blur-sm border border-blue-200 dark:border-blue-700 rounded-lg p-6 shadow-lg">
-        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-blue-800 dark:text-blue-200">
-          <Briefcase className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+      <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+          <Briefcase className="h-5 w-5 text-primary" />
           Thông tin công việc
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label className="text-blue-700 dark:text-blue-300 font-medium">
+            <Label className="text-foreground font-medium">
               Mã nhân viên
             </Label>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+            <p className="text-sm text-muted-foreground">
               {coordinatorProfile.employeeId || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-blue-700 dark:text-blue-300 font-medium">
+            <Label className="text-foreground font-medium">
               Chức vụ
             </Label>
-            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+            <p className="text-sm text-foreground font-medium">
               {coordinatorProfile.position || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-blue-700 dark:text-blue-300 font-medium">
+            <Label className="text-foreground font-medium">
               Phòng ban
             </Label>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+            <p className="text-sm text-muted-foreground">
               {coordinatorProfile.department || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-blue-700 dark:text-blue-300 font-medium">
+            <Label className="text-foreground font-medium">
               Trạng thái
             </Label>
             <Badge
               variant={coordinatorProfile.isActive ? "default" : "secondary"}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
+              className="rounded-xl"
             >
               {coordinatorProfile.isActive ? "Đang làm việc" : "Đã nghỉ việc"}
             </Badge>
@@ -172,48 +172,48 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
         </div>
       </div>
 
-      <Separator className="bg-gradient-to-r from-blue-200 to-indigo-300 dark:from-blue-700 dark:to-indigo-600 h-0.5" />
+      <Separator className="bg-border h-0.5" />
 
       {/* Organization Information */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 backdrop-blur-sm border border-green-200 dark:border-green-700 rounded-lg p-6 shadow-lg">
-        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-green-800 dark:text-green-200">
-          <Building className="h-5 w-5 text-green-600 dark:text-green-400" />
+      <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+          <Building className="h-5 w-5 text-primary" />
           Thông tin tổ chức
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label className="text-green-700 dark:text-green-300 font-medium">
+            <Label className="text-foreground font-medium">
               Tên tổ chức
             </Label>
-            <p className="text-sm text-green-800 dark:text-green-200 font-medium">
+            <p className="text-sm text-foreground font-medium">
               {coordinatorProfile.organizationName || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-green-700 dark:text-green-300 font-medium">
+            <Label className="text-foreground font-medium">
               Quản lý trực tiếp
             </Label>
-            <p className="text-sm text-green-800 dark:text-green-200">
+            <p className="text-sm text-muted-foreground">
               {coordinatorProfile.managerName || "Chưa cập nhật"}
             </p>
           </div>
         </div>
       </div>
 
-      <Separator className="bg-gradient-to-r from-green-200 to-emerald-300 dark:from-green-700 dark:to-emerald-600 h-0.5" />
+      <Separator className="bg-border h-0.5" />
 
       {/* Employment Details */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-800/20 backdrop-blur-sm border border-purple-200 dark:border-purple-700 rounded-lg p-6 shadow-lg">
-        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-purple-800 dark:text-purple-200">
-          <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+      <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
+        <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+          <Calendar className="h-5 w-5 text-primary" />
           Thông tin tuyển dụng
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label className="text-purple-700 dark:text-purple-300 font-medium">
+            <Label className="text-foreground font-medium">
               Ngày bắt đầu
             </Label>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
+            <p className="text-sm text-muted-foreground">
               {coordinatorProfile.hireDate
                 ? new Date(coordinatorProfile.hireDate).toLocaleDateString(
                     "vi-VN"
@@ -222,10 +222,10 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
             </p>
           </div>
           <div>
-            <Label className="text-purple-700 dark:text-purple-300 font-medium">
+            <Label className="text-foreground font-medium">
               Ngày kết thúc
             </Label>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
+            <p className="text-sm text-muted-foreground">
               {coordinatorProfile.endDate
                 ? new Date(coordinatorProfile.endDate).toLocaleDateString(
                     "vi-VN"
@@ -235,12 +235,12 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
           </div>
           {coordinatorProfile.salary && (
             <div>
-              <Label className="text-purple-700 dark:text-purple-300 font-medium">
+              <Label className="text-foreground font-medium">
                 Mức lương
               </Label>
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <p className="text-sm text-purple-800 dark:text-purple-200 font-medium">
+                <DollarSign className="h-4 w-4 text-primary" />
+                <p className="text-sm text-foreground font-medium">
                   {coordinatorProfile.salary.toLocaleString("vi-VN")} VNĐ
                 </p>
               </div>
@@ -249,31 +249,31 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
         </div>
       </div>
 
-      <Separator className="bg-gradient-to-r from-purple-200 to-pink-300 dark:from-purple-700 dark:to-pink-600 h-0.5" />
+      <Separator className="bg-border h-0.5" />
 
       {/* Responsibilities */}
       {coordinatorProfile.responsibilities && (
         <>
-          <div className="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-800/20 backdrop-blur-sm border border-orange-200 dark:border-orange-700 rounded-lg p-6 shadow-lg">
-            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-orange-800 dark:text-orange-200">
-              <ClipboardList className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4 text-foreground">
+              <ClipboardList className="h-5 w-5 text-primary" />
               Trách nhiệm công việc
             </h3>
-            <p className="text-sm text-orange-800 dark:text-orange-200 bg-gradient-to-br from-orange-100 to-amber-50 dark:from-orange-800/30 dark:to-amber-700/30 p-4 rounded-lg border border-orange-200 dark:border-orange-600 shadow-inner">
+            <p className="text-sm text-foreground bg-muted/30 p-4 rounded-xl border-border shadow-inner">
               {coordinatorProfile.responsibilities}
             </p>
           </div>
-          <Separator className="bg-gradient-to-r from-orange-200 to-amber-300 dark:from-orange-700 dark:to-amber-600 h-0.5" />
+          <Separator className="bg-border h-0.5" />
         </>
       )}
 
       {/* Notes */}
       {coordinatorProfile.notes && (
-        <div className="bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-900/20 dark:to-amber-800/20 backdrop-blur-sm border border-yellow-200 dark:border-yellow-700 rounded-lg p-6 shadow-lg">
-          <h3 className="text-lg font-semibold mb-4 text-yellow-800 dark:text-yellow-200">
+        <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">
             Ghi chú
           </h3>
-          <p className="text-sm text-yellow-800 dark:text-yellow-200 bg-gradient-to-br from-yellow-100 to-amber-50 dark:from-yellow-800/30 dark:to-amber-700/30 p-4 rounded-lg border-l-4 border-yellow-400 dark:border-yellow-500 shadow-inner">
+          <p className="text-sm text-foreground bg-muted/30 p-4 rounded-xl border-l-4 border-primary shadow-inner">
             {coordinatorProfile.notes}
           </p>
         </div>
@@ -282,12 +282,12 @@ export function CoordinatorProfileTab({ user }: CoordinatorProfileTabProps) {
       {/* Work Duration */}
       {coordinatorProfile.hireDate && (
         <>
-          <Separator className="bg-gradient-to-r from-teal-200 to-cyan-300 dark:from-teal-700 dark:to-cyan-600 h-0.5" />
-          <div className="bg-gradient-to-br from-teal-50 to-cyan-100 dark:from-teal-900/20 dark:to-cyan-800/20 backdrop-blur-sm border border-teal-200 dark:border-teal-700 rounded-lg p-6 shadow-lg">
-            <Label className="text-teal-700 dark:text-teal-300 font-medium text-base">
+          <Separator className="bg-border h-0.5" />
+          <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
+            <Label className="text-foreground font-medium text-base">
               Thời gian làm việc
             </Label>
-            <p className="text-sm text-teal-800 dark:text-teal-200 font-medium mt-2">
+            <p className="text-sm text-foreground font-medium mt-2">
               {(() => {
                 const startDate = new Date(coordinatorProfile.hireDate);
                 const endDate = coordinatorProfile.endDate

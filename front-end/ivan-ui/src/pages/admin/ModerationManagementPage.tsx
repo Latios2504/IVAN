@@ -399,7 +399,7 @@ export default function ModerationManagementPage() {
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">
+              <h2 className="text-xl font-semibold mb-2 text-foreground">
                 Truy cập bị từ chối
               </h2>
               <p className="text-muted-foreground">
@@ -417,7 +417,7 @@ export default function ModerationManagementPage() {
       {/* Tiêu đề trang */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Kiểm duyệt quản trị
           </h1>
           <p className="text-muted-foreground mt-2">

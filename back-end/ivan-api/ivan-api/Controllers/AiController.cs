@@ -22,6 +22,7 @@ public class AiController : ControllerBase
     private readonly ISqlExecutionService _sqlExecutionService;
     private readonly IAiCustomInstructionService _aiCustomInstructionService;
     private readonly ISchemaService _schemaService;
+    private readonly ivan_api.Services.AuthenticationSer.IAuthenticationService _authenticationService;
     private readonly ILogger<AiController> _logger;
 
     public AiController(
@@ -29,12 +30,14 @@ public class AiController : ControllerBase
         ISqlExecutionService sqlExecutionService,
         IAiCustomInstructionService aiCustomInstructionService,
         ISchemaService schemaService,
+        ivan_api.Services.AuthenticationSer.IAuthenticationService authenticationService,
         ILogger<AiController> logger)
     {
         _aiProviderFactory = aiProviderFactory;
         _sqlExecutionService = sqlExecutionService;
         _aiCustomInstructionService = aiCustomInstructionService;
         _schemaService = schemaService;
+        _authenticationService = authenticationService;
         _logger = logger;
     }
 
@@ -136,6 +139,10 @@ public async Task<ActionResult<ApiResponseDTO<object>>> SendQuery([FromBody] AiQ
             });
         }
 
+        // Get user context from JWT claims
+        var userContext = await _authenticationService.GetUserContextForAiAsync(User);
+        _logger.LogInformation("AI Query from user: {UserContext}", userContext.GetContextDescription());
+
         var providers = await _aiProviderFactory.GetEnabledProvidersAsync();
         if (!providers.Any())
         {
@@ -179,10 +186,13 @@ public async Task<ActionResult<ApiResponseDTO<object>>> SendQuery([FromBody] AiQ
         if (customInstruction != null)
         {
             var schemaDescription = await _schemaService.GetDatabaseSchemaDescriptionAsync();
+            var userContextPrompt = BuildUserContextPrompt(userContext);
             sqlGenerationPrompt = $@"{customInstruction.SystemPrompt}
 
 DATABASE SCHEMA INFORMATION:
 {schemaDescription}
+
+{userContextPrompt}
 
 {customInstruction.BehaviorInstructions}
 
@@ -195,13 +205,14 @@ BƯỚC 1: Tạo câu SQL chính xác để truy vấn dữ liệu. Chỉ trả 
         else
         {
             var memoryForSql = BuildClientMemoryContext();
+            var userContextPrompt = BuildUserContextPrompt(userContext);
             if (!string.IsNullOrEmpty(memoryForSql))
             {
-                sqlGenerationPrompt = $"Dựa trên bối cảnh sau đây, hãy tạo câu SQL để trả lời câu hỏi. Chỉ trả về SQL trong code block.\n\n{memoryForSql}\n\nCâu hỏi: {request.Query}";
+                sqlGenerationPrompt = $"Dựa trên bối cảnh sau đây, hãy tạo câu SQL để trả lời câu hỏi. Chỉ trả về SQL trong code block.\n\n{userContextPrompt}\n\n{memoryForSql}\n\nCâu hỏi: {request.Query}";
             }
             else
             {
-                sqlGenerationPrompt = $"Tạo câu SQL để trả lời câu hỏi: {request.Query}";
+                sqlGenerationPrompt = $"{userContextPrompt}\n\nTạo câu SQL để trả lời câu hỏi: {request.Query}";
             }
         }
 
@@ -281,7 +292,10 @@ BƯỚC 1: Tạo câu SQL chính xác để truy vấn dữ liệu. Chỉ trả 
         if (customInstruction != null && sqlData != null)
         {
             var dataJson = System.Text.Json.JsonSerializer.Serialize(sqlData);
+            var userContextPrompt = BuildUserContextPrompt(userContext);
             finalResponsePrompt = $@"{customInstruction.SystemPrompt}
+
+{userContextPrompt}
 
 {customInstruction.BehaviorInstructions}
 
@@ -297,7 +311,10 @@ Hãy trả lời một cách thân thiện và dễ hiểu.";
         }
         else if (customInstruction != null)
         {
+            var userContextPrompt = BuildUserContextPrompt(userContext);
             finalResponsePrompt = $@"{customInstruction.SystemPrompt}
+
+{userContextPrompt}
 
 {customInstruction.BehaviorInstructions}
 
@@ -309,7 +326,8 @@ Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời
         }
         else
         {
-            finalResponsePrompt = $"Bạn là trợ lý AI của hệ thống quản lý tình nguyện viên IVAN. {(string.IsNullOrEmpty(clientMemoryContext) ? string.Empty : "Dưới đây là bối cảnh cuộc trò chuyện trước đó: " + clientMemoryContext + " ")}Hãy trả lời câu hỏi sau bằng tiếng Việt: {request.Query}";
+            var userContextPrompt = BuildUserContextPrompt(userContext);
+            finalResponsePrompt = $"Bạn là trợ lý AI của hệ thống quản lý tình nguyện viên IVAN. {userContextPrompt} {(string.IsNullOrEmpty(clientMemoryContext) ? string.Empty : "Dưới đây là bối cảnh cuộc trò chuyện trước đó: " + clientMemoryContext + " ")}Hãy trả lời câu hỏi sau bằng tiếng Việt: {request.Query}";
         }
 
         var finalResult = await provider.SendPromptAsync(finalResponsePrompt, request.PreferredModel);
@@ -323,6 +341,7 @@ Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời
             executionTimeMs = finalResult.ResponseTimeMs,
             generatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
             customInstructionUsed = customInstruction?.InstructionName ?? "Default",
+            userContext = userContext.GetContextDescription(),
             sqlData = sqlData,
             sqlGenerated = generatedSql
         };
@@ -381,6 +400,61 @@ Không thể truy xuất dữ liệu từ cơ sở dữ liệu. Hãy trả lời
 
         _logger.LogInformation("No SQL query patterns found in response");
         return string.Empty;
+    }
+
+    /// <summary>
+    /// Build user context prompt for AI to understand user's role and data access scope
+    /// </summary>
+    private string BuildUserContextPrompt(UserContextInfo userContext)
+    {
+        var contextParts = new List<string>();
+
+        // Add role information
+        contextParts.Add($"THÔNG TIN NGƯỜI DÙNG HIỆN TẠI:");
+        contextParts.Add($"- Role: {userContext.RoleName}");
+        contextParts.Add($"- User ID: {userContext.UserId}");
+
+        // Add role-specific context and data access rules
+        if (userContext.IsAdmin)
+        {
+            contextParts.Add("- Quyền: Toàn quyền truy cập tất cả dữ liệu trong hệ thống");
+            contextParts.Add("- Phạm vi: Có thể xem thông tin của tất cả tổ chức, đối tác, tình nguyện viên");
+        }
+        else if (userContext.IsOrganization && userContext.OrganizationId.HasValue)
+        {
+            contextParts.Add($"- Organization ID: {userContext.OrganizationId.Value}");
+            contextParts.Add("- Phạm vi: Chỉ được truy cập dữ liệu của tổ chức này");
+            contextParts.Add("- Có thể xem: Events, volunteers đăng ký, coordinators của tổ chức");
+            contextParts.Add($"- QUAN TRỌNG: Trong SQL queries, PHẢI filter OrganizationId = {userContext.OrganizationId.Value}");
+        }
+        else if (userContext.IsPartner && userContext.PartnerId.HasValue)
+        {
+            contextParts.Add($"- Partner ID: {userContext.PartnerId.Value}");
+            contextParts.Add("- Phạm vi: Chỉ được truy cập dữ liệu liên quan đến đối tác này");
+            contextParts.Add("- Có thể xem: Collaborations, partnerships của đối tác");
+            contextParts.Add($"- QUAN TRỌNG: Trong SQL queries, PHẢI filter PartnerId = {userContext.PartnerId.Value}");
+        }
+        else if (userContext.IsVolunteer && userContext.VolunteerId.HasValue)
+        {
+            contextParts.Add($"- Volunteer ID: {userContext.VolunteerId.Value}");
+            contextParts.Add("- Phạm vi: Chỉ được truy cập dữ liệu cá nhân của tình nguyện viên này");
+            contextParts.Add("- Có thể xem: Registrations, schedules, certificates của bản thân");
+            contextParts.Add($"- QUAN TRỌNG: Trong SQL queries, PHẢI filter VolunteerId = {userContext.VolunteerId.Value}");
+        }
+        else if (userContext.IsCoordinator && userContext.CoordinatorId.HasValue)
+        {
+            contextParts.Add($"- Coordinator ID: {userContext.CoordinatorId.Value}");
+            contextParts.Add("- Phạm vi: Được truy cập dữ liệu của tổ chức và các events được quản lý");
+            contextParts.Add("- Có thể xem: Tasks, schedules, volunteers trong các events được phân công");
+            contextParts.Add($"- QUAN TRỌNG: Trong SQL queries, PHẢI filter dựa trên CoordinatorId = {userContext.CoordinatorId.Value}");
+        }
+
+        contextParts.Add("");
+        contextParts.Add("QUY TẮC BẢO MẬT QUAN TRỌNG:");
+        contextParts.Add("1. Luôn áp dụng filter phù hợp với role trong SQL queries");
+        contextParts.Add("2. Nếu user không có quyền truy cập, từ chối một cách lịch sự");
+
+        return string.Join("\n", contextParts);
     }
 
 }

@@ -73,9 +73,9 @@ const AdminAnalyticsDashboard: React.FC = () => {
 
   if (loading && !dashboardData) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Đang tải dữ liệu phân tích...</span>
+      <div className="flex items-center justify-center h-64 bg-background text-foreground">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Đang tải dữ liệu phân tích...</span>
       </div>
     );
   }
@@ -205,10 +205,10 @@ const AdminAnalyticsDashboard: React.FC = () => {
       {/* Dashboard Header */}
       <div className="relative z-10 flex justify-between items-start bg-gradient-to-r from-white/80 via-violet-50/50 to-indigo-50/50 dark:from-slate-900/80 dark:via-violet-950/50 dark:to-indigo-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 rounded-2xl p-6 shadow-xl shadow-violet-200/30 dark:shadow-violet-900/30">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 dark:from-violet-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
             Bảng điều khiển phân tích quản trị
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
+          <p className="text-muted-foreground mt-2">
             Phân tích và thông tin chi tiết toàn diện về hệ thống
           </p>
         </div>
@@ -219,7 +219,7 @@ const AdminAnalyticsDashboard: React.FC = () => {
               handleTimePeriodChange(parseInt(value) as TimePeriod)
             }
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32 bg-background border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -278,7 +278,7 @@ const AdminAnalyticsDashboard: React.FC = () => {
 
       {/* Charts Tabs */}
       <Tabs defaultValue="users" className="relative z-10 space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-white/90 via-violet-50/50 to-indigo-50/50 dark:from-slate-900/90 dark:via-violet-950/50 dark:to-indigo-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 shadow-lg">
+        <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-white/90 via-violet-50/50 to-indigo-50/50 dark:from-slate-900/90 dark:via-violet-950/50 dark:to-indigo-950/50 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 shadow-lg rounded-xl">
           <TabsTrigger value="users">Phân tích người dùng</TabsTrigger>
           <TabsTrigger value="events">Phân tích sự kiện</TabsTrigger>
           <TabsTrigger value="organizations">Tổ chức</TabsTrigger>
@@ -288,12 +288,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
           {dashboardData && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* User Growth Chart */}
-              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Xu hướng tăng trưởng người dùng
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Mô hình đăng ký và tăng trưởng người dùng hàng tháng
                   </CardDescription>
                 </CardHeader>
@@ -332,12 +332,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* User Role Distribution */}
-              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Phân bố vai trò người dùng
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Phân bố người dùng theo loại vai trò
                   </CardDescription>
                 </CardHeader>
@@ -371,12 +371,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* Geographic Distribution */}
-              <Card className="lg:col-span-2 bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="lg:col-span-2 card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Phân bố địa lý
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Phân bố người dùng theo vị trí
                   </CardDescription>
                 </CardHeader>
@@ -433,12 +433,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
           {dashboardData && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Event Trends */}
-              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Xu hướng sự kiện
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Xu hướng tạo sự kiện và tham gia hàng tháng
                   </CardDescription>
                 </CardHeader>
@@ -477,12 +477,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* Event Status Distribution */}
-              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Phân bố trạng thái sự kiện
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Phân bố sự kiện theo trạng thái hiện tại
                   </CardDescription>
                 </CardHeader>
@@ -532,12 +532,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
           {dashboardData && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Organization Growth */}
-              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Tăng trưởng Tổ chức
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Xu hướng đăng ký tổ chức hàng tháng
                   </CardDescription>
                 </CardHeader>
@@ -580,12 +580,12 @@ const AdminAnalyticsDashboard: React.FC = () => {
               </Card>
 
               {/* Organization Type Distribution */}
-              <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
+              <Card className="card-hover bg-gradient-to-br from-white/90 via-violet-50/30 to-indigo-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-indigo-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-slate-800 dark:text-slate-200 font-semibold">
+                  <CardTitle className="text-foreground font-semibold">
                     Loại Tổ chức
                   </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">
+                  <CardDescription className="text-muted-foreground">
                     Phân bố theo loại tổ chức
                   </CardDescription>
                 </CardHeader>
