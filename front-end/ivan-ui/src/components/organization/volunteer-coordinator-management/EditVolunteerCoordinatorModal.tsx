@@ -5,23 +5,24 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "../../ui/dialog";
-import { Button } from "../../ui/button";
-import { Input } from "../../ui/input";
-import { Label } from "../../ui/label";
-import { Textarea } from "../../ui/textarea";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../ui/select";
-import { Switch } from "../../ui/switch";
-import { Separator } from "../../ui/separator";
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { Loader2, Save, X } from "lucide-react";
-import type { VolunteerCoordinatorDto, UpdateVolunteerCoordinatorDto } from "../../../types/volunteerCoordinator";
-import { volunteerCoordinatorService } from "../../../services/volunteerCoordinatorService";
+import type { VolunteerCoordinatorDto, UpdateVolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
+import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
 
 interface EditVolunteerCoordinatorModalProps {
   coordinator: VolunteerCoordinatorDto | null;
@@ -51,7 +52,8 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
     notes: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (coordinator && open) {
@@ -67,14 +69,15 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
         isActive: coordinator.isActive ?? true,
         notes: coordinator.notes || "",
       });
-      setErrors({});
+      setFieldErrors({});
+      setSubmitError(null);
     }
   }, [coordinator, open]);
 
   const handleInputChange = (field: keyof UpdateVolunteerCoordinatorDto, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -101,7 +104,7 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
       newErrors.salary = "Lương không thể âm";
     }
 
-    setErrors(newErrors);
+    setFieldErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -122,7 +125,7 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to update coordinator:", error);
-      setErrors({ submit: "Không thể cập nhật coordinator. Vui lòng thử lại." });
+      setSubmitError("Không thể cập nhật coordinator. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -175,8 +178,8 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
                   placeholder="Nhập vị trí"
                   className="bg-white dark:bg-slate-800 border-blue-300 dark:border-blue-600"
                 />
-                {errors.position && (
-                  <p className="text-sm text-red-600 dark:text-red-400">{errors.position}</p>
+                {fieldErrors.position && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{fieldErrors.position}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -190,8 +193,8 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
                   placeholder="Nhập phòng ban"
                   className="bg-white dark:bg-slate-800 border-blue-300 dark:border-blue-600"
                 />
-                {errors.department && (
-                  <p className="text-sm text-red-600 dark:text-red-400">{errors.department}</p>
+                {fieldErrors.department && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{fieldErrors.department}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -249,8 +252,8 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
                   onChange={(e) => handleInputChange("endDate", e.target.value)}
                   className="bg-white dark:bg-slate-800 border-emerald-300 dark:border-emerald-600"
                 />
-                {errors.endDate && (
-                  <p className="text-sm text-red-600 dark:text-red-400">{errors.endDate}</p>
+                {fieldErrors.endDate && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{fieldErrors.endDate}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -265,8 +268,8 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
                   placeholder="Nhập lương"
                   className="bg-white dark:bg-slate-800 border-emerald-300 dark:border-emerald-600"
                 />
-                {errors.salary && (
-                  <p className="text-sm text-red-600 dark:text-red-400">{errors.salary}</p>
+                {fieldErrors.salary && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{fieldErrors.salary}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -323,10 +326,12 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
             </div>
           </div>
 
-          {errors.submit && (
-            <div className="p-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-lg">
-              <p className="text-sm text-red-700 dark:text-red-300">{errors.submit}</p>
-            </div>
+          {submitError && (
+            <ErrorDisplay
+              variant="component"
+              error={submitError}
+              onRetry={() => setSubmitError(null)}
+            />
           )}
 
           <DialogFooter className="flex justify-end space-x-2 pt-4">
