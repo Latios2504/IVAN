@@ -400,7 +400,8 @@ public class VolunteerCoordinatorController : ControllerBase
     /// Get available managers for an organization
     /// </summary>
     [HttpGet("managers/{organizationId}")]
-    [Authorize(Roles = $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.Admin}")]
+    [Authorize(Roles =
+        $"{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator},{AuthenticationConstants.Roles.Admin}")]
     public async Task<ActionResult<ApiResponseDTO<List<VolunteerCoordinatorDto>>>> GetAvailableManagers(
         int organizationId)
     {
