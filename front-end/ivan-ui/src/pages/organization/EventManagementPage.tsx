@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { eventsService } from "@/services/eventsService";
 import { useAuth } from "@/hooks/useAuth";
 import type {
@@ -14,15 +14,22 @@ import { LoadingState } from "@/components/common/LoadingState";
 import { toast } from "sonner";
 import { StatsCard } from "@/components/common/StatsCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
+import {
+  Plus,
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Search,
+} from "lucide-react";
 
 export default function EventManagementPage() {
   const { user } = useAuth();
 
   // State management
-  const [events, setEvents] = useState<EventDto[]>([]);
+  const [allEvents, setAllEvents] = useState<EventDto[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventDto[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
-
 
   const [categories, setCategories] = useState<EventCategoryDto[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -32,47 +39,46 @@ export default function EventManagementPage() {
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  // Filter state
-  const [filters, setFilters] = useState<EventFilterDto>({
-    page: 1,
-    size: 100,
-    sortBy: "startDate",
-    sortDirection: "desc",
+  // Current active filters
+  const [activeFilters, setActiveFilters] = useState({
+    search: "",
+    categoryId: "all",
+    statusId: "all",
   });
+
+  // Ref to prevent initial load double-call
+  const hasLoadedInitialData = useRef(false);
 
   // Load all data on mount
   useEffect(() => {
-    // Only load data if user has organization profile
-    if (user?.organizationId) {
+    // Only load data if user has organization profile and hasn't loaded yet
+    if (user?.organizationId && !hasLoadedInitialData.current) {
+      hasLoadedInitialData.current = true;
       loadAllData();
     } else if (user && !user.organizationId) {
       toast.error("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
     }
   }, [user?.organizationId]);
 
-  // Load events when filters change
-  useEffect(() => {
-    if (user?.organizationId) {
-      loadEvents();
-    }
-  }, [filters, user?.organizationId]);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     // Check if user has organization profile
     if (!user?.organizationId) {
       toast.error("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
       return;
     }
 
-    // Load events with current filters
+    // Load all events for this organization (no client-side filtering yet)
     setEventsLoading(true);
     try {
-      const eventFilters = {
-        ...filters,
+      const eventFilters: EventFilterDto = {
+        page: 1,
+        size: 1000, // Load all events at once for better UX
+        sortBy: "startDate",
+        sortDirection: "desc",
         organizationId: user.organizationId, // Only load this organization's events
       };
       const result = await eventsService.getEvents(eventFilters);
-      setEvents(result.items);
+      setAllEvents(result.items);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Không thể tải danh sách sự kiện"
@@ -80,92 +86,113 @@ export default function EventManagementPage() {
     } finally {
       setEventsLoading(false);
     }
-  };
+  }, [user?.organizationId]);
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     // Check if user has organization profile
     if (!user?.organizationId) {
       toast.error("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
       return;
     }
 
-    // Load categories
-    setCategoriesLoading(true);
-    try {
-      const categoriesResult = await eventsService.getEventCategories();
-      setCategories(categoriesResult);
-    } catch (err) {
-      console.warn("Không thể tải danh mục:", err);
-    } finally {
-      setCategoriesLoading(false);
-    }
+    // Load all data in parallel for better performance
+    const promises = [
+      // Load events
+      loadEvents(),
+      // Load categories
+      (async () => {
+        setCategoriesLoading(true);
+        try {
+          const categoriesResult = await eventsService.getEventCategories();
+          setCategories(categoriesResult);
+        } catch (err) {
+          console.warn("Không thể tải danh mục:", err);
+        } finally {
+          setCategoriesLoading(false);
+        }
+      })(),
+      // Load statuses
+      (async () => {
+        setStatusesLoading(true);
+        try {
+          const statusesResult = await eventsService.getEventStatuses();
+          setStatuses(statusesResult);
+        } catch (err) {
+          console.warn("Không thể tải trạng thái:", err);
+        } finally {
+          setStatusesLoading(false);
+        }
+      })(),
+    ];
 
-    // Load statuses
-    setStatusesLoading(true);
-    try {
-      const statusesResult = await eventsService.getEventStatuses();
-      setStatuses(statusesResult);
-    } catch (err) {
-      console.warn("Không thể tải trạng thái:", err);
-    } finally {
-      setStatusesLoading(false);
-    }
-  };
+    await Promise.all(promises);
+  }, [user?.organizationId, loadEvents]);
 
-  const handleCreateSuccess = () => {
+  const handleCreateSuccess = useCallback(() => {
     setShowCreateDialog(false);
     loadEvents(); // Refresh events data
-  };
+  }, [loadEvents]);
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = useCallback(() => {
     loadEvents(); // Refresh events data
-  };
+  }, [loadEvents]);
 
-  // Handle filter changes from EventFilters component
-  const handleFiltersChange = (newFilters: any) => {
-    // Convert filter values from EventFilters component to EventFilterDto format
-    const updatedFilters: EventFilterDto = {
-      ...filters,
-      page: 1, // Reset to first page when filters change
-    };
+  // Handle filter changes from EventFilters component (client-side filtering)
+  const handleFiltersChange = useCallback((newFilters: any) => {
+    setActiveFilters(newFilters);
+  }, []);
 
-    // Handle search
-    if (newFilters.search && newFilters.search.trim()) {
-      updatedFilters.search = newFilters.search.trim();
-    } else {
-      delete updatedFilters.search;
+  // Apply client-side filtering
+  useEffect(() => {
+    let filtered = [...allEvents];
+
+    // Apply search filter
+    if (activeFilters.search && activeFilters.search.trim()) {
+      const searchTerm = activeFilters.search.toLowerCase();
+      filtered = filtered.filter(
+        (event) =>
+          event.eventName.toLowerCase().includes(searchTerm) ||
+          (event.description &&
+            event.description.toLowerCase().includes(searchTerm)) ||
+          (event.shortDescription &&
+            event.shortDescription.toLowerCase().includes(searchTerm))
+      );
     }
 
-    // Handle category filter
-    if (newFilters.categoryId && newFilters.categoryId !== "all") {
-      updatedFilters.categoryIds = [parseInt(newFilters.categoryId)];
-    } else {
-      delete updatedFilters.categoryIds;
+    // Apply category filter
+    if (activeFilters.categoryId && activeFilters.categoryId !== "all") {
+      const categoryId = parseInt(activeFilters.categoryId);
+      filtered = filtered.filter((event) => event.categoryId === categoryId);
     }
 
-    // Handle status filter
-    if (newFilters.statusId && newFilters.statusId !== "all") {
-      updatedFilters.statusIds = [parseInt(newFilters.statusId)];
-    } else {
-      delete updatedFilters.statusIds;
+    // Apply status filter
+    if (activeFilters.statusId && activeFilters.statusId !== "all") {
+      const statusId = parseInt(activeFilters.statusId);
+      filtered = filtered.filter((event) => event.statusId === statusId);
     }
 
-    setFilters(updatedFilters);
-  };
+    setFilteredEvents(filtered);
+  }, [allEvents, activeFilters]);
 
-  // Calculate event statistics - must be before any early returns
+  // Calculate event statistics based on all events (not filtered)
   const eventStats = useMemo(() => {
-    const total = events.length;
-    const active = events.filter(event => event.statusName?.toLowerCase() === 'ongoing' || event.statusName?.toLowerCase() === 'published').length;
-    const upcoming = events.filter(event => {
+    const total = allEvents.length;
+    const active = allEvents.filter(
+      (event) =>
+        event.statusName?.toLowerCase() === "ongoing" ||
+        event.statusName?.toLowerCase() === "published"
+    ).length;
+    const upcoming = allEvents.filter((event) => {
       const startDate = new Date(event.startDate);
       const now = new Date();
       return startDate > now;
     }).length;
-    const completed = events.filter(event => event.statusName?.toLowerCase() === 'completed').length;
-    
+    const completed = allEvents.filter(
+      (event) => event.statusName?.toLowerCase() === "completed"
+    ).length;
+
     return { total, active, upcoming, completed };
-  }, [events]);
+  }, [allEvents]);
 
   // Determine loading state
   const isLoading = eventsLoading;
@@ -174,23 +201,17 @@ export default function EventManagementPage() {
     return <LoadingState loading={true} />;
   }
 
-
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center bg-muted/50 rounded-lg p-4 border">
         <div>
-          <h1 className="text-3xl font-bold">
-            Quản lý Sự kiện
-          </h1>
+          <h1 className="text-3xl font-bold">Quản lý Sự kiện</h1>
           <p className="text-muted-foreground">
             Quản lý các sự kiện tình nguyện của tổ chức
           </p>
         </div>
-        <Button
-          onClick={() => setShowCreateDialog(true)}
-        >
+        <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Tạo Sự kiện
         </Button>
@@ -221,27 +242,34 @@ export default function EventManagementPage() {
       </div>
 
       {/* Filters */}
-      <EventFilters 
-        categories={categories} 
-        statuses={statuses} 
+      <EventFilters
+        categories={categories}
+        statuses={statuses}
         onFiltersChange={handleFiltersChange}
+        initialFilters={activeFilters}
       />
 
       {/* Event List */}
-      {events.length > 0 ? (
-        <EventList events={events} onEventUpdated={handleEditSuccess} />
+      {filteredEvents.length > 0 ? (
+        <EventList events={filteredEvents} onEventUpdated={handleEditSuccess} />
+      ) : allEvents.length > 0 ? (
+        <div className="text-center py-12 bg-muted/50 rounded-xl border">
+          <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">
+            Không tìm thấy sự kiện nào với bộ lọc hiện tại
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Thử thay đổi điều kiện tìm kiếm hoặc bộ lọc
+          </p>
+        </div>
       ) : (
         <div className="text-center py-12 bg-muted/50 rounded-xl border">
           <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">
-            Không tìm thấy sự kiện nào
-          </h3>
+          <h3 className="text-lg font-medium mb-2">Chưa có sự kiện nào</h3>
           <p className="text-muted-foreground mb-4">
             Tạo sự kiện đầu tiên để bắt đầu
           </p>
-          <Button
-            onClick={() => setShowCreateDialog(true)}
-          >
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Tạo Sự kiện
           </Button>

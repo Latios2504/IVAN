@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
@@ -12,32 +12,58 @@ import {
   SelectValue,
 } from "../../ui/select";
 import { Search, Filter, X } from "lucide-react";
+import { useDebounce } from "../../../hooks/useDebounce";
 import type { EventCategoryDto, EventStatusDto } from "../../../types/events";
 
 interface EventFiltersProps {
   categories: EventCategoryDto[];
   statuses: EventStatusDto[];
   onFiltersChange?: (filters: any) => void;
+  initialFilters?: {
+    search?: string;
+    categoryId?: string;
+    statusId?: string;
+  };
 }
 
 export const EventFilters: React.FC<EventFiltersProps> = ({
   categories,
   statuses,
   onFiltersChange,
+  initialFilters,
 }) => {
   const [filters, setFilters] = useState({
-    search: "",
-    categoryId: "all",
-    statusId: "all",
+    search: initialFilters?.search || "",
+    categoryId: initialFilters?.categoryId || "all",
+    statusId: initialFilters?.statusId || "all",
   });
 
-  const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
+  // Debounce search input to avoid excessive API calls
+  const debouncedSearch = useDebounce(filters.search, 500);
 
-  const resetFilters = () => {
+  const handleFilterChange = useCallback(
+    (key: string, value: string) => {
+      const newFilters = { ...filters, [key]: value };
+      setFilters(newFilters);
+
+      // For non-search filters, call immediately
+      if (key !== "search") {
+        onFiltersChange?.(newFilters);
+      }
+    },
+    [filters, onFiltersChange]
+  );
+
+  // Effect to handle debounced search
+  useEffect(() => {
+    const filtersWithDebouncedSearch = {
+      ...filters,
+      search: debouncedSearch,
+    };
+    onFiltersChange?.(filtersWithDebouncedSearch);
+  }, [debouncedSearch, filters.categoryId, filters.statusId, onFiltersChange]);
+
+  const resetFilters = useCallback(() => {
     const emptyFilters = {
       search: "",
       categoryId: "all",
@@ -45,7 +71,7 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
     };
     setFilters(emptyFilters);
     onFiltersChange?.(emptyFilters);
-  };
+  }, [onFiltersChange]);
 
   const hasActiveFilters =
     filters.search ||
@@ -65,7 +91,7 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-Bộ lọc Sự kiện
+            Bộ lọc Sự kiện
             {hasActiveFilters && (
               <Badge variant="secondary" className="ml-2">
                 {getActiveFiltersCount()}
@@ -80,7 +106,7 @@ Bộ lọc Sự kiện
               className="h-8"
             >
               <X className="h-4 w-4 mr-1" />
-Xóa tất cả
+              Xóa tất cả
             </Button>
           )}
         </div>
@@ -117,9 +143,7 @@ Xóa tất cả
                 <SelectValue placeholder="Tất cả Danh mục" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  Tất cả Danh mục
-                </SelectItem>
+                <SelectItem value="all">Tất cả Danh mục</SelectItem>
                 {categories.map((category) => (
                   <SelectItem
                     key={category.categoryId}
@@ -145,9 +169,7 @@ Xóa tất cả
                 <SelectValue placeholder="Tất cả Trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  Tất cả Trạng thái
-                </SelectItem>
+                <SelectItem value="all">Tất cả Trạng thái</SelectItem>
                 {statuses.map((status) => (
                   <SelectItem
                     key={status.statusId}
