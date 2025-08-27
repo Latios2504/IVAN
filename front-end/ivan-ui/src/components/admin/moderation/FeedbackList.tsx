@@ -106,10 +106,8 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[180px]">Chủ đề</TableHead>
-                <TableHead className="w-[120px]">Danh mục</TableHead>
                 <TableHead className="w-[100px]">Đánh giá</TableHead>
-                <TableHead className="w-[250px]">Nội dung</TableHead>
-                <TableHead className="w-[100px]">Trạng thái</TableHead>
+                <TableHead className="w-[300px]">Nội dung</TableHead>
                 <TableHead className="w-[80px]">Sự kiện</TableHead>
                 <TableHead className="w-[80px]">Người dùng</TableHead>
                 <TableHead className="w-[100px]">Hành động</TableHead>
@@ -132,37 +130,18 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
                     </div>
                   </TableCell>
                   
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs">
-                      {feedback.categoryName || 'Chung'}
-                    </Badge>
-                  </TableCell>
+
                   
                   <TableCell>
                     {renderRating(feedback.rating)}
                   </TableCell>
                   
                   <TableCell>
-                    <div className="max-w-[240px]">
+                    <div className="max-w-[280px]">
                       <p className="text-sm text-muted-foreground break-words overflow-hidden">
-                        {truncateContent(feedback.content, 60)}
+                        {truncateContent(feedback.content, 80)}
                       </p>
                     </div>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <Badge 
-                      variant={
-                        feedback.status === 'approved' 
-                          ? 'default' 
-                          : feedback.status === 'rejected'
-                          ? 'destructive'
-                          : 'secondary'
-                      }
-                      className="text-xs"
-                    >
-                       {feedback.status || 'Chờ duyệt'}
-                     </Badge>
                   </TableCell>
                   
                   <TableCell>

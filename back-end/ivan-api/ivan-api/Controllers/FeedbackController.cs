@@ -134,7 +134,7 @@ namespace ivan_api.Controllers
         }
 
         // Add feedback for an event
-        [HttpPost("creatFeedback")]
+        [HttpPost("createFeedback")]
         [Authorize]
         public async Task<ActionResult<ApiResponseDTO<Feedback>>> AddFeedback([FromBody] FeedbackCreateDTO dto)
         {

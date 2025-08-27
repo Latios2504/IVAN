@@ -12,8 +12,11 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle,
+  UserX,
 } from "lucide-react";
 import type { FeedbackListDto, FeedbackByEventParams } from "@/types/feedback";
+import { useAuth } from "@/hooks/useAuth";
+import FeedbackDetailModal from "./FeedbackDetailModal";
 
 interface FeedbackListProps {
   eventId: number | string;
@@ -24,8 +27,8 @@ interface FeedbackListProps {
 interface FeedbackFilters {
   page: number;
   size: number;
-  categoryId?: number;
   rating?: number;
+  search?: string;
 }
 
 // Helper functions for DataTable
@@ -91,9 +94,12 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
   filters = { page: 1, size: 10 },
   onFiltersChange,
 }) => {
+  const { hasRole } = useAuth();
   const [feedbacks, setFeedbacks] = useState<FeedbackListDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackListDto | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [pagination, setPagination] = useState({
     totalCount: 0,
     totalPages: 0,
@@ -101,42 +107,85 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
     hasNextPage: false,
   });
 
-  const loadFeedbacks = useCallback(async () => {
+  const [allFeedbacks, setAllFeedbacks] = useState<FeedbackListDto[]>([]);
+
+  // Load all feedbacks from API (without filters)
+  const loadAllFeedbacks = useCallback(async () => {
     if (!eventId) return;
 
     setLoading(true);
     setError(null);
 
     try {
+      // Get all feedbacks with a large page size to get everything
       const params: FeedbackByEventParams = {
         eventId: Number(eventId),
-        pageNumber: filters.page,
-        pageSize: filters.size,
+        pageNumber: 1,
+        pageSize: 1000, // Large page size to get all feedbacks
       };
 
       const result = await feedbackService.getFeedbacksByEvent(params);
-
-      setFeedbacks(result.items || []);
-      setPagination({
-        totalCount: result.totalCount,
-        totalPages: result.totalPages,
-        hasPreviousPage: result.hasPreviousPage,
-        hasNextPage: result.hasNextPage,
-      });
+      setAllFeedbacks(result.items || []);
     } catch (err) {
       console.error("Error loading feedbacks:", err);
       setError(err instanceof Error ? err.message : "Failed to load feedbacks");
     } finally {
       setLoading(false);
     }
-  }, [eventId, filters.page, filters.size]);
+  }, [eventId]);
 
+  // Apply client-side filtering and pagination
+  const loadFeedbacks = useCallback(() => {
+    let filteredFeedbacks = [...allFeedbacks];
+
+    // Apply rating filter
+    if (filters.rating) {
+      filteredFeedbacks = filteredFeedbacks.filter(
+        (feedback) => feedback.rating === filters.rating
+      );
+    }
+
+    // Apply search filter (search in subject and content)
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filteredFeedbacks = filteredFeedbacks.filter(
+        (feedback) =>
+          feedback.subject.toLowerCase().includes(searchTerm) ||
+          feedback.content.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Calculate pagination
+    const totalCount = filteredFeedbacks.length;
+    const totalPages = Math.ceil(totalCount / filters.size);
+    const startIndex = (filters.page - 1) * filters.size;
+    const endIndex = startIndex + filters.size;
+    const paginatedFeedbacks = filteredFeedbacks.slice(startIndex, endIndex);
+
+    // Update state
+    setFeedbacks(paginatedFeedbacks);
+    setPagination({
+      totalCount,
+      totalPages,
+      hasPreviousPage: filters.page > 1,
+      hasNextPage: filters.page < totalPages,
+    });
+  }, [allFeedbacks, filters.rating, filters.search, filters.page, filters.size]);
+
+  // Load all feedbacks when component mounts or eventId changes
   useEffect(() => {
-    loadFeedbacks();
-  }, [loadFeedbacks]);
+    loadAllFeedbacks();
+  }, [loadAllFeedbacks]);
+
+  // Apply filters when allFeedbacks or filters change
+  useEffect(() => {
+    if (allFeedbacks.length > 0) {
+      loadFeedbacks();
+    }
+  }, [loadFeedbacks, allFeedbacks]);
 
   const handleRefresh = () => {
-    loadFeedbacks();
+    loadAllFeedbacks();
   };
 
   const handlePageChange = (newPage: number) => {
@@ -146,8 +195,13 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
   };
 
   const handleViewFeedback = (feedback: FeedbackListDto) => {
-    // TODO: Implement feedback detail view
-    console.log("View feedback:", feedback);
+    setSelectedFeedback(feedback);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedFeedback(null);
   };
 
   // Define columns for DataTable
@@ -160,9 +214,11 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
         <div className="space-y-1">
           <p className="font-semibold text-sm">{value}</p>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <span>ID: {item.feedbackId}</span>
+            {/* Chỉ hiển thị ID cho admin, organization không cần thấy ID */}
+            {hasRole('admin') && <span>ID: {item.feedbackId}</span>}
             {item.isAnonymous && (
-              <Badge variant="outline" className="text-xs px-1 py-0">
+              <Badge variant="outline" className="text-xs px-1 py-0 bg-gray-100 dark:bg-gray-800">
+                <UserX className="h-3 w-3 mr-1" />
                 Ẩn danh
               </Badge>
             )}
@@ -170,16 +226,7 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
         </div>
       ),
     },
-    {
-      key: "categoryName",
-      header: "Danh mục",
-      className: "w-[120px]",
-      render: (value) => (
-        <Badge variant="secondary" className="text-xs">
-          {value || "Chung"}
-        </Badge>
-      ),
-    },
+
     {
       key: "rating",
       header: "Đánh giá",
@@ -198,22 +245,29 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
         </div>
       ),
     },
-    {
-      key: "status",
-      header: "Trạng thái",
-      className: "w-[120px]",
-      render: (value) => getStatusBadge(value || ""),
-    },
+
     {
       key: "userId",
       header: "Người dùng",
-      className: "w-[100px]",
-      render: (value) => (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <User className="h-3 w-3" />
-          {value}
-        </div>
-      ),
+      className: "w-[120px]",
+      render: (value, item) => {
+        // Chỉ admin mới được xem userId thật của người ẩn danh
+        if (item.isAnonymous && !hasRole('admin')) {
+          return (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <UserX className="h-3 w-3" />
+              <span className="italic">Ẩn danh</span>
+            </div>
+          );
+        }
+        
+        return (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <User className="h-3 w-3" />
+            <span>{hasRole('admin') ? `ID: ${value}` : value}</span>
+          </div>
+        );
+      },
     },
   ];
 
@@ -294,6 +348,15 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
           onPageChange: handlePageChange,
         }}
       />
+
+      {/* Feedback Detail Modal */}
+      {selectedFeedback && (
+        <FeedbackDetailModal
+          feedback={selectedFeedback}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };

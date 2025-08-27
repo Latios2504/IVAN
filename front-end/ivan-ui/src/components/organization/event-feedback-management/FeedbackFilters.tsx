@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -9,13 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter, RotateCcw, Star } from "lucide-react";
+import { Filter, RotateCcw, Star, Search } from "lucide-react";
 
 interface FeedbackFilters {
   page: number;
   size: number;
-  categoryId?: number;
   rating?: number;
+  search?: string;
 }
 
 interface FeedbackFiltersProps {
@@ -29,23 +30,12 @@ export default function FeedbackFilters({
   onFiltersChange,
   loading = false,
 }: FeedbackFiltersProps) {
-  // Predefined feedback categories (matching the ones from PublicEventDetailPage)
-  const feedbackCategories = [
-    { id: 1, name: "Tổ chức sự kiện" },
-    { id: 2, name: "Nội dung chương trình" },
-    { id: 3, name: "Cơ sở vật chất" },
-    { id: 4, name: "Đội ngũ tổ chức" },
-    { id: 5, name: "Truyền thông" },
-    { id: 6, name: "Đăng ký tham gia" },
-    { id: 7, name: "Khác" },
-  ];
-
-  // Handle category filter change
-  const handleCategoryChange = useCallback(
-    (categoryId: string) => {
+  // Handle search change
+  const handleSearchChange = useCallback(
+    (search: string) => {
       onFiltersChange({
-        categoryId: categoryId === "all" ? undefined : Number(categoryId),
-        page: 1, // Reset to first page when filtering
+        search: search.trim() || undefined,
+        page: 1, // Reset to first page when searching
       });
     },
     [onFiltersChange]
@@ -65,14 +55,14 @@ export default function FeedbackFilters({
   // Handle reset filters
   const handleReset = useCallback(() => {
     onFiltersChange({
-      categoryId: undefined,
       rating: undefined,
+      search: undefined,
       page: 1,
     });
   }, [onFiltersChange]);
 
   // Check if any filters are active
-  const hasActiveFilters = !!filters.categoryId || !!filters.rating;
+  const hasActiveFilters = !!filters.rating || !!filters.search;
 
   return (
     <Card className="bg-gradient-to-br from-blue-50/80 via-indigo-50/60 to-purple-50/80 dark:from-slate-800/80 dark:via-blue-900/20 dark:to-indigo-900/30 border-blue-200/30 dark:border-slate-600/30 backdrop-blur-sm">
@@ -96,26 +86,21 @@ export default function FeedbackFilters({
       </CardHeader>
       <CardContent className="space-y-4 bg-gradient-to-br from-white/60 via-blue-50/40 to-indigo-50/60 dark:from-slate-700/60 dark:via-slate-600/40 dark:to-slate-500/60 rounded-lg p-4 backdrop-blur-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gradient-to-br from-slate-50/80 via-gray-50/60 to-slate-50/80 dark:from-slate-800/80 dark:via-gray-800/60 dark:to-slate-800/80 rounded-lg p-4 border border-slate-200/30 dark:border-slate-600/30">
-          {/* Category Filter */}
+          {/* Search Filter */}
           <div className="space-y-2">
-            <Label htmlFor="category-filter">Loại phản hồi</Label>
-            <Select
-              value={filters.categoryId?.toString() || "all"}
-              onValueChange={handleCategoryChange}
-              disabled={loading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tất cả loại phản hồi" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả loại phản hồi</SelectItem>
-                {feedbackCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="search-filter">Tìm kiếm</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="search-filter"
+                type="text"
+                placeholder="Tìm theo tiêu đề hoặc nội dung..."
+                value={filters.search || ""}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                disabled={loading}
+                className="pl-10"
+              />
+            </div>
           </div>
 
           {/* Rating Filter */}
@@ -141,7 +126,6 @@ export default function FeedbackFilters({
                         />
                       ))}
                       <span className="ml-2">{star} sao</span>
-                      {star === 5 && " trở lên"}
                     </div>
                   </SelectItem>
                 ))}
@@ -152,17 +136,15 @@ export default function FeedbackFilters({
 
         {/* Active filters summary */}
         {hasActiveFilters && (
-          <div className="pt-2 border-t border-blue-200/30 dark:border-slate-600/30 bg-gradient-to-r from-emerald-50/80 via-teal-50/60 to-cyan-50/80 dark:from-emerald-900/20 dark:via-teal-900/15 dark:to-cyan-900/20 rounded-lg p-3 border border-emerald-200/40 dark:border-emerald-700/30">
+          <div className="pt-2 border-t border-blue-200/30 dark:border-slate-600/30 bg-gradient-to-r from-emerald-50/80 via-teal-50/60 to-cyan-50/80 dark:from-emerald-900/20 dark:via-teal-900/15 dark:to-cyan-900/20 rounded-lg p-3 border">
             <div className="flex flex-wrap gap-2">
               <span className="text-sm font-medium bg-gradient-to-r from-gray-700 via-slate-700 to-gray-700 dark:from-gray-300 dark:via-slate-300 dark:to-gray-300 bg-clip-text text-transparent">
                 Bộ lọc đang áp dụng:
               </span>
-              {filters.categoryId && (
-                <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-600 rounded-full">
-                  {
-                    feedbackCategories.find((c) => c.id === filters.categoryId)
-                      ?.name
-                  }
+              {filters.search && (
+                <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-800 dark:to-emerald-800 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-600 rounded-full">
+                  <Search className="w-3 h-3 mr-1" />
+                  "{filters.search}"
                 </span>
               )}
               {filters.rating && (

@@ -166,10 +166,10 @@ class FeedbackService {
 
   // === AUTHENTICATED ENDPOINTS (JWT Token Required) ===
 
-  // POST /api/Feedback/creatFeedback - Create Feedback (JWT required)
+  // POST /api/Feedback/createFeedback - Create Feedback (JWT required)
   async createFeedback(feedback: FeedbackCreateDto): Promise<Feedback> {
     const response = await apiClient.post<Feedback>(
-      `${this.baseUrl}/creatFeedback`,
+      `${this.baseUrl}/createFeedback`,
       feedback
     );
 

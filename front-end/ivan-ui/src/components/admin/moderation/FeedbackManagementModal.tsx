@@ -169,16 +169,8 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
               </div>
             </div>
 
-            {/* Status and Category */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Danh mục</Label>
-                <div className="mt-1">
-                  <Badge variant="outline" className="text-sm">
-                    {feedback.categoryName || 'Chung'}
-                  </Badge>
-                </div>
-              </div>
+            {/* Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Trạng thái</Label>
                 <div className="mt-1">

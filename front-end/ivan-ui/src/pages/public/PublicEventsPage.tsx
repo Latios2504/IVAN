@@ -4,6 +4,7 @@ import { Calendar, Users, MapPin, Search, Clock, Building2 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth";
 import { CombinedLayout } from "@/components/public/CombinedLayout";
 import { EventListItem } from "@/components/public/EventListItem";
+import { FeedbackSection } from "@/components/public/FeedbackSection";
 import { eventsService } from "@/services/eventsService";
 import type {
   EventDto,
@@ -658,6 +659,12 @@ export default function PublicEventsPage() {
             </Button>
           </div>
         )}
+
+        {/* Feedback Section */}
+        <FeedbackSection 
+          eventId={selectedEvent.eventId} 
+          eventName={selectedEvent.eventName}
+        />
       </div>
     );
   };

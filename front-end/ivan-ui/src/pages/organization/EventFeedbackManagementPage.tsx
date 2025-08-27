@@ -158,10 +158,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
                     key={event.eventId}
                     value={event.eventId.toString()}
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{event.eventName}</span>
-                      <Badge variant="outline">{event.statusName}</Badge>
-                    </div>
+                    <span>{event.eventName}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -188,12 +185,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
                   </>
                 )}
               </span>
-              <Badge
-                variant="outline"
-                className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700"
-              >
-                {selectedEvent.statusName}
-              </Badge>
+
             </div>
             {selectedEvent.location && (
               <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
