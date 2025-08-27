@@ -6,6 +6,7 @@ import type {
   VolunteerProfileViewModel,
   UpdateVolunteerProfileDto,
   VolunteerSkillDto,
+  SkillDto,
 } from "@/types/volunteerProfile";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +49,7 @@ import {
   Edit,
   Camera,
   Star,
+  Search,
 } from "lucide-react";
 
 export default function VolunteerProfilePage() {
@@ -62,9 +64,13 @@ export default function VolunteerProfilePage() {
   const [activeTab, setActiveTab] = useState("info");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [editFormData, setEditFormData] = useState<UpdateVolunteerProfileDto>(
-    {}
-  );
+  const [editFormData, setEditFormData] = useState<UpdateVolunteerProfileDto>({
+    Skills: [],
+  });
+
+  const [availableSkills, setAvailableSkills] = useState<SkillDto[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [skillSearchTerm, setSkillSearchTerm] = useState("");
 
   // Determine if viewing current user's profile or someone else's
   const targetUserId = id ? parseInt(id, 10) : user?.id;
@@ -95,17 +101,47 @@ export default function VolunteerProfilePage() {
         targetUserId
       );
       setProfile(profileData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể tải hồ sơ");
+    } catch (err: any) {
+      console.error("Error loading profile:", err);
+      // Handle .NET API error response format
+      let errorMessage = "Không thể tải hồ sơ";
+      if (err?.response?.data) {
+        const errorData = err.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.title) {
+          errorMessage = errorData.title;
+        } else if (errorData.errors) {
+          // Handle validation errors
+          const validationErrors = Object.values(errorData.errors).flat();
+          errorMessage = validationErrors.join(", ");
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableSkills = async () => {
+    try {
+      setSkillsLoading(true);
+      const skills = await volunteerProfileService.getSkills();
+      setAvailableSkills(skills);
+    } catch (error) {
+      console.error("Error loading skills:", error);
+      // Don't show error to user, just log it
+    } finally {
+      setSkillsLoading(false);
     }
   };
 
   const handleEditClick = () => {
     if (profile) {
       // Split fullName into firstName and lastName for editing
-      const nameParts = profile.fullName.split(" ");
+      const nameParts = profile.fullName?.split(" ") || [];
       const firstName = nameParts[nameParts.length - 1] || ""; // Last part is firstName in Vietnamese
       const lastName = nameParts.slice(0, -1).join(" ") || ""; // Everything else is lastName
 
@@ -116,7 +152,16 @@ export default function VolunteerProfilePage() {
         dateOfBirth: profile.dateOfBirth || "",
         gender: profile.gender || "",
         address: profile.address || "",
-        // Note: wardCommune, district, province, postalCode are not in ViewModel
+        // These fields are not in ViewModel but needed for UpdateDto
+        wardCommune: "", // Not available in ViewModel
+        district: "", // Not available in ViewModel
+        province: "", // Not available in ViewModel
+        postalCode: "", // Not available in ViewModel
+        emergencyContactName: "", // Not available in ViewModel
+        emergencyContactPhone: "", // Not available in ViewModel
+        emergencyContactRelation: "", // Not available in ViewModel
+        avatar: profile.avatar || "",
+        // VolunteerProfile fields
         university: profile.university || "",
         major: profile.major || "",
         yearOfStudy: profile.yearOfStudy || 1,
@@ -124,10 +169,12 @@ export default function VolunteerProfilePage() {
         motivation: profile.motivation || "",
         experience: profile.experience || "",
         availability: profile.availability || "",
-        // Handle skills - convert from string to VolunteerSkillDto array if needed
-        skills: profile.volunteerSkills || [],
-        avatar: profile.avatar || "",
+        // Handle skills - use volunteerSkills array if available
+        Skills: profile.volunteerSkills || [],
       });
+
+      // Load available skills when opening edit modal
+      loadAvailableSkills();
       setIsEditModalOpen(true);
     }
   };
@@ -137,14 +184,32 @@ export default function VolunteerProfilePage() {
 
     try {
       setIsUpdating(true);
+      setError(null);
       await volunteerProfileService.updateVolunteerProfile(
         targetUserId,
         editFormData
       );
       setIsEditModalOpen(false);
       await loadProfile(); // Reload profile data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể cập nhật hồ sơ");
+    } catch (err: any) {
+      console.error("Error updating profile:", err);
+      // Handle .NET API error response format
+      let errorMessage = "Không thể cập nhật hồ sơ";
+      if (err?.response?.data) {
+        const errorData = err.response.data;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.title) {
+          errorMessage = errorData.title;
+        } else if (errorData.errors) {
+          // Handle validation errors
+          const validationErrors = Object.values(errorData.errors).flat();
+          errorMessage = validationErrors.join(", ");
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -334,12 +399,67 @@ export default function VolunteerProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Additional Information */}
+            {/* Academic Information */}
+            <Card className="bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-green-900 border-green-200/50 dark:border-green-700/50 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-green-100/50 to-emerald-100/50 dark:from-green-800/50 dark:to-emerald-800/50 border-b border-green-200/30 dark:border-green-700/30">
+                <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                  <Award className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  Thông tin học tập
+                </CardTitle>
+                <CardDescription>
+                  Thông tin về trường học và chuyên ngành
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Award className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Trường đại học</p>
+                    <p className="text-gray-600">
+                      {profile.university || "Chưa cập nhật"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Settings className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Chuyên ngành</p>
+                    <p className="text-gray-600">
+                      {profile.major || "Chưa cập nhật"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Năm học</p>
+                    <p className="text-gray-600">
+                      {profile.yearOfStudy
+                        ? `Năm ${profile.yearOfStudy}`
+                        : "Chưa cập nhật"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <User className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Mã số sinh viên</p>
+                    <p className="text-gray-600">
+                      {profile.studentId || "Chưa cập nhật"}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Volunteer Information */}
             <Card className="bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-900 border-purple-200/50 dark:border-purple-700/50 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-purple-100/50 to-pink-100/50 dark:from-purple-800/50 dark:to-pink-800/50 border-b border-purple-200/30 dark:border-purple-700/30">
                 <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
                   <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  Thông tin bổ sung
+                  Thông tin tình nguyện
                 </CardTitle>
                 <CardDescription>
                   Chi tiết về hoạt động tình nguyện
@@ -347,7 +467,7 @@ export default function VolunteerProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium mb-2">Mô tả bản thân</p>
+                  <p className="text-sm font-medium mb-2">Động lực tham gia</p>
                   <p className="text-gray-600 text-sm">
                     {profile.motivation || "Chưa có mô tả"}
                   </p>
@@ -359,11 +479,98 @@ export default function VolunteerProfilePage() {
                   </p>
                 </div>
                 <div>
+                  <p className="text-sm font-medium mb-2">
+                    Thời gian có thể tham gia
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    {profile.availability || "Chưa cập nhật"}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm font-medium mb-2">Trạng thái</p>
                   <Badge variant={profile.isActive ? "default" : "secondary"}>
                     {profile.isActive ? "Đang hoạt động" : "Không hoạt động"}
                   </Badge>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Statistics & Verification */}
+            <Card className="bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-orange-900 border-orange-200/50 dark:border-orange-700/50 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-orange-100/50 to-yellow-100/50 dark:from-orange-800/50 dark:to-yellow-800/50 border-b border-orange-200/30 dark:border-orange-700/30">
+                <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
+                  <Star className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  Thống kê & Xác minh
+                </CardTitle>
+                <CardDescription>
+                  Thông tin về hoạt động và xác minh
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Clock className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Tổng giờ tình nguyện</p>
+                    <p className="text-gray-600">
+                      {profile.totalHoursVolunteered || 0} giờ
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Star className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Đánh giá</p>
+                    <p className="text-gray-600">
+                      {profile.rating
+                        ? `${profile.rating}/5 (${profile.ratingCount} đánh giá)`
+                        : "Chưa có đánh giá"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Shield className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium">Trạng thái xác minh</p>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={profile.isVerified ? "default" : "secondary"}
+                      >
+                        {profile.isVerified ? "Đã xác minh" : "Chưa xác minh"}
+                      </Badge>
+                      {profile.isVerified && profile.verifiedAt && (
+                        <span className="text-xs text-gray-500">
+                          {new Date(profile.verifiedAt).toLocaleDateString(
+                            "vi-VN"
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {profile.verifiedByName && (
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Xác minh bởi</p>
+                      <p className="text-gray-600 text-sm">
+                        {profile.verifiedByName}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {profile.lastActiveDate && (
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">Hoạt động gần nhất</p>
+                      <p className="text-gray-600 text-sm">
+                        {new Date(profile.lastActiveDate).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -380,12 +587,42 @@ export default function VolunteerProfilePage() {
             </CardHeader>
             <CardContent>
               {profile.volunteerSkills && profile.volunteerSkills.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {profile.volunteerSkills.map((skill, index) => (
-                    <Badge key={index} variant="outline">
-                      {skill.skillName}
-                    </Badge>
-                  ))}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profile.volunteerSkills.map((skill, index) => (
+                      <div
+                        key={index}
+                        className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-4 rounded-lg border border-blue-200/50 dark:border-blue-700/50"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+                            {skill.skillName}
+                          </h4>
+                          <Badge variant="secondary" className="text-xs">
+                            {skill.proficiencyLevel || "Cơ bản"}
+                          </Badge>
+                        </div>
+
+                        <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                          {skill.yearsOfExperience !== undefined &&
+                            skill.yearsOfExperience > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-3 h-3" />
+                                <span>
+                                  {skill.yearsOfExperience} năm kinh nghiệm
+                                </span>
+                              </div>
+                            )}
+
+                          {skill.description && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {skill.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : profile.skills ? (
                 <div className="flex flex-wrap gap-2">
@@ -413,8 +650,6 @@ export default function VolunteerProfilePage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-
       </Tabs>
 
       {/* Edit Profile Modal */}
@@ -424,7 +659,9 @@ export default function VolunteerProfilePage() {
           style={{ width: "80vw", maxWidth: "64rem" }}
         >
           <DialogHeader className="bg-gradient-to-r from-blue-100/50 to-indigo-100/50 dark:from-blue-800/50 dark:to-indigo-800/50 rounded-t-lg p-4 -m-6 mb-6 border-b border-blue-200/30 dark:border-blue-700/30">
-            <DialogTitle className="text-blue-800 dark:text-blue-200">Chỉnh sửa hồ sơ tình nguyện viên</DialogTitle>
+            <DialogTitle className="text-blue-800 dark:text-blue-200">
+              Chỉnh sửa hồ sơ tình nguyện viên
+            </DialogTitle>
             <DialogDescription className="text-blue-600 dark:text-blue-300">
               Cập nhật thông tin cá nhân và chi tiết hồ sơ của bạn
             </DialogDescription>
@@ -433,7 +670,9 @@ export default function VolunteerProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Personal Information */}
             <div className="space-y-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-900/30 dark:to-indigo-900/30 p-4 rounded-lg border border-blue-200/30 dark:border-blue-700/30">
-              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">Thông tin cá nhân</h3>
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                Thông tin cá nhân
+              </h3>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -596,35 +835,131 @@ export default function VolunteerProfilePage() {
               </div>
 
               <div>
-                <Label htmlFor="skills">
-                  Kỹ năng (phân cách bằng dấu phẩy)
-                </Label>
-                <Textarea
-                  id="skills"
-                  value={
-                    editFormData.skills?.map((s) => s.skillName).join(", ") ||
-                    ""
-                  }
-                  onChange={(e) => {
-                    // Convert comma-separated string back to VolunteerSkillDto array
-                    const skillNames = e.target.value
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter((s) => s);
-                    const skillDtos = skillNames.map((name, index) => ({
-                      skillId: index + 1, // Temporary ID, should be handled properly in backend
-                      skillName: name,
-                    }));
-                    handleInputChange("skills", skillDtos);
-                  }}
-                  placeholder="Ví dụ: Tiếng Anh, Tin học, Giao tiếp..."
-                />
+                <Label htmlFor="skills">Kỹ năng</Label>
+                {skillsLoading ? (
+                  <div className="flex items-center justify-center p-4 border rounded-md">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    <span className="text-sm text-gray-500">
+                      Đang tải danh sách kỹ năng...
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Search box */}
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        placeholder="Tìm kiếm kỹ năng..."
+                        value={skillSearchTerm}
+                        onChange={(e) => setSkillSearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
+
+                    <div className="border rounded-md p-3 max-h-40 overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-2">
+                        {availableSkills
+                          .filter(
+                            (skill) =>
+                              skill.skillName
+                                .toLowerCase()
+                                .includes(skillSearchTerm.toLowerCase()) ||
+                              (skill.category &&
+                                skill.category
+                                  .toLowerCase()
+                                  .includes(skillSearchTerm.toLowerCase()))
+                          )
+                          .map((skill) => {
+                            const isSelected =
+                              editFormData.Skills?.some(
+                                (s) => s.skillId === skill.skillId
+                              ) || false;
+
+                            return (
+                              <label
+                                key={skill.skillId}
+                                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    const currentSkills =
+                                      editFormData.Skills || [];
+                                    let newSkills;
+
+                                    if (e.target.checked) {
+                                      // Add skill
+                                      newSkills = [
+                                        ...currentSkills,
+                                        {
+                                          skillId: skill.skillId,
+                                          skillName: skill.skillName,
+                                          proficiencyLevel: "Cơ bản",
+                                          yearsOfExperience: 0,
+                                          description: "",
+                                        },
+                                      ];
+                                    } else {
+                                      // Remove skill
+                                      newSkills = currentSkills.filter(
+                                        (s) => s.skillId !== skill.skillId
+                                      );
+                                    }
+
+                                    handleInputChange("Skills", newSkills);
+                                  }}
+                                  className="rounded border-gray-300"
+                                />
+                                <span className="text-sm">
+                                  {skill.skillName}
+                                </span>
+                                {skill.category && (
+                                  <span className="text-xs text-gray-500 bg-gray-100 px-1 rounded">
+                                    {skill.category}
+                                  </span>
+                                )}
+                              </label>
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    {/* Display selected skills */}
+                    {editFormData.Skills && editFormData.Skills.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                          Kỹ năng đã chọn:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {editFormData.Skills.map((skill, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {skill.skillName}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-sm text-gray-500">
+                      Chọn các kỹ năng phù hợp từ danh sách có sẵn. Bạn có thể
+                      chọn nhiều kỹ năng.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Additional Information */}
             <div className="md:col-span-2 space-y-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-900/30 dark:to-pink-900/30 p-4 rounded-lg border border-purple-200/30 dark:border-purple-700/30">
-              <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">Thông tin bổ sung</h3>
+              <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">
+                Thông tin bổ sung
+              </h3>
 
               <div>
                 <Label htmlFor="motivation">Động lực tham gia</Label>
@@ -712,8 +1047,8 @@ export default function VolunteerProfilePage() {
             >
               Hủy
             </Button>
-            <Button 
-              onClick={handleUpdateProfile} 
+            <Button
+              onClick={handleUpdateProfile}
               disabled={isUpdating}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white border-0 hover:from-blue-600 hover:to-indigo-700 dark:hover:from-blue-700 dark:hover:to-indigo-800 shadow-lg"
             >

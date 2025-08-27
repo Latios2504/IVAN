@@ -33,6 +33,7 @@ namespace ivan_api.Mapping
                 .ForMember(dest => dest.VerifiedBy, opt => opt.Ignore()) // Don't update from DTO
                 .ForMember(dest => dest.TotalHoursVolunteered, opt => opt.Ignore()) // Don't update from DTO
                 .ForMember(dest => dest.LastActiveDate, opt => opt.Ignore()) // Don't update from DTO
+                .ForMember(dest => dest.Skills, opt => opt.Ignore()) 
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // VolunteerProfile → VolunteerProfileViewModel

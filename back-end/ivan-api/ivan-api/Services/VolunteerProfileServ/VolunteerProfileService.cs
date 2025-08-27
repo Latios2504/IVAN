@@ -28,40 +28,112 @@ namespace ivan_api.Services.VolunteerProfileServ
 
         public async Task<bool> UpdateVolunteerProfile(VolunteerProfileUpdateDto volunteerProfileUpdateModel, int userId)
         {
+            // 1) Lấy hồ sơ hiện tại (đã Include User, UserProfiles, VolunteerSkills)
             var existingVolunteer = await _repository.GetVolunteerProfileById(userId);
             if (existingVolunteer == null)
-            {
                 throw new Exception("Volunteer not found");
-            }
 
-            // Update VolunteerProfile fields
+            // 2) Map các trường thuộc VolunteerProfile (KHÔNG map Skills list vào string)
+            //    Giả định AutoMapper profile đã có .ForMember(dest => dest.Skills, opt => opt.Ignore())
             _mapper.Map(volunteerProfileUpdateModel, existingVolunteer);
 
-            // Update UserProfile fields if UserProfile exists
+            // 3) Cập nhật các trường thuộc UserProfile (cá nhân)
             var userProfile = existingVolunteer.User?.UserProfiles?.FirstOrDefault();
             if (userProfile != null)
             {
-                // Map UserProfile-specific fields from DTO
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.FirstName)) userProfile.FirstName = volunteerProfileUpdateModel.FirstName;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.LastName)) userProfile.LastName = volunteerProfileUpdateModel.LastName;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.PhoneNumber)) userProfile.PhoneNumber = volunteerProfileUpdateModel.PhoneNumber;
-                if (volunteerProfileUpdateModel.DateOfBirth.HasValue) userProfile.DateOfBirth = DateOnly.FromDateTime(volunteerProfileUpdateModel.DateOfBirth.Value);
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.Gender)) userProfile.Gender = volunteerProfileUpdateModel.Gender;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.Address)) userProfile.Address = volunteerProfileUpdateModel.Address;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.WardCommune)) userProfile.WardCommune = volunteerProfileUpdateModel.WardCommune;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.District)) userProfile.District = volunteerProfileUpdateModel.District;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.Province)) userProfile.Province = volunteerProfileUpdateModel.Province;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.PostalCode)) userProfile.PostalCode = volunteerProfileUpdateModel.PostalCode;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.EmergencyContactName)) userProfile.EmergencyContactName = volunteerProfileUpdateModel.EmergencyContactName;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.EmergencyContactPhone)) userProfile.EmergencyContactPhone = volunteerProfileUpdateModel.EmergencyContactPhone;
-                if (!string.IsNullOrEmpty(volunteerProfileUpdateModel.Avatar)) userProfile.Avatar = volunteerProfileUpdateModel.Avatar;
-                
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.FirstName))
+                    userProfile.FirstName = volunteerProfileUpdateModel.FirstName;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.LastName))
+                    userProfile.LastName = volunteerProfileUpdateModel.LastName;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.PhoneNumber))
+                    userProfile.PhoneNumber = volunteerProfileUpdateModel.PhoneNumber;
+
+                if (volunteerProfileUpdateModel.DateOfBirth.HasValue)
+                    userProfile.DateOfBirth = DateOnly.FromDateTime(volunteerProfileUpdateModel.DateOfBirth.Value);
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.Gender))
+                    userProfile.Gender = volunteerProfileUpdateModel.Gender;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.Address))
+                    userProfile.Address = volunteerProfileUpdateModel.Address;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.WardCommune))
+                    userProfile.WardCommune = volunteerProfileUpdateModel.WardCommune;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.District))
+                    userProfile.District = volunteerProfileUpdateModel.District;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.Province))
+                    userProfile.Province = volunteerProfileUpdateModel.Province;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.PostalCode))
+                    userProfile.PostalCode = volunteerProfileUpdateModel.PostalCode;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.EmergencyContactName))
+                    userProfile.EmergencyContactName = volunteerProfileUpdateModel.EmergencyContactName;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.EmergencyContactPhone))
+                    userProfile.EmergencyContactPhone = volunteerProfileUpdateModel.EmergencyContactPhone;
+
+                if (!string.IsNullOrWhiteSpace(volunteerProfileUpdateModel.Avatar))
+                    userProfile.Avatar = volunteerProfileUpdateModel.Avatar;
+
                 userProfile.UpdatedAt = DateTime.UtcNow;
             }
 
-            existingVolunteer.UpdatedAt = DateTime.Now;
+            // 4) Đồng bộ bảng nối VolunteerSkills theo danh sách gửi từ FE
+            //    (Không đụng tới cột string Skills của VolunteerProfiles)
+            var newSkills = volunteerProfileUpdateModel.Skills ?? new List<VolunteerSkillDto>();
+
+            // Đảm bảo collection không null để thao tác
+            existingVolunteer.VolunteerSkills ??= new List<VolunteerSkill>();
+            var existingSkills = existingVolunteer.VolunteerSkills.ToList(); // snapshot
+
+            // 4a) XÓA những skill không còn trong danh sách mới
+            foreach (var es in existingSkills)
+            {
+                bool stillSelected = newSkills.Any(ns => ns.SkillId == es.SkillId);
+                if (!stillSelected)
+                {
+                    // Remove khỏi collection; Repository (Update graph) sẽ SaveChanges
+                    existingVolunteer.VolunteerSkills.Remove(es);
+                }
+            }
+
+            // 4b) THÊM/CẬP NHẬT những skill mới/đã có
+            foreach (var ns in newSkills)
+            {
+                var es = existingVolunteer.VolunteerSkills.FirstOrDefault(s => s.SkillId == ns.SkillId);
+                if (es == null)
+                {
+                    // Thêm mới vào bảng nối
+                    existingVolunteer.VolunteerSkills.Add(new VolunteerSkill
+                    {
+                        VolunteerId = existingVolunteer.VolunteerId,
+                        SkillId = ns.SkillId,
+                        ProficiencyLevel = ns.ProficiencyLevel,
+                        YearsOfExperience = ns.YearsOfExperience,
+                        Description = ns.Description
+                    });
+                }
+                else
+                {
+                    // Cập nhật thuộc tính bổ sung
+                    es.ProficiencyLevel = ns.ProficiencyLevel;
+                    es.YearsOfExperience = ns.YearsOfExperience;
+                    es.Description = ns.Description;
+                }
+            }
+
+            // 5) Cập nhật mốc thời gian
+            existingVolunteer.UpdatedAt = DateTime.UtcNow;
+
+            // 6) Lưu
             return await _repository.UpdateVolunteerProfile(existingVolunteer);
         }
+
 
         public async Task<VolunteerProfileViewModel> GetVolunteerProfileById(int userId)
         {

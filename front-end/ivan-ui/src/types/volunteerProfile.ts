@@ -54,6 +54,9 @@ export interface SkillDto {
 export interface VolunteerSkillDto {
   skillId: number;
   skillName: string;
+  proficiencyLevel?: string;
+  yearsOfExperience?: number;
+  description?: string;
 }
 
 // Management DTOs for authenticated endpoints
@@ -67,21 +70,21 @@ export interface VolunteerProfileViewModel {
   motivation?: string;
   experience?: string;
   availability?: string;
-  volunteerHours?: number;
-  rating?: number;
-  ratingCount?: number;
-  isVerified?: boolean;
+  volunteerHours: number;
+  rating: number;
+  ratingCount: number;
+  isVerified: boolean;
   verifiedAt?: string;
   verifiedBy?: number;
   lastActiveDate?: string;
-  totalHoursVolunteered?: number;
+  totalHoursVolunteered: number;
   skills?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
   // Navigation properties (from User)
   email?: string;
-  fullName: string;
+  fullName?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
   gender?: string;
@@ -95,31 +98,14 @@ export interface VolunteerProfileViewModel {
 
 export interface CreateVolunteerProfileDto {
   userId: number;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  nationalId?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
+  studentId?: string;
   university?: string;
   major?: string;
   yearOfStudy?: number;
-  studentId?: string;
-  occupation?: string;
-  workplace?: string;
   motivation?: string;
   experience?: string;
-  skills?: string;
   availability?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  emergencyContactRelation?: string;
-  avatar?: string;
+  skills: VolunteerSkillDto[];
 }
 
 export interface UpdateVolunteerProfileDto {
@@ -146,5 +132,5 @@ export interface UpdateVolunteerProfileDto {
   motivation?: string;
   experience?: string;
   availability?: string;
-  skills?: VolunteerSkillDto[];
+  Skills: VolunteerSkillDto[]; // Changed from 'skills' to 'Skills' to match backend
 }

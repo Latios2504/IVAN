@@ -24,11 +24,16 @@ namespace ivan_api.Repository.VolunteerProfileRepo
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> UpdateVolunteerProfile(VolunteerProfile volunteerProfile)
-        {
-            _context.ChangeTracker.Clear();
-            _context.VolunteerProfiles.Attach(volunteerProfile);
-            _context.Entry(volunteerProfile).State = EntityState.Modified;
+        public async Task<bool> UpdateVolunteerProfile(VolunteerProfile volunteerProfile){
+            // Đừng Clear() ở đây
+            _context.VolunteerProfiles.Update(volunteerProfile); // track cả graph nếu navigation được set
+
+            // Nếu chắc chắn có UserProfile đã chỉnh sửa:
+            var userProfile = volunteerProfile.User?.UserProfiles?.FirstOrDefault();
+            if (userProfile != null)
+            {
+                _context.Entry(userProfile).State = EntityState.Modified;
+            }
 
             return await _context.SaveChangesAsync() > 0;
         }

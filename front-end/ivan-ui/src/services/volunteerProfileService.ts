@@ -133,22 +133,56 @@ class VolunteerProfileService {
     if (!response.data) {
       throw new Error("Volunteer profile not found");
     }
-    return response.data;
+    
+    // Handle .NET JSON serialization format
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
+    
+    // Handle volunteerSkills array if it's wrapped in $values
+    if (extractedData && typeof extractedData === "object" && "volunteerSkills" in extractedData) {
+      const profile = extractedData as VolunteerProfileViewModel;
+      if (profile.volunteerSkills && typeof profile.volunteerSkills === "object" && "$values" in profile.volunteerSkills) {
+        profile.volunteerSkills = (profile.volunteerSkills as any).$values;
+      }
+      return profile;
+    }
+    
+    return extractedData as VolunteerProfileViewModel;
   }
 
   // POST /api/VolunteerProfile - Create Volunteer Profile (Public - open registration)
   async createVolunteerProfile(
     profile: CreateVolunteerProfileDto
-  ): Promise<void> {
-    await apiClient.post(this.baseUrl, profile);
+  ): Promise<VolunteerProfileViewModel> {
+    const response = await apiClient.post<VolunteerProfileViewModel>(this.baseUrl, profile);
+    if (!response.data) {
+      throw new Error("Failed to create volunteer profile");
+    }
+    return response.data;
   }
 
   // PUT /api/VolunteerProfile/{userId} - Update Volunteer Profile
   async updateVolunteerProfile(
     userId: number,
     profile: UpdateVolunteerProfileDto
-  ): Promise<void> {
-    await apiClient.put(`${this.baseUrl}/${userId}`, profile);
+  ): Promise<VolunteerProfileViewModel> {
+    const response = await apiClient.put<VolunteerProfileViewModel>(`${this.baseUrl}/${userId}`, profile);
+    if (!response.data) {
+      throw new Error("Failed to update volunteer profile");
+    }
+    
+    // Handle .NET JSON serialization format
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
+    
+    // Handle volunteerSkills array if it's wrapped in $values
+    if (extractedData && typeof extractedData === "object" && "volunteerSkills" in extractedData) {
+      const updatedProfile = extractedData as VolunteerProfileViewModel;
+      if (updatedProfile.volunteerSkills && typeof updatedProfile.volunteerSkills === "object" && "$values" in updatedProfile.volunteerSkills) {
+        updatedProfile.volunteerSkills = (updatedProfile.volunteerSkills as any).$values;
+      }
+      return updatedProfile;
+    }
+    
+    return extractedData as VolunteerProfileViewModel;
   }
 
   // GET /api/VolunteerProfile/{userId}/completion - Get Profile Completion
