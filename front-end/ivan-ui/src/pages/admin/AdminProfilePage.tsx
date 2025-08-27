@@ -26,6 +26,7 @@ import {
 import { adminProfileService } from "@/services/adminProfileService";
 import type { AdminProfileViewModel } from "@/types/adminProfile";
 import EditAdminProfileModal from "@/components/admin/profile/EditAdminProfileModal";
+import { LoadingState } from "@/components/common/LoadingState";
 
 export default function AdminProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -86,11 +87,7 @@ export default function AdminProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <LoadingState loading={true} />;
   }
 
   if (error) {

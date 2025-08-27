@@ -9,14 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -34,6 +26,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  DataTable,
+  type TableColumn,
+  type TableAction,
+} from "@/components/common/DataTable";
+import { LoadingState } from "@/components/common/LoadingState";
+import { EmptyState } from "@/components/common/EmptyState";
 import { supportRequestService } from "@/services/supportRequestService";
 import type {
   SupportRequestResponseDto,
@@ -48,6 +47,7 @@ import {
   Upload,
   X,
   FileText,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -249,14 +249,10 @@ export default function SupportRequestManagementPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Pending":
-        return <Badge variant="secondary">Chờ xử lý</Badge>;
-      case "In Progress":
-        return <Badge variant="secondary">Đang xử lý</Badge>;
+      case "Open":
+        return <Badge variant="secondary">Mở</Badge>;
       case "Resolved":
         return <Badge variant="default">Đã giải quyết</Badge>;
-      case "Closed":
-        return <Badge variant="outline">Đã đóng</Badge>;
       case "Approved":
         return <Badge variant="default">Đã duyệt</Badge>;
       case "Rejected":
@@ -268,13 +264,15 @@ export default function SupportRequestManagementPage() {
 
   const getPriorityBadge = (priority: string) => {
     const priorityTranslations = {
-      'High': 'Cao',
-      'Medium': 'Trung bình',
-      'Low': 'Thấp'
+      High: "Cao",
+      Medium: "Trung bình",
+      Low: "Thấp",
     };
-    
-    const translatedPriority = priorityTranslations[priority as keyof typeof priorityTranslations] || priority;
-    
+
+    const translatedPriority =
+      priorityTranslations[priority as keyof typeof priorityTranslations] ||
+      priority;
+
     switch (priority) {
       case "High":
         return <Badge variant="destructive">{translatedPriority}</Badge>;
@@ -293,6 +291,58 @@ export default function SupportRequestManagementPage() {
       request.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Define columns for DataTable
+  const columns: TableColumn<SupportRequestResponseDto>[] = [
+    {
+      key: "subject",
+      header: "Tiêu đề",
+      render: (value, item) => (
+        <div className="max-w-xs truncate">{value}</div>
+      ),
+    },
+    {
+      key: "userName",
+      header: "Người gửi",
+      render: (value, item) => (
+        <div>
+          <div className="font-medium">{value}</div>
+          <div className="text-sm text-gray-500">{item.userEmail}</div>
+        </div>
+      ),
+    },
+    {
+      key: "categoryName",
+      header: "Danh mục",
+    },
+    {
+      key: "priority",
+      header: "Độ ưu tiên",
+      render: (value, item) => getPriorityBadge(value),
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      render: (value, item) => getStatusBadge(value),
+    },
+    {
+      key: "createdAt",
+      header: "Ngày tạo",
+      render: (value, item) =>
+        value
+          ? new Date(value).toLocaleDateString("vi-VN")
+          : "-",
+    },
+  ];
+
+  // Define actions for DataTable
+  const actions: TableAction<SupportRequestResponseDto>[] = [
+    {
+      label: "Xem chi tiết",
+      icon: <Eye />,
+      onClick: (request) => handleViewDetails(request.requestId),
+    },
+  ];
 
   return (
     <div className="container mx-auto py-6">
@@ -323,10 +373,8 @@ export default function SupportRequestManagementPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="Pending">Chờ xử lý</SelectItem>
-                <SelectItem value="In Progress">Đang xử lý</SelectItem>
+                <SelectItem value="Open">Mở</SelectItem>
                 <SelectItem value="Resolved">Đã giải quyết</SelectItem>
-                <SelectItem value="Closed">Đã đóng</SelectItem>
                 <SelectItem value="Approved">Đã duyệt</SelectItem>
                 <SelectItem value="Rejected">Đã từ chối</SelectItem>
               </SelectContent>
@@ -335,57 +383,20 @@ export default function SupportRequestManagementPage() {
 
           {/* Requests Table */}
           {loading ? (
-            <div className="text-center py-4">Đang tải...</div>
+            <LoadingState loading={true} />
+          ) : filteredRequests.length === 0 ? (
+            <EmptyState
+              icon={MessageSquare}
+              title="Không có yêu cầu từ thiện"
+              description="Chưa có yêu cầu từ thiện nào được tạo."
+              show={true}
+            />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tiêu đề</TableHead>
-                  <TableHead>Người gửi</TableHead>
-                  <TableHead>Danh mục</TableHead>
-                  <TableHead>Độ ưu tiên</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead>Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRequests.map((request) => (
-                  <TableRow key={request.requestId}>
-                    <TableCell className="font-medium">
-                      {request.subject}
-                    </TableCell>
-                    <TableCell>{request.userName}</TableCell>
-                    <TableCell>{request.categoryName}</TableCell>
-                    <TableCell>{getPriorityBadge(request.priority)}</TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>
-                      {request.createdAt
-                        ? new Date(request.createdAt).toLocaleDateString(
-                            "vi-VN"
-                          )
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(request.requestId)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Xem
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-
-          {filteredRequests.length === 0 && !loading && (
-            <div className="text-center py-8 text-gray-500">
-              Không tìm thấy yêu cầu từ thiện nào
-            </div>
+            <DataTable
+              data={filteredRequests}
+              columns={columns}
+              actions={actions}
+            />
           )}
         </CardContent>
       </Card>
@@ -453,8 +464,7 @@ export default function SupportRequestManagementPage() {
               </div>
 
               {/* Resolution */}
-              {(selectedRequest.status === "Pending" ||
-                selectedRequest.status === "In Progress") && (
+              {selectedRequest.status === "Open" && (
                 <div>
                   <Label htmlFor="resolution" className="text-sm font-medium">
                     Ghi chú giải quyết
@@ -470,10 +480,9 @@ export default function SupportRequestManagementPage() {
                 </div>
               )}
 
-              {/* Show existing resolution if request is resolved or closed */}
+              {/* Show existing resolution if request is resolved */}
               {selectedRequest.resolution &&
-                (selectedRequest.status === "Resolved" ||
-                  selectedRequest.status === "Closed") && (
+                selectedRequest.status === "Resolved" && (
                   <div>
                     <Label className="text-sm font-medium">
                       Giải pháp đã thực hiện
@@ -621,8 +630,16 @@ export default function SupportRequestManagementPage() {
 
           <DialogFooter>
             <div className="flex gap-2">
-              {selectedRequest?.status === "Pending" && (
+              {selectedRequest?.status === "Open" && (
                 <>
+                  <Button
+                    onClick={() => handleStatusUpdate("Resolved")}
+                    disabled={isUpdating}
+                    variant="default"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Đánh dấu đã giải quyết
+                  </Button>
                   <Button
                     onClick={() => handleStatusUpdate("Approved")}
                     disabled={isUpdating}

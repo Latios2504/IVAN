@@ -5,7 +5,10 @@ import { coordinatorRequestService } from "@/services/coordinatorRequestService"
 import type { RejectEventRequestDto } from "@/types/events";
 import type { EventDto } from "@/types/events";
 import type { FeedbackListDto, FeedbackListParams } from "@/types/feedback";
-import type { CoordinatorRequestListItemDto, UpdateCoordinatorRequestDto } from "@/types/coordinatorRequest";
+import type {
+  CoordinatorRequestListItemDto,
+  UpdateCoordinatorRequestDto,
+} from "@/types/coordinatorRequest";
 import { useAuth } from "@/hooks/useAuth";
 import {
   AlertCircle,
@@ -21,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatsCard } from "@/components/common/StatsCard";
 import { toast } from "sonner";
 import { EventDetailsModal } from "@/components/admin/moderation/EventDetailsModal";
 import { ModerationEventsList } from "@/components/admin/moderation/ModerationEventsList";
@@ -52,25 +56,30 @@ interface CoordinatorRequestStats {
 export default function ModerationManagementPage() {
   const { user: currentUser } = useAuth();
 
-  // Tab state
+  // Trạng thái tab
   const [activeTab, setActiveTab] = useState("events");
 
-  // Event moderation state
+  // Trạng thái kiểm duyệt sự kiện
   const [events, setEvents] = useState<EventDto[]>([]);
 
-  // Coordinator requests state
-  const [coordinatorRequests, setCoordinatorRequests] = useState<CoordinatorRequestListItemDto[]>([]);
-  const [selectedCoordinatorRequest, setSelectedCoordinatorRequest] = useState<CoordinatorRequestListItemDto | null>(null);
-  const [isCoordinatorRequestModalOpen, setIsCoordinatorRequestModalOpen] = useState(false);
-  const [isProcessingCoordinatorRequest, setIsProcessingCoordinatorRequest] = useState(false);
-  const [coordinatorRequestStats, setCoordinatorRequestStats] = useState<CoordinatorRequestStats>({
-    pendingRequests: 0,
-    approvedRequests: 0,
-    rejectedRequests: 0,
-    totalRequests: 0,
-  });
-  const [selectedEvent, setSelectedEvent] =
-    useState<EventDto | null>(null);
+  // Trạng thái yêu cầu điều phối viên
+  const [coordinatorRequests, setCoordinatorRequests] = useState<
+    CoordinatorRequestListItemDto[]
+  >([]);
+  const [selectedCoordinatorRequest, setSelectedCoordinatorRequest] =
+    useState<CoordinatorRequestListItemDto | null>(null);
+  const [isCoordinatorRequestModalOpen, setIsCoordinatorRequestModalOpen] =
+    useState(false);
+  const [isProcessingCoordinatorRequest, setIsProcessingCoordinatorRequest] =
+    useState(false);
+  const [coordinatorRequestStats, setCoordinatorRequestStats] =
+    useState<CoordinatorRequestStats>({
+      pendingRequests: 0,
+      approvedRequests: 0,
+      rejectedRequests: 0,
+      totalRequests: 0,
+    });
+  const [selectedEvent, setSelectedEvent] = useState<EventDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -80,7 +89,7 @@ export default function ModerationManagementPage() {
     averageProcessingTime: "2-3 days",
   });
 
-  // Feedback management state
+  // Trạng thái quản lý phản hồi
   const [feedbacks, setFeedbacks] = useState<FeedbackListDto[]>([]);
   const [selectedFeedback, setSelectedFeedback] =
     useState<FeedbackListDto | null>(null);
@@ -91,20 +100,20 @@ export default function ModerationManagementPage() {
     feedbacksThisMonth: 0,
   });
 
-  // Modal states
+  // Trạng thái modal
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [eventToReject, setEventToReject] = useState<number | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-  // Pagination
+  // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const [feedbackCurrentPage, setFeedbackCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [feedbackTotalCount, setFeedbackTotalCount] = useState(0);
 
-  // Load events for moderation
+  // Tải sự kiện để kiểm duyệt
   const loadEvents = async (page: number = 1) => {
     try {
       setIsLoading(true);
@@ -113,7 +122,7 @@ export default function ModerationManagementPage() {
         size: pageSize,
         sortBy: "createdAt",
         sortDirection: "desc" as const,
-        statusIds: [1], // Only show Pending Approval events
+        statusIds: [1], // Chỉ hiển thị sự kiện đang chờ phê duyệt
       };
 
       const response = await eventsService.getEvents(params);
@@ -121,7 +130,7 @@ export default function ModerationManagementPage() {
       setTotalCount(response.totalCount || 0);
       setCurrentPage(page);
 
-      // Update stats
+      // Cập nhật thống kê
       setStats((prev) => ({
         ...prev,
         totalPendingEvents: response.totalCount || 0,
@@ -136,14 +145,14 @@ export default function ModerationManagementPage() {
           }).length || 0,
       }));
     } catch (error) {
-      console.error("Error loading events:", error);
-      toast.error("Failed to load events for moderation.");
+      console.error("Lỗi khi tải sự kiện:", error);
+      toast.error("Không thể tải sự kiện để kiểm duyệt.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Load event details
+  // Tải chi tiết sự kiện
   const loadEventDetails = async (eventId: number) => {
     try {
       setIsLoadingDetails(true);
@@ -151,40 +160,40 @@ export default function ModerationManagementPage() {
       setSelectedEvent(details);
       setIsDetailsModalOpen(true);
     } catch (error) {
-      console.error("Error loading event details:", error);
-      toast.error("Failed to load event details.");
+      console.error("Lỗi khi tải chi tiết sự kiện:", error);
+      toast.error("Không thể tải chi tiết sự kiện.");
     } finally {
       setIsLoadingDetails(false);
     }
   };
 
-  // Handle approve event
+  // Xử lý phê duyệt sự kiện
   const handleApproveEvent = async (eventId: number) => {
     try {
       setIsProcessing(true);
       await eventsService.approveEvent(eventId);
 
-      toast.success("Event has been approved successfully.");
+      toast.success("Sự kiện đã được phê duyệt thành công.");
 
-      // Refresh events list and close modal
+      // Làm mới danh sách sự kiện và đóng modal
       await loadEvents(currentPage);
       setIsDetailsModalOpen(false);
       setSelectedEvent(null);
     } catch (error) {
-      console.error("Error approving event:", error);
-      toast.error("Failed to approve event. Please try again.");
+      console.error("Lỗi khi phê duyệt sự kiện:", error);
+      toast.error("Không thể phê duyệt sự kiện. Vui lòng thử lại.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Handle reject event - open dialog
+  // Xử lý từ chối sự kiện - mở dialog
   const handleRejectEvent = (eventId: number) => {
     setEventToReject(eventId);
     setIsRejectDialogOpen(true);
   };
 
-  // Confirm reject event with reason
+  // Xác nhận từ chối sự kiện với lý do
   const confirmRejectEvent = async (reason: string) => {
     if (!eventToReject) return;
 
@@ -193,23 +202,23 @@ export default function ModerationManagementPage() {
       const request: RejectEventRequestDto = { reason };
       await eventsService.rejectEvent(eventToReject, request);
 
-      toast.success("Event has been rejected successfully.");
+      toast.success("Sự kiện đã được từ chối thành công.");
 
-      // Refresh events list and close modals
+      // Làm mới danh sách sự kiện và đóng modal
       await loadEvents(currentPage);
       setIsRejectDialogOpen(false);
       setIsDetailsModalOpen(false);
       setEventToReject(null);
       setSelectedEvent(null);
     } catch (error) {
-      console.error("Error rejecting event:", error);
-      toast.error("Failed to reject event. Please try again.");
+      console.error("Lỗi khi từ chối sự kiện:", error);
+      toast.error("Không thể từ chối sự kiện. Vui lòng thử lại.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Load feedbacks for management
+  // Tải phản hồi để quản lý
   const loadFeedbacks = async (page: number = 1) => {
     try {
       setIsFeedbackLoading(true);
@@ -223,7 +232,7 @@ export default function ModerationManagementPage() {
       setFeedbackTotalCount(response.totalCount || 0);
       setFeedbackCurrentPage(page);
 
-      // Calculate feedback stats
+      // Tính toán thống kê phản hồi
       const totalRating =
         response.items?.reduce((sum, feedback) => {
           return sum + (feedback.rating || 0);
@@ -235,105 +244,125 @@ export default function ModerationManagementPage() {
       setFeedbackStats({
         totalFeedbacks: response.totalCount || 0,
         averageRating: Math.round(avgRating * 10) / 10,
-        feedbacksThisMonth: response.items?.length || 0, // Simplified for now
+        feedbacksThisMonth: response.items?.length || 0, // Đơn giản hóa tạm thời
       });
     } catch (error) {
-      console.error("Error loading feedbacks:", error);
-      toast.error("Failed to load feedbacks.");
+      console.error("Lỗi khi tải phản hồi:", error);
+      toast.error("Không thể tải phản hồi.");
     } finally {
       setIsFeedbackLoading(false);
     }
   };
 
-  // Handle view feedback details
+  // Xử lý xem chi tiết phản hồi
   const handleViewFeedbackDetails = (feedback: FeedbackListDto) => {
     setSelectedFeedback(feedback);
     setIsFeedbackModalOpen(true);
   };
 
-  // Handle feedback update
+  // Xử lý cập nhật phản hồi
   const handleFeedbackUpdate = () => {
     loadFeedbacks(feedbackCurrentPage);
   };
 
-  // Load coordinator requests
+  // Tải yêu cầu điều phối viên
   const loadCoordinatorRequests = async () => {
     try {
       setIsLoading(true);
       const requests = await coordinatorRequestService.getCoordinatorRequests();
       setCoordinatorRequests(requests);
 
-      // Calculate stats
+      // Tính toán thống kê
       const stats = {
         totalRequests: requests.length,
-        pendingRequests: requests.filter(r => r.status === 'pending').length,
-        approvedRequests: requests.filter(r => r.status === 'approved').length,
-        rejectedRequests: requests.filter(r => r.status === 'rejected').length,
+        pendingRequests: requests.filter((r) => r.status === "pending").length,
+        approvedRequests: requests.filter((r) => r.status === "approved")
+          .length,
+        rejectedRequests: requests.filter((r) => r.status === "rejected")
+          .length,
       };
       setCoordinatorRequestStats(stats);
     } catch (error) {
-      console.error('Error loading coordinator requests:', error);
-      toast.error('Failed to load coordinator requests.');
+      console.error("Lỗi khi tải yêu cầu điều phối viên:", error);
+      toast.error("Không thể tải yêu cầu điều phối viên.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle view coordinator request details
-  const handleViewCoordinatorRequestDetails = (request: CoordinatorRequestListItemDto) => {
+  // Xử lý xem chi tiết yêu cầu điều phối viên
+  const handleViewCoordinatorRequestDetails = (
+    request: CoordinatorRequestListItemDto
+  ) => {
     setSelectedCoordinatorRequest(request);
     setIsCoordinatorRequestModalOpen(true);
   };
 
-  // Handle approve coordinator request
-  const handleApproveCoordinatorRequest = async (requestId: string, note?: string) => {
+  // Xử lý phê duyệt yêu cầu điều phối viên
+  const handleApproveCoordinatorRequest = async (
+    requestId: string,
+    note?: string
+  ) => {
     try {
       setIsProcessingCoordinatorRequest(true);
       const updateData: UpdateCoordinatorRequestDto = {
-        action: 'approve',
+        action: "approve",
         note: note || undefined,
       };
-      
-      await coordinatorRequestService.updateCoordinatorRequest(Number(requestId), updateData);
-      toast.success('Coordinator request has been approved successfully.');
-      
-      // Refresh list and close modal
+
+      await coordinatorRequestService.updateCoordinatorRequest(
+        Number(requestId),
+        updateData
+      );
+      toast.success("Yêu cầu điều phối viên đã được phê duyệt thành công.");
+
+      // Làm mới danh sách và đóng modal
       await loadCoordinatorRequests();
       setIsCoordinatorRequestModalOpen(false);
       setSelectedCoordinatorRequest(null);
     } catch (error) {
-      console.error('Error approving coordinator request:', error);
-      toast.error('Failed to approve coordinator request. Please try again.');
+      console.error("Lỗi khi phê duyệt yêu cầu điều phối viên:", error);
+      toast.error(
+        "Không thể phê duyệt yêu cầu điều phối viên. Vui lòng thử lại."
+      );
     } finally {
       setIsProcessingCoordinatorRequest(false);
     }
   };
 
-  // Handle reject coordinator request
-  const handleRejectCoordinatorRequest = async (requestId: string, note: string) => {
+  // Xử lý từ chối yêu cầu điều phối viên
+  const handleRejectCoordinatorRequest = async (
+    requestId: string,
+    note: string
+  ) => {
     try {
       setIsProcessingCoordinatorRequest(true);
       const updateData: UpdateCoordinatorRequestDto = {
-        action: 'reject',
+        action: "reject",
         note,
       };
-      
-      await coordinatorRequestService.updateCoordinatorRequest(Number(requestId), updateData);
-      toast.success('Coordinator request has been rejected.');
-      
-      // Refresh list and close modal
+
+      await coordinatorRequestService.updateCoordinatorRequest(
+        Number(requestId),
+        updateData
+      );
+      toast.success("Yêu cầu điều phối viên đã được từ chối.");
+
+      // Làm mới danh sách và đóng modal
       await loadCoordinatorRequests();
       setIsCoordinatorRequestModalOpen(false);
       setSelectedCoordinatorRequest(null);
     } catch (error) {
-      console.error('Error rejecting coordinator request:', error);
-      toast.error('Failed to reject coordinator request. Please try again.');
+      console.error("Lỗi khi từ chối yêu cầu điều phối viên:", error);
+      toast.error(
+        "Không thể từ chối yêu cầu điều phối viên. Vui lòng thử lại."
+      );
     } finally {
       setIsProcessingCoordinatorRequest(false);
     }
   };
 
-  // Handle refresh
+  // Xử lý làm mới
   const handleRefresh = () => {
     if (activeTab === "events") {
       loadEvents(currentPage);
@@ -344,22 +373,25 @@ export default function ModerationManagementPage() {
     }
   };
 
-  // Handle tab change
+  // Xử lý thay đổi tab
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === "feedbacks" && feedbacks.length === 0) {
       loadFeedbacks();
-    } else if (value === "coordinator-requests" && coordinatorRequests.length === 0) {
+    } else if (
+      value === "coordinator-requests" &&
+      coordinatorRequests.length === 0
+    ) {
       loadCoordinatorRequests();
     }
   };
 
-  // Initial load
+  // Tải ban đầu
   useEffect(() => {
     loadEvents();
   }, []);
 
-  // Check if user is admin
+  // Kiểm tra xem người dùng có phải admin không
   if (!currentUser || currentUser.role !== "admin") {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -367,9 +399,11 @@ export default function ModerationManagementPage() {
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                Truy cập bị từ chối
+              </h2>
               <p className="text-muted-foreground">
-                You don't have permission to access this page.
+                Bạn không có quyền truy cập trang này.
               </p>
             </div>
           </CardContent>
@@ -380,14 +414,14 @@ export default function ModerationManagementPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Page Header */}
+      {/* Tiêu đề trang */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Admin Moderation
+            Kiểm duyệt quản trị
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage events, feedback submissions, and coordinator requests
+            Quản lý sự kiện, phản hồi và yêu cầu điều phối viên
           </p>
         </div>
         <Button
@@ -396,11 +430,11 @@ export default function ModerationManagementPage() {
           className="flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          Làm mới
         </Button>
       </div>
 
-      {/* Tabs */}
+      {/* Các tab */}
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
@@ -409,82 +443,53 @@ export default function ModerationManagementPage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="events" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Event Moderation
+            Kiểm duyệt sự kiện
           </TabsTrigger>
           <TabsTrigger value="feedbacks" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
-            Feedback Management
+            Quản lý phản hồi
           </TabsTrigger>
-          <TabsTrigger value="coordinator-requests" className="flex items-center gap-2">
+          <TabsTrigger
+            value="coordinator-requests"
+            className="flex items-center gap-2"
+          >
             <Users className="h-4 w-4" />
-            Coordinator Requests
+            Yêu cầu điều phối viên
           </TabsTrigger>
         </TabsList>
 
-        {/* Event Moderation Tab */}
+        {/* Tab kiểm duyệt sự kiện */}
         <TabsContent value="events" className="space-y-6">
-          {/* Stats Cards */}
+          {/* Thẻ thống kê */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pending Events
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.totalPendingEvents}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Events awaiting review
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  This Month
-                </CardTitle>
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.eventsThisMonth}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Events submitted this month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Avg. Processing
-                </CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.averageProcessingTime}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Average review time
-                </p>
-              </CardContent>
-            </Card>
+            <StatsCard
+              title="Sự kiện chờ duyệt"
+              value={stats.totalPendingEvents}
+              description="Sự kiện đang chờ xem xét"
+              icon={Calendar}
+            />
+            <StatsCard
+              title="Tháng này"
+              value={stats.eventsThisMonth}
+              description="Sự kiện được gửi trong tháng này"
+              icon={Building2}
+            />
+            <StatsCard
+              title="Thời gian xử lý TB"
+              value={stats.averageProcessingTime}
+              description="Thời gian xem xét trung bình"
+              icon={CheckCircle}
+            />
           </div>
 
-          {/* Events List */}
+          {/* Danh sách sự kiện */}
           <ModerationEventsList
             events={events}
             onViewDetails={loadEventDetails}
             isLoading={isLoading}
           />
 
-          {/* Pagination */}
+          {/* Phân trang */}
           {totalCount > pageSize && (
             <div className="flex items-center justify-center space-x-2">
               <Button
@@ -492,10 +497,10 @@ export default function ModerationManagementPage() {
                 onClick={() => loadEvents(currentPage - 1)}
                 disabled={currentPage <= 1 || isLoading}
               >
-                Previous
+                Trước
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                Trang {currentPage} / {Math.ceil(totalCount / pageSize)}
               </span>
               <Button
                 variant="outline"
@@ -504,72 +509,44 @@ export default function ModerationManagementPage() {
                   currentPage >= Math.ceil(totalCount / pageSize) || isLoading
                 }
               >
-                Next
+                Sau
               </Button>
             </div>
           )}
         </TabsContent>
 
-        {/* Feedback Management Tab */}
+        {/* Tab quản lý phản hồi */}
         <TabsContent value="feedbacks" className="space-y-6">
-          {/* Feedback Stats Cards */}
+          {/* Thẻ thống kê phản hồi */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Feedback
-                </CardTitle>
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {feedbackStats.totalFeedbacks}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  All feedback received
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Average Rating
-                </CardTitle>
-                <Star className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {feedbackStats.averageRating}
-                </div>
-                <p className="text-xs text-muted-foreground">Out of 5 stars</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Recent Feedback
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {feedbackStats.feedbacksThisMonth}
-                </div>
-                <p className="text-xs text-muted-foreground">This period</p>
-              </CardContent>
-            </Card>
+            <StatsCard
+              title="Tổng phản hồi"
+              value={feedbackStats.totalFeedbacks}
+              description="Tất cả phản hồi đã nhận"
+              icon={MessageSquare}
+            />
+            <StatsCard
+              title="Đánh giá trung bình"
+              value={feedbackStats.averageRating}
+              description="Trên thang điểm 5 sao"
+              icon={Star}
+            />
+            <StatsCard
+              title="Phản hồi gần đây"
+              value={feedbackStats.feedbacksThisMonth}
+              description="Trong kỳ này"
+              icon={Calendar}
+            />
           </div>
 
-          {/* Feedback List */}
+          {/* Danh sách phản hồi */}
           <FeedbackList
             feedbacks={feedbacks}
             onViewDetails={handleViewFeedbackDetails}
             isLoading={isFeedbackLoading}
           />
 
-          {/* Feedback Pagination */}
+          {/* Phân trang phản hồi */}
           {feedbackTotalCount > pageSize && (
             <div className="flex items-center justify-center space-x-2">
               <Button
@@ -577,10 +554,10 @@ export default function ModerationManagementPage() {
                 onClick={() => loadFeedbacks(feedbackCurrentPage - 1)}
                 disabled={feedbackCurrentPage <= 1 || isFeedbackLoading}
               >
-                Previous
+                Trước
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {feedbackCurrentPage} of{" "}
+                Trang {feedbackCurrentPage} /{" "}
                 {Math.ceil(feedbackTotalCount / pageSize)}
               </span>
               <Button
@@ -592,86 +569,43 @@ export default function ModerationManagementPage() {
                   isFeedbackLoading
                 }
               >
-                Next
+                Sau
               </Button>
             </div>
           )}
         </TabsContent>
 
-        {/* Coordinator Requests Tab */}
+        {/* Tab yêu cầu điều phối viên */}
         <TabsContent value="coordinator-requests" className="space-y-6">
-          {/* Coordinator Request Stats Cards */}
+          {/* Thẻ thống kê yêu cầu điều phối viên */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Requests
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {coordinatorRequestStats.totalRequests}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  All coordinator requests
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pending
-                </CardTitle>
-                <AlertCircle className="h-4 w-4 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {coordinatorRequestStats.pendingRequests}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Awaiting review
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Approved
-                </CardTitle>
-                <UserCheck className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {coordinatorRequestStats.approvedRequests}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Successfully approved
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Rejected
-                </CardTitle>
-                <AlertCircle className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {coordinatorRequestStats.rejectedRequests}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Declined requests
-                </p>
-              </CardContent>
-            </Card>
+            <StatsCard
+              title="Tổng yêu cầu"
+              value={coordinatorRequestStats.totalRequests}
+              description="Tất cả yêu cầu điều phối viên"
+              icon={Users}
+            />
+            <StatsCard
+              title="Chờ duyệt"
+              value={coordinatorRequestStats.pendingRequests}
+              description="Đang chờ xem xét"
+              icon={AlertCircle}
+            />
+            <StatsCard
+              title="Đã phê duyệt"
+              value={coordinatorRequestStats.approvedRequests}
+              description="Đã được phê duyệt thành công"
+              icon={UserCheck}
+            />
+            <StatsCard
+              title="Đã từ chối"
+              value={coordinatorRequestStats.rejectedRequests}
+              description="Yêu cầu bị từ chối"
+              icon={AlertCircle}
+            />
           </div>
 
-          {/* Coordinator Requests List */}
+          {/* Danh sách yêu cầu điều phối viên */}
           <CoordinatorRequestsList
             requests={coordinatorRequests}
             onViewDetails={handleViewCoordinatorRequestDetails}
@@ -680,7 +614,7 @@ export default function ModerationManagementPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Event Details Modal */}
+      {/* Modal chi tiết sự kiện */}
       <EventDetailsModal
         event={selectedEvent}
         isOpen={isDetailsModalOpen}
@@ -693,7 +627,7 @@ export default function ModerationManagementPage() {
         isLoading={isProcessing || isLoadingDetails}
       />
 
-      {/* Reject Event Dialog */}
+      {/* Dialog từ chối sự kiện */}
       <RejectEventDialog
         isOpen={isRejectDialogOpen}
         onClose={() => {
@@ -705,7 +639,7 @@ export default function ModerationManagementPage() {
         isLoading={isProcessing}
       />
 
-      {/* Feedback Management Modal */}
+      {/* Modal quản lý phản hồi */}
       <FeedbackManagementModal
         isOpen={isFeedbackModalOpen}
         onClose={() => setIsFeedbackModalOpen(false)}
@@ -713,7 +647,7 @@ export default function ModerationManagementPage() {
         onUpdate={handleFeedbackUpdate}
       />
 
-      {/* Coordinator Request Details Modal */}
+      {/* Modal chi tiết yêu cầu điều phối viên */}
       <CoordinatorRequestDetailsModal
         request={selectedCoordinatorRequest}
         isOpen={isCoordinatorRequestModalOpen}

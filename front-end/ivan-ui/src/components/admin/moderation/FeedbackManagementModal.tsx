@@ -68,7 +68,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
 
   // Render rating stars
   const renderRating = (rating: number | null | undefined) => {
-    if (!rating) return <span className="text-muted-foreground">No rating</span>;
+    if (!rating) return <span className="text-muted-foreground">Chưa đánh giá</span>;
     
     return (
       <div className="flex items-center gap-1">
@@ -102,12 +102,12 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
       };
       
       await feedbackService.updateFeedback(updateDto);
-      toast.success('Feedback updated successfully.');
+      toast.success('Cập nhật phản hồi thành công.');
       setIsEditing(false);
       onUpdate();
     } catch (error) {
       console.error('Error updating feedback:', error);
-      toast.error('Failed to update feedback. Please try again.');
+      toast.error('Không thể cập nhật phản hồi. Vui lòng thử lại.');
     } finally {
       setIsUpdating(false);
     }
@@ -120,13 +120,13 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
     try {
       setIsDeleting(true);
       await feedbackService.deleteFeedback(feedback.feedbackId);
-      toast.success('Feedback deleted successfully.');
+      toast.success('Xóa phản hồi thành công.');
       setShowDeleteDialog(false);
       onClose();
       onUpdate();
     } catch (error) {
       console.error('Error deleting feedback:', error);
-      toast.error('Failed to delete feedback. Please try again.');
+      toast.error('Không thể xóa phản hồi. Vui lòng thử lại.');
     } finally {
       setIsDeleting(false);
     }
@@ -145,7 +145,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Feedback Management
+              Quản lý phản hồi
             </DialogTitle>
           </DialogHeader>
           
@@ -154,12 +154,12 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Subject</Label>
+                  <Label className="text-sm font-medium text-gray-700">Chủ đề</Label>
                   <p className="mt-1 text-base font-medium text-gray-900">{feedback.subject}</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Rating</Label>
+                    <Label className="text-sm font-medium text-gray-700">Đánh giá</Label>
                     <div className="mt-1 flex items-center gap-1">
                       {renderRating(feedback.rating)}
                       <span className="ml-2 text-sm font-medium text-gray-600">({feedback.rating}/5)</span>
@@ -172,28 +172,28 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
             {/* Status and Category */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700">Category</Label>
+                <Label className="text-sm font-medium text-gray-700">Danh mục</Label>
                 <div className="mt-1">
                   <Badge variant="outline" className="text-sm">
-                    {feedback.categoryName || 'General'}
+                    {feedback.categoryName || 'Chung'}
                   </Badge>
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <Label className="text-sm font-medium text-gray-700">Trạng thái</Label>
                 <div className="mt-1">
                   <Badge 
                     variant={feedback.status === 'approved' ? 'default' : 'secondary'}
                   >
-                    {feedback.status || 'Pending'}
+                    {feedback.status || 'Chờ duyệt'}
                   </Badge>
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700">Anonymous</Label>
+                <Label className="text-sm font-medium text-gray-700">Ẩn danh</Label>
                 <div className="mt-1">
                   <Badge variant={feedback.isAnonymous ? 'secondary' : 'outline'}>
-                    {feedback.isAnonymous ? 'Yes' : 'No'}
+                    {feedback.isAnonymous ? 'Có' : 'Không'}
                   </Badge>
                 </div>
               </div>
@@ -206,14 +206,14 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-gray-500" />
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Event ID</Label>
+                  <Label className="text-sm font-medium text-gray-700">ID Sự kiện</Label>
                   <p className="text-sm text-gray-900">{feedback.eventId}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-gray-500" />
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">User ID</Label>
+                  <Label className="text-sm font-medium text-gray-700">ID Người dùng</Label>
                   <p className="text-sm text-gray-900">{feedback.userId}</p>
                 </div>
               </div>
@@ -224,7 +224,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
             {/* Content Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-gray-700">Feedback Content</Label>
+                <Label className="text-sm font-medium text-gray-700">Nội dung phản hồi</Label>
                 {!isEditing && (
                   <Button
                     onClick={() => setIsEditing(true)}
@@ -233,7 +233,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
                     className="flex items-center gap-1"
                   >
                     <Edit className="h-4 w-4" />
-                    Edit
+                    Chỉnh sửa
                   </Button>
                 )}
               </div>
@@ -244,7 +244,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
                     className="min-h-[150px] resize-none"
-                    placeholder="Enter feedback content..."
+                    placeholder="Nhập nội dung phản hồi..."
                   />
                   <div className="flex gap-2">
                     <Button
@@ -254,7 +254,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
                       className="flex items-center gap-1"
                     >
                       <Save className="h-4 w-4" />
-                      {isUpdating ? 'Saving...' : 'Save Changes'}
+                      {isUpdating ? 'Đang lưu...' : 'Lưu thay đổi'}
                     </Button>
                     <Button
                       onClick={handleCancelEdit}
@@ -263,7 +263,7 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
                       className="flex items-center gap-1"
                     >
                       <X className="h-4 w-4" />
-                      Cancel
+                      Hủy
                     </Button>
                   </div>
                 </div>
@@ -287,10 +287,10 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
                 className="flex items-center gap-2"
               >
                 <Trash2 className="h-4 w-4" />
-                Delete Feedback
+                Xóa phản hồi
               </Button>
               <Button onClick={onClose} variant="outline" size="sm">
-                Close
+                Đóng
               </Button>
             </div>
           </div>
@@ -301,23 +301,23 @@ export const FeedbackManagementModal: React.FC<FeedbackManagementModalProps> = (
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Feedback</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this feedback? This action cannot be undone.
+              Bạn có chắc chắn muốn xóa phản hồi này? Hành động này không thể hoàn tác.
               <br /><br />
-              <strong>Subject:</strong> {feedback.subject}
+              <strong>Chủ đề:</strong> {feedback.subject}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>
-              Cancel
+              Hủy
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteFeedback}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Đang xóa...' : 'Xóa'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

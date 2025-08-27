@@ -25,7 +25,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
   isLoading = false,
 }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -36,7 +36,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Events Pending Moderation</CardTitle>
+          <CardTitle>Sự kiện chờ kiểm duyệt</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -51,11 +51,11 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Events Pending Moderation</CardTitle>
+          <CardTitle>Sự kiện chờ kiểm duyệt</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No events pending moderation.</p>
+            <p className="text-muted-foreground">Không có sự kiện nào chờ kiểm duyệt.</p>
           </div>
         </CardContent>
       </Card>
@@ -67,7 +67,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Events Pending Moderation
+          Sự kiện chờ kiểm duyệt
           <Badge variant="secondary" className="ml-2">
             {events.length}
           </Badge>
@@ -78,15 +78,15 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Event ID</TableHead>
-                <TableHead>Event Name</TableHead>
-                <TableHead>Organization</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>Max Volunteers</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[100px]">ID Sự kiện</TableHead>
+                <TableHead>Tên sự kiện</TableHead>
+                <TableHead>Tổ chức</TableHead>
+                <TableHead>Danh mục</TableHead>
+                <TableHead>Địa điểm</TableHead>
+                <TableHead>Ngày bắt đầu</TableHead>
+                <TableHead>Tối đa TNV</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,19 +104,19 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{event.organizationName || 'N/A'}</span>
+                      <span className="text-sm">{event.organizationName || 'Không có'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{event.categoryName || 'N/A'}</span>
+                      <span className="text-sm">{event.categoryName || 'Không có'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{event.location || 'N/A'}</span>
+                      <span className="text-sm">{event.location || 'Không có'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -130,7 +130,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{event.maxVolunteers || 'N/A'}</span>
+                      <span className="text-sm">{event.maxVolunteers || 'Không có'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -138,7 +138,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                       variant={event.statusName === 'Pending Approval' ? 'secondary' : 'default'}
                       className="text-xs"
                     >
-                      {event.statusName || 'Unknown'}
+                      {event.statusName || 'Không rõ'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -149,7 +149,7 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                       className="flex items-center gap-2"
                     >
                       <Eye className="h-4 w-4" />
-                      View Details
+                      Xem chi tiết
                     </Button>
                   </TableCell>
                 </TableRow>

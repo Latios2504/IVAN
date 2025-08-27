@@ -32,6 +32,8 @@ import { DataTable } from "@/components/common/DataTable";
 import type { TableColumn, TableAction } from "@/components/common/DataTable";
 import { UserDetailsModal } from "@/components/admin/user-details/UserDetailsModal";
 import { LoadingState } from "@/components/common/LoadingState";
+import { StatsCard } from "@/components/common/StatsCard";
+import { EmptyState } from "@/components/common/EmptyState";
 import { toast } from "sonner";
 
 // Define UserListItem type based on UserListDto
@@ -113,12 +115,20 @@ export default function UserManagementPageNew() {
 
   // Service adapters
   const userDataService = {
-    getAll: async (filters: UserFiltersDto): Promise<{ items: UserListDto[], totalItems: number, totalPages: number }> => {
+    getAll: async (
+      filters: UserFiltersDto
+    ): Promise<{
+      items: UserListDto[];
+      totalItems: number;
+      totalPages: number;
+    }> => {
       const result = await userManagementService.getUsers(filters);
       return {
         items: result.items,
         totalItems: result.totalCount || result.items.length,
-        totalPages: result.totalPages || Math.ceil((result.totalCount || result.items.length) / filters.size)
+        totalPages:
+          result.totalPages ||
+          Math.ceil((result.totalCount || result.items.length) / filters.size),
       };
     },
     getById: async (id: number | string): Promise<UserDetailsDto> => {
@@ -149,7 +159,9 @@ export default function UserManagementPageNew() {
     getAll: async (): Promise<any[]> => {
       try {
         // Calculate stats from users data - get ALL users for accurate stats
-        const usersResponse = await userManagementService.getUsers({ size: 1000 }); // Large size to get all users
+        const usersResponse = await userManagementService.getUsers({
+          size: 1000,
+        }); // Large size to get all users
         const usersData = usersResponse.items || [];
 
         const totalUsers = usersData.length;
@@ -170,7 +182,7 @@ export default function UserManagementPageNew() {
           },
         ];
       } catch (error) {
-        console.error('Failed to load user statistics:', error);
+        console.error("Failed to load user statistics:", error);
         throw error;
       }
     },
@@ -180,10 +192,8 @@ export default function UserManagementPageNew() {
   const [users, setUsers] = useState<UserListDto[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
 
-
   const [stats, setStats] = useState<any[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
-
 
   // Local state for UI
   const [filters, setFilters] = useState<ExtendedFilterDto>({
@@ -227,15 +237,13 @@ export default function UserManagementPageNew() {
         size: currentFilters.size,
         search: currentFilters.searchTerm,
       };
-      
+
       const usersResult = await userDataService.getAll(apiFilters);
       setUsers(usersResult.items);
       setTotalItems(usersResult.totalItems);
       setTotalPages(usersResult.totalPages);
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to load users"
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to load users");
     } finally {
       setUsersLoading(false);
     }
@@ -247,9 +255,7 @@ export default function UserManagementPageNew() {
       const statsResult = await userStatsService.getAll();
       setStats(statsResult);
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to load stats"
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to load stats");
     } finally {
       setStatsLoading(false);
     }
@@ -475,14 +481,14 @@ export default function UserManagementPageNew() {
   const actions: TableAction<UserListItem>[] = [
     {
       label: "Xem chi tiết",
-      icon: <Eye className="w-4 h-4" />,
+      icon: <Eye />,
       onClick: handleViewUser,
       variant: "default",
       // Show "View Details" for all users including admin
     },
     {
       label: "Thay đổi trạng thái",
-      icon: <Edit className="w-4 h-4" />,
+      icon: <Edit />,
       onClick: (user: UserListItem) => {
         if (!user || user.userId == null) {
           console.error("Invalid user data for status toggle");
@@ -521,54 +527,26 @@ export default function UserManagementPageNew() {
       {/* Statistics Cards */}
       {stats.length > 0 && stats[0] && (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
-                Tổng người dùng
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
-                {(stats[0] as any).totalUsers}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
-                Đang hoạt động
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                {(stats[0] as any).activeUsers}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
-                Vô hiệu hóa
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 dark:from-red-400 dark:to-rose-400 bg-clip-text text-transparent">
-                {(stats[0] as any).inactiveUsers}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-white/90 via-violet-50/30 to-purple-50/30 dark:from-slate-900/90 dark:via-violet-950/30 dark:to-purple-950/30 backdrop-blur-sm border-2 border-violet-200/50 dark:border-violet-700/50 shadow-2xl shadow-violet-200/30 dark:shadow-violet-900/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-violet-800 dark:text-violet-200 font-semibold">
-                Chưa xác thực
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400 bg-clip-text text-transparent">
-                {(stats[0] as any).unverifiedUsers}
-              </div>
-            </CardContent>
-          </Card>
+          <StatsCard
+            title="Tổng người dùng"
+            value={(stats[0] as any).totalUsers}
+            icon={Users}
+          />
+          <StatsCard
+            title="Đang hoạt động"
+            value={(stats[0] as any).activeUsers}
+            icon={Users}
+          />
+          <StatsCard
+            title="Vô hiệu hóa"
+            value={(stats[0] as any).inactiveUsers}
+            icon={Users}
+          />
+          <StatsCard
+            title="Chưa xác thực"
+            value={(stats[0] as any).unverifiedUsers}
+            icon={Users}
+          />
         </div>
       )}
 
@@ -666,21 +644,12 @@ export default function UserManagementPageNew() {
               }}
             />
           ) : (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-violet-400 dark:text-violet-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-violet-900 dark:text-violet-100 mb-2">
-                Không tìm thấy người dùng
-              </h3>
-              <p className="text-violet-600 dark:text-violet-400 mb-4">
-                Thử điều chỉnh bộ lọc để xem kết quả khác
-              </p>
-              <Button
-                onClick={handleResetFilters}
-                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
-              >
-                Đặt lại bộ lọc
-              </Button>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="Không tìm thấy người dùng"
+              description="Thử điều chỉnh bộ lọc để xem kết quả khác"
+              show={true}
+            />
           )}
         </CardContent>
       </Card>

@@ -50,9 +50,9 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Coordinator Requests</h3>
+            <h3 className="text-lg font-medium mb-2">Không có yêu cầu điều phối viên</h3>
             <p className="text-muted-foreground">
-              No coordinator requests found for review.
+              Không tìm thấy yêu cầu điều phối viên nào để xem xét.
             </p>
           </div>
         </CardContent>
@@ -96,10 +96,10 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          Coordinator Requests
+          Yêu cầu điều phối viên
         </CardTitle>
         <CardDescription>
-          Review and manage coordinator creation requests from organizations
+          Xem xét và quản lý các yêu cầu tạo điều phối viên từ các tổ chức
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,11 +107,11 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Organization</TableHead>
-                <TableHead>Candidate Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Tổ chức</TableHead>
+                <TableHead>Email ứng viên</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Ngày gửi</TableHead>
+                <TableHead className="text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -148,7 +148,7 @@ export const CoordinatorRequestsList: React.FC<CoordinatorRequestsListProps> = (
                       className="flex items-center gap-2"
                     >
                       <Eye className="h-4 w-4" />
-                      View Details
+                      Xem chi tiết
                     </Button>
                   </TableCell>
                 </TableRow>
