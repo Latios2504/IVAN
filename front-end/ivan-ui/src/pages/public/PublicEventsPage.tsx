@@ -269,20 +269,20 @@ export default function PublicEventsPage() {
       open: { 
         label: "Đang mở", 
         variant: "default" as const, 
-        color: "text-emerald-600 dark:text-emerald-400",
+        color: "text-emerald-600 dark:text-emerald-300",
         bgGradient: "from-emerald-500/10 to-green-500/10 dark:from-emerald-400/20 dark:to-green-400/20"
       },
       full: { 
         label: "Đã đủ", 
         variant: "secondary" as const, 
-        color: "text-amber-600 dark:text-amber-400",
+        color: "text-amber-600 dark:text-amber-300",
         bgGradient: "from-amber-500/10 to-orange-500/10 dark:from-amber-400/20 dark:to-orange-400/20"
       },
       closed: { 
         label: "Đã đóng", 
-        variant: "destructive" as const, 
-        color: "text-rose-600 dark:text-rose-400",
-        bgGradient: "from-rose-500/10 to-red-500/10 dark:from-rose-400/20 dark:to-red-400/20"
+        variant: "outline" as const, 
+        color: "text-gray-600 dark:text-gray-300",
+        bgGradient: "from-gray-500/10 to-slate-500/10 dark:from-gray-400/20 dark:to-slate-400/20"
       },
     };
 

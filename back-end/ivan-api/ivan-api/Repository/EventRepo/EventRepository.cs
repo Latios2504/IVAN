@@ -33,8 +33,35 @@ namespace ivan_api.Repository.EventRepo
                 return false;
             }
             
-            // Update only the fields that changed
-            existingEvent.StatusId = evt.StatusId;
+            // Update all fields that can be modified
+            if (evt.EventName != null) existingEvent.EventName = evt.EventName;
+            if (evt.CategoryId != 0) existingEvent.CategoryId = evt.CategoryId;
+            // StatusId is handled separately through UpdateEventStatusAsync method
+            if (evt.ShortDescription != null) existingEvent.ShortDescription = evt.ShortDescription;
+            if (evt.Description != null) existingEvent.Description = evt.Description;
+            if (evt.StartDate != default) existingEvent.StartDate = evt.StartDate;
+            if (evt.EndDate != default) existingEvent.EndDate = evt.EndDate;
+            if (evt.RegistrationStartDate.HasValue) existingEvent.RegistrationStartDate = evt.RegistrationStartDate;
+            if (evt.RegistrationEndDate.HasValue) existingEvent.RegistrationEndDate = evt.RegistrationEndDate;
+            if (evt.Location != null) existingEvent.Location = evt.Location;
+            if (evt.DetailedAddress != null) existingEvent.DetailedAddress = evt.DetailedAddress;
+            if (evt.Province != null) existingEvent.Province = evt.Province;
+            if (evt.District != null) existingEvent.District = evt.District;
+            if (evt.MaxVolunteers.HasValue) existingEvent.MaxVolunteers = evt.MaxVolunteers;
+            if (evt.MinVolunteers != 0) existingEvent.MinVolunteers = evt.MinVolunteers;
+            if (evt.RequiredSkills != null) existingEvent.RequiredSkills = evt.RequiredSkills;
+            if (evt.AgeRequirement != null) existingEvent.AgeRequirement = evt.AgeRequirement;
+            if (evt.GenderRequirement != null) existingEvent.GenderRequirement = evt.GenderRequirement;
+            if (evt.Requirements != null) existingEvent.Requirements = evt.Requirements;
+            if (evt.Benefits != null) existingEvent.Benefits = evt.Benefits;
+            if (evt.ContactPerson != null) existingEvent.ContactPerson = evt.ContactPerson;
+            if (evt.ContactPhone != null) existingEvent.ContactPhone = evt.ContactPhone;
+            if (evt.ContactEmail != null) existingEvent.ContactEmail = evt.ContactEmail;
+            if (evt.BannerImageUrl != null) existingEvent.BannerImageUrl = evt.BannerImageUrl;
+            if (evt.GalleryImages != null) existingEvent.GalleryImages = evt.GalleryImages;
+            if (evt.IsFeatured.HasValue) existingEvent.IsFeatured = evt.IsFeatured;
+            if (evt.IsUrgent.HasValue) existingEvent.IsUrgent = evt.IsUrgent;
+            
             existingEvent.UpdatedAt = evt.UpdatedAt;
             
             var result = await _context.SaveChangesAsync();

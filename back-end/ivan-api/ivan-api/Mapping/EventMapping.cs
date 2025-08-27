@@ -22,6 +22,7 @@ namespace ivan_api.Mapping
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.StatusId, opt => opt.Ignore()) // Don't update StatusId through general update
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Event → EventDto
