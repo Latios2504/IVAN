@@ -251,39 +251,82 @@ namespace ivan_api.Services.CoordinatorRequestServ
                 var salt =  PasswordHashGenerate.GenerateSaltBase64();
                 var passwordHash = PasswordHashGenerate.HashPasswordWithSalt(tempPassword, salt);
 
-                // 2) Tạo user
-                var user = new User
-                {
-                    Email = email,
-                    RoleId = roleId,
-                    IsActive = true,
-                    IsEmailVerified = false,
-                    CreatedAt = DateTime.UtcNow,
+                var normalizedEmail = (email ?? string.Empty).Trim().ToLowerInvariant();
 
-                     // BẮT BUỘC set để tránh NULL
-                    PasswordHash = passwordHash,
-                    Salt = salt,
-                };
-                _db.Users.Add(user);
-                await _db.SaveChangesAsync();
+
+                var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == normalizedEmail);
+                if (user == null)
+                {
+                    // 2) Tạo user
+                    user = new User
+                    {
+                        Email = email,
+                        RoleId = roleId,
+                        IsActive = true,
+                        IsEmailVerified = false,
+                        CreatedAt = DateTime.UtcNow,
+
+                        // BẮT BUỘC set để tránh NULL
+                        PasswordHash = passwordHash,
+                        Salt = salt,
+                    };
+                    _db.Users.Add(user);
+                    await _db.SaveChangesAsync();
+                }
 
                 // 3) Tạo VolunteerCoordinator
-                var vc = new VolunteerCoordinator
+                var vc = await _db.VolunteerCoordinators.FirstOrDefaultAsync(x => x.UserId == user.UserId && x.OrganizationId == orgId);
+                if (vc == null)
                 {
-                    UserId = user.UserId,
-                    OrganizationId = orgId,
-                    EmployeeId = $"E{DateTime.UtcNow:yyyyMMdd}-{user.UserId}", // gen mã đơn giản
-                    Position = position,
-                    Department = department,
-                    Responsibilities = responsibilities,
-                    HireDate = hireDate,
-                    ManagerId = managerUserId,
-                    CreatedBy = adminUserId,
-                    RequestedBy = orgId,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _db.VolunteerCoordinators.Add(vc);
+                    vc = new VolunteerCoordinator
+                    {
+                        UserId = user.UserId,
+                        OrganizationId = orgId,
+                        EmployeeId = $"E{DateTime.UtcNow:yyyyMMdd}-{user.UserId}", // gen mã đơn giản
+                        Position = position,
+                        Department = department,
+                        Responsibilities = responsibilities,
+                        HireDate = hireDate,
+                        ManagerId = managerUserId,
+                        CreatedBy = adminUserId,
+                        RequestedBy = orgId,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _db.VolunteerCoordinators.Add(vc);
+                }
+                
+                
+
+                // 3) ĐẢM BẢO tạo UserProfile cho tài khoản Coordinator vừa tạo
+                if (!await _db.UserProfiles.AnyAsync(p => p.UserId == user.UserId))
+                {
+                    // Tách họ tên (nếu có). fullName đã được parse ở trên từ metadata.
+                    string firstName = string.Empty;
+                    string lastName  = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(fullName))
+                    {
+                        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length > 1)
+                        {
+                            lastName  = parts[^1];
+                            firstName = string.Join(" ", parts[..^1]);
+                        }
+                        else
+                        {
+                            firstName = fullName.Trim();
+                        }
+                    }
+
+                    _db.UserProfiles.Add(new UserProfile
+                    {
+                        UserId    = user.UserId,
+                        FirstName = firstName,          // DB cho phép null, nhưng dùng "" an toàn hơn
+                        LastName  = lastName,
+                        CreatedAt = DateTime.UtcNow     // cột này đã có default (getdate()), set tay cũng ok
+                    });
+                    await _db.SaveChangesAsync();
+                }
 
                 // 4) Update SupportRequest
                 sr.Status = "Resolved";
