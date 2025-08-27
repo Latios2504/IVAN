@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
+import TemplateStatusBadge from "./TemplateStatusBadge";
 import type { CertificateTemplateViewModel } from "@/types/certificate";
 
 interface BulkActionsModalProps {
@@ -145,16 +146,11 @@ export default function BulkActionsModal({
                   <span className="flex-1 truncate text-gray-800 dark:text-gray-200">
                     {template.templateName}
                   </span>
-                  {template.isDefault && (
-                    <Badge variant="outline" className="text-xs">
-                      Hệ thống
-                    </Badge>
-                  )}
-                  {!template.isActive && (
-                    <Badge variant="destructive" className="text-xs">
-                      Tạm dừng
-                    </Badge>
-                  )}
+                  <TemplateStatusBadge
+                    isActive={template.isActive}
+                    isDefault={template.isDefault}
+                    size="sm"
+                  />
                 </div>
               ))}
             </div>
@@ -162,7 +158,9 @@ export default function BulkActionsModal({
 
           {/* Action Selection */}
           <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Chọn thao tác</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Chọn thao tác
+            </h4>
             <Select
               value={selectedAction}
               onValueChange={(value) => setSelectedAction(value as BulkAction)}

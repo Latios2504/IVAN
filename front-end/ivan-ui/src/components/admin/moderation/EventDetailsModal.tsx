@@ -9,11 +9,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Building2, FileText, Clock } from 'lucide-react';
-import type { ModerationEventDetailDto } from '@/types/moderation';
+import { 
+  Calendar, 
+  Building2, 
+  FileText, 
+  Clock, 
+  MapPin, 
+  Users, 
+  Tag, 
+  Phone, 
+  Mail, 
+  User,
+  CheckCircle,
+  Gift
+} from 'lucide-react';
+import type { EventDto } from '@/types/events';
 
 interface EventDetailsModalProps {
-  event: ModerationEventDetailDto | null;
+  event: EventDto | null;
   isOpen: boolean;
   onClose: () => void;
   onApprove: (eventId: number) => void;
@@ -51,7 +64,7 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-white to-emerald-50 dark:from-gray-900 dark:to-emerald-950 border-emerald-200 dark:border-emerald-800 shadow-2xl">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-emerald-50 dark:from-gray-900 dark:to-emerald-950 border-emerald-200 dark:border-emerald-800 shadow-2xl">
         <DialogHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900 dark:to-teal-900 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-md">
           <DialogTitle className="flex items-center gap-2 text-xl bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-emerald-300 dark:to-teal-300 bg-clip-text text-transparent">
             <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -59,53 +72,259 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 shadow-sm">
-          {/* Event Name */}
-          <div className="bg-gradient-to-r from-white to-emerald-50 dark:from-gray-800 dark:to-emerald-950 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm">
-            <h3 className="text-lg font-semibold mb-2 text-emerald-800 dark:text-emerald-200">{event.eventName}</h3>
-            <Badge variant="outline" className="mb-4 bg-emerald-50 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300">
-              ID: {event.eventId}
-            </Badge>
-          </div>
-
-          <Separator className="bg-emerald-200 dark:bg-emerald-700" />
-
-          {/* Organization */}
-          <div className="flex items-center gap-3 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950 dark:to-cyan-950 p-4 rounded-lg border border-teal-200 dark:border-teal-700 shadow-sm">
-            <Building2 className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-            <div>
-              <p className="text-sm text-teal-600 dark:text-teal-400">Organization</p>
-              <p className="font-medium text-teal-800 dark:text-teal-200">{event.organizationName}</p>
-            </div>
-          </div>
-
-          {/* Event Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 p-4 rounded-lg border border-cyan-200 dark:border-cyan-700 shadow-sm">
-              <Calendar className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-              <div>
-                <p className="text-sm text-cyan-600 dark:text-cyan-400">Start Date</p>
-                <p className="font-medium text-cyan-800 dark:text-cyan-200">{formatDate(event.startDate)}</p>
+        <div className="space-y-6 p-2">
+          {/* Main Information Grid - 3 columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Column 1: Basic Event Info */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700">
+              <h3 className="text-lg font-semibold mb-3 text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Event Information
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-xl font-bold text-emerald-900 dark:text-emerald-100 mb-2">{event.eventName}</h4>
+                  <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300">
+                    ID: {event.eventId}
+                  </Badge>
+                </div>
+                <p className="flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-emerald-600" />
+                  <strong>Category:</strong> {event.categoryName}
+                </p>
+                <p className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-emerald-600" />
+                  <strong>Status:</strong>
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">{event.statusName}</Badge>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-emerald-600" />
+                  <strong>Organization:</strong> {event.organizationName || 'N/A'}
+                </p>
+                {event.shortDescription && (
+                  <p>
+                    <strong>Short Description:</strong> {event.shortDescription}
+                  </p>
+                )}
+                {(event.isFeatured || event.isUrgent) && (
+                  <div className="mt-4 flex gap-2">
+                    {event.isFeatured && (
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        Featured
+                      </Badge>
+                    )}
+                    {event.isUrgent && (
+                      <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                        Urgent
+                      </Badge>
+                    )}
+                  </div>
+                )}
+                {(event.createdAt || event.updatedAt) && (
+                  <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 border-t pt-3">
+                    {event.createdAt && (
+                      <p>
+                        <strong>Created:</strong> {formatDate(event.createdAt)}
+                      </p>
+                    )}
+                    {event.updatedAt && (
+                      <p>
+                        <strong>Last Updated:</strong> {formatDate(event.updatedAt)}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg border border-blue-200 dark:border-blue-700 shadow-sm">
-              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <div>
-                <p className="text-sm text-blue-600 dark:text-blue-400">End Date</p>
-                <p className="font-medium text-blue-800 dark:text-blue-200">{formatDate(event.endDate)}</p>
+
+            {/* Column 2: Dates & Volunteers */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+              <h3 className="text-lg font-semibold mb-3 text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Schedule & Volunteers
+              </h3>
+              <div className="space-y-3">
+                <div className="border-b pb-3 mb-3">
+                  <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">Event Dates</h4>
+                  <p className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <strong>Start:</strong> {formatDate(event.startDate)}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    <strong>End:</strong> {formatDate(event.endDate)}
+                  </p>
+                </div>
+                {(event.registrationStartDate || event.registrationEndDate) && (
+                  <div className="border-b pb-3 mb-3">
+                    <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2">Registration Period</h4>
+                    {event.registrationStartDate && (
+                      <p>
+                        <strong>Registration Start:</strong> {formatDate(event.registrationStartDate)}
+                      </p>
+                    )}
+                    {event.registrationEndDate && (
+                      <p>
+                        <strong>Registration End:</strong> {formatDate(event.registrationEndDate)}
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Volunteer Information
+                  </h4>
+                  <p>
+                    <strong>Registered:</strong> {event.volunteersRegistered || 0}
+                  </p>
+                  <p>
+                    <strong>Min Required:</strong> {event.minVolunteers}
+                  </p>
+                  <p>
+                    <strong>Max Allowed:</strong> {event.maxVolunteers || "No limit"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 3: Location */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+              <h3 className="text-lg font-semibold mb-3 text-purple-800 dark:text-purple-300 flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Location
+              </h3>
+              <div className="space-y-3">
+                <p>
+                  <strong>Location:</strong> {event.location || 'N/A'}
+                </p>
+                {event.detailedAddress && (
+                  <p>
+                    <strong>Address:</strong> {event.detailedAddress}
+                  </p>
+                )}
+                {event.district && (
+                  <p>
+                    <strong>District:</strong> {event.district}
+                  </p>
+                )}
+                {event.province && (
+                  <p>
+                    <strong>Province:</strong> {event.province}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          <Separator className="bg-emerald-200 dark:bg-emerald-700" />
+          {/* Images Section */}
+          {(event.bannerImageUrl || event.galleryImages) && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-700">
+              <h3 className="text-lg font-semibold mb-3 text-amber-800 dark:text-amber-300">Event Images</h3>
+              <div className="space-y-4">
+                {event.bannerImageUrl && (
+                  <div>
+                    <h4 className="font-medium text-amber-700 dark:text-amber-300 mb-2">Banner Image</h4>
+                    <img 
+                      src={event.bannerImageUrl} 
+                      alt="Event Banner" 
+                      className="max-w-full h-auto rounded-lg shadow-md max-h-64 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                {event.galleryImages && (
+                  <div>
+                    <h4 className="font-medium text-amber-700 dark:text-amber-300 mb-2">Gallery Images</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      {event.galleryImages.split(',').map((url, index) => (
+                        <img 
+                          key={index}
+                          src={url.trim()} 
+                          alt={`Gallery ${index + 1}`} 
+                          className="w-full h-24 object-cover rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Description */}
-          <div className="bg-gradient-to-br from-white to-emerald-50 dark:from-gray-800 dark:to-emerald-950 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm">
-            <h4 className="font-semibold mb-3 text-emerald-800 dark:text-emerald-200">Description</h4>
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
-              <p className="text-sm leading-relaxed whitespace-pre-wrap text-emerald-700 dark:text-emerald-300">
-                {event.description || 'No description provided.'}
-              </p>
+          {event.description && (
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-700">
+              <h3 className="text-lg font-semibold mb-3 text-indigo-800 dark:text-indigo-300">Description</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{event.description}</p>
+            </div>
+          )}
+
+          {/* Contact Information */}
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-700">
+            <h3 className="text-lg font-semibold mb-3 text-orange-800 dark:text-orange-300 flex items-center gap-2">
+              <Phone className="h-5 w-5" />
+              Contact Information
+            </h3>
+            <div className="space-y-3">
+              {event.contactPerson && (
+                <p className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-orange-600" />
+                  <strong>Contact Person:</strong> {event.contactPerson}
+                </p>
+              )}
+              {event.contactPhone && (
+                <p className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-orange-600" />
+                  <strong>Phone:</strong> {event.contactPhone}
+                </p>
+              )}
+              {event.contactEmail && (
+                <p className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-orange-600" />
+                  <strong>Email:</strong> {event.contactEmail}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          <div className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-cyan-200 dark:border-cyan-700">
+            <h3 className="text-lg font-semibold mb-3 text-cyan-800 dark:text-cyan-300 flex items-center gap-2">
+              <Gift className="h-5 w-5" />
+              Additional Information
+            </h3>
+            <div className="space-y-3">
+              {event.requiredSkills && (
+                <p>
+                  <strong>Required Skills:</strong> {event.requiredSkills}
+                </p>
+              )}
+              {event.ageRequirement && (
+                <p>
+                  <strong>Age Requirement:</strong> {event.ageRequirement}
+                </p>
+              )}
+              {event.genderRequirement && (
+                <p>
+                  <strong>Gender Requirement:</strong> {event.genderRequirement}
+                </p>
+              )}
+              {event.requirements && (
+                <p>
+                  <strong>Requirements:</strong> {event.requirements}
+                </p>
+              )}
+              {event.benefits && (
+                <p>
+                  <strong>Benefits:</strong> {event.benefits}
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -50,15 +50,7 @@ const CertificateTemplateManagementPage = lazy(
 const VolunteerCertificatesPage = lazy(
   () => import("@/pages/volunteer/VolunteerCertificatesPage")
 );
-const ReportListPage = lazy(
-  () => import("@/pages/organization/ReportListPage")
-);
-const ReportCreatePage = lazy(
-  () => import("@/pages/coordinator/ReportCreatePage")
-);
-const OrganizationCoordinatorRequestPage = lazy(
-  () => import("@/pages/organization/OrganizationCoordinatorRequestPage")
-);
+
 const CoordinatorSchedulePage = lazy(
   () => import("@/pages/organization/CoordinatorSchedulePage")
 );
@@ -70,9 +62,6 @@ const VolunteerSchedulePage = lazy(
 );
 const CoordinatorTaskManagementPage = lazy(
   () => import("@/pages/organization/CoordinatorTaskManagementPage")
-);
-const PartnerCollaborationPage = lazy(
-  () => import("@/pages/organization/PartnerCollaborationPage")
 );
 const UserManagementPage = lazy(
   () => import("@/pages/admin/UserManagementPage")
@@ -87,7 +76,7 @@ const ModerationManagementPage = lazy(
   () => import("@/pages/admin/ModerationManagementPage")
 );
 const EventRegistrationPage = lazy(
-  () => import("@/pages/organization/EventRegistrationPage")
+  () => import("@/pages/organization/EventRegistrationManagementPage")
 );
 const EventFeedbackManagementPage = lazy(
   () => import("@/pages/organization/EventFeedbackManagementPage")
@@ -350,30 +339,6 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/organization/reports"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <ReportListPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/coordinator/reports/create"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.COORDINATOR]}>
-              <ReportCreatePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/organization/coordinators"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <OrganizationCoordinatorRequestPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/organization/volunteer-coordinators"
           element={
             <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
@@ -410,7 +375,7 @@ export default function AppRoutes() {
               <CoordinatorSchedulePage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/organization/volunteer-schedule"
           element={
@@ -418,7 +383,7 @@ export default function AppRoutes() {
               <VolunteerScheduleManagementPage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/organization/coordinator-tasks"
           element={
@@ -426,15 +391,7 @@ export default function AppRoutes() {
               <CoordinatorTaskManagementPage />
             </ProtectedRoute>
           }
-        />{" "}
-        <Route
-          path="/organization/partners"
-          element={
-            <ProtectedRoute allowedRoles={[UserRole.ORGANIZATION]}>
-              <PartnerCollaborationPage />
-            </ProtectedRoute>
-          }
-        />{" "}
+        />
         <Route
           path="/admin/users"
           element={
@@ -442,7 +399,7 @@ export default function AppRoutes() {
               <UserManagementPage />
             </ProtectedRoute>
           }
-        />{" "}
+        />
         <Route
           path="/admin/ai-instructions"
           element={

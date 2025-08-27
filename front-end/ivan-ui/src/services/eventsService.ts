@@ -10,6 +10,7 @@ import type {
   EventStatusDto,
   CreateEventFromSupportRequestDto,
   UpdateEventStatusDto,
+  RejectEventRequestDto,
 } from "../types/events";
 
 class EventsService {
@@ -95,6 +96,29 @@ class EventsService {
   // PUT /api/Events/{eventId}/status - Update Event Status (Organization role only)
   async updateEventStatus(eventId: number, statusData: UpdateEventStatusDto): Promise<void> {
     await apiClient.put(`${this.baseUrl}/${eventId}/status`, statusData);
+  }
+
+  // POST /api/Events/{eventId}/approve - Approve Event (Admin role only)
+  async approveEvent(eventId: number): Promise<{ eventId: number }> {
+    const response = await apiClient.post<{ eventId: number }>(
+      `${this.baseUrl}/${eventId}/approve`
+    );
+    if (!response.data) {
+      throw new Error("Failed to approve event");
+    }
+    return response.data;
+  }
+
+  // POST /api/Events/{eventId}/reject - Reject Event (Admin role only)
+  async rejectEvent(eventId: number, rejectData: RejectEventRequestDto): Promise<{ eventId: number; reason: string }> {
+    const response = await apiClient.post<{ eventId: number; reason: string }>(
+      `${this.baseUrl}/${eventId}/reject`,
+      rejectData
+    );
+    if (!response.data) {
+      throw new Error("Failed to reject event");
+    }
+    return response.data;
   }
 
   // Utility Methods

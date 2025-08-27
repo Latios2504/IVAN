@@ -1,4 +1,6 @@
 // Certificate Types - Matching backend Certificate DTOs and Models
+// Updated to match backend DTOs exactly - DateTime fields handled as strings in frontend
+// HoursCompleted kept as number (decimal from backend will be converted)
 
 // Base Certificate interfaces matching backend DTOs
 export interface CertificateViewModel {
@@ -121,6 +123,7 @@ export interface CertificateTemplateUpdateModel {
 export interface CertificateTemplateFilterModel {
   pageNumber?: number;
   pageSize?: number;
+  organizationId?: number;
   searchTerm?: string;
 }
 

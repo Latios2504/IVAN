@@ -26,6 +26,7 @@ import {
   type TableColumn,
   type TableAction,
 } from "@/components/common/DataTable";
+import { StatsCard } from "@/components/common/StatsCard";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import coordinatorTaskService from "@/services/coordinatorTaskService";
@@ -362,73 +363,30 @@ export default function CoordinatorTasksPage() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-              Tổng nhiệm vụ
-            </CardTitle>
-            <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
-              {stats.totalTasks}
-            </div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">
-              Được giao
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-              Nhiệm vụ chờ xử lý
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
-              {stats.pendingTasks}
-            </div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">
-              Cần thực hiện
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-              Đang thực hiện
-            </CardTitle>
-            <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
-              {stats.inProgressTasks}
-            </div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">
-              Đang tiến hành
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-indigo-200 dark:border-indigo-800/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-indigo-100/50 to-purple-100/50 dark:from-indigo-900/30 dark:to-purple-900/30">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-              Hoàn thành
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-indigo-800 dark:text-indigo-200">
-              {stats.completedTasks}
-            </div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400">
-              Đã xong
-            </p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tổng nhiệm vụ"
+          value={stats.totalTasks}
+          description="Được giao"
+          icon={FileText}
+        />
+        <StatsCard
+          title="Chờ xử lý"
+          value={stats.pendingTasks}
+          description="Cần thực hiện"
+          icon={AlertTriangle}
+        />
+        <StatsCard
+          title="Đang thực hiện"
+          value={stats.inProgressTasks}
+          description="Đang tiến hành"
+          icon={Clock}
+        />
+        <StatsCard
+          title="Hoàn thành"
+          value={stats.completedTasks}
+          description="Đã xong"
+          icon={CheckCircle}
+        />
       </div>
 
       <Tabs defaultValue="tasks" className="space-y-6">

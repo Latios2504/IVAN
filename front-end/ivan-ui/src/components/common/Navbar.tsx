@@ -17,8 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { UserRole } from "@/types/auth";
-import { NotificationBell } from "./NotificationBell";
 import { TooltipWrapper } from "./TooltipWrapper";
 import { ThemeToggle } from "./theme-toggle";
 import {
@@ -208,9 +206,6 @@ export default function Navbar() {
               <div className="flex items-center space-x-3">
                 {/* Theme Toggle */}
                 <ThemeToggle />
-
-                {/* Notifications */}
-                <NotificationBell />
 
                 {/* User Menu */}
                 <DropdownMenu>

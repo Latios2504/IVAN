@@ -1,16 +1,14 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import {
-  Play,
+  FileText,
+  Clock,
   CheckCircle,
   XCircle,
-  Pause,
   AlertCircle,
-  UserCheck,
 } from "lucide-react";
-import { TASK_STATUS } from "@/types/coordinatorTask";
 
-interface TaskStatusBadgeProps {
+interface CertificateStatusBadgeProps {
   status: string;
   className?: string;
   showIcon?: boolean;
@@ -26,42 +24,41 @@ const statusConfig: Record<
     darkClassName: string;
   }
 > = {
-  [TASK_STATUS.ASSIGNED]: {
-    label: "Đã giao",
+  draft: {
+    label: "Bản nháp",
     className:
-      "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
-    icon: UserCheck,
+      "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200",
+    icon: FileText,
     darkClassName:
-      "dark:bg-orange-900/30 dark:text-orange-200 dark:border-orange-600",
+      "dark:bg-gray-900/30 dark:text-gray-200 dark:border-gray-600",
   },
-  [TASK_STATUS.IN_PROGRESS]: {
-    label: "Đang thực hiện",
-    className: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200",
-    icon: Play,
+  pending: {
+    label: "Chờ duyệt",
+    className:
+      "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+    icon: Clock,
     darkClassName:
-      "dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-600",
+      "dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-600",
   },
-  [TASK_STATUS.COMPLETED]: {
-    label: "Hoàn thành",
+  issued: {
+    label: "Đã cấp",
     className:
       "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
     icon: CheckCircle,
     darkClassName:
       "dark:bg-green-900/30 dark:text-green-200 dark:border-green-600",
   },
-  [TASK_STATUS.CANCELLED]: {
-    label: "Đã hủy",
+  rejected: {
+    label: "Từ chối",
     className: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200",
     icon: XCircle,
     darkClassName: "dark:bg-red-900/30 dark:text-red-200 dark:border-red-600",
   },
-  [TASK_STATUS.ON_HOLD]: {
-    label: "Tạm dừng",
-    className:
-      "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
-    icon: Pause,
-    darkClassName:
-      "dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-600",
+  revoked: {
+    label: "Đã thu hồi",
+    className: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200",
+    icon: XCircle,
+    darkClassName: "dark:bg-red-900/30 dark:text-red-200 dark:border-red-600",
   },
 };
 
@@ -77,7 +74,7 @@ const iconSizes = {
   lg: "h-5 w-5",
 };
 
-const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({
+const CertificateStatusBadge: React.FC<CertificateStatusBadgeProps> = ({
   status,
   className = "",
   showIcon = true,
@@ -116,5 +113,5 @@ const TaskStatusBadge: React.FC<TaskStatusBadgeProps> = ({
   );
 };
 
-export default TaskStatusBadge;
+export default CertificateStatusBadge;
 export { statusConfig };

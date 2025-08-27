@@ -16,6 +16,7 @@ import {
   type TableColumn,
   type TableAction,
 } from "@/components/common/DataTable";
+import { StatsCard } from "@/components/common/StatsCard";
 import { useModal } from "@/hooks/useModal";
 import { toast } from "sonner";
 import {
@@ -552,77 +553,26 @@ export default function CoordinatorTaskManagementPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  Tổng nhiệm vụ
-                </p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  {taskStats.total}
-                </p>
-              </div>
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg">
-                <FileText className="w-8 h-8 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/30 border border-orange-200 dark:border-orange-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                  Đang thực hiện
-                </p>
-                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
-                  {taskStats.inProgress}
-                </p>
-              </div>
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full shadow-lg">
-                <AlertCircle className="w-8 h-8 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 border border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                  Hoàn thành
-                </p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                  {taskStats.completed}
-                </p>
-              </div>
-              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full shadow-lg">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 border border-red-200 dark:border-red-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                  Tổng giờ
-                </p>
-                <p className="text-2xl font-bold text-red-900 dark:text-red-100">
-                  {taskStats.totalHours}h
-                </p>
-              </div>
-              <div className="p-3 bg-gradient-to-br from-red-500 to-rose-600 rounded-full shadow-lg">
-                <Clock className="w-8 h-8 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tổng nhiệm vụ"
+          value={taskStats.total}
+          icon={FileText}
+        />
+        <StatsCard
+          title="Đang thực hiện"
+          value={taskStats.inProgress}
+          icon={AlertCircle}
+        />
+        <StatsCard
+          title="Hoàn thành"
+          value={taskStats.completed}
+          icon={CheckCircle}
+        />
+        <StatsCard
+          title="Tổng giờ"
+          value={`${taskStats.totalHours}h`}
+          icon={Clock}
+        />
       </div>
 
       {/* Filters */}

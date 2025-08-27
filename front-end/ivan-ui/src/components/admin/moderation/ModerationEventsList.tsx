@@ -10,11 +10,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, Calendar, Building2 } from 'lucide-react';
-import type { ModerationEventListDto } from '@/types/moderation';
+import { Eye, Calendar, Building2, MapPin, Users, Tag } from 'lucide-react';
+import type { EventDto } from '@/types/events';
 
 interface ModerationEventsListProps {
-  events: ModerationEventListDto[];
+  events: EventDto[];
   onViewDetails: (eventId: number) => void;
   isLoading?: boolean;
 }
@@ -81,7 +81,11 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                 <TableHead className="w-[100px]">Event ID</TableHead>
                 <TableHead>Event Name</TableHead>
                 <TableHead>Organization</TableHead>
-                <TableHead>Submission Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Start Date</TableHead>
+                <TableHead>Max Volunteers</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -93,17 +97,49 @@ export const ModerationEventsList: React.FC<ModerationEventsListProps> = ({
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">{event.eventName}</div>
+                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {event.description}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span>{event.organizationName}</span>
+                      <span className="text-sm">{event.organizationName || 'N/A'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-muted-foreground">
-                      {formatDate(event.submissionDate)}
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{event.categoryName || 'N/A'}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{event.location || 'N/A'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {formatDate(event.startDate)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {event.endDate && formatDate(event.endDate)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{event.maxVolunteers || 'N/A'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={event.statusName === 'Pending Approval' ? 'secondary' : 'default'}
+                      className="text-xs"
+                    >
+                      {event.statusName || 'Unknown'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button

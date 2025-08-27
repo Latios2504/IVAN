@@ -213,19 +213,7 @@ export default function OrganizationDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/organization/reports"
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Xem báo cáo
-                    </Link>
-                  </Button>
+
                 </CardContent>
               </Card>
             </div>

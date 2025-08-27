@@ -17,12 +17,14 @@ import {
   Trash2,
 } from "lucide-react";
 import type { CoordinatorTaskDto } from "@/types/coordinatorTask";
-import { TASK_STATUS, TASK_PRIORITY } from "@/types/coordinatorTask";
+import { TASK_STATUS } from "@/types/coordinatorTask";
 import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 import type { EventDto } from "@/types/events";
 import volunteerCoordinatorService from "@/services/volunteerCoordinatorService";
 import eventsService from "@/services/eventsService";
 import { useAuth } from "@/hooks/useAuth";
+import TaskPriorityBadge from "./TaskPriorityBadge";
+import TaskStatusBadge from "./TaskStatusBadge";
 
 interface TaskDetailsModalProps {
   isOpen: boolean;
@@ -32,53 +34,6 @@ interface TaskDetailsModalProps {
   onDelete?: (taskId: number) => void;
   onComplete?: (taskId: number) => void;
 }
-
-const priorityColors: Record<string, string> = {
-  [TASK_PRIORITY.LOW]: "bg-green-100 text-green-800 border-green-300",
-  [TASK_PRIORITY.MEDIUM]: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  [TASK_PRIORITY.HIGH]: "bg-orange-100 text-orange-800 border-orange-300",
-  [TASK_PRIORITY.URGENT]: "bg-red-100 text-red-800 border-red-300",
-};
-
-const statusColors: Record<string, string> = {
-  [TASK_STATUS.ASSIGNED]: "bg-purple-100 text-purple-800 border-purple-300",
-  [TASK_STATUS.IN_PROGRESS]: "bg-blue-100 text-blue-800 border-blue-300",
-  [TASK_STATUS.COMPLETED]: "bg-green-100 text-green-800 border-green-300",
-  [TASK_STATUS.CANCELLED]: "bg-gray-100 text-gray-600 border-gray-300",
-  [TASK_STATUS.ON_HOLD]: "bg-yellow-100 text-yellow-800 border-yellow-300",
-};
-
-const getStatusText = (status: string): string => {
-  switch (status) {
-    case TASK_STATUS.ASSIGNED:
-      return "Đã giao";
-    case TASK_STATUS.IN_PROGRESS:
-      return "Đang thực hiện";
-    case TASK_STATUS.COMPLETED:
-      return "Hoàn thành";
-    case TASK_STATUS.CANCELLED:
-      return "Đã hủy";
-    case TASK_STATUS.ON_HOLD:
-      return "Tạm dừng";
-    default:
-      return status;
-  }
-};
-
-const getPriorityText = (priority: string): string => {
-  switch (priority) {
-    case TASK_PRIORITY.LOW:
-      return "Thấp";
-    case TASK_PRIORITY.MEDIUM:
-      return "Trung bình";
-    case TASK_PRIORITY.HIGH:
-      return "Cao";
-    case TASK_PRIORITY.URGENT:
-      return "Khẩn cấp";
-    default:
-      return priority;
-  }
-};
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("vi-VN", {
@@ -99,7 +54,8 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   onComplete,
 }) => {
   const { user } = useAuth();
-  const [coordinator, setCoordinator] = useState<VolunteerCoordinatorDto | null>(null);
+  const [coordinator, setCoordinator] =
+    useState<VolunteerCoordinatorDto | null>(null);
   const [event, setEvent] = useState<EventDto | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -110,25 +66,26 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     const loadData = async () => {
       try {
         setLoading(true);
-        
+
         // Load coordinator info
         if (task.coordinatorId && user.organizationId) {
           try {
-            const coordinatorResult = await volunteerCoordinatorService.getCoordinatorsByOrganization(
-              user.organizationId,
-              {
-                page: 1,
-                size: 100,
-                sortBy: "CreatedAt",
-                sortOrder: "desc"
-              }
-            );
+            const coordinatorResult =
+              await volunteerCoordinatorService.getCoordinatorsByOrganization(
+                user.organizationId,
+                {
+                  page: 1,
+                  size: 100,
+                  sortBy: "CreatedAt",
+                  sortOrder: "desc",
+                }
+              );
             const foundCoordinator = coordinatorResult.items?.find(
               (c) => String(c.coordinatorId) === String(task.coordinatorId)
             );
             setCoordinator(foundCoordinator || null);
           } catch (error) {
-            console.error('Error loading coordinator:', error);
+            console.error("Error loading coordinator:", error);
             setCoordinator(null);
           }
         }
@@ -148,12 +105,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
             );
             setEvent(foundEvent || null);
           } catch (error) {
-            console.error('Error loading event:', error);
+            console.error("Error loading event:", error);
             setEvent(null);
           }
         }
       } catch (error) {
-        console.error('Error loading task details:', error);
+        console.error("Error loading task details:", error);
       } finally {
         setLoading(false);
       }
@@ -164,9 +121,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
   if (!task) return null;
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== TASK_STATUS.COMPLETED;
+  const isOverdue =
+    task.dueDate &&
+    new Date(task.dueDate) < new Date() &&
+    task.status !== TASK_STATUS.COMPLETED;
   const canComplete = task.status === TASK_STATUS.IN_PROGRESS;
-  const progressPercentage = task.estimatedHours 
+  const progressPercentage = task.estimatedHours
     ? Math.min(((task.actualHours || 0) / task.estimatedHours) * 100, 100)
     : 0;
 
@@ -232,18 +192,12 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               </div>
               <div className="flex gap-2">
                 {task.priority && (
-                  <Badge className={`${priorityColors[task.priority]} font-semibold px-3 py-1`}>
-                    {getPriorityText(task.priority)}
-                  </Badge>
+                  <TaskPriorityBadge priority={task.priority} />
                 )}
-                {task.status && (
-                  <Badge className={`${statusColors[task.status]} font-semibold px-3 py-1`}>
-                    {getStatusText(task.status)}
-                  </Badge>
-                )}
+                {task.status && <TaskStatusBadge status={task.status} />}
               </div>
             </div>
-            
+
             {task.description && (
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                 {task.description}
@@ -267,11 +221,15 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   </span>
                   <div className="text-right">
                     {loading ? (
-                      <span className="text-sm text-blue-600 dark:text-blue-400">Đang tải...</span>
+                      <span className="text-sm text-blue-600 dark:text-blue-400">
+                        Đang tải...
+                      </span>
                     ) : coordinator ? (
                       <div>
                         <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                          {coordinator.user?.fullName || coordinator.user?.email || 'Không có tên'}
+                          {coordinator.user?.fullName ||
+                            coordinator.user?.email ||
+                            "Không có tên"}
                         </span>
                         <div className="text-xs text-blue-600 dark:text-blue-400">
                           ID: {task.coordinatorId}
@@ -290,7 +248,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   </span>
                   <div className="text-right">
                     {loading ? (
-                      <span className="text-sm text-blue-600 dark:text-blue-400">Đang tải...</span>
+                      <span className="text-sm text-blue-600 dark:text-blue-400">
+                        Đang tải...
+                      </span>
                     ) : event ? (
                       <div>
                         <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
@@ -331,7 +291,13 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                       <Calendar className="h-4 w-4 mr-1" />
                       Hạn chót:
                     </span>
-                    <span className={`text-sm font-bold ${isOverdue ? 'text-red-600' : 'text-green-900 dark:text-green-100'}`}>
+                    <span
+                      className={`text-sm font-bold ${
+                        isOverdue
+                          ? "text-red-600"
+                          : "text-green-900 dark:text-green-100"
+                      }`}
+                    >
                       {formatDate(task.dueDate)}
                     </span>
                   </div>
@@ -369,7 +335,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           {/* Progress Bar */}
           {task.estimatedHours && task.estimatedHours > 0 && (
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-700">
-              <h4 className="font-bold mb-3 text-indigo-900 dark:text-indigo-100">Tiến độ thời gian</h4>
+              <h4 className="font-bold mb-3 text-indigo-900 dark:text-indigo-100">
+                Tiến độ thời gian
+              </h4>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-indigo-700 dark:text-indigo-300 font-medium">
@@ -383,17 +351,18 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                   <div
                     className={`h-3 rounded-full shadow-lg transition-all duration-500 ${
                       progressPercentage > 100
-                        ? 'bg-gradient-to-r from-red-500 to-red-600'
+                        ? "bg-gradient-to-r from-red-500 to-red-600"
                         : progressPercentage >= 80
-                        ? 'bg-gradient-to-r from-yellow-500 to-orange-600'
-                        : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                        ? "bg-gradient-to-r from-yellow-500 to-orange-600"
+                        : "bg-gradient-to-r from-blue-500 to-indigo-600"
                     }`}
                     style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                   ></div>
                 </div>
                 {progressPercentage > 100 && (
                   <p className="text-red-600 text-sm font-medium">
-                    ⚠️ Vượt quá thời gian ước tính {(progressPercentage - 100).toFixed(1)}%
+                    ⚠️ Vượt quá thời gian ước tính{" "}
+                    {(progressPercentage - 100).toFixed(1)}%
                   </p>
                 )}
               </div>
@@ -403,7 +372,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
           {/* Notes */}
           {task.notes && (
             <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-700">
-              <h4 className="font-bold mb-3 text-amber-900 dark:text-amber-100">Ghi chú</h4>
+              <h4 className="font-bold mb-3 text-amber-900 dark:text-amber-100">
+                Ghi chú
+              </h4>
               <p className="text-amber-800 dark:text-amber-200 text-sm bg-white/50 dark:bg-slate-800/50 p-3 rounded-lg border border-amber-300 dark:border-amber-600 leading-relaxed whitespace-pre-wrap">
                 {task.notes}
               </p>
@@ -412,11 +383,15 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
 
           {/* Timestamps */}
           <div className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-            <h4 className="font-bold mb-3 text-slate-900 dark:text-slate-100">Thông tin hệ thống</h4>
+            <h4 className="font-bold mb-3 text-slate-900 dark:text-slate-100">
+              Thông tin hệ thống
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               {task.createdAt && (
                 <div>
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">Ngày tạo:</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    Ngày tạo:
+                  </span>
                   <p className="text-slate-900 dark:text-slate-100 font-semibold">
                     {formatDate(task.createdAt)}
                   </p>
@@ -424,7 +399,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               )}
               {task.updatedAt && (
                 <div>
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">Cập nhật lần cuối:</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    Cập nhật lần cuối:
+                  </span>
                   <p className="text-slate-900 dark:text-slate-100 font-semibold">
                     {formatDate(task.updatedAt)}
                   </p>
@@ -432,7 +409,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               )}
               {task.createdBy && (
                 <div>
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">Người tạo:</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    Người tạo:
+                  </span>
                   <p className="text-slate-900 dark:text-slate-100 font-semibold">
                     ID: {task.createdBy}
                   </p>

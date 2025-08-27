@@ -22,16 +22,54 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
-import type { Certificate } from "@/types/certificate";
+import CertificateStatusBadge from "./CertificateStatusBadge";
+import type { CertificateViewModel } from "@/types/certificate";
 
 interface BulkOperationsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedCertificates: Certificate[];
+  selectedCertificates: CertificateViewModel[];
   onSuccess: () => void;
 }
 
 type BulkAction = "approve" | "revoke" | null;
+
+// Helper functions for status display
+const getStatusVariant = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "approved":
+    case "issued":
+      return "default";
+    case "pending":
+      return "secondary";
+    case "rejected":
+    case "revoked":
+      return "destructive";
+    case "draft":
+      return "outline";
+    default:
+      return "secondary";
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "approved":
+      return "Đã phê duyệt";
+    case "pending":
+      return "Chờ phê duyệt";
+    case "rejected":
+      return "Đã từ chối";
+    case "issued":
+      return "Đã cấp";
+    case "revoked":
+      return "Đã thu hồi";
+    case "draft":
+      return "Bản nháp";
+    default:
+      return status;
+  }
+};
 
 export function BulkOperationsDialog({
   isOpen,
@@ -52,7 +90,7 @@ export function BulkOperationsDialog({
         (cert) => cert.certificateId
       );
 
-      await certificateService.bulkApprove({
+      await certificateService.bulkApproveCertificates({
         certificateIds,
         reason: notes || "Bulk approval via management interface",
       });
@@ -83,7 +121,7 @@ export function BulkOperationsDialog({
         (cert) => cert.certificateId
       );
 
-      await certificateService.bulkRevoke({
+      await certificateService.bulkRevokeCertificates({
         certificateIds,
         reason: notes || "Bulk revocation via management interface",
       });
@@ -124,36 +162,6 @@ export function BulkOperationsDialog({
   };
 
   const statusCounts = getStatusCounts();
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "Bản nháp";
-      case "pending":
-        return "Chờ phê duyệt";
-      case "issued":
-        return "Đã cấp";
-      case "revoked":
-        return "Đã thu hồi";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "outline";
-      case "pending":
-        return "secondary";
-      case "issued":
-        return "default";
-      case "revoked":
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -200,12 +208,7 @@ export function BulkOperationsDialog({
                       #{cert.certificateNumber}
                     </span>
                   </div>
-                  <Badge
-                    variant={getStatusVariant(cert.status || "draft") as any}
-                    className="text-xs"
-                  >
-                    {getStatusLabel(cert.status || "draft")}
-                  </Badge>
+                  <CertificateStatusBadge status={cert.status || "draft"} size="sm" />
                 </div>
               ))}
             </div>
@@ -296,9 +299,9 @@ export function BulkOperationsDialog({
 
 // Checkbox component for selecting certificates
 interface CertificateCheckboxProps {
-  certificate: Certificate;
+  certificate: CertificateViewModel;
   isSelected: boolean;
-  onToggle: (certificate: Certificate) => void;
+  onToggle: (certificate: CertificateViewModel) => void;
 }
 
 export function CertificateCheckbox({
@@ -326,12 +329,12 @@ export function CertificateCheckbox({
 }
 
 // Hook for managing bulk selection
-export function useBulkSelection(certificates: Certificate[]) {
+export function useBulkSelection(certificates: CertificateViewModel[]) {
   const [selectedCertificates, setSelectedCertificates] = useState<
-    Certificate[]
+    CertificateViewModel[]
   >([]);
 
-  const toggleCertificate = (certificate: Certificate) => {
+  const toggleCertificate = (certificate: CertificateViewModel) => {
     setSelectedCertificates((prev) => {
       const isSelected = prev.some(
         (c) => c.certificateId === certificate.certificateId
@@ -358,7 +361,7 @@ export function useBulkSelection(certificates: Certificate[]) {
     setSelectedCertificates([]);
   };
 
-  const isSelected = (certificate: Certificate) => {
+  const isSelected = (certificate: CertificateViewModel) => {
     return selectedCertificates.some(
       (c) => c.certificateId === certificate.certificateId
     );

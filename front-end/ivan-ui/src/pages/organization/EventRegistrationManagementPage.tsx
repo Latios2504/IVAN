@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { eventsService } from "@/services/eventsService";
+import { eventRegistrationService } from "@/services/eventRegistrationService";
 import type { EventDto } from "@/types/events";
+import type { RegistrationDTO } from "@/types/eventRegistration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "lucide-react";
+import { StatsCard } from "@/components/common/StatsCard";
+import { Calendar, Users, UserCheck, UserX, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 // Import only the core registration management components
@@ -47,7 +50,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
     const loadEvents = async () => {
       // Only load events if user is authenticated and has organizationId
       if (!user?.organizationId) {
-        setEventsError("Organization ID not found");
+        setEventsError("Không tìm thấy ID tổ chức");
         return;
       }
 
@@ -65,7 +68,7 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         setEvents(result.items);
       } catch (err) {
         setEventsError(
-          err instanceof Error ? err.message : "Failed to load events"
+          err instanceof Error ? err.message : "Không thể tải danh sách sự kiện"
         );
       } finally {
         setEventsLoading(false);
@@ -100,17 +103,17 @@ const EventSelector: React.FC<EventSelectorProps> = ({
   };
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/50 dark:via-emerald-950/50 dark:to-teal-950/50 border-green-200/50 dark:border-green-800/50 shadow-lg backdrop-blur-sm">
-      <CardHeader className="bg-gradient-to-r from-green-100/80 via-emerald-100/80 to-teal-100/80 dark:from-green-900/50 dark:via-emerald-900/50 dark:to-teal-900/50 border-b border-green-200/50 dark:border-green-800/50">
-        <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
-          <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
-          Select Event
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Chọn Sự Kiện
         </CardTitle>
       </CardHeader>
       <CardContent>
         {eventsError ? (
-          <div className="text-center py-4 bg-gradient-to-r from-red-50 via-rose-50 to-pink-50 dark:from-red-950/50 dark:via-rose-950/50 dark:to-pink-950/50 rounded-lg border border-red-200/50 dark:border-red-800/50">
-            <p className="text-red-600 dark:text-red-400 text-sm font-medium">{eventsError}</p>
+          <div className="text-center py-4 bg-destructive/10 rounded-lg border border-destructive/20">
+            <p className="text-destructive text-sm font-medium">{eventsError}</p>
           </div>
         ) : (
           <>
@@ -123,18 +126,18 @@ const EventSelector: React.FC<EventSelectorProps> = ({
                 <SelectValue
                   placeholder={
                     eventsLoading
-                      ? "Loading your events..."
+                      ? "Đang tải sự kiện..."
                       : events.length === 0
-                      ? "No events found for your organization"
-                      : "Choose an event to manage registrations"
+                      ? "Không tìm thấy sự kiện nào cho tổ chức của bạn"
+                      : "Chọn sự kiện để quản lý đăng ký"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">
                   {events.length === 0
-                    ? "No events available"
-                    : "Select an event..."}
+                    ? "Không có sự kiện nào"
+                    : "Chọn một sự kiện..."}
                 </SelectItem>
                 {events?.map((event: EventDto) => (
                   <SelectItem
@@ -153,17 +156,17 @@ const EventSelector: React.FC<EventSelectorProps> = ({
         )}
 
         {selectedEvent && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950/50 dark:via-amber-950/50 dark:to-orange-950/50 rounded-lg border border-yellow-200/50 dark:border-yellow-800/50 shadow-sm">
-            <h4 className="font-medium text-yellow-900 dark:text-yellow-100">{selectedEvent.eventName}</h4>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+          <div className="mt-4 p-4 bg-muted rounded-lg border">
+            <h4 className="font-medium">{selectedEvent.eventName}</h4>
+            <p className="text-sm text-muted-foreground">
               {selectedEvent.description}
             </p>
             <div className="flex items-center gap-4 mt-2 text-sm">
-              <span className="flex items-center gap-1 text-yellow-800 dark:text-yellow-200">
-                <Calendar className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
                 {new Date(selectedEvent.startDate).toLocaleDateString()}
               </span>
-              <Badge variant="outline" className="border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300">{selectedEvent.statusName}</Badge>
+              <Badge variant="outline">{selectedEvent.statusName}</Badge>
             </div>
           </div>
         )}
@@ -179,6 +182,37 @@ const EventRegistrationManagement: React.FC = () => {
     page: 1,
     size: 10,
   });
+  const [registrations, setRegistrations] = useState<RegistrationDTO[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  // Load registration statistics
+  const loadRegistrationStats = async (eventId: number) => {
+    setStatsLoading(true);
+    try {
+      const result = await eventRegistrationService.getEventRegistrations(
+        eventId,
+        undefined, // no status filter to get all
+        1,
+        1000 // get all registrations for stats
+      );
+      setRegistrations(result.items || []);
+    } catch (error) {
+      console.error('Failed to load registration stats:', error);
+      setRegistrations([]);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Calculate registration statistics
+  const registrationStats = useMemo(() => {
+    const total = registrations.length;
+    const pending = registrations.filter(r => r.statusName?.toLowerCase() === 'pending').length;
+    const approved = registrations.filter(r => r.statusName?.toLowerCase() === 'approved').length;
+    const rejected = registrations.filter(r => r.statusName?.toLowerCase() === 'rejected').length;
+    
+    return { total, pending, approved, rejected };
+  }, [registrations]);
 
   // Handle filter changes
   const handleFiltersChange = (
@@ -187,25 +221,28 @@ const EventRegistrationManagement: React.FC = () => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  // Reset filters when event changes
+  // Reset filters and load stats when event changes
   useEffect(() => {
     if (selectedEvent) {
       setFilters({
         page: 1,
         size: 10,
       });
+      loadRegistrationStats(selectedEvent.eventId);
+    } else {
+      setRegistrations([]);
     }
   }, [selectedEvent]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30">
-      <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-100/80 via-indigo-100/80 to-purple-100/80 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-purple-900/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 shadow-lg backdrop-blur-sm">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-blue-900 dark:text-blue-100">
-            Event Registration Management
+          <h1 className="text-3xl font-bold tracking-tight">
+            Quản Lý Đăng Ký Sự Kiện
           </h1>
-          <p className="text-blue-700 dark:text-blue-300">
-            Manage volunteer registrations for your events
+          <p className="text-muted-foreground">
+            Quản lý đăng ký tình nguyện viên cho các sự kiện của bạn
           </p>
         </div>
       </div>
@@ -216,7 +253,35 @@ const EventRegistrationManagement: React.FC = () => {
       />
 
       {selectedEvent ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Registration Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard
+              title="Tổng Đăng Ký"
+              value={registrationStats.total}
+              icon={Users}
+              description="Tất cả đăng ký tình nguyện viên"
+            />
+            <StatsCard
+              title="Chờ Duyệt"
+              value={registrationStats.pending}
+              icon={Clock}
+              description="Đang chờ phê duyệt"
+            />
+            <StatsCard
+              title="Đã Duyệt"
+              value={registrationStats.approved}
+              icon={UserCheck}
+              description="Tình nguyện viên đã xác nhận"
+            />
+            <StatsCard
+              title="Đã Từ Chối"
+              value={registrationStats.rejected}
+              icon={UserX}
+              description="Đơn đăng ký bị từ chối"
+            />
+          </div>
+
           <RegistrationFilters
             filters={filters}
             onFiltersChange={handleFiltersChange}
@@ -228,10 +293,10 @@ const EventRegistrationManagement: React.FC = () => {
           />
         </div>
       ) : (
-        <Card className="bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-950/50 dark:via-slate-950/50 dark:to-zinc-950/50 border-gray-200/50 dark:border-gray-800/50 shadow-lg">
+        <Card>
           <CardContent className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400 font-medium">
-              Please select an event to view and manage registrations.
+            <p className="text-muted-foreground font-medium">
+              Vui lòng chọn một sự kiện để xem và quản lý đăng ký.
             </p>
           </CardContent>
         </Card>

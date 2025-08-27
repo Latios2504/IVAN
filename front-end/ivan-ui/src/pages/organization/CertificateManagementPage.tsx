@@ -16,7 +16,6 @@ import {
   Filter,
   Download,
   Eye,
-  Edit,
   CheckCircle,
   Clock,
   Users,
@@ -26,12 +25,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { certificateService } from "@/services/certificateService";
-import type {
-  CertificateViewModel,
-  CertificateStatus,
-} from "@/types/certificate";
+import type { CertificateViewModel } from "@/types/certificate";
 import CertificateDetailModal from "@/components/organization/certificates/CertificateDetailModal";
 import CreateCertificateModal from "@/components/organization/certificates/CreateCertificateModal";
+import { StatsCard } from "@/components/common/StatsCard";
 
 export default function CertificateManagementPage() {
   // State management
@@ -139,7 +136,18 @@ export default function CertificateManagementPage() {
     certificateNumber: string
   ) => {
     try {
-      await certificateService.downloadCertificateFile(certificateId);
+      const downloadResponse = await certificateService.downloadCertificate(certificateId);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(downloadResponse.fileContent);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = downloadResponse.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
       toast.success("Certificate downloaded successfully");
     } catch (err) {
       const errorMessage =
@@ -221,7 +229,10 @@ export default function CertificateManagementPage() {
             Tạo, cấp phát và quản lý chứng chỉ cho tình nguyện viên
           </p>
         </div>
-        <Button className="mt-4 md:mt-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg" onClick={handleOpenCreateModal}>
+        <Button
+          className="mt-4 md:mt-0 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
+          onClick={handleOpenCreateModal}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Tạo chứng chỉ mới
         </Button>
@@ -242,57 +253,30 @@ export default function CertificateManagementPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 border border-blue-200 dark:border-blue-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-t-lg border-b border-blue-200 dark:border-blue-800">
-            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Tổng chứng chỉ
-            </CardTitle>
-            <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">{stats.total}</div>
-            <p className="text-xs text-blue-600 dark:text-blue-400">Tất cả chứng chỉ</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950 dark:via-emerald-950 dark:to-teal-950 border border-green-200 dark:border-green-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-t-lg border-b border-green-200 dark:border-green-800">
-            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Đã cấp</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.approved}
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400">Chứng chỉ hợp lệ</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-950 dark:via-amber-950 dark:to-orange-950 border border-yellow-200 dark:border-yellow-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900 dark:to-amber-900 rounded-t-lg border-b border-yellow-200 dark:border-yellow-800">
-            <CardTitle className="text-sm font-medium text-yellow-900 dark:text-yellow-100">Chờ phê duyệt</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {stats.pending}
-            </div>
-            <p className="text-xs text-yellow-600 dark:text-yellow-400">Cần xử lý</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-cyan-950 dark:via-blue-950 dark:to-indigo-950 border border-cyan-200 dark:border-cyan-800 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 rounded-t-lg border-b border-cyan-200 dark:border-cyan-800">
-            <CardTitle className="text-sm font-medium text-cyan-900 dark:text-cyan-100">Lượt tải</CardTitle>
-            <Download className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.totalDownloads}
-            </div>
-            <p className="text-xs text-cyan-600 dark:text-cyan-400">Tổng download</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Tổng chứng chỉ"
+          value={stats.total}
+          description="Tất cả chứng chỉ"
+          icon={Award}
+        />
+        <StatsCard
+          title="Đã cấp"
+          value={stats.approved}
+          description="Chứng chỉ hợp lệ"
+          icon={CheckCircle}
+        />
+        <StatsCard
+          title="Chờ phê duyệt"
+          value={stats.pending}
+          description="Cần xử lý"
+          icon={Clock}
+        />
+        <StatsCard
+          title="Lượt tải"
+          value={stats.totalDownloads}
+          description="Tổng download"
+          icon={Download}
+        />
       </div>
 
       {/* Error State */}
@@ -322,12 +306,42 @@ export default function CertificateManagementPage() {
         className="space-y-6"
       >
         <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900 dark:via-violet-900 dark:to-indigo-900 border border-purple-200 dark:border-purple-800 shadow-md">
-          <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white">Tất cả</TabsTrigger>
-          <TabsTrigger value="Draft" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white">Bản nháp</TabsTrigger>
-          <TabsTrigger value="Pending" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white">Chờ duyệt</TabsTrigger>
-          <TabsTrigger value="Approved" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">Đã cấp</TabsTrigger>
-          <TabsTrigger value="Rejected" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white">Bị từ chối</TabsTrigger>
-          <TabsTrigger value="Revoked" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white">Đã thu hồi</TabsTrigger>
+          <TabsTrigger
+            value="all"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white"
+          >
+            Tất cả
+          </TabsTrigger>
+          <TabsTrigger
+            value="Draft"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-500 data-[state=active]:to-slate-500 data-[state=active]:text-white"
+          >
+            Bản nháp
+          </TabsTrigger>
+          <TabsTrigger
+            value="Pending"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white"
+          >
+            Chờ duyệt
+          </TabsTrigger>
+          <TabsTrigger
+            value="Approved"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
+          >
+            Đã cấp
+          </TabsTrigger>
+          <TabsTrigger
+            value="Rejected"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white"
+          >
+            Bị từ chối
+          </TabsTrigger>
+          <TabsTrigger
+            value="Revoked"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white"
+          >
+            Đã thu hồi
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
@@ -345,7 +359,11 @@ export default function CertificateManagementPage() {
                     Quản lý và theo dõi chứng chỉ đã cấp cho tình nguyện viên
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900"
+                >
                   <Filter className="mr-2 h-4 w-4" />
                   Lọc
                 </Button>
@@ -412,7 +430,9 @@ export default function CertificateManagementPage() {
                           <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 px-2 py-1 rounded-md">
                               <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                              <span className="text-blue-700 dark:text-blue-300">Volunteer ID: {certificate.volunteerId}</span>
+                              <span className="text-blue-700 dark:text-blue-300">
+                                Volunteer ID: {certificate.volunteerId}
+                              </span>
                             </div>
                             {certificate.issueDate && (
                               <div className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 px-2 py-1 rounded-md text-green-700 dark:text-green-300">
@@ -431,9 +451,13 @@ export default function CertificateManagementPage() {
                               </div>
                             )}
                             {certificate.certificateNumber && (
-                              <div className="bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900 dark:to-violet-900 px-2 py-1 rounded-md text-purple-700 dark:text-purple-300">Mã số: {certificate.certificateNumber}</div>
+                              <div className="bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900 dark:to-violet-900 px-2 py-1 rounded-md text-purple-700 dark:text-purple-300">
+                                Mã số: {certificate.certificateNumber}
+                              </div>
                             )}
-                            <div className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 px-2 py-1 rounded-md text-cyan-700 dark:text-cyan-300">{certificate.downloadCount || 0} lượt tải</div>
+                            <div className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 px-2 py-1 rounded-md text-cyan-700 dark:text-cyan-300">
+                              {certificate.downloadCount || 0} lượt tải
+                            </div>
                           </div>
 
                           <div className="flex flex-wrap gap-2">
@@ -473,15 +497,7 @@ export default function CertificateManagementPage() {
                             </Button>
                           )}
 
-                          {/* TODO: Add edit modal functionality
-                          {(certificate.status === "Draft" ||
-                            certificate.status === "Pending") && (
-                            <Button variant="outline" size="sm" disabled>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Chỉnh sửa
-                            </Button>
-                          )}
-                          */}
+
 
                           {certificate.status === "Pending" && (
                             <Button

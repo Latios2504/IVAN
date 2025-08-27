@@ -11,14 +11,14 @@ export interface VolunteerCoordinatorDto {
   responsibilities?: string;
   hireDate?: string; // DateOnly in C# -> string in TS
   endDate?: string;
-  salary?: number;
+  salary?: number; // decimal in C# -> number in TS
   managerId?: number;
   isActive?: boolean;
   notes?: string;
   createdBy: number;
   requestedBy: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string; // DateTime in C# -> string in TS
+  updatedAt?: string; // DateTime in C# -> string in TS
 
   // Navigation properties
   user?: UserInformationDto;
@@ -36,56 +36,59 @@ export interface UserInformationDto {
 }
 
 export interface CreateVolunteerCoordinatorDto {
-  // User account information
-  email: string;
+  // User account information - Required fields
+  email: string; // Required, EmailAddress validation
   
-  // Personal information (UserProfile fields)
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  dateOfBirth?: string; // Date -> string in TS
-  gender?: string;
-  avatar?: string;
-  address?: string;
-  wardCommune?: string;
-  district?: string;
-  province?: string;
-  postalCode?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
+  // Personal information (UserProfile fields) - Required fields
+  firstName: string; // Required, max 100 chars
+  lastName: string; // Required, max 100 chars
+  phoneNumber?: string; // Phone validation
+  dateOfBirth?: string; // DateOnly in C# -> string in TS
+  gender?: string; // Max 10 chars
+  avatar?: string; // Max 500 chars
+  address?: string; // Max 500 chars
+  wardCommune?: string; // Max 100 chars
+  district?: string; // Max 100 chars
+  province?: string; // Max 100 chars
+  postalCode?: string; // Max 20 chars
+  emergencyContactName?: string; // Max 200 chars
+  emergencyContactPhone?: string; // Phone validation
   
   // Employment information (VolunteerCoordinator fields)
-  employeeId?: string;
-  position?: string;
-  department?: string;
-  responsibilities?: string;
+  employeeId?: string; // Max 50 chars
+  position?: string; // Max 100 chars
+  department?: string; // Max 100 chars
+  responsibilities?: string; // Max 1000 chars
   hireDate?: string; // DateOnly in C# -> string in TS
-  salary?: number;
+  salary?: number; // decimal in C# -> number in TS
   managerId?: number;
-  notes?: string;
+  notes?: string; // Max 1000 chars
 }
 
 export interface UpdateVolunteerCoordinatorDto {
-  employeeId?: string;
-  position?: string;
-  department?: string;
-  responsibilities?: string;
-  hireDate?: string;
-  endDate?: string;
-  salary?: number;
+  employeeId?: string; // Max 50 chars
+  position?: string; // Max 100 chars
+  department?: string; // Max 100 chars
+  responsibilities?: string; // Max 1000 chars
+  hireDate?: string; // DateOnly in C# -> string in TS
+  endDate?: string; // DateOnly in C# -> string in TS
+  salary?: number; // decimal in C# -> number in TS
   managerId?: number;
   isActive?: boolean;
-  notes?: string;
+  notes?: string; // Max 1000 chars
 }
 
 export interface VolunteerCoordinatorFilterDto {
   page: number;
   size: number;
   search?: string;
-  department?: string;
-  position?: string;
+  organizationId?: number;
+  department?: string; // Max 100 chars
+  position?: string; // Max 100 chars
   isActive?: boolean;
   managerId?: number;
+  hireDate?: string; // DateOnly in C# -> string in TS
+  endDate?: string; // DateOnly in C# -> string in TS
   sortBy: string;
   sortOrder: string;
 }
@@ -101,7 +104,8 @@ export interface VolunteerCoordinatorStatsDto {
 
 export interface DepartmentStatsDto {
   department: string;
-  count: number;
+  totalCoordinators: number;
+  activeCoordinators: number;
 }
 
 // Additional types for management levels and specializations

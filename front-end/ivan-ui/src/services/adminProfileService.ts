@@ -12,15 +12,6 @@ import { calculateProfileCompletion } from "../types/adminProfile";
 class AdminProfileService {
   private readonly baseUrl = "/AdminProfile";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
-
   // Helper function to handle API errors
   private handleApiError(error: any): never {
     if (error.response?.status === 404) {
@@ -49,12 +40,12 @@ class AdminProfileService {
       const response = await apiClient.get<AdminProfileViewModel>(
         `${this.baseUrl}/me`
       );
-      
+
       if (!response.success || !response.data) {
         throw new Error(response.message || "Admin profile not found");
       }
-      
-      return this.extractDataFromNetResponse(response.data);
+
+      return apiClient.extractDataFromNetResponse(response.data);
     } catch (error: any) {
       this.handleApiError(error);
     }
@@ -75,12 +66,12 @@ class AdminProfileService {
         this.baseUrl,
         profileData
       );
-      
+
       if (!response.success || !response.data) {
         throw new Error(response.message || "Failed to update admin profile");
       }
-      
-      return this.extractDataFromNetResponse(response.data);
+
+      return apiClient.extractDataFromNetResponse(response.data);
     } catch (error: any) {
       this.handleApiError(error);
     }
@@ -93,9 +84,17 @@ class AdminProfileService {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      throw new Error("Invalid file type. Allowed types: JPG, JPEG, PNG, GIF, WEBP");
+      throw new Error(
+        "Invalid file type. Allowed types: JPG, JPEG, PNG, GIF, WEBP"
+      );
     }
 
     // Validate file size (5MB limit)
@@ -109,11 +108,11 @@ class AdminProfileService {
         `/Upload/avatar/${userId}`,
         file
       );
-      
+
       if (!response.success || !response.data) {
         throw new Error(response.message || "Failed to upload avatar image");
       }
-      
+
       return response.data.imageUrl;
     } catch (error: any) {
       this.handleApiError(error);
@@ -135,26 +134,29 @@ class AdminProfileService {
         `${this.baseUrl}/avatar`,
         avatarData
       );
-      
+
       if (!response.success || !response.data) {
         throw new Error(response.message || "Failed to update avatar");
       }
-      
-      return this.extractDataFromNetResponse(response.data);
+
+      return apiClient.extractDataFromNetResponse(response.data);
     } catch (error: any) {
       this.handleApiError(error);
     }
   }
 
   // Combined method: Upload file and update avatar
-  async uploadAndUpdateAvatar(file: File, userId: number): Promise<AdminProfileViewModel> {
+  async uploadAndUpdateAvatar(
+    file: File,
+    userId: number
+  ): Promise<AdminProfileViewModel> {
     try {
       // First upload the image file
       const imageUrl = await this.uploadAvatarImage(file, userId);
-      
+
       // Then update the avatar with the returned URL
       await this.updateAvatar(imageUrl);
-      
+
       // Return updated profile
       return await this.getMyProfile();
     } catch (error: any) {
@@ -197,7 +199,7 @@ class AdminProfileService {
     const updateData: AdminProfileUpdateDto = {
       [field]: value,
     };
-    
+
     return this.updateMyProfile(updateData);
   }
 
@@ -216,7 +218,7 @@ class AdminProfileService {
       dateOfBirth: data.dateOfBirth,
       gender: data.gender,
     };
-    
+
     return this.updateMyProfile(updateData);
   }
 
@@ -235,7 +237,7 @@ class AdminProfileService {
       province: data.province,
       postalCode: data.postalCode,
     };
-    
+
     return this.updateMyProfile(updateData);
   }
 
@@ -248,7 +250,7 @@ class AdminProfileService {
       emergencyContactName: data.emergencyContactName,
       emergencyContactPhone: data.emergencyContactPhone,
     };
-    
+
     return this.updateMyProfile(updateData);
   }
 
@@ -275,7 +277,6 @@ class AdminProfileService {
       return false;
     }
   }
-
 }
 
 export const adminProfileService = new AdminProfileService();

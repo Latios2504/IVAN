@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { DataTable } from "../../common/DataTable";
 import type { TableColumn, TableAction } from "../../common/DataTable";
-import { Button } from "../../ui/button";
 import { Badge } from "../../ui/badge";
-import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../ui/dropdown-menu";
+import { Edit, Trash2, Eye, Play, CheckCircle, XCircle } from "lucide-react";
 import type { EventDto } from "../../../types/events";
 import { eventsService } from "../../../services/eventsService";
 import { EditEventDialog } from "./EditEventDialog";
 import { EventDetailDialog } from "./EventDetailDialog";
+import { toast } from "sonner";
 
 interface EventListProps {
   events: EventDto[];
@@ -63,7 +57,7 @@ export const EventList: React.FC<EventListProps> = ({
         setCategories(categoriesResult);
         setStatuses(statusesResult);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
+        setError(err instanceof Error ? err.message : "Không thể tải dữ liệu");
       } finally {
         setLoading(false);
       }
@@ -91,12 +85,13 @@ export const EventList: React.FC<EventListProps> = ({
   };
 
   const handleDelete = async (event: EventDto) => {
-    if (confirm(`Are you sure you want to delete "${event.eventName}"?`)) {
+    if (confirm(`Bạn có chắc chắn muốn xóa "${event.eventName}"?`)) {
       try {
         await eventsService.deleteEvent(event.eventId);
+        toast.success("Đã xóa sự kiện thành công");
         onEventUpdated?.();
       } catch (error) {
-        console.error("Failed to delete event:", error);
+        toast.error("Không thể xóa sự kiện. Vui lòng thử lại.");
       }
     }
   };
@@ -116,6 +111,61 @@ export const EventList: React.FC<EventListProps> = ({
     onEventUpdated?.();
   };
 
+  // Status update handlers
+  const handleStartEvent = async (event: EventDto) => {
+    try {
+      await eventsService.updateEventStatus(event.eventId, {
+        status: "Ongoing",
+      });
+      toast.success("Đã bắt đầu sự kiện");
+      onEventUpdated?.();
+    } catch (error) {
+      console.error("Lỗi khi bắt đầu sự kiện:", error);
+      toast.error("Không thể bắt đầu sự kiện");
+    }
+  };
+
+  const handleCompleteEvent = async (event: EventDto) => {
+    try {
+      await eventsService.updateEventStatus(event.eventId, {
+        status: "Completed",
+      });
+      toast.success("Đã hoàn thành sự kiện");
+      onEventUpdated?.();
+    } catch (error) {
+      console.error("Lỗi khi hoàn thành sự kiện:", error);
+      toast.error("Không thể hoàn thành sự kiện");
+    }
+  };
+
+  const handleCancelEvent = async (event: EventDto) => {
+    if (confirm(`Bạn có chắc chắn muốn hủy sự kiện "${event.eventName}"?`)) {
+      try {
+        await eventsService.updateEventStatus(event.eventId, {
+          status: "Cancelled",
+        });
+        toast.success("Đã hủy sự kiện");
+        onEventUpdated?.();
+      } catch (error) {
+        console.error("Lỗi khi hủy sự kiện:", error);
+        toast.error("Không thể hủy sự kiện");
+      }
+    }
+  };
+
+  const handlePublishEvent = async (event: EventDto) => {
+    try {
+      await eventsService.updateEventStatus(event.eventId, {
+        status: "Published",
+      });
+      toast.success("Đã xuất bản sự kiện");
+      onEventUpdated?.();
+    } catch (error) {
+      console.error("Lỗi khi xuất bản sự kiện:", error);
+      toast.error("Không thể xuất bản sự kiện");
+    }
+  };
+
   const getStatusVariant = (
     status: string
   ): "default" | "secondary" | "destructive" | "outline" => {
@@ -133,31 +183,16 @@ export const EventList: React.FC<EventListProps> = ({
     }
   };
 
-  const getStatusGradient = (status: string): string => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md hover:shadow-lg";
-      case "planning":
-        return "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:shadow-lg";
-      case "cancelled":
-        return "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md hover:shadow-lg";
-      case "completed":
-        return "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md hover:shadow-lg";
-      default:
-        return "bg-gradient-to-r from-gray-500 to-slate-500 text-white shadow-md hover:shadow-lg";
-    }
-  };
-
   const columns: TableColumn<EventDto>[] = [
     {
       key: "eventName",
-      header: "Event Name",
+      header: "Tên Sự kiện",
       render: (value: string, event: EventDto) => (
         <div className="space-y-1">
-          <div className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+          <div className="font-semibold hover:text-primary transition-colors cursor-pointer">
             {event.eventName}
           </div>
-          <div className="text-sm px-2 py-1 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-full inline-block">
+          <div className="text-sm px-2 py-1 bg-muted text-muted-foreground rounded-full inline-block">
             {event.categoryName}
           </div>
         </div>
@@ -165,22 +200,18 @@ export const EventList: React.FC<EventListProps> = ({
     },
     {
       key: "statusName",
-      header: "Status",
+      header: "Trạng thái",
       render: (value: string, event: EventDto) => (
-        <Badge
-          className={`${getStatusGradient(
-            event.statusName
-          )} transition-all duration-200 hover:scale-105`}
-        >
+        <Badge variant={getStatusVariant(event.statusName)}>
           {event.statusName}
         </Badge>
       ),
     },
     {
       key: "startDate",
-      header: "Start Date",
+      header: "Ngày Bắt đầu",
       render: (value: string) => (
-        <div className="px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-800 dark:text-amber-200 rounded-lg text-sm font-medium shadow-sm">
+        <div className="px-3 py-1 bg-muted text-foreground rounded-lg text-sm font-medium">
           {new Date(value).toLocaleDateString("vi-VN", {
             year: "numeric",
             month: "short",
@@ -191,23 +222,23 @@ export const EventList: React.FC<EventListProps> = ({
     },
     {
       key: "volunteers",
-      header: "Volunteers",
+      header: "Tình nguyện viên",
       render: (_, event: EventDto) => (
-        <div className="px-3 py-1 bg-gradient-to-r from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/30 text-teal-800 dark:text-teal-200 rounded-lg text-sm font-semibold shadow-sm">
+        <div className="px-3 py-1 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold">
           {event.volunteersRegistered || 0}/{event.maxVolunteers || 0}
         </div>
       ),
     },
     {
       key: "location",
-      header: "Location",
+      header: "Địa điểm",
       render: (value: string, event: EventDto) => (
         <div className="text-sm space-y-1">
-          <div className="truncate max-w-[200px] font-medium text-gray-900 dark:text-gray-100">
+          <div className="truncate max-w-[200px] font-medium">
             {event.location}
           </div>
           {event.province && (
-            <div className="text-xs px-2 py-1 bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-800 dark:to-slate-800 text-gray-600 dark:text-gray-400 rounded-md truncate inline-block">
+            <div className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-md truncate inline-block">
               {event.province}
             </div>
           )}
@@ -216,16 +247,10 @@ export const EventList: React.FC<EventListProps> = ({
     },
     {
       key: "isFeatured",
-      header: "Featured",
+      header: "Nổi bật",
       render: (value: boolean) => (
-        <Badge
-          className={
-            value
-              ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
-              : "bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300 shadow-sm hover:shadow-md transition-all duration-200"
-          }
-        >
-          {value ? "⭐ Yes" : "No"}
+        <Badge variant={value ? "default" : "secondary"}>
+          {value ? "⭐ Có" : "Không"}
         </Badge>
       ),
     },
@@ -233,28 +258,66 @@ export const EventList: React.FC<EventListProps> = ({
 
   const actions: TableAction<EventDto>[] = [
     {
-      label: "View",
+      label: "Xem",
       icon: <Eye className="h-4 w-4" />,
       onClick: handleView,
       variant: "ghost",
       size: "sm",
-      tooltip: "View event details",
+      tooltip: "Xem chi tiết sự kiện",
     },
     {
-      label: "Edit",
+      label: "Bắt đầu",
+      icon: <Play className="h-4 w-4" />,
+      onClick: handleStartEvent,
+      variant: "ghost",
+      size: "sm",
+      tooltip: "Bắt đầu sự kiện",
+      visible: (event) => event.statusName?.toLowerCase() === "published",
+    },
+    {
+      label: "Hoàn thành",
+      icon: <CheckCircle className="h-4 w-4" />,
+      onClick: handleCompleteEvent,
+      variant: "ghost",
+      size: "sm",
+      tooltip: "Đánh dấu hoàn thành",
+      visible: (event) => event.statusName?.toLowerCase() === "ongoing",
+    },
+    {
+      label: "Hủy sự kiện",
+      icon: <XCircle className="h-4 w-4" />,
+      onClick: handleCancelEvent,
+      variant: "ghost",
+      size: "sm",
+      tooltip: "Hủy sự kiện",
+      visible: (event) => {
+        const status = event.statusName?.toLowerCase();
+        return status === "published" || status === "ongoing";
+      },
+    },
+    {
+      label: "Sửa",
       icon: <Edit className="h-4 w-4" />,
       onClick: handleEdit,
       variant: "ghost",
       size: "sm",
-      tooltip: "Edit event",
+      tooltip: "Chỉnh sửa sự kiện",
+      visible: (event) => {
+        const status = event.statusName?.toLowerCase();
+        return status !== "completed" && status !== "cancelled";
+      },
     },
     {
-      label: "Delete",
+      label: "Xóa",
       icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "ghost",
       size: "sm",
-      tooltip: "Delete event",
+      tooltip: "Xóa sự kiện",
+      visible: (event) => {
+        const status = event.statusName?.toLowerCase();
+        return status !== "completed";
+      },
     },
   ];
 
@@ -265,7 +328,7 @@ export const EventList: React.FC<EventListProps> = ({
         columns={columns}
         actions={actions}
         showPagination={false}
-        emptyMessage="No events found"
+        emptyMessage="Không tìm thấy sự kiện nào"
         onRowClick={handleView}
         enableTooltips={true}
       />

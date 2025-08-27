@@ -15,14 +15,7 @@ import { DEFAULT_COORDINATOR_FILTER } from "../types/volunteerCoordinator";
 class VolunteerCoordinatorService {
   private readonly baseUrl = "/VolunteerCoordinator";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
+
 
   // === COORDINATOR MANAGEMENT ENDPOINTS ===
 
@@ -51,7 +44,7 @@ class VolunteerCoordinatorService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If items array is wrapped in $values, extract it
     if (
@@ -157,12 +150,12 @@ class VolunteerCoordinatorService {
     // Handle .NET JSON serialization format for arrays
     const stats = response.data;
     if (stats.departmentStats && Array.isArray(stats.departmentStats)) {
-      stats.departmentStats = this.extractDataFromNetResponse(
+      stats.departmentStats = apiClient.extractDataFromNetResponse(
         stats.departmentStats
       );
     }
     if (stats.availablePositions && Array.isArray(stats.availablePositions)) {
-      stats.availablePositions = this.extractDataFromNetResponse(
+      stats.availablePositions = apiClient.extractDataFromNetResponse(
         stats.availablePositions
       );
     }
@@ -170,7 +163,7 @@ class VolunteerCoordinatorService {
       stats.availableDepartments &&
       Array.isArray(stats.availableDepartments)
     ) {
-      stats.availableDepartments = this.extractDataFromNetResponse(
+      stats.availableDepartments = apiClient.extractDataFromNetResponse(
         stats.availableDepartments
       );
     }
@@ -192,7 +185,7 @@ class VolunteerCoordinatorService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // Ensure the data is an array
     if (!Array.isArray(extractedData)) {

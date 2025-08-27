@@ -101,7 +101,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       !formData.startDate ||
       !formData.endDate
     ) {
-      alert("Please fill in all required fields");
+      alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
 
@@ -141,8 +141,8 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       onSuccess();
       handleClose();
     } catch (error) {
-      console.error("Failed to create event:", error);
-      alert("Failed to create event. Please try again.");
+      console.error("Không thể tạo sự kiện:", error);
+      alert("Không thể tạo sự kiện. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -164,11 +164,11 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 border-gradient-to-r border-blue-200 dark:border-blue-800 shadow-2xl">
-        <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-6 -m-6 mb-6">
-          <DialogTitle className="text-xl font-bold">Create New Event</DialogTitle>
-          <DialogDescription className="text-blue-100">
-            Create a new volunteer event for your organization
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Tạo Sự kiện Mới</DialogTitle>
+          <DialogDescription>
+            Tạo sự kiện tình nguyện mới cho tổ chức của bạn
           </DialogDescription>
         </DialogHeader>
 
@@ -176,22 +176,21 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="eventName" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Event Name <span className="text-red-500">*</span>
+              <Label htmlFor="eventName" className="text-sm font-semibold">
+                Tên Sự kiện <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="eventName"
                 value={formData.eventName || ""}
                 onChange={(e) => handleInputChange("eventName", e.target.value)}
-                placeholder="Enter event name"
-                className="bg-gradient-to-r from-white to-blue-50 dark:from-gray-800 dark:to-blue-900/20 border-blue-200 dark:border-blue-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Nhập tên sự kiện"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Category <span className="text-red-500">*</span>
+              <Label htmlFor="category" className="text-sm font-semibold">
+                Danh mục <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={formData.categoryId?.toString() || ""}
@@ -199,15 +198,14 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                   handleInputChange("categoryId", parseInt(value))
                 }
               >
-                <SelectTrigger className="bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-green-200 dark:border-green-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all duration-200 shadow-sm hover:shadow-md">
-                  <SelectValue placeholder="Select category" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn danh mục" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-700 shadow-xl">
+                <SelectContent>
                   {categories.map((category) => (
                     <SelectItem
                       key={category.categoryId}
                       value={category.categoryId.toString()}
-                      className="hover:bg-green-50 dark:hover:bg-green-900/20"
                     >
                       {category.categoryName}
                     </SelectItem>
@@ -219,44 +217,42 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Description <span className="text-red-500">*</span>
+            <Label htmlFor="description" className="text-sm font-semibold">
+              Mô tả <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="description"
               value={formData.description || ""}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Describe the event details..."
+              placeholder="Mô tả chi tiết sự kiện..."
               rows={4}
-              className="bg-gradient-to-r from-white to-purple-50 dark:from-gray-800 dark:to-purple-900/20 border-purple-200 dark:border-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
+              className="resize-none"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="shortDescription" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Short Description</Label>
+            <Label htmlFor="shortDescription" className="text-sm font-semibold">Mô tả ngắn</Label>
             <Input
               id="shortDescription"
               value={formData.shortDescription || ""}
               onChange={(e) =>
                 handleInputChange("shortDescription", e.target.value)
               }
-              placeholder="Brief description (optional)"
-              className="bg-gradient-to-r from-white to-amber-50 dark:from-gray-800 dark:to-amber-900/20 border-amber-200 dark:border-amber-700 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              placeholder="Mô tả ngắn gọn (tùy chọn)"
             />
           </div>
 
           {/* Location */}
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Location <span className="text-red-500">*</span>
+            <Label htmlFor="location" className="text-sm font-semibold">
+              Địa điểm <span className="text-destructive">*</span>
             </Label>
             <Input
               id="location"
               value={formData.location || ""}
               onChange={(e) => handleInputChange("location", e.target.value)}
-              placeholder="Event location"
-              className="bg-gradient-to-r from-white to-teal-50 dark:from-gray-800 dark:to-teal-900/20 border-teal-200 dark:border-teal-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              placeholder="Địa điểm tổ chức sự kiện"
               required
             />
           </div>
@@ -265,7 +261,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
-                Start Date <span className="text-red-500">*</span>
+                Ngày bắt đầu <span className="text-red-500">*</span>
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -286,7 +282,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                             day: "numeric",
                           }
                         )
-                      : "Select start date"}
+                      : "Chọn ngày bắt đầu"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -306,7 +302,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
             <div className="space-y-2">
               <Label>
-                End Date <span className="text-red-500">*</span>
+                Ngày kết thúc <span className="text-red-500">*</span>
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -324,7 +320,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                           month: "short",
                           day: "numeric",
                         })
-                      : "Select end date"}
+                      : "Chọn ngày kết thúc"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -343,12 +339,12 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
           {/* Detailed Address */}
           <div className="space-y-2">
-            <Label htmlFor="detailedAddress" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Detailed Address</Label>
+            <Label htmlFor="detailedAddress" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Địa chỉ chi tiết</Label>
             <Input
               id="detailedAddress"
               value={formData.detailedAddress || ""}
               onChange={(e) => handleInputChange("detailedAddress", e.target.value)}
-              placeholder="Detailed address (optional)"
+              placeholder="Địa chỉ chi tiết (tùy chọn)"
               className="bg-gradient-to-r from-white to-teal-50 dark:from-gray-800 dark:to-teal-900/20 border-teal-200 dark:border-teal-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800 transition-all duration-200 shadow-sm hover:shadow-md"
             />
           </div>
@@ -356,23 +352,21 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           {/* Province and District */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="province" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Province</Label>
+              <Label htmlFor="province" className="text-sm font-semibold">Tỉnh/Thành phố</Label>
               <Input
                 id="province"
                 value={formData.province || ""}
                 onChange={(e) => handleInputChange("province", e.target.value)}
-                placeholder="Province (optional)"
-                className="bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-green-200 dark:border-green-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Tỉnh/Thành phố (tùy chọn)"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="district" className="text-sm font-semibold text-gray-700 dark:text-gray-300">District</Label>
+              <Label htmlFor="district" className="text-sm font-semibold">Quận/Huyện</Label>
               <Input
                 id="district"
                 value={formData.district || ""}
                 onChange={(e) => handleInputChange("district", e.target.value)}
-                placeholder="District (optional)"
-                className="bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-green-200 dark:border-green-700 focus:border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Quận/Huyện (tùy chọn)"
               />
             </div>
           </div>
@@ -380,7 +374,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           {/* Registration Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Registration Start Date</Label>
+              <Label>Ngày bắt đầu đăng ký</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -397,7 +391,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                           month: "short",
                           day: "numeric",
                         })
-                      : "Select registration start"}
+                      : "Chọn ngày bắt đầu đăng ký"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -411,7 +405,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label>Registration End Date</Label>
+              <Label>Ngày kết thúc đăng ký</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -428,7 +422,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                           month: "short",
                           day: "numeric",
                         })
-                      : "Select registration end"}
+                      : "Chọn ngày kết thúc đăng ký"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -446,8 +440,8 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
           {/* Volunteers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="minVolunteers" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Minimum Volunteers <span className="text-red-500">*</span>
+              <Label htmlFor="minVolunteers" className="text-sm font-semibold">
+                Số tình nguyện viên tối thiểu <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="minVolunteers"
@@ -455,13 +449,12 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 min="1"
                 value={formData.minVolunteers || 1}
                 onChange={(e) => handleInputChange("minVolunteers", parseInt(e.target.value))}
-                className="bg-gradient-to-r from-white to-cyan-50 dark:from-gray-800 dark:to-cyan-900/20 border-cyan-200 dark:border-cyan-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 shadow-sm hover:shadow-md"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxVolunteers" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Maximum Volunteers
+              <Label htmlFor="maxVolunteers" className="text-sm font-semibold">
+                Số tình nguyện viên tối đa
               </Label>
               <Input
                 id="maxVolunteers"
@@ -469,49 +462,46 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 min="1"
                 value={formData.maxVolunteers || ""}
                 onChange={(e) => handleInputChange("maxVolunteers", e.target.value ? parseInt(e.target.value) : undefined)}
-                placeholder="No limit if empty"
-                className="bg-gradient-to-r from-white to-cyan-50 dark:from-gray-800 dark:to-cyan-900/20 border-cyan-200 dark:border-cyan-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Không giới hạn nếu để trống"
               />
             </div>
           </div>
 
           {/* Requirements */}
           <div className="space-y-2">
-            <Label htmlFor="requiredSkills" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Required Skills</Label>
+            <Label htmlFor="requiredSkills" className="text-sm font-semibold">Kỹ năng yêu cầu</Label>
             <Input
               id="requiredSkills"
               value={formData.requiredSkills || ""}
               onChange={(e) => handleInputChange("requiredSkills", e.target.value)}
-              placeholder="Required skills (optional)"
-              className="bg-gradient-to-r from-white to-orange-50 dark:from-gray-800 dark:to-orange-900/20 border-orange-200 dark:border-orange-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              placeholder="Kỹ năng yêu cầu (tùy chọn)"
             />
           </div>
 
           {/* Age and Gender Requirements */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ageRequirement" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Age Requirement</Label>
+              <Label htmlFor="ageRequirement" className="text-sm font-semibold">Yêu cầu độ tuổi</Label>
               <Input
                 id="ageRequirement"
                 value={formData.ageRequirement || ""}
                 onChange={(e) => handleInputChange("ageRequirement", e.target.value)}
-                placeholder="e.g., 18-65 years old"
-                className="bg-gradient-to-r from-white to-pink-50 dark:from-gray-800 dark:to-pink-900/20 border-pink-200 dark:border-pink-700 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="ví dụ: 18-65 tuổi"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="genderRequirement" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Gender Requirement</Label>
+              <Label htmlFor="genderRequirement" className="text-sm font-semibold">Yêu cầu giới tính</Label>
               <Select
                 value={formData.genderRequirement || "any"}
                 onValueChange={(value) => handleInputChange("genderRequirement", value)}
               >
-                <SelectTrigger className="bg-gradient-to-r from-white to-pink-50 dark:from-gray-800 dark:to-pink-900/20 border-pink-200 dark:border-pink-700 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-800 transition-all duration-200 shadow-sm hover:shadow-md">
-                  <SelectValue placeholder="Any gender" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Không yêu cầu" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="any">Any gender</SelectItem>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="any">Không yêu cầu</SelectItem>
+                  <SelectItem value="Male">Nam</SelectItem>
+                  <SelectItem value="Female">Nữ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -519,73 +509,69 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
           {/* Requirements and Benefits */}
           <div className="space-y-2">
-            <Label htmlFor="requirements" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Requirements</Label>
+            <Label htmlFor="requirements" className="text-sm font-semibold">Yêu cầu</Label>
             <Textarea
               id="requirements"
               value={formData.requirements || ""}
               onChange={(e) => handleInputChange("requirements", e.target.value)}
-              placeholder="Additional requirements (optional)"
+              placeholder="Yêu cầu bổ sung (tùy chọn)"
               rows={3}
-              className="bg-gradient-to-r from-white to-red-50 dark:from-gray-800 dark:to-red-900/20 border-red-200 dark:border-red-700 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-800 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
+              className="resize-none"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="benefits" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Benefits</Label>
+            <Label htmlFor="benefits" className="text-sm font-semibold">Quyền lợi</Label>
             <Textarea
               id="benefits"
               value={formData.benefits || ""}
               onChange={(e) => handleInputChange("benefits", e.target.value)}
-              placeholder="Benefits for volunteers (optional)"
+              placeholder="Quyền lợi cho tình nguyện viên (tùy chọn)"
               rows={3}
-              className="bg-gradient-to-r from-white to-emerald-50 dark:from-gray-800 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all duration-200 shadow-sm hover:shadow-md resize-none"
+              className="resize-none"
             />
           </div>
 
           {/* Contact Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contactPerson" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Person</Label>
+              <Label htmlFor="contactPerson" className="text-sm font-semibold">Người liên hệ</Label>
               <Input
                 id="contactPerson"
                 value={formData.contactPerson || ""}
                 onChange={(e) => handleInputChange("contactPerson", e.target.value)}
-                placeholder="Contact person name"
-                className="bg-gradient-to-r from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-900/20 border-indigo-200 dark:border-indigo-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Tên người liên hệ"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contactPhone" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Phone</Label>
+              <Label htmlFor="contactPhone" className="text-sm font-semibold">Số điện thoại</Label>
               <Input
                 id="contactPhone"
                 value={formData.contactPhone || ""}
                 onChange={(e) => handleInputChange("contactPhone", e.target.value)}
-                placeholder="Phone number"
-                className="bg-gradient-to-r from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-900/20 border-indigo-200 dark:border-indigo-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Số điện thoại"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contactEmail" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Email</Label>
+              <Label htmlFor="contactEmail" className="text-sm font-semibold">Email liên hệ</Label>
               <Input
                 id="contactEmail"
                 type="email"
                 value={formData.contactEmail || ""}
                 onChange={(e) => handleInputChange("contactEmail", e.target.value)}
-                placeholder="Email address"
-                className="bg-gradient-to-r from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-900/20 border-indigo-200 dark:border-indigo-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                placeholder="Địa chỉ email"
               />
             </div>
           </div>
 
           {/* Media */}
           <div className="space-y-2">
-            <Label htmlFor="bannerImageUrl" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Banner Image URL</Label>
+            <Label htmlFor="bannerImageUrl" className="text-sm font-semibold">URL hình ảnh banner</Label>
             <Input
               id="bannerImageUrl"
               value={formData.bannerImageUrl || ""}
               onChange={(e) => handleInputChange("bannerImageUrl", e.target.value)}
-              placeholder="Banner image URL (optional)"
-              className="bg-gradient-to-r from-white to-violet-50 dark:from-gray-800 dark:to-violet-900/20 border-violet-200 dark:border-violet-700 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              placeholder="URL hình ảnh banner (tùy chọn)"
             />
           </div>
 
@@ -597,7 +583,7 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 checked={formData.isFeatured}
                 onCheckedChange={(checked) => handleInputChange("isFeatured", checked)}
               />
-              <Label htmlFor="isFeatured" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Featured Event</Label>
+              <Label htmlFor="isFeatured" className="text-sm font-semibold">Sự kiện nổi bật</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Switch
@@ -605,27 +591,25 @@ export const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 checked={formData.isUrgent}
                 onCheckedChange={(checked) => handleInputChange("isUrgent", checked)}
               />
-              <Label htmlFor="isUrgent" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Urgent Event</Label>
+              <Label htmlFor="isUrgent" className="text-sm font-semibold">Sự kiện khẩn cấp</Label>
             </div>
           </div>
 
-          <DialogFooter className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <DialogFooter className="flex gap-3 pt-6">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={loading}
-              className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 shadow-md hover:shadow-lg transition-all duration-200"
             >
-              Cancel
+              Hủy
             </Button>
             <Button 
               type="submit" 
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Event
+              Tạo Sự kiện
             </Button>
           </DialogFooter>
         </form>

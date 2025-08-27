@@ -12,15 +12,6 @@ import { DEFAULT_SCHEDULE_FILTER } from "../types/volunteerSchedule";
 class VolunteerScheduleService {
   private readonly baseUrl = "/VolunteerSchedule";
 
-  // Helper function to handle .NET JSON serialization format
-  private extractDataFromNetResponse<T>(data: T | any): T {
-    // If data has $values property (common with .NET JSON serialization), extract it
-    if (data && typeof data === "object" && "$values" in data) {
-      return data.$values as T;
-    }
-    return data;
-  }
-
   // === COORDINATOR ENDPOINTS ===
 
   // GET /api/VolunteerSchedule/coordinator - Get paginated list of volunteer schedules for coordinator
@@ -47,7 +38,7 @@ class VolunteerScheduleService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If items array is wrapped in $values, extract it
     if (
@@ -160,7 +151,7 @@ class VolunteerScheduleService {
     }
 
     // Handle .NET JSON serialization format
-    const extractedData = this.extractDataFromNetResponse(response.data);
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
 
     // If items array is wrapped in $values, extract it
     if (
@@ -195,14 +186,10 @@ class VolunteerScheduleService {
     return response.data;
   }
 
-
-
   // === UTILITY METHODS ===
 
   // Helper method to validate schedule data before creation/update
-  validateScheduleData(
-    data: VolunteerScheduleRequestDto
-  ): string[] {
+  validateScheduleData(data: VolunteerScheduleRequestDto): string[] {
     const errors: string[] = [];
 
     if (!data.volunteerId) {
@@ -236,7 +223,10 @@ class VolunteerScheduleService {
     if (data.notes && data.notes.length > 1000) {
       errors.push("Notes must be 1000 characters or less");
     }
-    if (data.reminderMinutes && (data.reminderMinutes < 0 || data.reminderMinutes > 10080)) {
+    if (
+      data.reminderMinutes &&
+      (data.reminderMinutes < 0 || data.reminderMinutes > 10080)
+    ) {
       errors.push("Reminder minutes must be between 0 and 10080 (1 week)");
     }
 

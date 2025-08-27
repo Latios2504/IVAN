@@ -105,7 +105,7 @@ export function RejectRegistrationModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <Button
             variant="outline"
             onClick={handleClose}

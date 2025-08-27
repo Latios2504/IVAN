@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,7 +9,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
@@ -68,7 +67,12 @@ export default function DeleteCertificateTemplateDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2 pt-4 border-t border-red-200 dark:border-red-700">
-          <AlertDialogCancel disabled={deleting} className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 shadow-sm hover:shadow-md">Hủy</AlertDialogCancel>
+          <AlertDialogCancel
+            disabled={deleting}
+            className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-gray-300 dark:border-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            Hủy
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleting}
