@@ -546,7 +546,7 @@ export default function PublicVolunteersPage() {
         hasPreviousPage: pagination.page > 1,
       }}
       onPageChange={handlePageChange}
-      itemName="tình nguyện viên"
+      
       listItems={mappedVolunteers.map((volunteer) => (
         <VolunteerListItem
           key={volunteer.id}

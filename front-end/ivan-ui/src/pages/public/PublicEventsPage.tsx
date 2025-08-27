@@ -684,7 +684,7 @@ export default function PublicEventsPage() {
         hasPreviousPage: pagination.page > 1,
       }}
       onPageChange={handlePageChange}
-      itemName="sự kiện"
+      
       detailLoading={detailLoading}
       detailError={detailError}
       onDetailRetry={handleDetailRetry}

@@ -112,13 +112,13 @@ export default function UserManagementPageNew() {
 
   // Service adapters
   const userDataService = {
-    getAll: async (): Promise<UserListDto[]> => {
-      const defaultFilter: UserFiltersDto = {
-        page: 1,
-        size: 100,
+    getAll: async (filters: UserFiltersDto): Promise<{ items: UserListDto[], totalItems: number, totalPages: number }> => {
+      const result = await userManagementService.getUsers(filters);
+      return {
+        items: result.items,
+        totalItems: result.totalCount || result.items.length,
+        totalPages: result.totalPages || Math.ceil((result.totalCount || result.items.length) / filters.size)
       };
-      const result = await userManagementService.getUsers(defaultFilter);
-      return result.items;
     },
     getById: async (id: number | string): Promise<UserDetailsDto> => {
       const numericId = typeof id === "string" ? parseInt(id, 10) : id;
@@ -147,8 +147,8 @@ export default function UserManagementPageNew() {
   const userStatsService = {
     getAll: async (): Promise<any[]> => {
       try {
-        // Since getUserStatistics doesn't exist yet, we'll calculate stats from users
-        const usersResponse = await userManagementService.getUsers({});
+        // Calculate stats from users data - get ALL users for accurate stats
+        const usersResponse = await userManagementService.getUsers({ size: 1000 }); // Large size to get all users
         const usersData = usersResponse.items || [];
 
         const totalUsers = usersData.length;
@@ -160,17 +160,8 @@ export default function UserManagementPageNew() {
           (u: UserListDto) => !u.isEmailVerified
         ).length;
 
-        // Transform the statistics result to include both UserStatisticsDto format
-        // and the aggregate statistics for display
         return [
           {
-            // UserStatisticsDto format properties
-            totalLogins: 0,
-            lastLoginDays: 0,
-            accountAgeInDays: 0,
-            isNewUser: false,
-            activityScore: 0,
-            // Additional aggregate properties for display
             totalUsers,
             activeUsers,
             inactiveUsers,
@@ -178,30 +169,8 @@ export default function UserManagementPageNew() {
           },
         ];
       } catch (error) {
-        // Return mock data if the API endpoint doesn't exist yet
-        const users_data = users || [];
-        const totalUsers = users_data.length;
-        const activeUsers = users_data.filter(
-          (u: UserListDto) => u.isActive
-        ).length;
-        const inactiveUsers = totalUsers - activeUsers;
-        const unverifiedUsers = users_data.filter(
-          (u: UserListDto) => !u.isEmailVerified
-        ).length;
-
-        return [
-          {
-            totalLogins: 0,
-            lastLoginDays: 0,
-            accountAgeInDays: 0,
-            isNewUser: false,
-            activityScore: 0,
-            totalUsers,
-            activeUsers,
-            inactiveUsers,
-            unverifiedUsers,
-          },
-        ];
+        console.error('Failed to load user statistics:', error);
+        throw error;
       }
     },
   };
@@ -218,7 +187,7 @@ export default function UserManagementPageNew() {
   // Local state for UI
   const [filters, setFilters] = useState<ExtendedFilterDto>({
     page: 1,
-    size: 100,
+    size: 10, // Changed to 10 items per page
     sortBy: "createdAt",
     sortDirection: "DESC",
     searchTerm: "",
@@ -227,10 +196,8 @@ export default function UserManagementPageNew() {
     dateRange: "all",
   });
 
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    pageSize: 10,
-  });
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const [modals, setModals] = useState({
     userDetails: false,
@@ -244,13 +211,27 @@ export default function UserManagementPageNew() {
     loadInitialData();
   }, []);
 
-  const loadInitialData = async () => {
-    // Load users
+  // Load users when filters change (except for client-side filters)
+  useEffect(() => {
+    if (filters.page > 1 || filters.size !== 10) {
+      loadUsers(filters);
+    }
+  }, [filters.page, filters.size]);
+
+  const loadUsers = async (currentFilters = filters) => {
     setUsersLoading(true);
     setUsersError(null);
     try {
-      const usersResult = await userDataService.getAll();
-      setUsers(usersResult);
+      const apiFilters: UserFiltersDto = {
+        page: currentFilters.page,
+        size: currentFilters.size,
+        search: currentFilters.searchTerm,
+      };
+      
+      const usersResult = await userDataService.getAll(apiFilters);
+      setUsers(usersResult.items);
+      setTotalItems(usersResult.totalItems);
+      setTotalPages(usersResult.totalPages);
     } catch (err) {
       setUsersError(
         err instanceof Error ? err.message : "Failed to load users"
@@ -258,8 +239,9 @@ export default function UserManagementPageNew() {
     } finally {
       setUsersLoading(false);
     }
+  };
 
-    // Load stats
+  const loadStats = async () => {
     setStatsLoading(true);
     setStatsError(null);
     try {
@@ -272,6 +254,10 @@ export default function UserManagementPageNew() {
     } finally {
       setStatsLoading(false);
     }
+  };
+
+  const loadInitialData = async () => {
+    await Promise.all([loadUsers(), loadStats()]);
   };
 
   // Check if current user is admin
@@ -296,63 +282,66 @@ export default function UserManagementPageNew() {
     }
 
     setSelectedUserId(user.userId);
-    try {
-      const userDetail = await userDataService.getById(user.userId);
-      if (userDetail) {
-        setSelectedUser(user);
-        setModals((prev) => ({ ...prev, userDetails: true }));
-      }
-    } catch (error) {
-      console.error("Failed to load user details:", error);
-    }
+    setSelectedUser(user);
+    setModals((prev) => ({ ...prev, userDetails: true }));
+  };
+
+  const handleUserUpdate = () => {
+    // Refresh both users and stats when a user is updated
+    loadInitialData();
   };
 
   const handleToggleUserStatus = async (userId: number, newStatus: boolean) => {
     try {
       await userManagementService.updateUserStatus(userId, newStatus);
-
-      // Refresh users list
-      setUsersLoading(true);
-      setUsersError(null);
-      try {
-        const usersResult = await userDataService.getAll();
-        setUsers(usersResult);
-      } catch (err) {
-        setUsersError(
-          err instanceof Error ? err.message : "Failed to load users"
-        );
-      } finally {
-        setUsersLoading(false);
-      }
+      // Refresh users list and stats
+      await Promise.all([loadUsers(), loadStats()]);
     } catch (error) {
       console.error("Failed to update user status:", error);
     }
   };
 
   const handleSearch = (searchTerm: string) => {
-    setFilters((prev) => ({ ...prev, searchTerm }));
+    const newFilters = { ...filters, searchTerm, page: 1 };
+    setFilters(newFilters);
+    loadUsers(newFilters);
   };
 
   const handleRoleFilter = (role: string) => {
-    setFilters((prev) => ({ ...prev, role }));
+    const newFilters = { ...filters, role, page: 1 };
+    setFilters(newFilters);
+    loadUsers(newFilters);
   };
 
   const handleStatusFilter = (status: string) => {
-    setFilters((prev) => ({ ...prev, status }));
+    const newFilters = { ...filters, status, page: 1 };
+    setFilters(newFilters);
+    loadUsers(newFilters);
   };
 
   const handleDateRangeFilter = (dateRange: string) => {
-    setFilters((prev) => ({ ...prev, dateRange }));
+    const newFilters = { ...filters, dateRange, page: 1 };
+    setFilters(newFilters);
+    loadUsers(newFilters);
   };
 
   const handleResetFilters = () => {
-    setFilters((prev) => ({
-      ...prev,
+    const newFilters = {
+      ...filters,
       role: "all",
       status: "all",
       searchTerm: "",
       dateRange: "all",
-    }));
+      page: 1,
+    };
+    setFilters(newFilters);
+    loadUsers(newFilters);
+  };
+
+  const handlePageChange = (page: number) => {
+    const newFilters = { ...filters, page };
+    setFilters(newFilters);
+    loadUsers(newFilters);
   };
 
   const closeAllModals = () => {
@@ -364,9 +353,10 @@ export default function UserManagementPageNew() {
     setSelectedUser(null);
   };
 
-  // Apply filters to users data
+  // Apply client-side filters for display (server-side filtering should be implemented in API)
   const filteredUsers = React.useMemo(() => {
     let filtered = users;
+    // Apply client-side filters as fallback
     filtered = userSelectors.filterUsersByRole(filtered, filters.role);
     filtered = userSelectors.filterUsersByStatus(filtered, filters.status);
     filtered = userSelectors.searchUsers(filtered, filters.searchTerm);
@@ -674,15 +664,24 @@ export default function UserManagementPageNew() {
         <CardHeader>
           <CardTitle className="flex items-center text-violet-800 dark:text-violet-200 font-semibold">
             <Users className="w-5 h-5 mr-2" />
-            Danh sách người dùng ({filteredUsers.length})
+            Danh sách người dùng
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredUsers.length > 0 ? (
+          {users.length > 0 ? (
             <DataTable
               data={filteredUsers}
               columns={columns}
               actions={actions}
+              loading={usersLoading}
+              showPagination={true}
+              pagination={{
+                currentPage: filters.page,
+                totalPages: totalPages,
+                pageSize: filters.size,
+                totalItems: totalItems,
+                onPageChange: handlePageChange,
+              }}
             />
           ) : (
             <div className="text-center py-12">
@@ -691,13 +690,13 @@ export default function UserManagementPageNew() {
                 Không tìm thấy người dùng
               </h3>
               <p className="text-violet-600 dark:text-violet-400 mb-4">
-                Thử điều chỉnh bộ lọc để xem kết quả khác
+                {usersError ? 'Có lỗi xảy ra khi tải dữ liệu' : 'Thử điều chỉnh bộ lọc để xem kết quả khác'}
               </p>
               <Button
-                onClick={handleResetFilters}
+                onClick={usersError ? loadInitialData : handleResetFilters}
                 className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
               >
-                Đặt lại bộ lọc
+                {usersError ? 'Thử lại' : 'Đặt lại bộ lọc'}
               </Button>
             </div>
           )}
@@ -710,7 +709,7 @@ export default function UserManagementPageNew() {
           userId={selectedUserId}
           isOpen={modals.userDetails}
           onClose={closeAllModals}
-          onUserUpdate={loadInitialData}
+          onUserUpdate={handleUserUpdate}
         />
       )}
     </div>
