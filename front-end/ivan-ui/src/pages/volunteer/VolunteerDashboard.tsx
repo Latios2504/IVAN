@@ -69,19 +69,6 @@ export default function VolunteerDashboard() {
                       Đăng ký của tôi
                     </Link>
                   </Button>
-                  <Button
-                    asChild
-                    className="w-full justify-start"
-                    variant="outline"
-                  >
-                    <Link
-                      to="/volunteer/schedule"
-                      className="flex items-center gap-2"
-                    >
-                      <Calendar className="w-4 h-4" />
-                      Lịch trình của tôi
-                    </Link>
-                  </Button>
                 </CardContent>
               </Card>
 
@@ -93,7 +80,7 @@ export default function VolunteerDashboard() {
                     Nhiệm vụ & Hoạt động
                   </CardTitle>
                   <CardDescription className="text-green-700/80 dark:text-green-300/80">
-                    Theo dõi nhiệm vụ và hoạt động tình nguyện
+                    Theo dõi lịch hoạt động tình nguyện
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">

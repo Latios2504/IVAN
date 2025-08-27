@@ -257,6 +257,192 @@ export default function CoordinatorPersonalSchedulePage() {
     return matchesSearch && matchesTab;
   });
 
+  // Calendar view helper functions
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
+  };
+  
+  const getSchedulesForDate = (date: Date) => {
+    return filteredSchedules.filter(schedule => {
+      const scheduleDate = new Date(schedule.startDateTime);
+      return (
+        scheduleDate.getDate() === date.getDate() &&
+        scheduleDate.getMonth() === date.getMonth() &&
+        scheduleDate.getFullYear() === date.getFullYear()
+      );
+    });
+  };
+  
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+  
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+  
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+  };
+  
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+  
+  const CalendarView = () => {
+    const days = getDaysInMonth(currentDate);
+    const weekDays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    
+    return (
+      <Card className="bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900/50 dark:via-gray-900/50 dark:to-zinc-900/50 border border-slate-200 dark:border-slate-700 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-slate-900 dark:text-slate-100">
+              {formatMonthYear(currentDate)}
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+                className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+              >
+                ←
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToToday}
+                className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+              >
+                Hôm nay
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+                className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-200 dark:border-indigo-800/50 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+              >
+                →
+              </Button>
+            </div>
+          </div>
+          <CardDescription className="text-slate-600 dark:text-slate-400">
+            Tổng cộng {totalCount} lịch trình
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="grid grid-cols-7 gap-0">
+            {/* Week day headers */}
+            {weekDays.map((day) => (
+              <div
+                key={day}
+                className="p-3 text-center font-semibold text-sm bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-b border-r border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
+              >
+                {day}
+              </div>
+            ))}
+            
+            {/* Calendar days */}
+            {days.map((date, index) => {
+              if (!date) {
+                return (
+                  <div
+                    key={index}
+                    className="h-24 border-b border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30"
+                  />
+                );
+              }
+              
+              const daySchedules = getSchedulesForDate(date);
+              const isCurrentDay = isToday(date);
+              
+              return (
+                <div
+                  key={index}
+                  className={`h-24 border-b border-r border-slate-200 dark:border-slate-700 p-1 overflow-hidden ${
+                    isCurrentDay
+                      ? 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30'
+                      : 'bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  }`}
+                >
+                  <div className={`text-sm font-medium mb-1 ${
+                    isCurrentDay
+                      ? 'text-blue-700 dark:text-blue-300'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}>
+                    {date.getDate()}
+                  </div>
+                  <div className="space-y-1">
+                    {daySchedules.slice(0, 2).map((schedule) => (
+                      <div
+                        key={schedule.scheduleId}
+                        className={`text-xs p-1 rounded cursor-pointer truncate ${
+                          schedule.status === 'Completed'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'
+                            : schedule.status === 'Scheduled'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
+                            : schedule.status === 'Checked In'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
+                            : schedule.status === 'Cancelled'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200'
+                        }`}
+                        onClick={() => handleViewSchedule(schedule)}
+                        title={schedule.title}
+                      >
+                        {schedule.title}
+                      </div>
+                    ))}
+                    {daySchedules.length > 2 && (
+                      <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        +{daySchedules.length - 2} khác
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/30 dark:via-purple-950/30 dark:to-pink-950/30 rounded-2xl p-8 border border-indigo-100 dark:border-indigo-800/30">
@@ -316,92 +502,104 @@ export default function CoordinatorPersonalSchedulePage() {
         onValueChange={setSelectedTab}
         className="w-full"
       >
-        <TabsList className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200 dark:border-indigo-800/50">
+        <TabsList className="bg-gradient-to-r from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/50 dark:via-violet-900/50 dark:to-indigo-900/50 border border-purple-200 dark:border-purple-800 p-1">
           <TabsTrigger
             value="all"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-200 data-[state=active]:to-gray-200 dark:data-[state=active]:from-slate-700 dark:data-[state=active]:to-gray-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Tất cả
           </TabsTrigger>
           <TabsTrigger
             value="Scheduled"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-200 data-[state=active]:to-indigo-200 dark:data-[state=active]:from-blue-800 dark:data-[state=active]:to-indigo-800 data-[state=active]:text-blue-900 dark:data-[state=active]:text-blue-100 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Đã lên lịch
           </TabsTrigger>
           <TabsTrigger
             value="Checked In"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-200 data-[state=active]:to-amber-200 dark:data-[state=active]:from-yellow-800 dark:data-[state=active]:to-amber-800 data-[state=active]:text-yellow-900 dark:data-[state=active]:text-yellow-100 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Đã check-in
           </TabsTrigger>
           <TabsTrigger
             value="Completed"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-200 data-[state=active]:to-emerald-200 dark:data-[state=active]:from-green-800 dark:data-[state=active]:to-emerald-800 data-[state=active]:text-green-900 dark:data-[state=active]:text-green-100 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Hoàn thành
           </TabsTrigger>
           <TabsTrigger
             value="Cancelled"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-200 data-[state=active]:to-rose-200 dark:data-[state=active]:from-red-800 dark:data-[state=active]:to-rose-800 data-[state=active]:text-red-900 dark:data-[state=active]:text-red-100 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Đã hủy
           </TabsTrigger>
           <TabsTrigger
             value="No Show"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-200 data-[state=active]:to-zinc-200 dark:data-[state=active]:from-gray-800 dark:data-[state=active]:to-zinc-800 data-[state=active]:text-gray-900 dark:data-[state=active]:text-gray-100 hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300"
           >
             Vắng mặt
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4">
-          <Card className="bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 dark:from-gray-900 dark:via-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800/50">
-            <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/30 dark:to-purple-950/30 border-b border-indigo-100 dark:border-indigo-800/30">
-              <CardTitle className="text-indigo-900 dark:text-indigo-100">
-                Lịch trình cá nhân
-              </CardTitle>
-              <CardDescription className="text-indigo-600 dark:text-indigo-300">
-                Tổng cộng {totalCount} lịch trình
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : (
+          {loading ? (
+            <div className="flex items-center justify-center py-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+              <span className="ml-3 text-blue-700 dark:text-blue-300">Đang tải...</span>
+            </div>
+          ) : viewMode === "calendar" ? (
+            <CalendarView />
+          ) : (
+            <Card className="bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 dark:from-slate-900/50 dark:via-gray-900/50 dark:to-zinc-900/50 border border-slate-200 dark:border-slate-700 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-b border-slate-200 dark:border-slate-700">
+                <CardTitle className="text-slate-900 dark:text-slate-100">
+                  Danh sách lịch trình
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400">
+                  Tổng cộng {totalCount} lịch trình
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Tiêu đề</TableHead>
-                      <TableHead>Sự kiện</TableHead>
-                      <TableHead>Thời gian</TableHead>
-                      <TableHead>Địa điểm</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead>Ưu tiên</TableHead>
-                      <TableHead>Thao tác</TableHead>
+                    <TableRow className="bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 border-b border-slate-200 dark:border-slate-700">
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Tiêu đề</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Sự kiện</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Thời gian</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Địa điểm</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Trạng thái</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Ưu tiên</TableHead>
+                      <TableHead className="text-slate-900 dark:text-slate-100 font-semibold">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredSchedules.map((schedule) => (
-                      <TableRow key={schedule.scheduleId}>
-                        <TableCell className="font-medium">
+                        <TableRow 
+                          key={schedule.scheduleId}
+                          className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50 dark:hover:from-slate-900/30 dark:hover:to-gray-900/30 border-b border-slate-200 dark:border-slate-700"
+                        >
+                        <TableCell className="font-medium text-slate-900 dark:text-slate-100">
                           {schedule.title}
                         </TableCell>
-                        <TableCell>{schedule.eventName || "N/A"}</TableCell>
+                        <TableCell className="text-slate-700 dark:text-slate-300">
+                          {schedule.eventName || "N/A"}
+                        </TableCell>
                         <TableCell>
-                          <div className="text-sm">
-                            <div>{formatDateTime(schedule.startDateTime)}</div>
-                            <div className="text-muted-foreground">
+                          <div className="text-sm bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 px-2 py-1 rounded border border-purple-200/50 dark:border-purple-800/50">
+                            <div className="text-purple-700 dark:text-purple-300">
+                              {formatDateTime(schedule.startDateTime)}
+                            </div>
+                            <div className="text-purple-600 dark:text-purple-400 text-xs">
                               đến {formatDateTime(schedule.endDateTime)}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1 text-sm">
-                            <MapPin className="h-3 w-3" />
-                            {schedule.location || "N/A"}
+                          <div className="flex items-center gap-1 text-sm bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 px-2 py-1 rounded border border-green-200/50 dark:border-green-800/50">
+                            <MapPin className="h-3 w-3 text-green-600 dark:text-green-400" />
+                            <span className="text-green-700 dark:text-green-300">
+                              {schedule.location || "N/A"}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge(schedule.status)}</TableCell>
@@ -412,20 +610,22 @@ export default function CoordinatorPersonalSchedulePage() {
                           <div className="flex gap-2">
                             {canCheckIn(schedule) && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => handleCheckIn(schedule)}
-                                className="text-green-600 border-green-600 hover:bg-green-50"
+                                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950/30 dark:hover:to-emerald-950/30 border border-transparent hover:border-green-200 dark:hover:border-green-800 transition-all duration-200"
+                                title="Check-in"
                               >
                                 <LogIn className="h-4 w-4" />
                               </Button>
                             )}
                             {canCheckOut(schedule) && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => handleCheckOut(schedule)}
-                                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/30 dark:hover:to-indigo-950/30 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200"
+                                title="Check-out"
                               >
                                 <LogOut className="h-4 w-4" />
                               </Button>
@@ -434,6 +634,8 @@ export default function CoordinatorPersonalSchedulePage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleViewSchedule(schedule)}
+                              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-violet-50 dark:hover:from-purple-950/30 dark:hover:to-violet-950/30 border border-transparent hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-200"
+                              title="Xem chi tiết"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -443,9 +645,9 @@ export default function CoordinatorPersonalSchedulePage() {
                     ))}
                   </TableBody>
                 </Table>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
