@@ -40,7 +40,7 @@ export interface CombinedLayoutProps {
   isEmpty?: boolean;
   pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
-  itemName?: string;
+
 
   // List items
   listItems: ReactNode[];
@@ -76,7 +76,6 @@ export function CombinedLayout({
   isEmpty,
   pagination,
   onPageChange,
-  itemName = "mục",
   listItems,
   onItemSelect,
   selectedItemId,
@@ -245,7 +244,7 @@ export function CombinedLayout({
             {/* List Header */}
             <div data-list-header className="flex items-center justify-between mb-4 flex-shrink-0 p-3 rounded-xl bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200/50 dark:border-indigo-700/50">
               <h2 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                {resultCount !== undefined ? `${resultCount} ${itemName}` : itemName}
+                {resultCount !== undefined ? `${resultCount} kết quả` : 'Danh sách'}
               </h2>
             </div>
 
@@ -305,7 +304,6 @@ export function CombinedLayout({
                   onPageChange={onPageChange}
                   loading={false}
                   error={null}
-                  itemName={itemName}
                 />
               </div>
             )}

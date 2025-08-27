@@ -39,7 +39,6 @@ interface PublicPageLayoutProps {
   emptyDescription?: string;
   pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
-  itemName?: string;
 }
 
 export function PublicPageLayout({
@@ -63,7 +62,7 @@ export function PublicPageLayout({
   emptyDescription,
   pagination,
   onPageChange,
-  itemName = "mục",
+
 }: PublicPageLayoutProps) {
   const isFullContainer = searchValue !== undefined || stats !== undefined;
 
@@ -176,7 +175,6 @@ export function PublicPageLayout({
                     onPageChange={onPageChange}
                     loading={false}
                     error={null}
-                    itemName={itemName}
                   />
                 </div>
               </div>

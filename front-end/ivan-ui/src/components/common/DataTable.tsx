@@ -247,15 +247,6 @@ export const DataTable = <T extends Record<string, any>>({
       {/* Pagination Component */}
       {showPagination && pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Hiển thị {(pagination.currentPage - 1) * pagination.pageSize + 1}{" "}
-            đến{" "}
-            {Math.min(
-              pagination.currentPage * pagination.pageSize,
-              pagination.totalItems
-            )}{" "}
-            của {pagination.totalItems} kết quả
-          </div>
           <Pagination>
             <PaginationContent>
               <PaginationItem>

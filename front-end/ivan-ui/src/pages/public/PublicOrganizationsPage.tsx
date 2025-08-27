@@ -515,7 +515,7 @@ export default function PublicOrganizationsPage() {
         hasPreviousPage: pagination.page > 1,
       }}
       onPageChange={handlePageChange}
-      itemName="tổ chức"
+      
       listItems={mappedOrganizations.map((organization) => (
         <OrganizationListItem
           key={organization.id}

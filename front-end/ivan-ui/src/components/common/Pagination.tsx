@@ -14,7 +14,6 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   loading?: boolean;
   error?: string | null;
-  itemName?: string; // e.g., "sự kiện", "tổ chức", "đối tác", "tình nguyện viên"
 }
 
 export const Pagination = ({
@@ -22,7 +21,6 @@ export const Pagination = ({
   onPageChange,
   loading = false,
   error = null,
-  itemName = "mục",
 }: PaginationProps) => {
   // Don't show pagination if loading, error, or only 1 page
   if (loading || error || pagination.totalPages <= 1) {
@@ -31,13 +29,6 @@ export const Pagination = ({
 
   return (
     <div className="flex flex-col items-center mt-8 gap-4">
-      {/* Items count display */}
-      <div className="text-sm text-muted-foreground">
-        Hiển thị {(pagination.page - 1) * pagination.size + 1} -{" "}
-        {Math.min(pagination.page * pagination.size, pagination.totalItems)} của{" "}
-        {pagination.totalItems} {itemName}
-      </div>
-
       {/* Pagination controls */}
       <div className="flex justify-center gap-2">
         <Button

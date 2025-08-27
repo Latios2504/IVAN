@@ -428,7 +428,7 @@ export default function PublicPartnersPage() {
         hasPreviousPage: pagination.page > 1,
       }}
       onPageChange={handlePageChange}
-      itemName="đối tác"
+      
       listItems={mappedPartners.map((partner) => (
         <PartnerListItem
           key={partner.id}
