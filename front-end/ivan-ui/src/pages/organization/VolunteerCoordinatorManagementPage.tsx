@@ -6,7 +6,8 @@ import { VolunteerCoordinatorList } from "@/components/organization/volunteer-co
 import { VolunteerCoordinatorFilters } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorFilters";
 import { CreateCoordinatorRequestModal } from "@/components/organization/volunteer-coordinator-management/CreateCoordinatorRequestModal";
 import { LoadingState } from "@/components/common/LoadingState";
-import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import type {
   VolunteerCoordinatorDto,
@@ -41,38 +42,32 @@ const VolunteerCoordinatorManagementPage = () => {
     []
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
 
   // State management for stats
   const [stats, setStats] = useState<VolunteerCoordinatorStatsDto | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState<string | null>(null);
+
 
   // State management for management levels
   const [managementLevels, setManagementLevels] = useState<
     ManagementLevelDto[]
   >([]);
   const [managementLevelsLoading, setManagementLevelsLoading] = useState(false);
-  const [managementLevelsError, setManagementLevelsError] = useState<
-    string | null
-  >(null);
+
 
   // State management for specializations
   const [specializations, setSpecializations] = useState<SpecializationDto[]>(
     []
   );
   const [specializationsLoading, setSpecializationsLoading] = useState(false);
-  const [specializationsError, setSpecializationsError] = useState<
-    string | null
-  >(null);
+
 
   // State management for available managers
   const [availableManagers, setAvailableManagers] = useState<any[]>([]);
   const [availableManagersLoading, setAvailableManagersLoading] =
     useState(false);
-  const [availableManagersError, setAvailableManagersError] = useState<
-    string | null
-  >(null);
+
 
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
@@ -99,7 +94,6 @@ const VolunteerCoordinatorManagementPage = () => {
     if (!organizationId) return;
 
     setLoading(true);
-    setError(null);
     try {
       const result =
         await volunteerCoordinatorService.getCoordinatorsByOrganization(
@@ -110,7 +104,7 @@ const VolunteerCoordinatorManagementPage = () => {
       setTotalPages(Math.ceil(result.totalCount / currentFilters.size));
       setTotalItems(result.totalCount);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
           : "Không thể tải danh sách điều phối viên"
@@ -128,14 +122,13 @@ const VolunteerCoordinatorManagementPage = () => {
 
     // Load stats
     setStatsLoading(true);
-    setStatsError(null);
     try {
       const statsResult = await volunteerCoordinatorService.getCoordinatorStats(
         organizationId
       );
       setStats(statsResult);
     } catch (err) {
-      setStatsError(
+      toast.error(
         err instanceof Error ? err.message : "Không thể tải thống kê"
       );
     } finally {
@@ -144,13 +137,12 @@ const VolunteerCoordinatorManagementPage = () => {
 
     // Load management levels
     setManagementLevelsLoading(true);
-    setManagementLevelsError(null);
     try {
       const levelsResult =
         await volunteerCoordinatorService.getManagementLevels();
       setManagementLevels(levelsResult);
     } catch (err) {
-      setManagementLevelsError(
+      toast.error(
         err instanceof Error ? err.message : "Không thể tải cấp độ quản lý"
       );
     } finally {
@@ -159,13 +151,12 @@ const VolunteerCoordinatorManagementPage = () => {
 
     // Load specializations
     setSpecializationsLoading(true);
-    setSpecializationsError(null);
     try {
       const specializationsResult =
         await volunteerCoordinatorService.getSpecializations();
       setSpecializations(specializationsResult);
     } catch (err) {
-      setSpecializationsError(
+      toast.error(
         err instanceof Error ? err.message : "Không thể tải chuyên môn"
       );
     } finally {
@@ -174,7 +165,6 @@ const VolunteerCoordinatorManagementPage = () => {
 
     // Load available managers (for now, use coordinators as potential managers)
     setAvailableManagersLoading(true);
-    setAvailableManagersError(null);
     try {
       // For now, we'll use the coordinators list as available managers
       // In a real scenario, this might be a separate API call for organization users
@@ -183,7 +173,7 @@ const VolunteerCoordinatorManagementPage = () => {
         .filter((user) => user);
       setAvailableManagers(managersResult);
     } catch (err) {
-      setAvailableManagersError(
+      toast.error(
         err instanceof Error ? err.message : "Không thể tải danh sách quản lý"
       );
     } finally {
@@ -229,16 +219,7 @@ const VolunteerCoordinatorManagementPage = () => {
     return <LoadingState loading={true} />;
   }
 
-  if (error) {
-    return (
-      <ErrorDisplay
-        variant="page"
-        title="Không thể tải dữ liệu"
-        error={error}
-        onRetry={loadInitialData}
-      />
-    );
-  }
+
 
   return (
     <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 rounded-xl border border-blue-200 dark:border-blue-800 shadow-lg backdrop-blur-sm">
@@ -294,15 +275,14 @@ const VolunteerCoordinatorManagementPage = () => {
           }}
         />
       ) : (
-        <div className="text-center py-12 bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-900 dark:via-slate-900 dark:to-zinc-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-lg">
-          <Users className="w-12 h-12 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Chưa có điều phối viên nào
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Bắt đầu bằng cách gửi yêu cầu điều phối viên từ quản trị viên.
-          </p>
-          <div className="flex gap-3 justify-center">
+        <div className="text-center py-12">
+          <EmptyState 
+            icon={Users} 
+            title="Chưa có điều phối viên nào" 
+            description="Bắt đầu bằng cách gửi yêu cầu điều phối viên từ quản trị viên." 
+            show={true}
+          />
+          <div className="mt-6">
             <Button
               onClick={() => setShowRequestModal(true)}
               variant="outline"

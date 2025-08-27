@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { certificateTemplateService } from "@/services/certificateTemplateService";
@@ -147,8 +146,8 @@ export default function BulkActionsModal({
                     {template.templateName}
                   </span>
                   <TemplateStatusBadge
-                    isActive={template.isActive}
-                    isDefault={template.isDefault}
+                    isActive={template.isActive ?? false}
+                    isDefault={template.isDefault ?? false}
                     size="sm"
                   />
                 </div>

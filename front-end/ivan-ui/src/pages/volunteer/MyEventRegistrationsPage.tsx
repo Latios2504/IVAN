@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingState } from "@/components/common/LoadingState";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -32,9 +32,10 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  AlertTriangle,
   FileText,
+  AlertTriangle,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RegistrationWithEvent extends RegistrationDTO {
   event?: EventDto;
@@ -48,7 +49,7 @@ export default function MyEventRegistrationsPage() {
     []
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
   // Edit modal state
@@ -76,12 +77,11 @@ export default function MyEventRegistrationsPage() {
 
   const loadRegistrations = async () => {
     if (!user?.volunteerId) {
-      setError("Volunteer profile not found. Please contact support.");
+      toast.error("Volunteer profile not found. Please contact support.");
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       // Get registrations for this specific volunteer
@@ -109,7 +109,7 @@ export default function MyEventRegistrationsPage() {
 
       setRegistrations(registrationsWithEvents);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to load registrations"
       );
     } finally {
@@ -199,7 +199,7 @@ export default function MyEventRegistrationsPage() {
       await loadRegistrations();
       setEditingRegistration(null);
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to update registration"
       );
     } finally {
@@ -225,7 +225,7 @@ export default function MyEventRegistrationsPage() {
       // Refresh registrations
       await loadRegistrations();
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to cancel registration"
       );
     } finally {
@@ -255,18 +255,13 @@ export default function MyEventRegistrationsPage() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6 bg-gradient-to-r from-emerald-50/80 via-teal-50/80 to-cyan-50/80 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-cyan-950/40 rounded-xl p-6 border border-emerald-200/50 dark:border-emerald-800/50">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">My Event Registrations</h1>
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
+          My Event Registrations
+        </h1>
         <p className="text-muted-foreground">
           Manage your event registrations and track their status
         </p>
       </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {registrations.length === 0 && !loading ? (
         <div className="text-center py-12">
@@ -281,7 +276,10 @@ export default function MyEventRegistrationsPage() {
       ) : (
         <div className="grid gap-6">
           {registrations.map((registration) => (
-            <Card key={registration.registrationId} className="bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-zinc-50/80 dark:from-slate-950/50 dark:via-gray-950/50 dark:to-zinc-950/50 border-slate-200/50 dark:border-slate-800/50 hover:shadow-lg transition-all duration-300">
+            <Card
+              key={registration.registrationId}
+              className="bg-gradient-to-br from-slate-50/80 via-gray-50/80 to-zinc-50/80 dark:from-slate-950/50 dark:via-gray-950/50 dark:to-zinc-950/50 border-slate-200/50 dark:border-slate-800/50 hover:shadow-lg transition-all duration-300"
+            >
               <CardHeader className="bg-gradient-to-r from-blue-50/60 via-indigo-50/60 to-purple-50/60 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-t-lg border-b border-blue-200/30 dark:border-blue-800/30">
                 <div className="flex items-start justify-between">
                   <div>
@@ -381,7 +379,9 @@ export default function MyEventRegistrationsPage() {
       >
         <DialogContent className="sm:max-w-[525px] bg-gradient-to-br from-slate-50/95 via-gray-50/95 to-zinc-50/95 dark:from-slate-950/95 dark:via-gray-950/95 dark:to-zinc-950/95 border-slate-200/50 dark:border-slate-800/50">
           <DialogHeader className="bg-gradient-to-r from-green-50/80 via-emerald-50/80 to-teal-50/80 dark:from-green-950/40 dark:via-emerald-950/40 dark:to-teal-950/40 rounded-lg p-4 border border-green-200/50 dark:border-green-800/50">
-            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">Edit Registration</DialogTitle>
+            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+              Edit Registration
+            </DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Update your registration details for "
               {editingRegistration?.event?.eventName}"

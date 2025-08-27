@@ -15,6 +15,7 @@ import type { StatCard } from "@/components/public/StatsSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Heart,
   Target,
@@ -128,8 +129,7 @@ export default function PublicEventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [detailError, setDetailError] = useState<string | null>(null);
+
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 0,
@@ -140,7 +140,7 @@ export default function PublicEventsPage() {
   useEffect(() => {
     const loadEvents = async () => {
       setLoading(true);
-      setError(null);
+
       try {
         const result = await eventsService.getEvents(filters);
         setEvents(result.items);
@@ -159,7 +159,7 @@ export default function PublicEventsPage() {
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load events");
+        toast.error(err instanceof Error ? err.message : "Failed to load events");
       } finally {
         setLoading(false);
       }
@@ -173,12 +173,12 @@ export default function PublicEventsPage() {
     if (selectedEventId) {
       const loadEventDetail = async () => {
         setDetailLoading(true);
-        setDetailError(null);
+
         try {
           const result = await eventsService.getEvent(Number(selectedEventId));
           setSelectedEvent(result);
         } catch (err) {
-          setDetailError(
+          toast.error(
             err instanceof Error ? err.message : "Failed to load event details"
           );
         } finally {
@@ -218,12 +218,12 @@ export default function PublicEventsPage() {
     if (selectedEventId) {
       const loadEventDetail = async () => {
         setDetailLoading(true);
-        setDetailError(null);
+
         try {
           const result = await eventsService.getEvent(Number(selectedEventId));
           setSelectedEvent(result);
         } catch (err) {
-          setDetailError(
+          toast.error(
             err instanceof Error ? err.message : "Failed to load event details"
           );
         } finally {
@@ -672,8 +672,6 @@ export default function PublicEventsPage() {
       resultCount={pagination.totalItems}
       stats={statsCards}
       loading={loading}
-      error={error}
-      onRetry={handleRetry}
       isEmpty={mappedEvents.length === 0}
       pagination={{
         page: pagination.page,
@@ -686,8 +684,6 @@ export default function PublicEventsPage() {
       onPageChange={handlePageChange}
       
       detailLoading={detailLoading}
-      detailError={detailError}
-      onDetailRetry={handleDetailRetry}
       detailContent={<DetailContent />}
       listItems={mappedEvents.map((event) => (
         <EventListItem

@@ -32,6 +32,7 @@ import { DataTable } from "@/components/common/DataTable";
 import type { TableColumn, TableAction } from "@/components/common/DataTable";
 import { UserDetailsModal } from "@/components/admin/user-details/UserDetailsModal";
 import { LoadingState } from "@/components/common/LoadingState";
+import { toast } from "sonner";
 
 // Define UserListItem type based on UserListDto
 type UserListItem = UserListDto;
@@ -178,11 +179,11 @@ export default function UserManagementPageNew() {
   // Use the new state management
   const [users, setUsers] = useState<UserListDto[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [usersError, setUsersError] = useState<string | null>(null);
+
 
   const [stats, setStats] = useState<any[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState<string | null>(null);
+
 
   // Local state for UI
   const [filters, setFilters] = useState<ExtendedFilterDto>({
@@ -220,7 +221,6 @@ export default function UserManagementPageNew() {
 
   const loadUsers = async (currentFilters = filters) => {
     setUsersLoading(true);
-    setUsersError(null);
     try {
       const apiFilters: UserFiltersDto = {
         page: currentFilters.page,
@@ -233,7 +233,7 @@ export default function UserManagementPageNew() {
       setTotalItems(usersResult.totalItems);
       setTotalPages(usersResult.totalPages);
     } catch (err) {
-      setUsersError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to load users"
       );
     } finally {
@@ -243,12 +243,11 @@ export default function UserManagementPageNew() {
 
   const loadStats = async () => {
     setStatsLoading(true);
-    setStatsError(null);
     try {
       const statsResult = await userStatsService.getAll();
       setStats(statsResult);
     } catch (err) {
-      setStatsError(
+      toast.error(
         err instanceof Error ? err.message : "Failed to load stats"
       );
     } finally {
@@ -298,6 +297,7 @@ export default function UserManagementPageNew() {
       await Promise.all([loadUsers(), loadStats()]);
     } catch (error) {
       console.error("Failed to update user status:", error);
+      toast.error("Không thể cập nhật trạng thái người dùng");
     }
   };
 
@@ -497,26 +497,8 @@ export default function UserManagementPageNew() {
   // Determine loading state
   const isLoading = usersLoading && !users.length;
 
-  // Combine errors
-  const hasError = usersError || statsError;
-  const errorMessage = usersError || statsError;
-
   if (isLoading) {
     return <LoadingState loading={true} />;
-  }
-
-  if (hasError) {
-    return (
-      <div className="p-6">
-        <div className="text-red-600">
-          Error:{" "}
-          {typeof errorMessage === "string" ? errorMessage : "Đã xảy ra lỗi"}
-        </div>
-        <Button onClick={loadInitialData} className="mt-4">
-          Retry
-        </Button>
-      </div>
-    );
   }
 
   return (
@@ -690,13 +672,13 @@ export default function UserManagementPageNew() {
                 Không tìm thấy người dùng
               </h3>
               <p className="text-violet-600 dark:text-violet-400 mb-4">
-                {usersError ? 'Có lỗi xảy ra khi tải dữ liệu' : 'Thử điều chỉnh bộ lọc để xem kết quả khác'}
+                Thử điều chỉnh bộ lọc để xem kết quả khác
               </p>
               <Button
-                onClick={usersError ? loadInitialData : handleResetFilters}
+                onClick={handleResetFilters}
                 className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
               >
-                {usersError ? 'Thử lại' : 'Đặt lại bộ lọc'}
+                Đặt lại bộ lọc
               </Button>
             </div>
           )}
