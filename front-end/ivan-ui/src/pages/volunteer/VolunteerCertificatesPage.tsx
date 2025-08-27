@@ -52,7 +52,7 @@ export default function VolunteerCertificatesPage() {
 
   // Status configuration for UI
   const statusConfig = {
-    Pending: {
+    PendingApproval: {
       label: "Chờ phê duyệt",
       variant: "outline" as const,
       color: "text-yellow-600",
@@ -453,7 +453,7 @@ export default function VolunteerCertificatesPage() {
                               </>
                             )}
 
-                            {displayStatus === "Pending" && (
+                            {displayStatus === "PendingApproval" && (
                               <Button
                                 variant="outline"
                                 size="sm"

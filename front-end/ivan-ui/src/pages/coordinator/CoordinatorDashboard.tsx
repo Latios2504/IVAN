@@ -119,7 +119,7 @@ export default function CoordinatorDashboard() {
                     Chứng chỉ & Thành tích
                   </CardTitle>
                   <CardDescription className="text-orange-700/80 dark:text-orange-300/80">
-                    Xem chứng chỉ và theo dõi thành tích
+                    Tạo và nộp chứng chỉ cho tình nguyện viên
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
@@ -129,11 +129,11 @@ export default function CoordinatorDashboard() {
                     variant="outline"
                   >
                     <Link
-                      to="/organization/certificates"
+                      to="/coordinator/certificate-submission"
                       className="flex items-center gap-2"
                     >
-                      <Award className="w-4 h-4" />
-                      Xem chứng chỉ sự kiện
+                      <FileText className="w-4 h-4" />
+                      Nộp chứng chỉ cho tình nguyện viên
                     </Link>
                   </Button>
                 </CardContent>

@@ -51,7 +51,7 @@ export default function CertificateManagementPage() {
 
   // Status configuration for UI
   const statusConfig = {
-    Pending: {
+    PendingApproval: {
       label: "Chờ phê duyệt",
       variant: "outline" as const,
       color: "text-yellow-600",
@@ -116,7 +116,9 @@ export default function CertificateManagementPage() {
     const published = certificates.filter(
       (c) => c.status === "Published"
     ).length;
-    const pending = certificates.filter((c) => c.status === "Pending").length;
+    const pending = certificates.filter(
+      (c) => c.status === "PendingApproval"
+    ).length;
     const totalDownloads = certificates.reduce(
       (sum, c) => sum + (c.downloadCount || 0),
       0
@@ -277,7 +279,7 @@ export default function CertificateManagementPage() {
             Tất cả
           </TabsTrigger>
           <TabsTrigger
-            value="Pending"
+            value="PendingApproval"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-500 data-[state=active]:text-white"
           >
             Chờ phê duyệt
@@ -443,7 +445,7 @@ export default function CertificateManagementPage() {
                             </Button>
                           )}
 
-                          {certificate.status === "Pending" && (
+                          {certificate.status === "PendingApproval" && (
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700"
