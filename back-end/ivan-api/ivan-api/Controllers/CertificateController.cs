@@ -1,8 +1,11 @@
-using ivan_api.Services.Certificates;
-using Microsoft.AspNetCore.Mvc;
+using ivan_api.Constants;
 using ivan_api.DTOs.Certificates;
-using Microsoft.AspNetCore.Authorization;
 using ivan_api.DTOs.Common;
+using ivan_api.Services.AuthenticationSer;
+using ivan_api.Services.Certificates;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ivan_api.Controllers
 {
@@ -12,60 +15,54 @@ namespace ivan_api.Controllers
     public class CertificateController : ControllerBase
     {
         private readonly ICertificateService _service;
+        private readonly IAuthenticationService _auth;
 
-        public CertificateController(ICertificateService service)
+
+        public CertificateController(ICertificateService service, IAuthenticationService auth)
         {
             _service = service;
+            _auth = auth;
         }
 
         [HttpGet]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetList([FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
-            try
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = _auth.GetUserIdFromClaims(User);
+
+            var result = role switch
             {
-                var result = await _service.GetList(pageNumber, pageSize);
-                return Ok(new ApiResponseDTO<object>
-                {
-                    Success = true,
-                    Data = result,
-                    Message = "Certificates retrieved successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Failed to retrieve certificates",
-                    Errors = new List<string> { ex.Message }
-                });
-            }
+                AuthenticationConstants.Roles.Admin => await _service.GetAllCertificates(pageNumber, pageSize),
+                AuthenticationConstants.Roles.Volunteer => await _service.GetCertificatesForVolunteer(userId, pageNumber, pageSize),
+                AuthenticationConstants.Roles.Organization or AuthenticationConstants.Roles.VolunteerCoordinator
+                    => await _service.GetCertificatesForMyOrganization(userId, pageNumber, pageSize),
+                _ => null
+            };
+
+            if (result == null) return Forbid();
+
+            return Ok(new ApiResponseDTO<object> { Success = true, Data = result, Message = "Certificates retrieved successfully" });
+
         }
 
+
+
         [HttpGet("by-organization/{organizationId}")]
-        public async Task<ActionResult<ApiResponseDTO<object>>> GetByOrganization(int organizationId,
-            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [Authorize(Roles = $"{AuthenticationConstants.Roles.Admin},{AuthenticationConstants.Roles.Organization},{AuthenticationConstants.Roles.VolunteerCoordinator}")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetByOrganization(int organizationId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            try
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = _auth.GetUserIdFromClaims(User);
+
+            if (role != AuthenticationConstants.Roles.Admin)
             {
-                var result = await _service.GetCertificatesByOrganization(organizationId, pageNumber, pageSize);
-                return Ok(new ApiResponseDTO<object>
-                {
-                    Success = true,
-                    Data = result,
-                    Message = "Organization certificates retrieved successfully"
-                });
+                var myOrgId = await _service.ResolveMyOrganizationId(userId);
+                if (myOrgId == null || myOrgId.Value != organizationId) return Forbid();
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Failed to retrieve organization certificates",
-                    Errors = new List<string> { ex.Message }
-                });
-            }
+
+            var result = await _service.GetCertificatesByOrganization(organizationId, pageNumber, pageSize);
+            return Ok(new ApiResponseDTO<object> { Success = true, Data = result, Message = "Organization certificates retrieved successfully" });
         }
 
         [HttpPost("filter")]

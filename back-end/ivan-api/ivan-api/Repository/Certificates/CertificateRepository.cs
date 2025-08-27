@@ -58,7 +58,7 @@ namespace ivan_api.Repository.Certificates
                 .Include(x => x.Template)
                 .Include(x => x.Volunteer)
                 //.Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == organizationId)////////
-                .Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == 2/*organization role id*/ && org != null && c.IssuedBy == org.UserId)
+                .Where(c => c.Event.OrganizationId == organizationId)
                 .AsQueryable();
 
             var totalCount = await query.CountAsync();
@@ -136,57 +136,52 @@ namespace ivan_api.Repository.Certificates
         public async Task<IEnumerable<Certificate>> ListCertificate(CertificateFilterModel filter)
         {
             var query = _context.Certificates
-                .Include(x => x.Event)
-                .Include(x => x.IssuedByNavigation)
-                .Include(x => x.Template)
-                .Include(x => x.Volunteer)
-                .AsQueryable();
+        .AsNoTracking()
+        .Include(x => x.Event)
+        .Include(x => x.IssuedByNavigation)
+        .Include(x => x.Template)
+        .Include(x => x.Volunteer)
+        .AsQueryable();
 
-            if(filter.OrganizationId != null)
+            // ✅ ĐÚNG: lọc theo tổ chức của Event
+            if (filter.OrganizationId != null)
             {
-                var org = _context.Organizations.Find(filter.OrganizationId);
-
-                query = query
-                    .Where(c => c.IssuedByNavigation != null && c.IssuedByNavigation.RoleId == 2/*organization role id*/ && org != null && c.IssuedBy == org.UserId);
+                var orgId = filter.OrganizationId.Value;
+                query = query.Where(c => c.Event != null && c.Event.OrganizationId == orgId);
             }
+
             if (!string.IsNullOrWhiteSpace(filter.Status))
             {
-                query = query
-                    .Where(x => x.Status.ToLower().Contains(filter.Status.ToLower()));
+                var status = filter.Status.Trim();
+                query = query.Where(x => x.Status != null && EF.Functions.Like(x.Status, $"%{status}%"));
             }
             if (filter.VolunteerId != null)
-            {
-                query = query
-                    .Where(x => x.VolunteerId == filter.VolunteerId);
-            }
+                query = query.Where(x => x.VolunteerId == filter.VolunteerId);
+
             if (filter.EventId != null)
-            {
-                query = query
-                    .Where(x => x.EventId == filter.EventId);
-            }
+                query = query.Where(x => x.EventId == filter.EventId);
+
             if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
-                var term = filter.SearchTerm.ToLower();
+                var term = $"%{filter.SearchTerm.Trim()}%";
                 query = query.Where(x =>
-                    x.CertificateNumber.ToLower().Contains(term) ||
-                    x.CertificateName.ToLower().Contains(term) ||
-                    (x.Description != null && x.Description.ToLower().Contains(term)) ||
-                    (x.PerformanceLevel != null && x.PerformanceLevel.ToLower().Contains(term)) ||
-                    (x.Status != null && x.Status.ToLower().Contains(term)) ||
-                    (x.Event.EventName != null && x.Event.EventName.ToLower().Contains(term))
+                    EF.Functions.Like(x.CertificateNumber, term) ||
+                    EF.Functions.Like(x.CertificateName, term) ||
+                    (x.Description != null && EF.Functions.Like(x.Description, term)) ||
+                    (x.PerformanceLevel != null && EF.Functions.Like(x.PerformanceLevel, term)) ||
+                    (x.Status != null && EF.Functions.Like(x.Status, term)) ||
+                    (x.Event != null && x.Event.EventName != null && EF.Functions.Like(x.Event.EventName, term))
                 );
             }
+
             if (filter.IssuedDateFrom != null)
-            {
-                query = query.Where(x => x.IssueDate >= filter.IssuedDateFrom);
-            }
+                query = query.Where(x => x.IssueDate != null && x.IssueDate >= filter.IssuedDateFrom);
+
             if (filter.IssuedDateTo != null)
-            {
-                query = query.Where(x => x.IssueDate <= filter.IssuedDateTo);
-            }
+                query = query.Where(x => x.IssueDate != null && x.IssueDate <= filter.IssuedDateTo);
 
+            query = query.OrderByDescending(x => x.IssueDate); // ổn định thứ tự
 
-            //return query.ToList();
             return await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -307,6 +302,56 @@ namespace ivan_api.Repository.Certificates
                 .FirstOrDefaultAsync();
 
             return lastCertificate?.CertificateId ?? -1;
+        }
+
+
+        public async Task<PagedResultDto<CertificateViewModel>> GetCertificatesForVolunteerAsync(int userId, int page, int size)
+        {
+            var volunteerId = await _context.VolunteerProfiles
+                .Where(v => v.UserId == userId)
+                .Select(v => v.VolunteerId)
+                .FirstOrDefaultAsync();
+
+            if (volunteerId == 0)
+                return new PagedResultDto<CertificateViewModel> { Items = new List<CertificateViewModel>(), TotalCount = 0, PageNumber = page, PageSize = size };
+
+            var q = _context.Certificates
+                .Include(x => x.Event).Include(x => x.Template).Include(x => x.Volunteer)
+                .Where(c => c.VolunteerId == volunteerId);
+
+            var total = await q.CountAsync();
+            var items = await q.OrderByDescending(c => c.IssueDate)
+                .Skip((page - 1) * size).Take(size)
+                .ProjectTo<CertificateViewModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return new PagedResultDto<CertificateViewModel> { Items = items, TotalCount = total, PageNumber = page, PageSize = size };
+        }
+
+        public async Task<int?> ResolveOrganizationIdByUserAsync(int userId)
+        {
+            var orgId = await _context.Organizations
+                .Where(o => o.UserId == userId)
+                .Select(o => o.OrganizationId)
+                .FirstOrDefaultAsync();
+            if (orgId != 0) return orgId;
+
+            var coordOrgId = await _context.VolunteerCoordinators
+                .Where(c => c.UserId == userId)
+                .Select(c => c.OrganizationId)
+                .FirstOrDefaultAsync();
+            if (coordOrgId != 0) return coordOrgId;
+
+            return null;
+        }
+
+        public async Task<PagedResultDto<CertificateViewModel>> GetCertificatesForMyOrganizationAsync(int userId, int page, int size)
+        {
+            var orgId = await ResolveOrganizationIdByUserAsync(userId);
+            if (orgId == null)
+                return new PagedResultDto<CertificateViewModel> { Items = new List<CertificateViewModel>(), TotalCount = 0, PageNumber = page, PageSize = size };
+
+            return await GetCertificatesByOrganizationAsync(orgId.Value, page, size);
         }
     }
 }

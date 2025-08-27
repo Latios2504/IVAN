@@ -19,5 +19,10 @@ namespace ivan_api.Repository.Certificates
         Task<bool> RejectCertificate(int certificateId, string rejectionReason, int? rejectedBy);
         Task<bool> BulkUpdateCertificateStatus(List<int> certificateIds, string status, string? reason, int? updatedBy);
         Task<int> GetLastId();
+
+        Task<PagedResultDto<CertificateViewModel>> GetCertificatesForVolunteerAsync(int userId, int page, int size);
+        Task<PagedResultDto<CertificateViewModel>> GetCertificatesForMyOrganizationAsync(int userId, int page, int size);
+        Task<int?> ResolveOrganizationIdByUserAsync(int userId);
+
     }
 }

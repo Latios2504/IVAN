@@ -172,5 +172,17 @@ namespace ivan_api.Services.Certificates
         }
 
         public async Task<int> GetLastId() => await _repository.GetLastId();
+
+        public Task<PagedResultDto<CertificateViewModel>> GetAllCertificates(int page, int size)
+    => _repository.GetCertificatesAsync(page, size);
+
+        public Task<PagedResultDto<CertificateViewModel>> GetCertificatesForVolunteer(int userId, int page, int size)
+            => _repository.GetCertificatesForVolunteerAsync(userId, page, size);
+
+        public Task<PagedResultDto<CertificateViewModel>> GetCertificatesForMyOrganization(int userId, int page, int size)
+            => _repository.GetCertificatesForMyOrganizationAsync(userId, page, size);
+
+        public Task<int?> ResolveMyOrganizationId(int userId)
+            => _repository.ResolveOrganizationIdByUserAsync(userId);
     }
 }

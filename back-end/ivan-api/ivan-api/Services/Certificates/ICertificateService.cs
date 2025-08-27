@@ -19,5 +19,10 @@ namespace ivan_api.Services.Certificates
         Task<bool> BulkApproveCertificates(BulkCertificateActionModel bulkActionModel);
         Task<bool> BulkRevokeCertificates(BulkCertificateActionModel bulkActionModel);
         Task<int> GetLastId();
+
+        Task<PagedResultDto<CertificateViewModel>> GetAllCertificates(int pageNumber, int pageSize);
+        Task<PagedResultDto<CertificateViewModel>> GetCertificatesForVolunteer(int userId, int pageNumber, int pageSize);
+        Task<PagedResultDto<CertificateViewModel>> GetCertificatesForMyOrganization(int userId, int pageNumber, int pageSize);
+        Task<int?> ResolveMyOrganizationId(int userId);
     }
 }
