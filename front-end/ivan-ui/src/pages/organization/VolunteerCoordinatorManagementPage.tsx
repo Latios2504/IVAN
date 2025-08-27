@@ -5,9 +5,10 @@ import { VolunteerCoordinatorDashboard } from "@/components/organization/volunte
 import { VolunteerCoordinatorList } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorList";
 import { VolunteerCoordinatorFilters } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorFilters";
 import { CreateVolunteerCoordinatorDialog } from "@/components/organization/volunteer-coordinator-management/CreateVolunteerCoordinatorDialog";
+import { CreateCoordinatorRequestModal } from "@/components/organization/volunteer-coordinator-management/CreateCoordinatorRequestModal";
 import { LoadingState } from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Send } from "lucide-react";
 import type {
   VolunteerCoordinatorFilterDto,
   VolunteerCoordinatorDto,
@@ -74,6 +75,7 @@ const VolunteerCoordinatorManagementPage = () => {
   >(null);
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
   const [filters, setFilters] = useState<VolunteerCoordinatorFilterDto>({
     page: 1,
     size: 10,
@@ -170,6 +172,11 @@ const VolunteerCoordinatorManagementPage = () => {
     loadInitialData(); // Refresh all data
   };
 
+  const handleRequestSuccess = () => {
+    setShowRequestModal(false);
+    // Optionally refresh data or show success message
+  };
+
   const handleUpdateSuccess = () => {
     loadInitialData(); // Refresh all data
   };
@@ -216,10 +223,16 @@ const VolunteerCoordinatorManagementPage = () => {
             Manage your organization's volunteer coordinators
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Coordinator
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => setShowRequestModal(true)} variant="outline" className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-lg">
+            <Send className="w-4 h-4 mr-2" />
+            Gửi yêu cầu Coordinator
+          </Button>
+          <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Coordinator
+          </Button>
+        </div>
       </div>
 
       {/* Dashboard */}
@@ -251,12 +264,18 @@ const VolunteerCoordinatorManagementPage = () => {
             No coordinators yet
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Start by adding your first volunteer coordinator.
+            Start by adding your first volunteer coordinator or request one from admin.
           </p>
-          <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
-            <Plus className="w-4 h-4 mr-2" />
-            Add First Coordinator
-          </Button>
+          <div className="flex gap-3 justify-center">
+            <Button onClick={() => setShowRequestModal(true)} variant="outline" className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-lg">
+              <Send className="w-4 h-4 mr-2" />
+              Gửi yêu cầu Coordinator
+            </Button>
+            <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Coordinator
+            </Button>
+          </div>
         </div>
       )}
 
@@ -268,6 +287,14 @@ const VolunteerCoordinatorManagementPage = () => {
         organizationId={organizationId!}
         managementLevels={managementLevels}
         specializations={specializations}
+      />
+
+      {/* Coordinator Request Modal */}
+      <CreateCoordinatorRequestModal
+        isOpen={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+        onSuccess={handleRequestSuccess}
+        organizationId={organizationId!}
       />
     </div>
   );

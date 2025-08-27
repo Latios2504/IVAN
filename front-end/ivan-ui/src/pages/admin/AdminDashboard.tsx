@@ -90,7 +90,7 @@ export default function AdminDashboard() {
                       className="flex items-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      Kiểm duyệt sự kiện
+                      Kiểm duyệt các thành phần
                     </Link>
                   </Button>
                   <Button
