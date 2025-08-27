@@ -5,6 +5,7 @@ import type {
   EventDto,
   EventCategoryDto,
   EventStatusDto,
+  EventFilterDto,
 } from "@/types/events";
 import { EventList } from "@/components/organization/event-management/EventList";
 import { EventFilters } from "@/components/organization/event-management/EventFilters";
@@ -38,6 +39,14 @@ export default function EventManagementPage() {
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
+  // Filter state
+  const [filters, setFilters] = useState<EventFilterDto>({
+    page: 1,
+    size: 100,
+    sortBy: "startDate",
+    sortDirection: "desc",
+  });
+
   // Load all data on mount
   useEffect(() => {
     // Only load data if user has organization profile
@@ -48,25 +57,29 @@ export default function EventManagementPage() {
     }
   }, [user?.organizationId]);
 
-  const loadAllData = async () => {
+  // Load events when filters change
+  useEffect(() => {
+    if (user?.organizationId) {
+      loadEvents();
+    }
+  }, [filters, user?.organizationId]);
+
+  const loadEvents = async () => {
     // Check if user has organization profile
     if (!user?.organizationId) {
       setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
       return;
     }
 
-    // Load events - filter by organization's own events only
+    // Load events with current filters
     setEventsLoading(true);
     setEventsError(null);
     try {
-      const filters = {
-        page: 1,
-        size: 100,
-        sortBy: "startDate",
-        sortDirection: "desc" as const,
+      const eventFilters = {
+        ...filters,
         organizationId: user.organizationId, // Only load this organization's events
       };
-      const result = await eventsService.getEvents(filters);
+      const result = await eventsService.getEvents(eventFilters);
       setEvents(result.items);
     } catch (err) {
       setEventsError(
@@ -74,6 +87,14 @@ export default function EventManagementPage() {
       );
     } finally {
       setEventsLoading(false);
+    }
+  };
+
+  const loadAllData = async () => {
+    // Check if user has organization profile
+    if (!user?.organizationId) {
+      setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
+      return;
     }
 
     // Load categories
@@ -101,11 +122,43 @@ export default function EventManagementPage() {
 
   const handleCreateSuccess = () => {
     setShowCreateDialog(false);
-    loadAllData(); // Refresh events data
+    loadEvents(); // Refresh events data
   };
 
   const handleEditSuccess = () => {
-    loadAllData(); // Refresh events data
+    loadEvents(); // Refresh events data
+  };
+
+  // Handle filter changes from EventFilters component
+  const handleFiltersChange = (newFilters: any) => {
+    // Convert filter values from EventFilters component to EventFilterDto format
+    const updatedFilters: EventFilterDto = {
+      ...filters,
+      page: 1, // Reset to first page when filters change
+    };
+
+    // Handle search
+    if (newFilters.search && newFilters.search.trim()) {
+      updatedFilters.search = newFilters.search.trim();
+    } else {
+      delete updatedFilters.search;
+    }
+
+    // Handle category filter
+    if (newFilters.categoryId && newFilters.categoryId !== "all") {
+      updatedFilters.categoryIds = [parseInt(newFilters.categoryId)];
+    } else {
+      delete updatedFilters.categoryIds;
+    }
+
+    // Handle status filter
+    if (newFilters.statusId && newFilters.statusId !== "all") {
+      updatedFilters.statusIds = [parseInt(newFilters.statusId)];
+    } else {
+      delete updatedFilters.statusIds;
+    }
+
+    setFilters(updatedFilters);
   };
 
   // Calculate event statistics - must be before any early returns
@@ -191,7 +244,11 @@ export default function EventManagementPage() {
       </div>
 
       {/* Filters */}
-      <EventFilters categories={categories} statuses={statuses} />
+      <EventFilters 
+        categories={categories} 
+        statuses={statuses} 
+        onFiltersChange={handleFiltersChange}
+      />
 
       {/* Event List */}
       {events.length > 0 ? (
