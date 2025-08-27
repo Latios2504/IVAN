@@ -18,7 +18,7 @@ class CertificateService {
 
   // === CERTIFICATE CRUD OPERATIONS ===
 
-  // GET /api/Certificate - Get Certificates List
+  // GET /api/Certificate - Get Certificates List (matches backend ListCertificate)
   async getCertificates(
     pageNumber: number = 1,
     pageSize: number = 10
@@ -57,16 +57,20 @@ class CertificateService {
         pagedResult.items = (pagedResult.items as any).$values;
       }
       // Process DateTime fields for all items
-      pagedResult.items = pagedResult.items.map(item => this.processCertificateFromBackend(item));
+      pagedResult.items = pagedResult.items.map((item) =>
+        this.processCertificateFromBackend(item)
+      );
       return pagedResult;
     }
 
     const result = extractedData as PagedResultDto<CertificateViewModel>;
-    result.items = result.items.map(item => this.processCertificateFromBackend(item));
+    result.items = result.items.map((item) =>
+      this.processCertificateFromBackend(item)
+    );
     return result;
   }
 
-  // GET /api/Certificate/by-organization/{organizationId} - Get Certificates by Organization
+  // GET /api/Certificate/by-organization/{organizationId} - Get Certificates by Organization (matches backend GetCertificatesByOrganization)
   async getCertificatesByOrganization(
     organizationId: number,
     pageNumber: number = 1,
@@ -105,18 +109,25 @@ class CertificateService {
         pagedResult.items = (pagedResult.items as any).$values;
       }
       // Process DateTime fields for all items
-      pagedResult.items = pagedResult.items.map(item => this.processCertificateFromBackend(item));
+      pagedResult.items = pagedResult.items.map((item) =>
+        this.processCertificateFromBackend(item)
+      );
       return pagedResult;
     }
 
     const result = extractedData as PagedResultDto<CertificateViewModel>;
-    result.items = result.items.map(item => this.processCertificateFromBackend(item));
+    result.items = result.items.map((item) =>
+      this.processCertificateFromBackend(item)
+    );
     return result;
   }
 
-  // POST /api/Certificate/filter - Get Filtered Certificates
+  // POST /api/Certificate/filter - Get Filtered Certificates (matches backend FilterCertificates)
   async getFilteredCertificates(
-    filter: Partial<CertificateFilterModel> & { pageNumber?: number; pageSize?: number }
+    filter: Partial<CertificateFilterModel> & {
+      pageNumber?: number;
+      pageSize?: number;
+    }
   ): Promise<CertificateViewModel[]> {
     // Ensure required fields have default values
     const completeFilter: CertificateFilterModel = {
@@ -128,12 +139,12 @@ class CertificateService {
       eventId: filter.eventId,
       searchTerm: filter.searchTerm,
       issuedDateFrom: filter.issuedDateFrom,
-      issuedDateTo: filter.issuedDateTo
+      issuedDateTo: filter.issuedDateTo,
     };
-    
+
     // Process filter dates for backend
     const processedFilter = this.processFilterForBackend(completeFilter);
-    
+
     const response = await apiClient.post<CertificateViewModel[]>(
       `${this.baseUrl}/filter`,
       processedFilter
@@ -145,10 +156,10 @@ class CertificateService {
 
     const extractedData = apiClient.extractDataFromNetResponse(response.data);
     const certificates = Array.isArray(extractedData) ? extractedData : [];
-    return certificates.map(cert => this.processCertificateFromBackend(cert));
+    return certificates.map((cert) => this.processCertificateFromBackend(cert));
   }
 
-  // GET /api/Certificate/get/{id} - Get Certificate by ID
+  // GET /api/Certificate/get/{id} - Get Certificate by ID (matches backend GetCertificateById)
   async getCertificateById(id: number): Promise<CertificateViewModel> {
     const response = await apiClient.get<CertificateViewModel>(
       `${this.baseUrl}/get/${id}`
@@ -159,30 +170,13 @@ class CertificateService {
     return this.processCertificateFromBackend(response.data);
   }
 
-  // POST /api/Certificate/add - Create Certificate
+  // POST /api/Certificate/add - Create Certificate (matches backend AddCertificate)
   async createCertificate(
-    certificateData: CreateCertificateRequest
+    certificateData: CertificateInputModel
   ): Promise<CertificateViewModel> {
-    // Generate certificate number and verification code
-    const timestamp = Date.now();
-    const certificateNumber = `CERT-${timestamp}`;
-    const verificationCode = `VERIFY-${timestamp}`;
-
-    const inputModel: CertificateInputModel = {
-      volunteerId: certificateData.volunteerId,
-      eventId: certificateData.eventId,
-      templateId: certificateData.templateId,
-      certificateNumber,
-      certificateName: certificateData.certificateName,
-      description: certificateData.description,
-      hoursCompleted: certificateData.hoursCompleted,
-      performanceLevel: certificateData.performanceLevel,
-      verificationCode,
-    };
-
     const response = await apiClient.post<CertificateViewModel>(
       `${this.baseUrl}/add`,
-      inputModel
+      certificateData
     );
 
     if (!response.data) {
@@ -192,7 +186,7 @@ class CertificateService {
     return this.processCertificateFromBackend(response.data);
   }
 
-  // PUT /api/Certificate/update/{id} - Update Certificate
+  // PUT /api/Certificate/update/{id} - Update Certificate (matches backend UpdateCertificate)
   async updateCertificate(
     id: number,
     updateData: Partial<CertificateUpdateModel>
@@ -201,7 +195,9 @@ class CertificateService {
       certificateId: id,
       ...updateData,
       // Process expiryDate if provided
-      expiryDate: updateData.expiryDate ? this.formatDateForBackend(updateData.expiryDate) : updateData.expiryDate
+      expiryDate: updateData.expiryDate
+        ? this.formatDateForBackend(updateData.expiryDate)
+        : updateData.expiryDate,
     };
 
     const response = await apiClient.put<CertificateViewModel>(
@@ -216,7 +212,7 @@ class CertificateService {
     return this.processCertificateFromBackend(response.data);
   }
 
-  // DELETE /api/Certificate/delete/{id} - Delete Certificate
+  // DELETE /api/Certificate/delete/{id} - Delete Certificate (matches backend DeleteCertificate)
   async deleteCertificate(id: number): Promise<void> {
     const response = await apiClient.delete(`${this.baseUrl}/delete/${id}`);
     if (!response.success) {
@@ -226,7 +222,7 @@ class CertificateService {
 
   // === APPROVAL WORKFLOW ===
 
-  // PUT /api/Certificate/approve/{id} - Approve Certificate
+  // PUT /api/Certificate/approve/{id} - Approve Certificate (matches backend Approve)
   async approveCertificate(
     approvalData: CertificateApprovalModel
   ): Promise<CertificateViewModel> {
@@ -242,7 +238,7 @@ class CertificateService {
     return this.processCertificateFromBackend(response.data);
   }
 
-  // PUT /api/Certificate/reject/{id} - Reject Certificate
+  // PUT /api/Certificate/reject/{id} - Reject Certificate (matches backend Reject)
   async rejectCertificate(
     rejectionData: CertificateRejectionModel
   ): Promise<CertificateViewModel> {
@@ -260,7 +256,7 @@ class CertificateService {
 
   // === BULK OPERATIONS ===
 
-  // POST /api/Certificate/bulk-approve - Bulk Approve Certificates
+  // POST /api/Certificate/bulk-approve - Bulk Approve Certificates (matches backend BulkApprove)
   async bulkApproveCertificates(
     bulkData: BulkCertificateActionModel
   ): Promise<void> {
@@ -273,7 +269,7 @@ class CertificateService {
     }
   }
 
-  // POST /api/Certificate/bulk-revoke - Bulk Revoke Certificates
+  // POST /api/Certificate/bulk-revoke - Bulk Revoke Certificates (matches backend BulkRevoke)
   async bulkRevokeCertificates(
     bulkData: BulkCertificateActionModel
   ): Promise<void> {
@@ -286,9 +282,115 @@ class CertificateService {
     }
   }
 
+  // === MISSING BACKEND ENDPOINTS - NEED TO ADD ===
+
+  // GET /api/Certificate/by-volunteer/{volunteerId} - Get Certificates by Volunteer (matches backend GetCertificatesByVolunteer)
+  async getCertificatesByVolunteer(
+    volunteerId: number,
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Promise<PagedResultDto<CertificateViewModel>> {
+    const response = await apiClient.get<PagedResultDto<CertificateViewModel>>(
+      `${this.baseUrl}/by-volunteer/${volunteerId}`,
+      { pageNumber, pageSize }
+    );
+
+    if (!response.data) {
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
+
+    if (
+      extractedData &&
+      typeof extractedData === "object" &&
+      "items" in extractedData
+    ) {
+      const pagedResult = extractedData as PagedResultDto<CertificateViewModel>;
+      if (
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
+      ) {
+        pagedResult.items = (pagedResult.items as any).$values;
+      }
+      // Process DateTime fields for all items
+      pagedResult.items = pagedResult.items.map((item) =>
+        this.processCertificateFromBackend(item)
+      );
+      return pagedResult;
+    }
+
+    const result = extractedData as PagedResultDto<CertificateViewModel>;
+    result.items = result.items.map((item) =>
+      this.processCertificateFromBackend(item)
+    );
+    return result;
+  }
+
+  // GET /api/Certificate/by-coordinator/{coordinatorId} - Get Certificates by Coordinator (matches backend GetCertificatesByCoordinator)
+  async getCertificatesByCoordinator(
+    coordinatorId: number,
+    pageNumber: number = 1,
+    pageSize: number = 10
+  ): Promise<PagedResultDto<CertificateViewModel>> {
+    const response = await apiClient.get<PagedResultDto<CertificateViewModel>>(
+      `${this.baseUrl}/by-coordinator/${coordinatorId}`,
+      { pageNumber, pageSize }
+    );
+
+    if (!response.data) {
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
+
+    if (
+      extractedData &&
+      typeof extractedData === "object" &&
+      "items" in extractedData
+    ) {
+      const pagedResult = extractedData as PagedResultDto<CertificateViewModel>;
+      if (
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
+      ) {
+        pagedResult.items = (pagedResult.items as any).$values;
+      }
+      // Process DateTime fields for all items
+      pagedResult.items = pagedResult.items.map((item) =>
+        this.processCertificateFromBackend(item)
+      );
+      return pagedResult;
+    }
+
+    const result = extractedData as PagedResultDto<CertificateViewModel>;
+    result.items = result.items.map((item) =>
+      this.processCertificateFromBackend(item)
+    );
+    return result;
+  }
+
   // === DOWNLOAD FUNCTIONALITY ===
 
-  // GET /api/Certificate/download/{id} - Download Certificate PDF
+  // GET /api/Certificate/download/{id} - Download Certificate PDF (matches backend Download)
   async downloadCertificate(id: number): Promise<CertificateDownloadResponse> {
     try {
       // Get certificate details first to generate filename
@@ -357,22 +459,26 @@ class CertificateService {
   // === DATE/TIME CONVERSION UTILITIES ===
 
   // Convert Date to ISO string for backend (DateTime fields)
-  private formatDateForBackend(date: Date | string | null | undefined): string | undefined {
+  private formatDateForBackend(
+    date: Date | string | null | undefined
+  ): string | undefined {
     if (!date) return undefined;
-    
-    if (typeof date === 'string') {
+
+    if (typeof date === "string") {
       // If already a string, validate and return
       const parsedDate = new Date(date);
       return isNaN(parsedDate.getTime()) ? undefined : parsedDate.toISOString();
     }
-    
+
     return date.toISOString();
   }
 
   // Convert backend DateTime string to frontend display format
-  private formatDateFromBackend(dateString: string | null | undefined): string | undefined {
+  private formatDateFromBackend(
+    dateString: string | null | undefined
+  ): string | undefined {
     if (!dateString) return undefined;
-    
+
     try {
       const date = new Date(dateString);
       return isNaN(date.getTime()) ? undefined : date.toISOString();
@@ -382,15 +488,21 @@ class CertificateService {
   }
 
   // Process certificate data from backend (convert DateTime fields)
-  private processCertificateFromBackend(certificate: any): CertificateViewModel {
+  private processCertificateFromBackend(
+    certificate: any
+  ): CertificateViewModel {
     return {
       ...certificate,
       issueDate: this.formatDateFromBackend(certificate.issueDate),
       expiryDate: this.formatDateFromBackend(certificate.expiryDate),
-      lastDownloadDate: this.formatDateFromBackend(certificate.lastDownloadDate),
+      lastDownloadDate: this.formatDateFromBackend(
+        certificate.lastDownloadDate
+      ),
       createdAt: this.formatDateFromBackend(certificate.createdAt),
       // Ensure hoursCompleted is properly handled as number
-      hoursCompleted: certificate.hoursCompleted ? Number(certificate.hoursCompleted) : undefined
+      hoursCompleted: certificate.hoursCompleted
+        ? Number(certificate.hoursCompleted)
+        : undefined,
     };
   }
 
@@ -405,12 +517,12 @@ class CertificateService {
       eventId: filter.eventId,
       searchTerm: filter.searchTerm,
       issuedDateFrom: this.formatDateForBackend(filter.issuedDateFrom),
-      issuedDateTo: this.formatDateForBackend(filter.issuedDateTo)
+      issuedDateTo: this.formatDateForBackend(filter.issuedDateTo),
     };
   }
 
   // Validate certificate data before submission
-  validateCertificateData(data: CreateCertificateRequest): string[] {
+  validateCertificateData(data: CertificateInputModel): string[] {
     const errors: string[] = [];
 
     if (!data.certificateName?.trim()) {
@@ -427,6 +539,14 @@ class CertificateService {
 
     if (!data.templateId || data.templateId <= 0) {
       errors.push("Valid template ID is required");
+    }
+
+    if (!data.certificateNumber?.trim()) {
+      errors.push("Certificate number is required");
+    }
+
+    if (!data.verificationCode?.trim()) {
+      errors.push("Verification code is required");
     }
 
     if (data.hoursCompleted && data.hoursCompleted < 0) {

@@ -61,7 +61,9 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
     return (
       <div className="flex items-center justify-center py-8 bg-muted/30 border-border rounded-2xl shadow-lg">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-2 text-foreground">Đang tải thông tin đối tác...</span>
+        <span className="ml-2 text-foreground">
+          Đang tải thông tin đối tác...
+        </span>
       </div>
     );
   }
@@ -100,19 +102,15 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
             </p>
           </div>
           <div>
-            <Label className="text-foreground font-medium">Lĩnh vực</Label>
-            <p className="text-sm text-muted-foreground">
-              {partnerProfile.industryName || "Chưa cập nhật"}
-            </p>
-          </div>
-          <div>
             <Label className="text-foreground font-medium">Mã số thuế</Label>
             <p className="text-sm text-muted-foreground">
               {partnerProfile.taxCode || "Chưa cập nhật"}
             </p>
           </div>
           <div>
-            <Label className="text-foreground font-medium">Giấy phép kinh doanh</Label>
+            <Label className="text-foreground font-medium">
+              Giấy phép kinh doanh
+            </Label>
             <p className="text-sm text-muted-foreground">
               {partnerProfile.businessLicense || "Chưa cập nhật"}
             </p>
@@ -126,7 +124,9 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
       {partnerProfile.description && (
         <>
           <div className="bg-muted/30 border-border rounded-2xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-foreground">Mô tả công ty</h3>
+            <h3 className="text-lg font-semibold mb-4 text-foreground">
+              Mô tả công ty
+            </h3>
             <p className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-xl border-border shadow-sm">
               {partnerProfile.description}
             </p>
@@ -161,7 +161,9 @@ export function PartnerProfileTab({ user }: PartnerProfileTabProps) {
             </p>
           </div>
           <div>
-            <Label className="text-foreground font-medium">Điện thoại liên hệ</Label>
+            <Label className="text-foreground font-medium">
+              Điện thoại liên hệ
+            </Label>
             <p className="text-sm text-muted-foreground">
               {partnerProfile.contactPhone || "Chưa cập nhật"}
             </p>

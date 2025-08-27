@@ -1,6 +1,6 @@
 // Certificate Types - Matching backend Certificate DTOs and Models
 // Updated to match backend DTOs exactly - DateTime fields handled as strings in frontend
-// HoursCompleted kept as number (decimal from backend will be converted)
+// HoursCompleted as number (decimal from backend converted to number)
 
 // Base Certificate interfaces matching backend DTOs
 export interface CertificateViewModel {
@@ -11,10 +11,10 @@ export interface CertificateViewModel {
   certificateNumber: string;
   certificateName: string;
   description?: string;
-  hoursCompleted?: number;
+  hoursCompleted?: number; // decimal? in backend -> number? in frontend
   performanceLevel?: string;
-  issueDate?: string;
-  expiryDate?: string;
+  issueDate?: string; // DateTime? in backend -> string? in frontend
+  expiryDate?: string; // DateTime? in backend -> string? in frontend
   certificateFileUrl?: string;
   digitalSignature?: string;
   verificationCode: string;
@@ -22,8 +22,8 @@ export interface CertificateViewModel {
   issuedBy?: number;
   status?: string;
   downloadCount?: number;
-  lastDownloadDate?: string;
-  createdAt?: string;
+  lastDownloadDate?: string; // DateTime? in backend -> string? in frontend
+  createdAt?: string; // DateTime? in backend -> string? in frontend
 }
 
 export interface CertificateInputModel {
@@ -33,7 +33,7 @@ export interface CertificateInputModel {
   certificateNumber: string;
   certificateName: string;
   description?: string;
-  hoursCompleted?: number;
+  hoursCompleted?: number; // decimal? in backend -> number? in frontend
   performanceLevel?: string;
   certificateFileUrl?: string;
   digitalSignature?: string;
@@ -42,25 +42,25 @@ export interface CertificateInputModel {
 }
 
 export interface CertificateUpdateModel {
-  certificateId: number;
+  certificateId: number; // [Required] in backend
   certificateName?: string;
   description?: string;
   performanceLevel?: string;
-  expiryDate?: string;
+  expiryDate?: string; // DateTime? in backend -> string? in frontend
   status?: string;
-  hoursCompleted?: number;
+  hoursCompleted?: number; // decimal? in backend -> number? in frontend
 }
 
 export interface CertificateFilterModel {
-  pageNumber: number;
-  pageSize: number;
+  pageNumber: number; // default 1 in backend
+  pageSize: number; // default 10 in backend
   organizationId?: number;
   status?: string;
   volunteerId?: number;
   eventId?: number;
   searchTerm?: string;
-  issuedDateFrom?: string;
-  issuedDateTo?: string;
+  issuedDateFrom?: string; // DateTime? in backend -> string? in frontend
+  issuedDateTo?: string; // DateTime? in backend -> string? in frontend
 }
 
 // Bulk action models
@@ -71,9 +71,9 @@ export interface BulkCertificateActionModel {
 }
 
 export interface CertificateApprovalModel {
-  certificateId: number;
+  certificateId: number; // [Required] in backend, but controller handles null/0 cases
   approvalNotes?: string;
-  approvedBy?: number;
+  approvedBy?: number; // Set by backend from JWT, not from frontend
 }
 
 export interface CertificateRejectionModel {

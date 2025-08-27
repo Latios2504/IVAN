@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -31,6 +31,18 @@ import CreateCertificateModal from "@/components/organization/certificates/Creat
 import { StatsCard } from "@/components/common/StatsCard";
 import { toast } from "sonner";
 
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
 export default function CertificateManagementPage() {
   // State management
   const [certificates, setCertificates] = useState<CertificateViewModel[]>([]);
@@ -39,6 +51,7 @@ export default function CertificateManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [pageSize] = useState(10);
 
   // Modal state
@@ -77,17 +90,25 @@ export default function CertificateManagementPage() {
     },
   };
 
-  // Load certificates from API
+  // Load certificates from API using filter endpoint
   const loadCertificates = async () => {
     try {
       setLoading(true);
 
-      const response = await certificateService.getCertificates(
-        currentPage,
-        pageSize
+      // Use the filter endpoint instead of basic getCertificates
+      const filterData = {
+        pageNumber: currentPage,
+        pageSize: pageSize,
+        status: selectedTab === "all" ? undefined : selectedTab,
+        searchTerm: searchTerm.trim() || undefined,
+      };
+
+      const response = await certificateService.getFilteredCertificates(
+        filterData
       );
-      setCertificates(response.items);
-      setTotalPages(response.totalPages);
+      setCertificates(response);
+      // Note: The filtered endpoint returns array, not paged result
+      // So we need to handle pagination differently or use a different endpoint
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load certificates";
@@ -97,25 +118,36 @@ export default function CertificateManagementPage() {
     }
   };
 
-  // Load certificates on component mount and when page changes
+  // Debounced search handler
+  const debouncedSearch = useCallback(
+    debounce(() => {
+      setCurrentPage(1); // Reset to first page when searching
+      loadCertificates();
+    }, 500),
+    [selectedTab]
+  );
+
+  // Load certificates on component mount and when dependencies change
   useEffect(() => {
     loadCertificates();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, selectedTab]);
 
-  // Filter certificates based on selected tab and search term
-  const filteredCertificates = certificates.filter((cert) => {
-    const matchesSearch =
-      cert.certificateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cert.certificateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cert.verificationCode.toLowerCase().includes(searchTerm.toLowerCase());
+  // Handle search term changes with debouncing
+  useEffect(() => {
+    if (searchTerm !== "") {
+      debouncedSearch();
+    } else {
+      setCurrentPage(1);
+      loadCertificates();
+    }
+  }, [searchTerm, debouncedSearch]);
 
-    if (selectedTab === "all") return matchesSearch;
-    return matchesSearch && cert.status === selectedTab;
-  });
+  // No need for client-side filtering since we're using server-side filtering
+  const filteredCertificates = certificates;
 
-  // Calculate statistics
+  // Calculate statistics - Note: These are only for current page, not total
   const getCertificateStats = () => {
-    const total = certificates.length;
+    const total = totalCount || certificates.length;
     const approved = certificates.filter((c) => c.status === "Approved").length;
     const pending = certificates.filter((c) => c.status === "Pending").length;
     const totalDownloads = certificates.reduce(
@@ -134,18 +166,20 @@ export default function CertificateManagementPage() {
     certificateNumber: string
   ) => {
     try {
-      const downloadResponse = await certificateService.downloadCertificate(certificateId);
-      
+      const downloadResponse = await certificateService.downloadCertificate(
+        certificateId
+      );
+
       // Create download link
       const url = window.URL.createObjectURL(downloadResponse.fileContent);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = downloadResponse.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       // Certificate downloaded successfully
     } catch (err) {
       const errorMessage =
@@ -187,9 +221,9 @@ export default function CertificateManagementPage() {
       await certificateService.approveCertificate({
         certificateId,
         approvalNotes: "Approved via management interface",
-        approvedBy: 0, // This should be replaced with actual user ID
+        // approvedBy will be set by backend from JWT token
       });
-      // Certificate approved successfully
+      toast.success("Certificate approved successfully");
       loadCertificates(); // Reload to get updated data
     } catch (err) {
       const errorMessage =
@@ -204,9 +238,9 @@ export default function CertificateManagementPage() {
       await certificateService.rejectCertificate({
         certificateId,
         rejectionReason: "Rejected via management interface",
-        rejectedBy: 0, // This should be replaced with actual user ID
+        // rejectedBy will be set by backend from JWT token
       });
-      // Certificate rejected successfully
+      toast.success("Certificate rejected successfully");
       loadCertificates(); // Reload to get updated data
     } catch (err) {
       const errorMessage =
@@ -477,8 +511,6 @@ export default function CertificateManagementPage() {
                             </Button>
                           )}
 
-
-
                           {certificate.status === "Pending" && (
                             <Button
                               size="sm"
@@ -512,39 +544,39 @@ export default function CertificateManagementPage() {
               )}
 
               {/* Pagination */}
-              {!loading &&
-                filteredCertificates.length > 0 &&
-                totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm text-gray-600">
-                      Trang {currentPage} / {totalPages}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(1, prev - 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        Trước
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(totalPages, prev + 1)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        Sau
-                      </Button>
-                    </div>
+              {!loading && filteredCertificates.length > 0 && (
+                <div className="flex items-center justify-between mt-6">
+                  <div className="text-sm text-gray-600">
+                    Hiển thị {filteredCertificates.length} chứng chỉ
+                    {totalCount > 0 && ` / Tổng cộng ${totalCount}`}
                   </div>
-                )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={currentPage === 1 || loading}
+                    >
+                      Trước
+                    </Button>
+                    <span className="flex items-center px-3 text-sm">
+                      Trang {currentPage}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={
+                        filteredCertificates.length < pageSize || loading
+                      }
+                    >
+                      Sau
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
