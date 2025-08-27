@@ -15,18 +15,13 @@ interface VolunteerListItemProps {
     rating?: number;
     ratingCount?: number;
     totalHours: number;
-    status: "active" | "inactive" | "busy";
   };
   isSelected?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
-const statusConfig = {
-  active: { label: "Hoạt động", color: "text-green-600", bgColor: "bg-green-100" },
-  inactive: { label: "Không hoạt động", color: "text-gray-600", bgColor: "bg-gray-100" },
-  busy: { label: "Bận", color: "text-orange-600", bgColor: "bg-orange-100" },
-};
+
 
 export function VolunteerListItem({
   volunteer,
@@ -34,7 +29,6 @@ export function VolunteerListItem({
   onClick,
   className,
 }: VolunteerListItemProps) {
-  const statusInfo = statusConfig[volunteer.status];
 
   return (
     <div
@@ -59,11 +53,7 @@ export function VolunteerListItem({
               {volunteer.name.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          {/* Status indicator */}
-          <div className={cn(
-            "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background",
-            statusInfo.bgColor
-          )} />
+
         </div>
 
         {/* Content */}
@@ -78,9 +68,7 @@ export function VolunteerListItem({
                 <Shield className="h-3 w-3 text-blue-500 flex-shrink-0" />
               )}
             </div>
-            <span className={cn("text-xs font-medium", statusInfo.color)}>
-              {statusInfo.label}
-            </span>
+
           </div>
 
           {/* Bio */}

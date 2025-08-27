@@ -36,7 +36,6 @@ const mapVolunteerToListItem = (
   rating?: number;
   ratingCount?: number;
   totalHours: number;
-  status: "active" | "inactive" | "busy";
 } => {
   return {
     id: volunteer.volunteerId?.toString() || "0",
@@ -49,9 +48,6 @@ const mapVolunteerToListItem = (
     rating: volunteer.rating || 0,
     ratingCount: volunteer.ratingCount || 0,
     totalHours: volunteer.totalHoursVolunteered || 0,
-    status: volunteer.isVerified
-      ? "active"
-      : ("inactive" as "active" | "inactive" | "busy"),
   };
 };
 
@@ -241,30 +237,13 @@ export default function PublicVolunteersPage() {
     },
   ];
 
-  const statusConfig = {
-    active: {
-      label: "Hoạt động",
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    inactive: {
-      label: "Không hoạt động",
-      color: "text-gray-600",
-      bgColor: "bg-gray-100",
-    },
-    busy: { label: "Bận", color: "text-orange-600", bgColor: "bg-orange-100" },
-  };
+
 
   // Detail content component
   const DetailContent = () => {
     if (!selectedVolunteer) return null;
 
-    // Calculate status based on volunteer data
-    let status: "active" | "inactive" | "busy" = "active";
-    if (selectedVolunteer.isVerified) {
-      status = "active";
-    }
-    const statusInfo = statusConfig[status] || statusConfig.active;
+
 
     return (
       <div className="space-y-6">
@@ -275,10 +254,7 @@ export default function PublicVolunteersPage() {
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-blue-500 flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg">
                 {selectedVolunteer.fullName?.slice(0, 2).toUpperCase()}
               </div>
-              {/* Status indicator */}
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-3 border-background bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-white" />
-              </div>
+
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
@@ -293,9 +269,6 @@ export default function PublicVolunteersPage() {
                 )}
               </div>
               <div className="flex items-center gap-3 mb-3">
-                <Badge className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 text-green-700 dark:text-green-300 border-0">
-                  {statusInfo.label}
-                </Badge>
                 {selectedVolunteer.province && (
                   <div className="flex items-center gap-1 text-sm text-foreground/70">
                     <MapPin className="h-4 w-4" />

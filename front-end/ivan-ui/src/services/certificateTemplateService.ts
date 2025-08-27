@@ -103,11 +103,19 @@ class CertificateTemplateService {
 
   // POST /api/CertificateTemplate/filter - Get Filtered Certificates (Organization-specific)
   async getFilteredCertificateTemplates(
-    filter: CertificateTemplateFilterModel
+    filter: Partial<CertificateTemplateFilterModel> & { pageNumber?: number; pageSize?: number }
   ): Promise<PagedResultDto<CertificateTemplateViewModel>> {
+    // Ensure required fields have default values
+    const completeFilter: CertificateTemplateFilterModel = {
+      pageNumber: filter.pageNumber || 1,
+      pageSize: filter.pageSize || 10,
+      organizationId: filter.organizationId,
+      searchTerm: filter.searchTerm
+    };
+    
     const response = await apiClient.post<
       PagedResultDto<CertificateTemplateViewModel>
-    >(`${this.baseUrl}/filter`, filter);
+    >(`${this.baseUrl}/filter`, completeFilter);
 
     if (!response.data || !response.success) {
       return {

@@ -116,10 +116,23 @@ class CertificateService {
 
   // POST /api/Certificate/filter - Get Filtered Certificates
   async getFilteredCertificates(
-    filter: CertificateFilterModel
+    filter: Partial<CertificateFilterModel> & { pageNumber?: number; pageSize?: number }
   ): Promise<CertificateViewModel[]> {
+    // Ensure required fields have default values
+    const completeFilter: CertificateFilterModel = {
+      pageNumber: filter.pageNumber || 1,
+      pageSize: filter.pageSize || 10,
+      organizationId: filter.organizationId,
+      status: filter.status,
+      volunteerId: filter.volunteerId,
+      eventId: filter.eventId,
+      searchTerm: filter.searchTerm,
+      issuedDateFrom: filter.issuedDateFrom,
+      issuedDateTo: filter.issuedDateTo
+    };
+    
     // Process filter dates for backend
-    const processedFilter = this.processFilterForBackend(filter);
+    const processedFilter = this.processFilterForBackend(completeFilter);
     
     const response = await apiClient.post<CertificateViewModel[]>(
       `${this.baseUrl}/filter`,
@@ -384,7 +397,13 @@ class CertificateService {
   // Process filter data for backend (convert date strings to DateTime)
   private processFilterForBackend(filter: CertificateFilterModel): any {
     return {
-      ...filter,
+      pageNumber: filter.pageNumber || 1,
+      pageSize: filter.pageSize || 10,
+      organizationId: filter.organizationId,
+      status: filter.status,
+      volunteerId: filter.volunteerId,
+      eventId: filter.eventId,
+      searchTerm: filter.searchTerm,
       issuedDateFrom: this.formatDateForBackend(filter.issuedDateFrom),
       issuedDateTo: this.formatDateForBackend(filter.issuedDateTo)
     };
