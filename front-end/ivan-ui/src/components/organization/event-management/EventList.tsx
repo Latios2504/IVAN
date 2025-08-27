@@ -42,13 +42,11 @@ export const EventList: React.FC<EventListProps> = ({
   const [categories, setCategories] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Load categories and statuses on mount
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      setError(null);
       try {
         const [categoriesResult, statusesResult] = await Promise.all([
           categoriesService.getAll(),
@@ -57,7 +55,9 @@ export const EventList: React.FC<EventListProps> = ({
         setCategories(categoriesResult);
         setStatuses(statusesResult);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Không thể tải dữ liệu");
+        toast.error(
+          err instanceof Error ? err.message : "Không thể tải dữ liệu"
+        );
       } finally {
         setLoading(false);
       }
@@ -88,7 +88,6 @@ export const EventList: React.FC<EventListProps> = ({
     if (confirm(`Bạn có chắc chắn muốn xóa "${event.eventName}"?`)) {
       try {
         await eventsService.deleteEvent(event.eventId);
-        toast.success("Đã xóa sự kiện thành công");
         onEventUpdated?.();
       } catch (error) {
         toast.error("Không thể xóa sự kiện. Vui lòng thử lại.");
@@ -117,7 +116,6 @@ export const EventList: React.FC<EventListProps> = ({
       await eventsService.updateEventStatus(event.eventId, {
         status: "Ongoing",
       });
-      toast.success("Đã bắt đầu sự kiện");
       onEventUpdated?.();
     } catch (error) {
       console.error("Lỗi khi bắt đầu sự kiện:", error);
@@ -130,7 +128,6 @@ export const EventList: React.FC<EventListProps> = ({
       await eventsService.updateEventStatus(event.eventId, {
         status: "Completed",
       });
-      toast.success("Đã hoàn thành sự kiện");
       onEventUpdated?.();
     } catch (error) {
       console.error("Lỗi khi hoàn thành sự kiện:", error);
@@ -144,7 +141,6 @@ export const EventList: React.FC<EventListProps> = ({
         await eventsService.updateEventStatus(event.eventId, {
           status: "Cancelled",
         });
-        toast.success("Đã hủy sự kiện");
         onEventUpdated?.();
       } catch (error) {
         console.error("Lỗi khi hủy sự kiện:", error);
@@ -158,7 +154,6 @@ export const EventList: React.FC<EventListProps> = ({
       await eventsService.updateEventStatus(event.eventId, {
         status: "Published",
       });
-      toast.success("Đã xuất bản sự kiện");
       onEventUpdated?.();
     } catch (error) {
       console.error("Lỗi khi xuất bản sự kiện:", error);
@@ -320,6 +315,8 @@ export const EventList: React.FC<EventListProps> = ({
       },
     },
   ];
+
+  // Error handling now uses toast notifications
 
   return (
     <>

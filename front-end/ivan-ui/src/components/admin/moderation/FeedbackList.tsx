@@ -26,7 +26,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
 }) => {
   // Render rating stars
   const renderRating = (rating: number | null | undefined) => {
-    if (!rating) return <span className="text-muted-foreground text-sm">No rating</span>;
+    if (!rating) return <span className="text-muted-foreground text-sm">Chưa đánh giá</span>;
     
     return (
       <div className="flex items-center gap-1">
@@ -47,7 +47,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
 
   // Truncate content for display
   const truncateContent = (content: string, maxLength: number = 50) => {
-    if (!content) return 'No content';
+    if (!content) return 'Không có nội dung';
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength).trim() + '...';
   };
@@ -58,7 +58,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Feedback Management
+            Quản lý phản hồi
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -82,9 +82,9 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
         <CardContent>
           <div className="text-center py-8">
             <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Feedback Found</h3>
+            <h3 className="text-lg font-semibold mb-2">Không tìm thấy phản hồi</h3>
             <p className="text-muted-foreground">
-              No feedback submissions are available at the moment.
+              Hiện tại không có phản hồi nào.
             </p>
           </div>
         </CardContent>
@@ -97,7 +97,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
-          Feedback Management ({feedbacks.length})
+          Quản lý phản hồi ({feedbacks.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -105,14 +105,14 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[180px]">Subject</TableHead>
-                <TableHead className="w-[120px]">Category</TableHead>
-                <TableHead className="w-[100px]">Rating</TableHead>
-                <TableHead className="w-[250px]">Content</TableHead>
-                <TableHead className="w-[100px]">Status</TableHead>
-                <TableHead className="w-[80px]">Event</TableHead>
-                <TableHead className="w-[80px]">User</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead className="w-[180px]">Chủ đề</TableHead>
+                <TableHead className="w-[120px]">Danh mục</TableHead>
+                <TableHead className="w-[100px]">Đánh giá</TableHead>
+                <TableHead className="w-[250px]">Nội dung</TableHead>
+                <TableHead className="w-[100px]">Trạng thái</TableHead>
+                <TableHead className="w-[80px]">Sự kiện</TableHead>
+                <TableHead className="w-[80px]">Người dùng</TableHead>
+                <TableHead className="w-[100px]">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -125,7 +125,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
                         <span>ID: {feedback.feedbackId}</span>
                         {feedback.isAnonymous && (
                           <Badge variant="outline" className="text-xs px-1 py-0">
-                            Anonymous
+                            Ẩn danh
                           </Badge>
                         )}
                       </div>
@@ -134,7 +134,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
                   
                   <TableCell>
                     <Badge variant="secondary" className="text-xs">
-                      {feedback.categoryName || 'General'}
+                      {feedback.categoryName || 'Chung'}
                     </Badge>
                   </TableCell>
                   
@@ -161,8 +161,8 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
                       }
                       className="text-xs"
                     >
-                      {feedback.status || 'Pending'}
-                    </Badge>
+                       {feedback.status || 'Chờ duyệt'}
+                     </Badge>
                   </TableCell>
                   
                   <TableCell>
@@ -187,7 +187,7 @@ export const FeedbackList: React.FC<FeedbackListProps> = ({
                       className="flex items-center gap-1 text-xs h-8"
                     >
                       <Eye className="h-3 w-3" />
-                      Manage
+                      Quản lý
                     </Button>
                   </TableCell>
                 </TableRow>

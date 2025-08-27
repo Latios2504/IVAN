@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -23,7 +23,6 @@ import { format } from "date-fns";
 import { CalendarIcon, Send, X } from "lucide-react";
 import { coordinatorRequestService } from "@/services/coordinatorRequestService";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
 import type { CoordinatorRequestCreatePayload } from "@/types/coordinatorRequest";
 
 interface CreateCoordinatorRequestModalProps {
@@ -46,7 +45,7 @@ export const CreateCoordinatorRequestModal: React.FC<
     hireDate: new Date(),
     managerUserId: null,
   });
-  const [error, setError] = useState<string | null>(null);
+
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const handleInputChange = (
@@ -54,26 +53,39 @@ export const CreateCoordinatorRequestModal: React.FC<
     value: any
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (error) {
-      setError(null);
-    }
+
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       // Validate form data
-      const validation =
-        coordinatorRequestService.validateCoordinatorRequestData(formData);
-      if (!validation.isValid) {
-        setError(validation.errors.join(", "));
-        setLoading(false);
-        return;
-      }
+      if (!formData.candidateEmail.trim()) {
+         toast.error("Email ứng viên không được để trống");
+         return;
+       }
+       if (!formData.fullName.trim()) {
+         toast.error("Họ và tên không được để trống");
+         return;
+       }
+       if (!formData.position.trim()) {
+         toast.error("Vị trí không được để trống");
+         return;
+       }
+       if (!formData.department.trim()) {
+         toast.error("Phòng ban không được để trống");
+         return;
+       }
+       if (!formData.responsibilities.trim()) {
+         toast.error("Mô tả trách nhiệm không được để trống");
+         return;
+       }
+       if (!formData.hireDate) {
+         toast.error("Ngày bắt đầu làm việc không được để trống");
+         return;
+       }
 
       // Submit request
       await coordinatorRequestService.createCoordinatorRequest(formData);
@@ -97,7 +109,7 @@ export const CreateCoordinatorRequestModal: React.FC<
       onClose();
     } catch (err) {
       console.error("Error creating coordinator request:", err);
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
           : "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau."
@@ -118,7 +130,7 @@ export const CreateCoordinatorRequestModal: React.FC<
         hireDate: new Date(),
         managerUserId: null,
       });
-      setError(null);
+
       onClose();
     }
   };
@@ -138,15 +150,7 @@ export const CreateCoordinatorRequestModal: React.FC<
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Error Display */}
-          {error && (
-            <ErrorDisplay
-              variant="component"
-              title="Vui lòng kiểm tra lại"
-              error={error}
-              onRetry={() => setError(null)}
-            />
-          )}
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Candidate Email */}

@@ -27,6 +27,8 @@ import {
   type TableAction,
 } from "@/components/common/DataTable";
 import { StatsCard } from "@/components/common/StatsCard";
+import { LoadingState } from "@/components/common/LoadingState";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import coordinatorTaskService from "@/services/coordinatorTaskService";
@@ -339,12 +341,7 @@ export default function CoordinatorTasksPage() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-gray-600">Đang tải danh sách nhiệm vụ...</p>
-          </div>
-        </div>
+        <LoadingState loading={loading} count={8} />
       </div>
     );
   }

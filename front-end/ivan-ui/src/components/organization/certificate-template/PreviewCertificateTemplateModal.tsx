@@ -175,8 +175,8 @@ export default function PreviewCertificateTemplateModal({
                       </Badge>
                     )}
                     <TemplateStatusBadge
-                      isActive={template.isActive}
-                      isDefault={template.isDefault}
+                      isActive={template.isActive ?? false}
+                      isDefault={template.isDefault ?? false}
                       size="sm"
                     />
                   </div>

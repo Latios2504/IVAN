@@ -97,10 +97,10 @@ export const CoordinatorRequestDetailsModal: React.FC<
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Coordinator Request Details
+            Chi tiết yêu cầu điều phối viên
           </DialogTitle>
           <DialogDescription>
-            Review the coordinator creation request and take appropriate action
+            Xem xét yêu cầu tạo điều phối viên và thực hiện hành động phù hợp
           </DialogDescription>
         </DialogHeader>
 
@@ -109,13 +109,13 @@ export const CoordinatorRequestDetailsModal: React.FC<
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">
-                Request ID
+                ID Yêu cầu
               </Label>
               <p className="font-mono text-sm">{request.requestId}</p>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">
-                Status
+                Trạng thái
               </Label>
               <div>{getStatusBadge(request.status)}</div>
             </div>
@@ -127,13 +127,13 @@ export const CoordinatorRequestDetailsModal: React.FC<
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              Organization & Candidate
+              Tổ chức & Ứng viên
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">
-                  Organization ID
+                  ID Tổ chức
                 </Label>
                 <p className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
@@ -143,7 +143,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
               
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">
-                  Candidate Email
+                  Email ứng viên
                 </Label>
                 <p className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
@@ -159,12 +159,12 @@ export const CoordinatorRequestDetailsModal: React.FC<
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Submission Details
+              Chi tiết gửi yêu cầu
             </h3>
             
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">
-                Submitted At
+                Thời gian gửi
               </Label>
               <p className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -178,20 +178,20 @@ export const CoordinatorRequestDetailsModal: React.FC<
             <>
               <Separator />
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Admin Action</h3>
+                <h3 className="text-lg font-semibold">Hành động quản trị</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="note">Note (Optional for Approve, Required for Reject)</Label>
+                  <Label htmlFor="note">Ghi chú (Tùy chọn cho Phê duyệt, Bắt buộc cho Từ chối)</Label>
                   <Textarea
                     id="note"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Add a note about your decision..."
+                    placeholder="Thêm ghi chú về quyết định của bạn..."
                     className="min-h-[100px]"
                     maxLength={1000}
                   />
                   <div className="text-sm text-muted-foreground text-right">
-                    {note.length}/1000 characters
+                    {note.length}/1000 ký tự
                   </div>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
 
         <DialogFooter className="flex gap-3">
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            Close
+            Đóng
           </Button>
           
           {canTakeAction && (
@@ -213,7 +213,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
                 className="flex items-center gap-2"
               >
                 <XCircle className="h-4 w-4" />
-                {isLoading ? "Rejecting..." : "Reject"}
+                {isLoading ? "Đang từ chối..." : "Từ chối"}
               </Button>
               
               <Button
@@ -222,7 +222,7 @@ export const CoordinatorRequestDetailsModal: React.FC<
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="h-4 w-4" />
-                {isLoading ? "Approving..." : "Approve"}
+                {isLoading ? "Đang phê duyệt..." : "Phê duyệt"}
               </Button>
             </>
           )}

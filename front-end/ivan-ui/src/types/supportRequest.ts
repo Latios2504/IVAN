@@ -119,11 +119,10 @@ export interface PriorityStatsDto {
 
 // Constants
 export const SUPPORT_REQUEST_STATUS = {
-  PENDING: "Pending",
-  IN_PROGRESS: "In Progress",
+  OPEN: "Open",
   RESOLVED: "Resolved",
-  CLOSED: "Closed",
-  CANCELLED: "Cancelled",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
 } as const;
 
 export const SUPPORT_REQUEST_PRIORITY = {

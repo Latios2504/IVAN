@@ -11,17 +11,10 @@ import { EventList } from "@/components/organization/event-management/EventList"
 import { EventFilters } from "@/components/organization/event-management/EventFilters";
 import { CreateEventDialog } from "@/components/organization/event-management/CreateEventDialog";
 import { LoadingState } from "@/components/common/LoadingState";
+import { toast } from "sonner";
 import { StatsCard } from "@/components/common/StatsCard";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Plus, Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export default function EventManagementPage() {
   const { user } = useAuth();
@@ -29,7 +22,7 @@ export default function EventManagementPage() {
   // State management
   const [events, setEvents] = useState<EventDto[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
-  const [eventsError, setEventsError] = useState<string | null>(null);
+
 
   const [categories, setCategories] = useState<EventCategoryDto[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -53,7 +46,7 @@ export default function EventManagementPage() {
     if (user?.organizationId) {
       loadAllData();
     } else if (user && !user.organizationId) {
-      setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
+      toast.error("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
     }
   }, [user?.organizationId]);
 
@@ -67,13 +60,12 @@ export default function EventManagementPage() {
   const loadEvents = async () => {
     // Check if user has organization profile
     if (!user?.organizationId) {
-      setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
+      toast.error("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
       return;
     }
 
     // Load events with current filters
     setEventsLoading(true);
-    setEventsError(null);
     try {
       const eventFilters = {
         ...filters,
@@ -82,7 +74,7 @@ export default function EventManagementPage() {
       const result = await eventsService.getEvents(eventFilters);
       setEvents(result.items);
     } catch (err) {
-      setEventsError(
+      toast.error(
         err instanceof Error ? err.message : "Không thể tải danh sách sự kiện"
       );
     } finally {
@@ -93,7 +85,7 @@ export default function EventManagementPage() {
   const loadAllData = async () => {
     // Check if user has organization profile
     if (!user?.organizationId) {
-      setEventsError("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
+      toast.error("Không tìm thấy thông tin tổ chức. Vui lòng liên hệ hỗ trợ.");
       return;
     }
 
@@ -182,22 +174,7 @@ export default function EventManagementPage() {
     return <LoadingState loading={true} />;
   }
 
-  if (eventsError) {
-    return (
-      <div className="p-6 bg-destructive/10 rounded-xl border border-destructive/20">
-        <div className="text-destructive font-medium">
-          Lỗi: {eventsError}
-        </div>
-        <Button
-          onClick={() => loadAllData()}
-          className="mt-4"
-          variant="destructive"
-        >
-          Thử lại
-        </Button>
-      </div>
-    );
-  }
+
 
   return (
     <div className="p-6 space-y-6">

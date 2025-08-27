@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { toast } from "sonner";
 import { Loader2, Save, X } from "lucide-react";
 import type { VolunteerCoordinatorDto, UpdateVolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
@@ -53,7 +53,6 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (coordinator && open) {
@@ -70,7 +69,6 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
         notes: coordinator.notes || "",
       });
       setFieldErrors({});
-      setSubmitError(null);
     }
   }, [coordinator, open]);
 
@@ -125,7 +123,7 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to update coordinator:", error);
-      setSubmitError("Không thể cập nhật coordinator. Vui lòng thử lại.");
+      toast.error("Không thể cập nhật coordinator. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -326,13 +324,7 @@ export const EditVolunteerCoordinatorModal: React.FC<EditVolunteerCoordinatorMod
             </div>
           </div>
 
-          {submitError && (
-            <ErrorDisplay
-              variant="component"
-              error={submitError}
-              onRetry={() => setSubmitError(null)}
-            />
-          )}
+
 
           <DialogFooter className="flex justify-end space-x-2 pt-4">
             <Button

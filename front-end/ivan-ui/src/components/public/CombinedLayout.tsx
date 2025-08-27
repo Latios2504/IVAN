@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { FilterSection } from "@/components/public/FilterSection";
 import { StatsSection } from "@/components/public/StatsSection";
 import { Pagination } from "@/components/common/Pagination";
 import { LoadingWithRetry } from "@/components/ui/skeletons";
-import { ErrorBoundary } from "@/components/common/ErrorDisplay";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Search as SearchIcon } from "lucide-react";
 import type { StatCard } from "@/components/public/StatsSection";
@@ -263,7 +261,18 @@ export function CombinedLayout({
 
               {error && (
                 <div className="text-center flex-1 flex items-center justify-center">
-                  <ErrorBoundary error={error} onRetry={onRetry} variant="page" />
+                  <div className="p-8 rounded-2xl bg-gradient-to-br from-red-50/80 to-rose-50/80 dark:from-red-900/80 dark:to-rose-900/80 border border-red-200/50 dark:border-red-700/50">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center">
+                      <SearchIcon className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2 text-red-700 dark:text-red-300">Có lỗi xảy ra</h3>
+                    <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                    {onRetry && (
+                      <Button onClick={onRetry} variant="outline" size="sm">
+                        Thử lại
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -355,7 +364,18 @@ export function CombinedLayout({
 
               {detailError && (
                 <div className="flex items-center justify-center h-full">
-                  <ErrorBoundary error={detailError} onRetry={onDetailRetry} variant="page" />
+                  <div className="p-8 rounded-2xl bg-gradient-to-br from-red-50/80 to-rose-50/80 dark:from-red-900/80 dark:to-rose-900/80 border border-red-200/50 dark:border-red-700/50">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center">
+                      <SearchIcon className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2 text-red-700 dark:text-red-300">Có lỗi xảy ra</h3>
+                    <p className="text-red-600 dark:text-red-400 mb-4">{detailError}</p>
+                    {onDetailRetry && (
+                      <Button onClick={onDetailRetry} variant="outline" size="sm">
+                        Thử lại
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 

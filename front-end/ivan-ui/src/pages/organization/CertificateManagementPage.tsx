@@ -23,18 +23,18 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+
 import { certificateService } from "@/services/certificateService";
 import type { CertificateViewModel } from "@/types/certificate";
 import CertificateDetailModal from "@/components/organization/certificates/CertificateDetailModal";
 import CreateCertificateModal from "@/components/organization/certificates/CreateCertificateModal";
 import { StatsCard } from "@/components/common/StatsCard";
+import { toast } from "sonner";
 
 export default function CertificateManagementPage() {
   // State management
   const [certificates, setCertificates] = useState<CertificateViewModel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,7 +81,6 @@ export default function CertificateManagementPage() {
   const loadCertificates = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const response = await certificateService.getCertificates(
         currentPage,
@@ -92,7 +91,6 @@ export default function CertificateManagementPage() {
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load certificates";
-      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -148,7 +146,7 @@ export default function CertificateManagementPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      toast.success("Certificate downloaded successfully");
+      // Certificate downloaded successfully
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to download certificate";
@@ -191,7 +189,7 @@ export default function CertificateManagementPage() {
         approvalNotes: "Approved via management interface",
         approvedBy: 0, // This should be replaced with actual user ID
       });
-      toast.success("Certificate approved successfully");
+      // Certificate approved successfully
       loadCertificates(); // Reload to get updated data
     } catch (err) {
       const errorMessage =
@@ -208,7 +206,7 @@ export default function CertificateManagementPage() {
         rejectionReason: "Rejected via management interface",
         rejectedBy: 0, // This should be replaced with actual user ID
       });
-      toast.success("Certificate rejected successfully");
+      // Certificate rejected successfully
       loadCertificates(); // Reload to get updated data
     } catch (err) {
       const errorMessage =
@@ -279,25 +277,7 @@ export default function CertificateManagementPage() {
         />
       </div>
 
-      {/* Error State */}
-      {error && (
-        <Card className="mb-6 bg-gradient-to-r from-red-50 via-rose-50 to-pink-50 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 border border-red-200 dark:border-red-800 shadow-lg">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadCertificates}
-                className="ml-auto border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900"
-              >
-                Thử lại
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Error handling now uses toast notifications */}
 
       {/* Certificates Tabs */}
       <Tabs
