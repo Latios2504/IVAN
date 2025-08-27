@@ -18,14 +18,24 @@ namespace ivan_api.Services.Certificates
             _mapper = mapper;
         }
 
-        public async Task<bool> AddCertificate(CertificateInputModel certificateInputModel)
+        public async Task<bool> AddCertificate(CertificateInputModel model, int createdByUserId)
         {
-            var cer = _mapper.Map<Certificate>(certificateInputModel);
-            cer.CreatedAt = DateTime.Now;
-            cer.IssueDate = DateTime.Now;
-            cer.Status = "Draft"; // Default status
+            var cer = _mapper.Map<Certificate>(model);
 
-            return await _repository.AddCertificate(cer);
+            // Mặc định theo luồng mới
+            cer.Status = "PendingApproval";
+            cer.IssueDate = null;
+            cer.CreatedAt = DateTime.UtcNow;
+
+            // Sinh định danh nếu thiếu
+            if (string.IsNullOrWhiteSpace(cer.CertificateNumber))
+                cer.CertificateNumber = $"CER-{cer.EventId}-{cer.VolunteerId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+            if (string.IsNullOrWhiteSpace(cer.VerificationCode))
+                cer.VerificationCode = Guid.NewGuid().ToString("N")[..12].ToUpperInvariant();
+
+            // Đẩy xuống repository để validate & lưu (cần createdByUserId để check thuộc org)
+            return await _repository.AddCertificate(cer, createdByUserId);
         }
 
         public async Task<bool> UpdateCertificate(CertificateUpdateModel certificateUpdateModel)

@@ -1,10 +1,12 @@
-using ivan_api.Constants;
+﻿using ivan_api.Constants;
 using ivan_api.DTOs.Certificates;
 using ivan_api.DTOs.Common;
+using ivan_api.Models;
 using ivan_api.Services.AuthenticationSer;
 using ivan_api.Services.Certificates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ivan_api.Controllers
@@ -15,13 +17,15 @@ namespace ivan_api.Controllers
     public class CertificateController : ControllerBase
     {
         private readonly ICertificateService _service;
+        private readonly VolunteerManagementSystemContext _dbContext;
         private readonly IAuthenticationService _auth;
 
 
-        public CertificateController(ICertificateService service, IAuthenticationService auth)
+        public CertificateController(ICertificateService service, IAuthenticationService auth, VolunteerManagementSystemContext dbContext)
         {
             _service = service;
             _auth = auth;
+            _dbContext = dbContext;
         }
 
         [HttpGet]
@@ -71,6 +75,47 @@ namespace ivan_api.Controllers
         {
             try
             {
+                if (filter == null)
+                {
+                    return BadRequest(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Invalid filter data",
+                        Errors = new List<string> { "Request body cannot be null" }
+                    });
+                }
+
+                // LẤY UserId từ JWT
+                var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                             ?? User.FindFirst("nameid")
+                             ?? User.FindFirst("sub")
+                             ?? User.FindFirst("userId")
+                             ?? User.FindFirst("uid");
+
+                if (idClaim == null || !int.TryParse(idClaim.Value, out var userId))
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Cannot resolve user id from JWT",
+                        Errors = new List<string> { "Missing or invalid user id claim" }
+                    });
+                }
+
+                // Truy vấn OrganizationId dựa vào UserId hiện tại
+                var organizationId = await _dbContext.Organizations
+                    .Where(o => o.UserId == userId)
+                    .Select(o => o.OrganizationId)
+                    .FirstOrDefaultAsync();
+
+                if (organizationId == 0)
+                {
+                    return Forbid();
+                }
+
+                // GÁN OrganizationId vào filter để service chỉ trả chứng chỉ của tổ chức này
+                filter.OrganizationId = organizationId;
+
                 var result = await _service.ListCertificate(filter);
                 return Ok(new ApiResponseDTO<object>
                 {
@@ -115,25 +160,20 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("add")]
+        [Authorize(Roles = ivan_api.Constants.AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<ActionResult<ApiResponseDTO<object>>> Add([FromBody] CertificateInputModel input)
         {
             if (input == null)
-            {
                 return BadRequest(new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "Invalid input data",
                     Errors = new List<string> { "Request body cannot be null" }
                 });
-            }
 
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                 return BadRequest(new ApiResponseDTO<object>
                 {
                     Success = false,
@@ -142,42 +182,17 @@ namespace ivan_api.Controllers
                 });
             }
 
-            try
-            {
-                var result = await _service.AddCertificate(input);
+            var userId = _auth.GetUserIdFromClaims(User); // _auth: service đọc JWT như hiện có trong dự án
+            var ok = await _service.AddCertificate(input, userId); // truyền createdByUserId xuống service
+            if (!ok)
+                return BadRequest(new ApiResponseDTO<object> { Success = false, Message = "Failed to create certificate" });
 
-                if (!result)
-                {
-                    return BadRequest(new ApiResponseDTO<object>
-                    {
-                        Success = false,
-                        Message = "Failed to create certificate",
-                        Errors = new List<string> { "Unable to create certificate" }
-                    });
-                }
-
-                // Get the newly created certificate
-                var listDto = await _service.GetList(1, 100);
-                var list = listDto.Items.ToList();
-                var postAdd = await _service.GetCertificateById(list.Last().CertificateId);
-
-                return Ok(new ApiResponseDTO<object>
-                {
-                    Success = true,
-                    Data = postAdd,
-                    Message = "Certificate created successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Failed to create certificate",
-                    Errors = new List<string> { ex.Message }
-                });
-            }
+            // Giữ logic trả về bản ghi vừa tạo (tương tự code gốc của bạn)
+            var lastId = await _service.GetLastId();
+            var postAdd = await _service.GetCertificateById(lastId);
+            return Ok(new ApiResponseDTO<object> { Success = true, Data = postAdd, Message = "Certificate created and submitted for approval" });
         }
+
 
         [HttpPut("update/{id}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Update(int id,
@@ -286,7 +301,9 @@ namespace ivan_api.Controllers
             }
         }
 
-        [HttpPut("approve/{id}")]
+        // Approve — chỉ cho Organization (và Admin)
+        [Authorize(Roles = $"{ivan_api.Constants.AuthenticationConstants.Roles.Organization},{ivan_api.Constants.AuthenticationConstants.Roles.Admin}")]
+        [HttpPut("approve/{id:int}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Approve(int id,
             [FromBody] CertificateApprovalModel approvalModel)
         {
@@ -300,7 +317,13 @@ namespace ivan_api.Controllers
                 });
             }
 
-            if (id != approvalModel.CertificateId)
+            // Chuẩn hoá certificateId: nếu body không có thì dùng id từ URL;
+            // nếu cả hai đều có thì bắt buộc trùng nhau.
+            if (approvalModel.CertificateId == null || approvalModel.CertificateId <= 0)
+            {
+                approvalModel.CertificateId = id;
+            }
+            else if (id != approvalModel.CertificateId)
             {
                 return BadRequest(new ApiResponseDTO<object>
                 {
@@ -309,6 +332,27 @@ namespace ivan_api.Controllers
                     Errors = new List<string> { "URL ID does not match request body ID" }
                 });
             }
+
+            // --- LẤY ApprovedBy TỪ JWT (BỎ QUA GIÁ TRỊ CLIENT GỬI LÊN) ---
+            // Ưu tiên ClaimTypes.NameIdentifier; fallback các claim phổ biến khác
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)
+                         ?? User.FindFirst("nameid")
+                         ?? User.FindFirst("sub")
+                         ?? User.FindFirst("userId")
+                         ?? User.FindFirst("uid");
+
+            if (idClaim == null || !int.TryParse(idClaim.Value, out var approverUserId))
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Cannot resolve approver from JWT",
+                    Errors = new List<string> { "Missing/invalid user id claim" }
+                });
+            }
+
+            // Gán lại ApprovedBy để service/repository dùng đúng UserId tồn tại trong bảng Users
+            approvalModel.ApprovedBy = approverUserId;
 
             try
             {
@@ -343,6 +387,8 @@ namespace ivan_api.Controllers
             }
         }
 
+        // Reject — chỉ cho Organization (và Admin)
+        [Authorize(Roles = $"{ivan_api.Constants.AuthenticationConstants.Roles.Organization},{ivan_api.Constants.AuthenticationConstants.Roles.Admin}")]
         [HttpPut("reject/{id}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Reject(int id,
             [FromBody] CertificateRejectionModel rejectionModel)
