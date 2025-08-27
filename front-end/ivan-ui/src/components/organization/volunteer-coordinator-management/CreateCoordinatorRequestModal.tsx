@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -23,10 +24,7 @@ import { CalendarIcon, Send, X } from "lucide-react";
 import { coordinatorRequestService } from "@/services/coordinatorRequestService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import type {
-  CreateCoordinatorRequestDto,
-  CoordinatorRequestCreatePayload,
-} from "@/types/coordinatorRequest";
+import type { CoordinatorRequestCreatePayload } from "@/types/coordinatorRequest";
 
 interface CreateCoordinatorRequestModalProps {
   isOpen: boolean;
@@ -48,7 +46,7 @@ export const CreateCoordinatorRequestModal: React.FC<
     hireDate: new Date(),
     managerUserId: null,
   });
-  const [errors, setErrors] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const handleInputChange = (
@@ -56,30 +54,29 @@ export const CreateCoordinatorRequestModal: React.FC<
     value: any
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear errors when user starts typing
-    if (errors.length > 0) {
-      setErrors([]);
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrors([]);
+    setError(null);
 
     try {
       // Validate form data
-      const validation = coordinatorRequestService.validateCoordinatorRequestData(formData);
+      const validation =
+        coordinatorRequestService.validateCoordinatorRequestData(formData);
       if (!validation.isValid) {
-        setErrors(validation.errors);
+        setError(validation.errors.join(", "));
         setLoading(false);
         return;
       }
 
       // Submit request
-      await coordinatorRequestService.createCoordinatorRequest(
-        formData
-      );
+      await coordinatorRequestService.createCoordinatorRequest(formData);
 
       toast.success("Yêu cầu tạo coordinator đã được gửi thành công!", {
         description: "Admin sẽ xem xét và phản hồi trong thời gian sớm nhất.",
@@ -98,11 +95,13 @@ export const CreateCoordinatorRequestModal: React.FC<
 
       onSuccess?.();
       onClose();
-    } catch (error) {
-      console.error("Error creating coordinator request:", error);
-      toast.error("Có lỗi xảy ra khi gửi yêu cầu", {
-        description: error instanceof Error ? error.message : "Vui lòng thử lại sau.",
-      });
+    } catch (err) {
+      console.error("Error creating coordinator request:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau."
+      );
     } finally {
       setLoading(false);
     }
@@ -119,7 +118,7 @@ export const CreateCoordinatorRequestModal: React.FC<
         hireDate: new Date(),
         managerUserId: null,
       });
-      setErrors([]);
+      setError(null);
       onClose();
     }
   };
@@ -133,36 +132,38 @@ export const CreateCoordinatorRequestModal: React.FC<
             Gửi yêu cầu tạo Coordinator
           </DialogTitle>
           <DialogDescription className="text-blue-700 dark:text-blue-300">
-            Điền thông tin ứng viên để gửi yêu cầu tạo tài khoản coordinator cho admin xét duyệt.
+            Điền thông tin ứng viên để gửi yêu cầu tạo tài khoản coordinator cho
+            admin xét duyệt.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Display */}
-          {errors.length > 0 && (
-            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <h4 className="text-red-800 dark:text-red-200 font-medium mb-2">
-                Vui lòng sửa các lỗi sau:
-              </h4>
-              <ul className="text-red-700 dark:text-red-300 text-sm space-y-1">
-                {errors.map((error, index) => (
-                  <li key={index}>• {error}</li>
-                ))}
-              </ul>
-            </div>
+          {error && (
+            <ErrorDisplay
+              variant="component"
+              title="Vui lòng kiểm tra lại"
+              error={error}
+              onRetry={() => setError(null)}
+            />
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Candidate Email */}
             <div className="space-y-2">
-              <Label htmlFor="candidateEmail" className="text-blue-900 dark:text-blue-100 font-medium">
+              <Label
+                htmlFor="candidateEmail"
+                className="text-blue-900 dark:text-blue-100 font-medium"
+              >
                 Email ứng viên *
               </Label>
               <Input
                 id="candidateEmail"
                 type="email"
                 value={formData.candidateEmail}
-                onChange={(e) => handleInputChange("candidateEmail", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("candidateEmail", e.target.value)
+                }
                 placeholder="candidate@example.com"
                 className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700 focus:border-blue-500 dark:focus:border-blue-400"
                 required
@@ -171,7 +172,10 @@ export const CreateCoordinatorRequestModal: React.FC<
 
             {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-blue-900 dark:text-blue-100 font-medium">
+              <Label
+                htmlFor="fullName"
+                className="text-blue-900 dark:text-blue-100 font-medium"
+              >
                 Họ và tên *
               </Label>
               <Input
@@ -187,7 +191,10 @@ export const CreateCoordinatorRequestModal: React.FC<
 
             {/* Position */}
             <div className="space-y-2">
-              <Label htmlFor="position" className="text-blue-900 dark:text-blue-100 font-medium">
+              <Label
+                htmlFor="position"
+                className="text-blue-900 dark:text-blue-100 font-medium"
+              >
                 Vị trí *
               </Label>
               <Input
@@ -203,13 +210,18 @@ export const CreateCoordinatorRequestModal: React.FC<
 
             {/* Department */}
             <div className="space-y-2">
-              <Label htmlFor="department" className="text-blue-900 dark:text-blue-100 font-medium">
+              <Label
+                htmlFor="department"
+                className="text-blue-900 dark:text-blue-100 font-medium"
+              >
                 Phòng ban *
               </Label>
               <Input
                 id="department"
                 value={formData.department}
-                onChange={(e) => handleInputChange("department", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("department", e.target.value)
+                }
                 placeholder="Phòng Tình nguyện"
                 className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700 focus:border-blue-500 dark:focus:border-blue-400"
                 maxLength={100}
@@ -242,7 +254,11 @@ export const CreateCoordinatorRequestModal: React.FC<
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.hireDate ? new Date(formData.hireDate) : undefined}
+                    selected={
+                      formData.hireDate
+                        ? new Date(formData.hireDate)
+                        : undefined
+                    }
                     onSelect={(date) => {
                       handleInputChange("hireDate", date || new Date());
                       setDatePickerOpen(false);
@@ -257,13 +273,18 @@ export const CreateCoordinatorRequestModal: React.FC<
 
           {/* Responsibilities */}
           <div className="space-y-2">
-            <Label htmlFor="responsibilities" className="text-blue-900 dark:text-blue-100 font-medium">
+            <Label
+              htmlFor="responsibilities"
+              className="text-blue-900 dark:text-blue-100 font-medium"
+            >
               Mô tả trách nhiệm *
             </Label>
             <Textarea
               id="responsibilities"
               value={formData.responsibilities}
-              onChange={(e) => handleInputChange("responsibilities", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("responsibilities", e.target.value)
+              }
               placeholder="Mô tả chi tiết các trách nhiệm và nhiệm vụ của coordinator..."
               className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700 focus:border-blue-500 dark:focus:border-blue-400 min-h-[120px]"
               maxLength={1000}

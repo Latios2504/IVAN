@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Users, Send } from "lucide-react";
 import { VolunteerCoordinatorDashboard } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorDashboard";
 import { VolunteerCoordinatorList } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorList";
 import { VolunteerCoordinatorFilters } from "@/components/organization/volunteer-coordinator-management/VolunteerCoordinatorFilters";
-import { CreateVolunteerCoordinatorDialog } from "@/components/organization/volunteer-coordinator-management/CreateVolunteerCoordinatorDialog";
 import { CreateCoordinatorRequestModal } from "@/components/organization/volunteer-coordinator-management/CreateCoordinatorRequestModal";
 import { LoadingState } from "@/components/common/LoadingState";
-import { Button } from "@/components/ui/button";
-import { Plus, Users, Send } from "lucide-react";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { useAuth } from "@/hooks/useAuth";
 import type {
-  VolunteerCoordinatorFilterDto,
   VolunteerCoordinatorDto,
   VolunteerCoordinatorStatsDto,
   ManagementLevelDto,
   SpecializationDto,
+  VolunteerCoordinatorFilterDto,
 } from "@/types/volunteerCoordinator";
+import { volunteerCoordinatorService } from "@/services/volunteerCoordinatorService";
 
 const VolunteerCoordinatorManagementPage = () => {
   const { user } = useAuth();
@@ -74,8 +74,9 @@ const VolunteerCoordinatorManagementPage = () => {
     string | null
   >(null);
 
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [filters, setFilters] = useState<VolunteerCoordinatorFilterDto>({
     page: 1,
     size: 10,
@@ -87,22 +88,43 @@ const VolunteerCoordinatorManagementPage = () => {
     loadInitialData();
   }, [organizationId]);
 
-  const loadInitialData = async () => {
+  // Load coordinators when filters change (except page changes which are handled separately)
+  useEffect(() => {
+    if (organizationId) {
+      loadCoordinators();
+    }
+  }, [filters.search, filters.isActive]); // Only trigger on search and status changes
+
+  const loadCoordinators = async (currentFilters = filters) => {
     if (!organizationId) return;
 
-    // Load coordinators
     setLoading(true);
     setError(null);
     try {
-      const coordinatorsResult = await coordinatorsService.getAll();
-      setCoordinators(coordinatorsResult);
+      const result =
+        await volunteerCoordinatorService.getCoordinatorsByOrganization(
+          organizationId,
+          currentFilters
+        );
+      setCoordinators(result.items);
+      setTotalPages(Math.ceil(result.totalCount / currentFilters.size));
+      setTotalItems(result.totalCount);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to load coordinators"
+        err instanceof Error
+          ? err.message
+          : "Không thể tải danh sách điều phối viên"
       );
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadInitialData = async () => {
+    if (!organizationId) return;
+
+    // Load coordinators with filters
+    await loadCoordinators();
 
     // Load stats
     setStatsLoading(true);
@@ -114,7 +136,7 @@ const VolunteerCoordinatorManagementPage = () => {
       setStats(statsResult);
     } catch (err) {
       setStatsError(
-        err instanceof Error ? err.message : "Failed to load stats"
+        err instanceof Error ? err.message : "Không thể tải thống kê"
       );
     } finally {
       setStatsLoading(false);
@@ -129,7 +151,7 @@ const VolunteerCoordinatorManagementPage = () => {
       setManagementLevels(levelsResult);
     } catch (err) {
       setManagementLevelsError(
-        err instanceof Error ? err.message : "Failed to load management levels"
+        err instanceof Error ? err.message : "Không thể tải cấp độ quản lý"
       );
     } finally {
       setManagementLevelsLoading(false);
@@ -144,7 +166,7 @@ const VolunteerCoordinatorManagementPage = () => {
       setSpecializations(specializationsResult);
     } catch (err) {
       setSpecializationsError(
-        err instanceof Error ? err.message : "Failed to load specializations"
+        err instanceof Error ? err.message : "Không thể tải chuyên môn"
       );
     } finally {
       setSpecializationsLoading(false);
@@ -156,20 +178,17 @@ const VolunteerCoordinatorManagementPage = () => {
     try {
       // For now, we'll use the coordinators list as available managers
       // In a real scenario, this might be a separate API call for organization users
-      const managersResult = coordinators.map(coord => coord.user).filter(user => user);
+      const managersResult = coordinators
+        .map((coord) => coord.user)
+        .filter((user) => user);
       setAvailableManagers(managersResult);
     } catch (err) {
       setAvailableManagersError(
-        err instanceof Error ? err.message : "Failed to load available managers"
+        err instanceof Error ? err.message : "Không thể tải danh sách quản lý"
       );
     } finally {
       setAvailableManagersLoading(false);
     }
-  };
-
-  const handleCreateSuccess = () => {
-    setShowCreateDialog(false);
-    loadInitialData(); // Refresh all data
   };
 
   const handleRequestSuccess = () => {
@@ -178,22 +197,32 @@ const VolunteerCoordinatorManagementPage = () => {
   };
 
   const handleUpdateSuccess = () => {
-    loadInitialData(); // Refresh all data
+    loadCoordinators(); // Refresh coordinators data
   };
 
-  const handleFiltersChange = (
+  const handleFiltersChange = async (
     newFilters: Partial<VolunteerCoordinatorFilterDto>
   ) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+    const updatedFilters = { ...filters, ...newFilters, page: 1 }; // Reset to page 1 when filters change
+    setFilters(updatedFilters);
+    await loadCoordinators(updatedFilters);
   };
 
-  const handleResetFilters = () => {
-    setFilters({
+  const handlePageChange = async (page: number) => {
+    const updatedFilters = { ...filters, page };
+    setFilters(updatedFilters);
+    await loadCoordinators(updatedFilters);
+  };
+
+  const handleResetFilters = async () => {
+    const resetFilters = {
       page: 1,
       size: 10,
       sortBy: "CreatedAt",
       sortOrder: "desc",
-    });
+    };
+    setFilters(resetFilters);
+    await loadCoordinators(resetFilters);
   };
 
   if (loading && !coordinators.length) {
@@ -202,12 +231,12 @@ const VolunteerCoordinatorManagementPage = () => {
 
   if (error) {
     return (
-      <div className="p-6 bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 dark:from-red-950 dark:via-rose-950 dark:to-pink-950 rounded-xl border border-red-200 dark:border-red-800 shadow-lg backdrop-blur-sm">
-        <div className="text-red-700 dark:text-red-300 font-medium">Error: {error}</div>
-        <Button onClick={loadInitialData} className="mt-4 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-lg">
-          Retry
-        </Button>
-      </div>
+      <ErrorDisplay
+        variant="page"
+        title="Không thể tải dữ liệu"
+        error={error}
+        onRetry={loadInitialData}
+      />
     );
   }
 
@@ -217,20 +246,20 @@ const VolunteerCoordinatorManagementPage = () => {
       <div className="flex justify-between items-center bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 rounded-lg p-4 border border-blue-200 dark:border-blue-800 shadow-md">
         <div>
           <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-            Volunteer Coordinator Management
+            Quản lý Điều phối viên Tình nguyện
           </h1>
           <p className="text-blue-700 dark:text-blue-300">
-            Manage your organization's volunteer coordinators
+            Quản lý các điều phối viên tình nguyện của tổ chức bạn
           </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => setShowRequestModal(true)} variant="outline" className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-lg">
+          <Button
+            onClick={() => setShowRequestModal(true)}
+            variant="outline"
+            className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-lg"
+          >
             <Send className="w-4 h-4 mr-2" />
             Gửi yêu cầu Coordinator
-          </Button>
-          <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Coordinator
           </Button>
         </div>
       </div>
@@ -256,38 +285,35 @@ const VolunteerCoordinatorManagementPage = () => {
           coordinators={coordinators}
           onCoordinatorUpdated={handleUpdateSuccess}
           availableManagers={availableManagers}
+          pagination={{
+            currentPage: filters.page,
+            totalPages: totalPages,
+            pageSize: filters.size,
+            totalItems: totalItems,
+            onPageChange: handlePageChange,
+          }}
         />
       ) : (
         <div className="text-center py-12 bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 dark:from-gray-900 dark:via-slate-900 dark:to-zinc-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-lg">
           <Users className="w-12 h-12 text-blue-400 dark:text-blue-500 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            No coordinators yet
+            Chưa có điều phối viên nào
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Start by adding your first volunteer coordinator or request one from admin.
+            Bắt đầu bằng cách gửi yêu cầu điều phối viên từ quản trị viên.
           </p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => setShowRequestModal(true)} variant="outline" className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-lg">
+            <Button
+              onClick={() => setShowRequestModal(true)}
+              variant="outline"
+              className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-lg"
+            >
               <Send className="w-4 h-4 mr-2" />
               Gửi yêu cầu Coordinator
-            </Button>
-            <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg">
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Coordinator
             </Button>
           </div>
         </div>
       )}
-
-      {/* Create Dialog */}
-      <CreateVolunteerCoordinatorDialog
-        isOpen={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-        onSuccess={handleCreateSuccess}
-        organizationId={organizationId!}
-        managementLevels={managementLevels}
-        specializations={specializations}
-      />
 
       {/* Coordinator Request Modal */}
       <CreateCoordinatorRequestModal

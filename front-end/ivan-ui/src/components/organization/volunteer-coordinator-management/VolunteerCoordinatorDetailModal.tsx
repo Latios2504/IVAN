@@ -4,12 +4,21 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../../ui/dialog";
-import { Badge } from "../../ui/badge";
-import { Separator } from "../../ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
-import { Calendar, Mail, Phone, MapPin, User, Building, Briefcase, DollarSign, FileText, Clock } from "lucide-react";
-import type { VolunteerCoordinatorDto } from "../../../types/volunteerCoordinator";
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Mail,
+  Phone,
+  User,
+  Building,
+  Briefcase,
+  DollarSign,
+  FileText,
+  Clock,
+} from "lucide-react";
+import type { VolunteerCoordinatorDto } from "@/types/volunteerCoordinator";
 
 interface VolunteerCoordinatorDetailModalProps {
   coordinator: VolunteerCoordinatorDto | null;
@@ -27,27 +36,25 @@ const getStatusColor = (isActive?: boolean) => {
   }
 };
 
-export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetailModalProps> = ({
-  coordinator,
-  open,
-  onOpenChange,
-}) => {
+export const VolunteerCoordinatorDetailModal: React.FC<
+  VolunteerCoordinatorDetailModalProps
+> = ({ coordinator, open, onOpenChange }) => {
   if (!coordinator) return null;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const formatCurrency = (amount?: number) => {
     if (!amount) return "N/A";
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(amount);
   };
 
@@ -83,7 +90,7 @@ export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetai
                     {coordinator.user?.fullName || "N/A"}
                   </h3>
                   <p className="text-blue-700 dark:text-blue-300">
-                    {coordinator.position || "Volunteer Coordinator"}
+                    {coordinator.position || "Điều phối viên tình nguyện"}
                   </p>
                   <p className="text-sm text-blue-600 dark:text-blue-400">
                     ID: {coordinator.employeeId || coordinator.coordinatorId}
@@ -135,7 +142,7 @@ export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetai
                 <div className="flex items-center space-x-3">
                   <Briefcase className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   <span className="text-sm text-purple-800 dark:text-purple-200">
-                    {coordinator.department || "General"}
+                    {coordinator.department || "Chung"}
                   </span>
                 </div>
               </div>
@@ -153,14 +160,18 @@ export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetai
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-orange-700 dark:text-orange-300">Ngày bắt đầu:</span>
+                  <span className="text-sm text-orange-700 dark:text-orange-300">
+                    Ngày bắt đầu:
+                  </span>
                   <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
                     {formatDate(coordinator.hireDate)}
                   </span>
                 </div>
                 {coordinator.endDate && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-orange-700 dark:text-orange-300">Ngày kết thúc:</span>
+                    <span className="text-sm text-orange-700 dark:text-orange-300">
+                      Ngày kết thúc:
+                    </span>
                     <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
                       {formatDate(coordinator.endDate)}
                     </span>
@@ -213,7 +224,9 @@ export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetai
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-teal-600 dark:text-teal-400">Chưa có quản lý được chỉ định</p>
+                <p className="text-sm text-teal-600 dark:text-teal-400">
+                  Chưa có quản lý được chỉ định
+                </p>
               )}
             </div>
           </div>
@@ -259,16 +272,21 @@ export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetai
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Ngày tạo:</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Ngày tạo:
+                  </span>
                   <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                     {formatDate(coordinator.createdAt)}
                   </span>
                 </div>
                 {coordinator.createdByUser && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-700 dark:text-slate-300">Tạo bởi:</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      Tạo bởi:
+                    </span>
                     <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      {coordinator.createdByUser.fullName || coordinator.createdByUser.email}
+                      {coordinator.createdByUser.fullName ||
+                        coordinator.createdByUser.email}
                     </span>
                   </div>
                 )}
@@ -282,7 +300,9 @@ export const VolunteerCoordinatorDetailModal: React.FC<VolunteerCoordinatorDetai
               </h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Ngày cập nhật:</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Ngày cập nhật:
+                  </span>
                   <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                     {formatDate(coordinator.updatedAt)}
                   </span>
