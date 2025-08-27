@@ -6,7 +6,7 @@ namespace ivan_api.Services.Certificates
 {
     public interface ICertificateService
     {
-        Task<bool> AddCertificate(CertificateInputModel certificateInputModel);
+        Task<bool> AddCertificate(CertificateInputModel certificateInputModel, int createdByUserId);
         Task<bool> UpdateCertificate(CertificateUpdateModel certificateUpdateModel);
         Task<bool> DeleteCertificate(int certificateId);
         Task<IEnumerable<CertificateViewModel>> ListCertificate(CertificateFilterModel filter);

@@ -22,9 +22,39 @@ namespace ivan_api.Repository.Certificates
             _mapper = mapper;
         }
 
-        public async Task<bool> AddCertificate(Certificate certificate)
+        public async Task<bool> AddCertificate(Certificate certificate, int createdByUserId)
         {
-            certificate.CreatedAt = DateTime.Now;
+            // 1) Event tồn tại
+            var ev = await _context.Events.AsNoTracking()
+                .FirstOrDefaultAsync(e => e.EventId == certificate.EventId);
+            if (ev == null) throw new ArgumentException("Event not found");
+
+            // 2) Coordinator phải thuộc Organization của Event
+            var isCoordinatorOfOrg = await _context.VolunteerCoordinators
+                .AnyAsync(c => c.UserId == createdByUserId
+                            && c.OrganizationId == ev.OrganizationId
+                            && c.IsActive == true);
+            if (!isCoordinatorOfOrg) throw new UnauthorizedAccessException("Coordinator does not belong to this organization");
+
+            // 3) Volunteer có đăng ký Event (và chưa được cấp trước đó)
+            var reg = await _context.EventRegistrations
+                .FirstOrDefaultAsync(r => r.EventId == certificate.EventId && r.VolunteerId == certificate.VolunteerId);
+            if (reg == null) throw new ArgumentException("Volunteer is not registered for this event");
+            if (reg.CertificateIssued == true) throw new InvalidOperationException("Certificate already issued for this volunteer");
+
+            // 4) Tránh cấp trùng bản ghi (theo Volunteer+Event)
+            var exists = await _context.Certificates.AnyAsync(c =>
+                c.EventId == certificate.EventId && c.VolunteerId == certificate.VolunteerId);
+            if (exists) throw new InvalidOperationException("Certificate already exists for this volunteer and event");
+
+            // 5) Template thuộc org (hoặc template default)
+            var templateOk = await _context.CertificateTemplates.AnyAsync(t =>
+                t.TemplateId == certificate.TemplateId
+                && (t.OrganizationId == ev.OrganizationId || t.IsDefault == true));
+            if (!templateOk) throw new ArgumentException("Template does not belong to the event's organization");
+
+            certificate.CreatedAt = DateTime.UtcNow;
+
             await _context.Certificates.AddAsync(certificate);
             return await _context.SaveChangesAsync() > 0;
         }
@@ -81,18 +111,26 @@ namespace ivan_api.Repository.Certificates
         public async Task<bool> ApproveCertificate(int certificateId, string? approvalNotes, int? approvedBy)
         {
             var certificate = await _context.Certificates.FindAsync(certificateId);
-            if (certificate == null)
-                return false;
+            if (certificate == null) return false;
 
-            certificate.Status = "Approved";
-            if (approvedBy.HasValue)
-                certificate.IssuedBy = approvedBy.Value;
-            certificate.IssueDate = DateTime.Now;
-            if (!string.IsNullOrEmpty(approvalNotes))
-                certificate.Description = approvalNotes;
+            // Duyệt coi như phát hành
+            certificate.Status = "Published";
+            certificate.IssueDate = DateTime.UtcNow;
+            if (approvedBy.HasValue) certificate.IssuedBy = approvedBy.Value;
+            if (!string.IsNullOrEmpty(approvalNotes)) certificate.Description = approvalNotes;
+
+            // Cập nhật EventRegistrations
+            var reg = await _context.EventRegistrations
+                .FirstOrDefaultAsync(r => r.EventId == certificate.EventId && r.VolunteerId == certificate.VolunteerId);
+            if (reg != null)
+            {
+                reg.CertificateIssued = true;
+                reg.CertificateIssuedDate = DateTime.UtcNow;
+            }
 
             return await _context.SaveChangesAsync() > 0;
         }
+
 
         public async Task<bool> RejectCertificate(int certificateId, string rejectionReason, int? rejectedBy)
         {
@@ -313,20 +351,36 @@ namespace ivan_api.Repository.Certificates
                 .FirstOrDefaultAsync();
 
             if (volunteerId == 0)
-                return new PagedResultDto<CertificateViewModel> { Items = new List<CertificateViewModel>(), TotalCount = 0, PageNumber = page, PageSize = size };
+                return new PagedResultDto<CertificateViewModel>
+                {
+                    Items = new List<CertificateViewModel>(),
+                    TotalCount = 0,
+                    PageNumber = page,
+                    PageSize = size
+                };
 
             var q = _context.Certificates
-                .Include(x => x.Event).Include(x => x.Template).Include(x => x.Volunteer)
-                .Where(c => c.VolunteerId == volunteerId);
+                .Include(x => x.Event)
+                .Include(x => x.Template)
+                .Include(x => x.Volunteer)
+                .Where(c => c.VolunteerId == volunteerId && c.Status == "Published");
 
             var total = await q.CountAsync();
             var items = await q.OrderByDescending(c => c.IssueDate)
-                .Skip((page - 1) * size).Take(size)
+                .Skip((page - 1) * size)
+                .Take(size)
                 .ProjectTo<CertificateViewModel>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return new PagedResultDto<CertificateViewModel> { Items = items, TotalCount = total, PageNumber = page, PageSize = size };
+            return new PagedResultDto<CertificateViewModel>
+            {
+                Items = items,
+                TotalCount = total,
+                PageNumber = page,
+                PageSize = size
+            };
         }
+
 
         public async Task<int?> ResolveOrganizationIdByUserAsync(int userId)
         {
