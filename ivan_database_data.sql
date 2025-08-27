@@ -434,3 +434,78 @@ BEGIN
      (SELECT TOP 1 UserId FROM Users ORDER BY UserId));
 END
 GO
+
+-- Step 1: Check if anonymous user already exists
+IF NOT EXISTS (SELECT 1 FROM Users WHERE UserId = 0)
+BEGIN
+    -- Step 2: Create special role for anonymous users if not exists
+    IF NOT EXISTS (SELECT 1 FROM UserRoles WHERE RoleName = 'Anonymous')
+    BEGIN
+        INSERT INTO UserRoles (RoleName, Description, IsActive) 
+        VALUES (N'Anonymous', N'Người dùng ẩn danh cho support requests', 1);
+        PRINT 'Anonymous role created successfully';
+    END
+
+    -- Step 3: Get the RoleId for Anonymous role
+    DECLARE @AnonymousRoleId INT;
+    SELECT @AnonymousRoleId = RoleId FROM UserRoles WHERE RoleName = 'Anonymous';
+    
+    -- Step 4: Enable IDENTITY_INSERT to insert UserId = 0
+    SET IDENTITY_INSERT Users ON;
+    
+    -- Step 5: Insert anonymous user with UserId = 0
+    INSERT INTO Users (
+        UserId,
+        Email,
+        PasswordHash,
+        Salt,
+        RoleId,
+        IsActive,
+        IsEmailVerified,
+        CreatedAt,
+        UpdatedAt
+    ) VALUES (
+        0,                              -- UserId = 0 for anonymous
+        'anonymous@system.local',       -- System email (not real)
+        'ANONYMOUS_NO_PASSWORD_HASH',   -- No real password hash
+        'ANONYMOUS_NO_SALT',            -- No real salt
+        @AnonymousRoleId,               -- Anonymous role
+        1,                              -- Active
+        0,                              -- Not email verified
+        GETDATE(),                      -- Created now
+        GETDATE()                       -- Updated now
+    );
+    
+    -- Step 6: Disable IDENTITY_INSERT
+    SET IDENTITY_INSERT Users OFF;
+    
+    -- Step 7: Insert anonymous user profile
+    INSERT INTO UserProfiles (
+        UserId,
+        FirstName,
+        LastName,
+        CreatedAt,
+        UpdatedAt
+    ) VALUES (
+        0,
+        N'Ẩn danh',
+        N'',
+        GETDATE(),
+        GETDATE()
+    );
+    
+    PRINT 'Anonymous user and profile created successfully with UserId = 0';
+END
+ELSE
+BEGIN
+    PRINT 'Anonymous user with UserId = 0 already exists';
+END
+
+-- Step 8: Verify the creation
+SELECT u.UserId, u.Email, ur.RoleName, up.FirstName, up.LastName, u.IsActive 
+FROM Users u
+LEFT JOIN UserRoles ur ON u.RoleId = ur.RoleId
+LEFT JOIN UserProfiles up ON u.UserId = up.UserId
+WHERE u.UserId = 0;
+
+PRINT 'Anonymous user setup completed!';

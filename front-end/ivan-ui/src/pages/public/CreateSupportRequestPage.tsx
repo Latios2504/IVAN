@@ -54,7 +54,10 @@ export default function CreateSupportRequestPage() {
   const handleAttachmentLinksChange = (value: string) => {
     setAttachmentLinks(value);
     // Convert comma-separated links to array
-    const links = value.split(',').map(link => link.trim()).filter(link => link.length > 0);
+    const links = value
+      .split(",")
+      .map((link) => link.trim())
+      .filter((link) => link.length > 0);
     setFormData((prev) => ({
       ...prev,
       attachmentUrls: links,
@@ -75,7 +78,7 @@ export default function CreateSupportRequestPage() {
 
     try {
       setLoading(true);
-      await supportRequestService.create(formData);
+      await supportRequestService.createRequest(formData);
 
       toast.success(
         "Gửi yêu cầu từ thiện thành công! Yêu cầu của bạn sẽ được xem xét và phê duyệt."
@@ -118,194 +121,200 @@ export default function CreateSupportRequestPage() {
               Gửi Yêu cầu Từ thiện
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-300 mb-6">
-              Gửi yêu cầu từ thiện hoặc trợ giúp. Yêu cầu của bạn sẽ được xem xét và phê duyệt trước khi hiển thị cho các tổ chức
+              Gửi yêu cầu từ thiện hoặc trợ giúp. Yêu cầu của bạn sẽ được xem
+              xét và phê duyệt trước khi hiển thị cho các tổ chức
             </p>
           </div>
         </div>
       </section>
 
       <div className="container mx-auto py-8 max-w-2xl px-4">
-      <Card className="bg-gradient-to-br from-white/80 via-blue-50/50 to-purple-50/50 dark:from-slate-900/80 dark:via-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm border-2 border-blue-200/50 dark:border-blue-800/30 shadow-xl shadow-blue-200/20 dark:shadow-blue-900/20">
-        <CardHeader>
-          <CardTitle>Gửi Yêu cầu Từ thiện</CardTitle>
-          <CardDescription>
-            Gửi yêu cầu từ thiện hoặc trợ giúp. Yêu cầu của bạn sẽ được xem xét
-            và phê duyệt trước khi hiển thị cho các tổ chức
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Category */}
-            <div>
-              <Label htmlFor="category">Danh mục yêu cầu *</Label>
-              <Select
-                value={formData.categoryId.toString()}
-                onValueChange={(value) =>
-                  handleInputChange("categoryId", parseInt(value))
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Chọn danh mục yêu cầu" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem
-                      key={category.categoryId}
-                      value={category.categoryId.toString()}
-                    >
-                      {category.categoryName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <Card className="bg-gradient-to-br from-white/80 via-blue-50/50 to-purple-50/50 dark:from-slate-900/80 dark:via-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm border-2 border-blue-200/50 dark:border-blue-800/30 shadow-xl shadow-blue-200/20 dark:shadow-blue-900/20">
+          <CardHeader>
+            <CardTitle>Gửi Yêu cầu Từ thiện</CardTitle>
+            <CardDescription>
+              Gửi yêu cầu từ thiện hoặc trợ giúp. Yêu cầu của bạn sẽ được xem
+              xét và phê duyệt trước khi hiển thị cho các tổ chức
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Category */}
+              <div>
+                <Label htmlFor="category">Danh mục yêu cầu *</Label>
+                <Select
+                  value={formData.categoryId.toString()}
+                  onValueChange={(value) =>
+                    handleInputChange("categoryId", parseInt(value))
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Chọn danh mục yêu cầu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem
+                        key={category.categoryId}
+                        value={category.categoryId.toString()}
+                      >
+                        {category.categoryName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Priority */}
-            <div>
-              <Label htmlFor="priority">Độ ưu tiên</Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value) => handleInputChange("priority", value)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Thấp</SelectItem>
-                  <SelectItem value="Medium">Trung bình</SelectItem>
-                  <SelectItem value="High">Cao</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Priority */}
+              <div>
+                <Label htmlFor="priority">Độ ưu tiên</Label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value) =>
+                    handleInputChange("priority", value)
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Thấp</SelectItem>
+                    <SelectItem value="Medium">Trung bình</SelectItem>
+                    <SelectItem value="High">Cao</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Subject */}
-            <div>
-              <Label htmlFor="subject">Tiêu đề *</Label>
-              <Input
-                id="subject"
-                type="text"
-                value={formData.subject}
-                onChange={(e) => handleInputChange("subject", e.target.value)}
-                placeholder="Nhập tiêu đề yêu cầu từ thiện"
-                className="mt-1"
-                maxLength={300}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {formData.subject.length}/300 ký tự
-              </p>
-            </div>
+              {/* Subject */}
+              <div>
+                <Label htmlFor="subject">Tiêu đề *</Label>
+                <Input
+                  id="subject"
+                  type="text"
+                  value={formData.subject}
+                  onChange={(e) => handleInputChange("subject", e.target.value)}
+                  placeholder="Nhập tiêu đề yêu cầu từ thiện"
+                  className="mt-1"
+                  maxLength={300}
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {formData.subject.length}/300 ký tự
+                </p>
+              </div>
 
-            {/* Description */}
-            <div>
-              <Label htmlFor="description">Mô tả chi tiết *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
-                placeholder="Mô tả chi tiết tình huống cần hỗ trợ từ thiện..."
-                className="mt-1"
-                rows={6}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Vui lòng mô tả chi tiết tình huống để các tổ chức có thể hiểu và
-                hỗ trợ tốt nhất
-              </p>
-            </div>
+              {/* Description */}
+              <div>
+                <Label htmlFor="description">Mô tả chi tiết *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
+                  placeholder="Mô tả chi tiết tình huống cần hỗ trợ từ thiện..."
+                  className="mt-1"
+                  rows={6}
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Vui lòng mô tả chi tiết tình huống để các tổ chức có thể hiểu
+                  và hỗ trợ tốt nhất
+                </p>
+              </div>
 
-            {/* Attachment Links */}
-            <div>
-              <Label htmlFor="attachmentLinks">
-                <Link className="h-4 w-4 inline mr-1" />
-                Link đính kèm (tùy chọn)
-              </Label>
-              <Textarea
-                id="attachmentLinks"
-                value={attachmentLinks}
-                onChange={(e) => handleAttachmentLinksChange(e.target.value)}
-                placeholder="Nhập các link hình ảnh, tài liệu minh chứng (mỗi link một dòng hoặc cách nhau bằng dấu phẩy)&#10;Ví dụ:&#10;https://example.com/image1.jpg&#10;https://example.com/document.pdf"
-                className="mt-1"
-                rows={3}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Có thể nhập nhiều link, cách nhau bằng dấu phẩy hoặc xuống dòng
-              </p>
-            </div>
-            <div className="flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setFormData({
-                    categoryId: 0,
-                    subject: "",
-                    description: "",
-                    priority: "Medium",
-                    attachmentUrls: [],
-                  });
-                  setAttachmentLinks("");
-                }}
-                disabled={loading}
-              >
-                Làm mới
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  loading ||
-                  !formData.categoryId ||
-                  !formData.subject.trim() ||
-                  !formData.description.trim()
-                }
-              >
-                {loading ? (
-                  "Đang gửi..."
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Gửi yêu cầu
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              {/* Attachment Links */}
+              <div>
+                <Label htmlFor="attachmentLinks">
+                  <Link className="h-4 w-4 inline mr-1" />
+                  Link đính kèm (tùy chọn)
+                </Label>
+                <Textarea
+                  id="attachmentLinks"
+                  value={attachmentLinks}
+                  onChange={(e) => handleAttachmentLinksChange(e.target.value)}
+                  placeholder="Nhập các link hình ảnh, tài liệu minh chứng (mỗi link một dòng hoặc cách nhau bằng dấu phẩy)&#10;Ví dụ:&#10;https://example.com/image1.jpg&#10;https://example.com/document.pdf"
+                  className="mt-1"
+                  rows={3}
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Có thể nhập nhiều link, cách nhau bằng dấu phẩy hoặc xuống
+                  dòng
+                </p>
+              </div>
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setFormData({
+                      categoryId: 0,
+                      subject: "",
+                      description: "",
+                      priority: "Medium",
+                      attachmentUrls: [],
+                    });
+                    setAttachmentLinks("");
+                  }}
+                  disabled={loading}
+                >
+                  Làm mới
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    loading ||
+                    !formData.categoryId ||
+                    !formData.subject.trim() ||
+                    !formData.description.trim()
+                  }
+                >
+                  {loading ? (
+                    "Đang gửi..."
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Gửi yêu cầu
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-      {/* Help Section */}
-      <Card className="mt-6 bg-gradient-to-br from-rose-50/80 via-pink-50/80 to-fuchsia-50/80 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-fuchsia-950/30 backdrop-blur-sm border-2 border-rose-200/50 dark:border-rose-800/30 shadow-xl shadow-rose-200/20 dark:shadow-rose-900/20">
-        <CardHeader>
-          <CardTitle className="text-lg">Quy trình xử lý yêu cầu</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 text-sm text-slate-600 dark:text-slate-400">
-            <div>
-              <h4 className="font-medium text-slate-900 dark:text-slate-100">
-                Các bước xử lý yêu cầu từ thiện:
-              </h4>
-              <ul className="mt-1 list-disc list-inside space-y-1">
-                <li>Bước 1: Gửi yêu cầu từ thiện (trạng thái: Chờ duyệt)</li>
-                <li>Bước 2: Admin xem xét và phê duyệt yêu cầu</li>
-                <li>Bước 3: Yêu cầu được hiển thị cho các tổ chức từ thiện</li>
-                <li>Bước 4: Các tổ chức liên hệ và hỗ trợ trực tiếp</li>
-              </ul>
-            </div>
+        {/* Help Section */}
+        <Card className="mt-6 bg-gradient-to-br from-rose-50/80 via-pink-50/80 to-fuchsia-50/80 dark:from-rose-950/30 dark:via-pink-950/30 dark:to-fuchsia-950/30 backdrop-blur-sm border-2 border-rose-200/50 dark:border-rose-800/30 shadow-xl shadow-rose-200/20 dark:shadow-rose-900/20">
+          <CardHeader>
+            <CardTitle className="text-lg">Quy trình xử lý yêu cầu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 text-sm text-slate-600 dark:text-slate-400">
+              <div>
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                  Các bước xử lý yêu cầu từ thiện:
+                </h4>
+                <ul className="mt-1 list-disc list-inside space-y-1">
+                  <li>Bước 1: Gửi yêu cầu từ thiện (trạng thái: Chờ duyệt)</li>
+                  <li>Bước 2: Admin xem xét và phê duyệt yêu cầu</li>
+                  <li>
+                    Bước 3: Yêu cầu được hiển thị cho các tổ chức từ thiện
+                  </li>
+                  <li>Bước 4: Các tổ chức liên hệ và hỗ trợ trực tiếp</li>
+                </ul>
+              </div>
 
-            <div>
-              <h4 className="font-medium text-slate-900 dark:text-slate-100">
-                Để yêu cầu được phê duyệt nhanh chóng:
-              </h4>
-              <ul className="mt-1 list-disc list-inside space-y-1">
-                <li>Mô tả rõ ràng tình huống cần hỗ trợ</li>
-                <li>Cung cấp thông tin liên hệ chính xác</li>
-                <li>Đính kèm hình ảnh minh chứng (nếu có)</li>
-                <li>Chọn đúng danh mục yêu cầu</li>
-              </ul>
+              <div>
+                <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                  Để yêu cầu được phê duyệt nhanh chóng:
+                </h4>
+                <ul className="mt-1 list-disc list-inside space-y-1">
+                  <li>Mô tả rõ ràng tình huống cần hỗ trợ</li>
+                  <li>Cung cấp thông tin liên hệ chính xác</li>
+                  <li>Đính kèm hình ảnh minh chứng (nếu có)</li>
+                  <li>Chọn đúng danh mục yêu cầu</li>
+                </ul>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

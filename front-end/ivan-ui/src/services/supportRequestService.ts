@@ -71,9 +71,18 @@ class SupportRequestService {
   async createRequest(
     requestData: SupportRequestCreateDto
   ): Promise<SupportRequestResponseDto> {
+    // Convert camelCase to PascalCase for backend compatibility
+    const backendData = {
+      CategoryId: requestData.categoryId,
+      Subject: requestData.subject,
+      Description: requestData.description,
+      Priority: requestData.priority || "Medium",
+      AttachmentUrls: requestData.attachmentUrls || [],
+    };
+
     const response = await apiClient.post<SupportRequestResponseDto>(
       this.baseUrl,
-      requestData
+      backendData
     );
     if (!response.data) {
       throw new Error("Failed to create support request");

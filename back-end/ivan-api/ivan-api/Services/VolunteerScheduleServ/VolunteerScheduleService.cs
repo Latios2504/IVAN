@@ -81,7 +81,12 @@ namespace ivan_api.Services.VolunteerScheduleServ
                 Description = request.Description,
                 StartDateTime = request.StartDateTime,
                 EndDateTime = request.EndDateTime,
+                Location = request.Location,
+                ScheduleType = request.ScheduleType,
+                Priority = request.Priority,
                 Status = request.Status ?? ScheduleConstants.Status.Scheduled,
+                IsAllDay = request.IsAllDay,
+                ReminderMinutes = request.ReminderMinutes,
                 Notes = request.Notes,
                 CreatedBy = createdByUserId,
                 CreatedAt = DateTime.UtcNow
@@ -118,7 +123,12 @@ namespace ivan_api.Services.VolunteerScheduleServ
             existingSchedule.Description = request.Description;
             existingSchedule.StartDateTime = request.StartDateTime;
             existingSchedule.EndDateTime = request.EndDateTime;
+            existingSchedule.Location = request.Location;
+            existingSchedule.ScheduleType = request.ScheduleType;
+            existingSchedule.Priority = request.Priority;
             existingSchedule.Status = request.Status ?? existingSchedule.Status;
+            existingSchedule.IsAllDay = request.IsAllDay;
+            existingSchedule.ReminderMinutes = request.ReminderMinutes;
             existingSchedule.Notes = request.Notes;
             existingSchedule.UpdatedAt = DateTime.UtcNow;
 

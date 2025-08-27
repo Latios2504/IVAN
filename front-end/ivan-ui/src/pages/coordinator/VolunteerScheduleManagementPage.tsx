@@ -156,35 +156,40 @@ export default function VolunteerScheduleManagementPage() {
     try {
       setLoadingOptions(true);
       // Get all volunteer schedules to extract unique events
-      const allSchedulesResult = await volunteerScheduleService.getCoordinatorVolunteerSchedules({
-        page: 1,
-        size: 1000, // Get a large number to capture all events
-        sortBy: "startDateTime",
-        sortDirection: "asc",
-      });
-      
+      const allSchedulesResult =
+        await volunteerScheduleService.getCoordinatorVolunteerSchedules({
+          page: 1,
+          size: 1000, // Get a large number to capture all events
+          sortBy: "startDateTime",
+          sortDirection: "asc",
+        });
+
       // Extract unique events from schedules
       const uniqueEventsMap = new Map<number, EventDto>();
-      
-      allSchedulesResult.items.forEach(schedule => {
-        if (schedule.eventId && schedule.eventName && !uniqueEventsMap.has(schedule.eventId)) {
+
+      allSchedulesResult.items.forEach((schedule) => {
+        if (
+          schedule.eventId &&
+          schedule.eventName &&
+          !uniqueEventsMap.has(schedule.eventId)
+        ) {
           uniqueEventsMap.set(schedule.eventId, {
             eventId: schedule.eventId,
             eventName: schedule.eventName,
-            eventLocation: schedule.eventLocation || '',
+            eventLocation: schedule.eventLocation || "",
             startDate: schedule.startDateTime,
             endDate: schedule.endDateTime,
             // Add other required EventDto fields with default values
-            description: '',
+            description: "",
             maxVolunteers: 0,
             currentVolunteers: 0,
-            status: 'Active',
+            status: "Active",
             createdAt: schedule.createdAt || new Date().toISOString(),
-            updatedAt: schedule.updatedAt || new Date().toISOString()
+            updatedAt: schedule.updatedAt || new Date().toISOString(),
           });
         }
       });
-      
+
       // Convert map to array
       const uniqueEvents = Array.from(uniqueEventsMap.values());
       setEvents(uniqueEvents);
@@ -200,31 +205,32 @@ export default function VolunteerScheduleManagementPage() {
   const loadVolunteers = async () => {
     try {
       // Get all volunteer schedules to extract unique volunteers
-      const allSchedulesResult = await volunteerScheduleService.getCoordinatorVolunteerSchedules({
-        page: 1,
-        size: 1000, // Get a large number to capture all volunteers
-        sortBy: "startDateTime",
-        sortDirection: "asc",
-      });
-      
+      const allSchedulesResult =
+        await volunteerScheduleService.getCoordinatorVolunteerSchedules({
+          page: 1,
+          size: 1000, // Get a large number to capture all volunteers
+          sortBy: "startDateTime",
+          sortDirection: "asc",
+        });
+
       // Extract unique volunteers from schedules
       const uniqueVolunteersMap = new Map<number, VolunteerOption>();
-      
-      allSchedulesResult.items.forEach(schedule => {
+
+      allSchedulesResult.items.forEach((schedule) => {
         if (!uniqueVolunteersMap.has(schedule.volunteerId)) {
           // Split volunteer name into first and last name
-          const nameParts = schedule.volunteerName.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
+          const nameParts = schedule.volunteerName.split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
           uniqueVolunteersMap.set(schedule.volunteerId, {
             volunteerId: schedule.volunteerId,
             firstName: firstName,
-            lastName: lastName
+            lastName: lastName,
           });
         }
       });
-      
+
       // Convert map to array
       const uniqueVolunteers = Array.from(uniqueVolunteersMap.values());
       setVolunteers(uniqueVolunteers);
@@ -240,55 +246,60 @@ export default function VolunteerScheduleManagementPage() {
     try {
       setLoadingOptions(true);
       // Get all volunteer schedules to extract unique events and volunteers
-      const allSchedulesResult = await volunteerScheduleService.getCoordinatorVolunteerSchedules({
-        page: 1,
-        size: 1000, // Get a large number to capture all data
-        sortBy: "startDateTime",
-        sortDirection: "asc",
-      });
-      
+      const allSchedulesResult =
+        await volunteerScheduleService.getCoordinatorVolunteerSchedules({
+          page: 1,
+          size: 1000, // Get a large number to capture all data
+          sortBy: "startDateTime",
+          sortDirection: "asc",
+        });
+
       // Extract unique events from schedules
       const uniqueEventsMap = new Map<number, EventDto>();
       const uniqueVolunteersMap = new Map<number, VolunteerOption>();
-      
-      allSchedulesResult.items.forEach(schedule => {
+
+      allSchedulesResult.items.forEach((schedule) => {
         // Extract events
-        if (schedule.eventId && schedule.eventName && !uniqueEventsMap.has(schedule.eventId)) {
+        if (
+          schedule.eventId &&
+          schedule.eventName &&
+          !uniqueEventsMap.has(schedule.eventId)
+        ) {
           uniqueEventsMap.set(schedule.eventId, {
             eventId: schedule.eventId,
             eventName: schedule.eventName,
-            eventLocation: schedule.eventLocation || '',
+            eventLocation: schedule.eventLocation || "",
             startDate: schedule.startDateTime,
             endDate: schedule.endDateTime,
             // Add other required EventDto fields with default values
-            description: '',
+            description: "",
             maxVolunteers: 0,
             currentVolunteers: 0,
-            status: 'Active',
+            status: "Active",
             createdAt: schedule.createdAt || new Date().toISOString(),
-            updatedAt: schedule.updatedAt || new Date().toISOString()
+            updatedAt: schedule.updatedAt || new Date().toISOString(),
           });
         }
-        
+
         // Extract volunteers
         if (!uniqueVolunteersMap.has(schedule.volunteerId)) {
           // Split volunteer name into first and last name
-          const nameParts = schedule.volunteerName.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
+          const nameParts = schedule.volunteerName.split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
           uniqueVolunteersMap.set(schedule.volunteerId, {
             volunteerId: schedule.volunteerId,
             firstName: firstName,
-            lastName: lastName
+            lastName: lastName,
           });
         }
       });
-      
+
       // Convert maps to arrays
       const uniqueEvents = Array.from(uniqueEventsMap.values());
       const uniqueVolunteers = Array.from(uniqueVolunteersMap.values());
-      
+
       console.log("=== LOAD OPTIONS DEBUG ===");
       console.log("Total schedules loaded:", allSchedulesResult.items.length);
       console.log("Unique volunteers found:", uniqueVolunteers.length);
@@ -296,7 +307,7 @@ export default function VolunteerScheduleManagementPage() {
       console.log("Unique events found:", uniqueEvents.length);
       console.log("Events data:", uniqueEvents);
       console.log("===========================");
-      
+
       setEvents(uniqueEvents);
       setVolunteers(uniqueVolunteers);
     } catch (error) {
@@ -342,7 +353,10 @@ export default function VolunteerScheduleManagementPage() {
       console.log("Request Payload:", request);
       console.log("Available Volunteers:", volunteers);
       console.log("Selected Volunteer ID:", formData.volunteerId);
-      console.log("Selected Volunteer:", volunteers.find(v => v.volunteerId === formData.volunteerId));
+      console.log(
+        "Selected Volunteer:",
+        volunteers.find((v) => v.volunteerId === formData.volunteerId)
+      );
       console.log("==============================");
 
       await volunteerScheduleService.createVolunteerSchedule(request);
@@ -393,7 +407,10 @@ export default function VolunteerScheduleManagementPage() {
       console.log("Request Payload:", request);
       console.log("Available Volunteers:", volunteers);
       console.log("Selected Volunteer ID:", formData.volunteerId);
-      console.log("Selected Volunteer:", volunteers.find(v => v.volunteerId === formData.volunteerId));
+      console.log(
+        "Selected Volunteer:",
+        volunteers.find((v) => v.volunteerId === formData.volunteerId)
+      );
       console.log("=============================");
 
       await volunteerScheduleService.updateVolunteerSchedule(
@@ -474,13 +491,19 @@ export default function VolunteerScheduleManagementPage() {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
+      case "Draft":
+        return "gray";
       case "Scheduled":
         return "blue";
-      case "InProgress":
+      case "Checked In":
+        return "blue";
+      case "In Progress":
         return "yellow";
       case "Completed":
         return "green";
       case "Cancelled":
+        return "red";
+      case "No Show":
         return "red";
       default:
         return "gray";
@@ -508,11 +531,18 @@ export default function VolunteerScheduleManagementPage() {
     key: keyof VolunteerScheduleFilterDto,
     value: any
   ) => {
-    setFilters((prev: VolunteerScheduleFilterDto) => ({ ...prev, [key]: value, page: 1 }));
+    setFilters((prev: VolunteerScheduleFilterDto) => ({
+      ...prev,
+      [key]: value,
+      page: 1,
+    }));
   };
 
   const handlePageChange = (newPage: number) => {
-    setFilters((prev: VolunteerScheduleFilterDto) => ({ ...prev, page: newPage }));
+    setFilters((prev: VolunteerScheduleFilterDto) => ({
+      ...prev,
+      page: newPage,
+    }));
   };
 
   return (
@@ -536,7 +566,9 @@ export default function VolunteerScheduleManagementPage() {
       {/* Filters */}
       <Card className="mb-6 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-gradient-to-r border-blue-200/50 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 dark:border-blue-800/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg border-b border-blue-100 dark:border-blue-800/50">
-          <CardTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Bộ lọc</CardTitle>
+          <CardTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">
+            Bộ lọc
+          </CardTitle>
         </CardHeader>
         <CardContent className="bg-gradient-to-br from-white/80 to-blue-50/50 dark:from-gray-900/80 dark:to-blue-950/50">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -588,10 +620,13 @@ export default function VolunteerScheduleManagementPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="Draft">Nháp</SelectItem>
                   <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
-                  <SelectItem value="InProgress">Đang thực hiện</SelectItem>
+                  <SelectItem value="Checked In">Đã check-in</SelectItem>
+                  <SelectItem value="In Progress">Đang thực hiện</SelectItem>
                   <SelectItem value="Completed">Hoàn thành</SelectItem>
                   <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                  <SelectItem value="No Show">Vắng mặt</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -615,7 +650,7 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectItem value="Event">Sự kiện</SelectItem>
                   <SelectItem value="Training">Đào tạo</SelectItem>
                   <SelectItem value="Meeting">Họp</SelectItem>
-                  <SelectItem value="Task">Nhiệm vụ</SelectItem>
+                  <SelectItem value="Other">Khác</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -637,8 +672,12 @@ export default function VolunteerScheduleManagementPage() {
       {/* Schedules Table */}
       <Card className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-gradient-to-r border-blue-200/50 dark:from-gray-900 dark:via-blue-950/30 dark:to-purple-950/30 dark:border-blue-800/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg border-b border-blue-100 dark:border-blue-800/50">
-          <CardTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Danh sách lịch trình</CardTitle>
-          <CardDescription className="text-gray-600 dark:text-gray-300">Tổng cộng {totalItems} lịch trình</CardDescription>
+          <CardTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">
+            Danh sách lịch trình
+          </CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-300">
+            Tổng cộng {totalItems} lịch trình
+          </CardDescription>
         </CardHeader>
         <CardContent className="bg-gradient-to-br from-white/80 to-blue-50/50 dark:from-gray-900/80 dark:to-blue-950/50">
           {loading ? (
@@ -672,7 +711,10 @@ export default function VolunteerScheduleManagementPage() {
                   </TableRow>
                 ) : (
                   schedules.map((schedule) => (
-                    <TableRow key={schedule.scheduleId} className="bg-gradient-to-r from-white via-blue-50/20 to-purple-50/20 hover:from-blue-50/40 hover:via-purple-50/30 hover:to-indigo-50/40 dark:from-gray-900/50 dark:via-blue-950/20 dark:to-purple-950/20 dark:hover:from-blue-950/40 dark:hover:via-purple-950/30 dark:hover:to-indigo-950/40 transition-all duration-300 border-b border-blue-100/50 dark:border-blue-800/30">
+                    <TableRow
+                      key={schedule.scheduleId}
+                      className="bg-gradient-to-r from-white via-blue-50/20 to-purple-50/20 hover:from-blue-50/40 hover:via-purple-50/30 hover:to-indigo-50/40 dark:from-gray-900/50 dark:via-blue-950/20 dark:to-purple-950/20 dark:hover:from-blue-950/40 dark:hover:via-purple-950/30 dark:hover:to-indigo-950/40 transition-all duration-300 border-b border-blue-100/50 dark:border-blue-800/30"
+                    >
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-muted-foreground" />
@@ -731,14 +773,21 @@ export default function VolunteerScheduleManagementPage() {
                         <Badge variant={getStatusColor(schedule.status) as any}>
                           {schedule.status === "Draft" && "Nháp"}
                           {schedule.status === "Scheduled" && "Đã lên lịch"}
-                          {schedule.status === "In Progress" && "Đang thực hiện"}
+                          {schedule.status === "In Progress" &&
+                            "Đang thực hiện"}
                           {schedule.status === "Completed" && "Hoàn thành"}
                           {schedule.status === "Cancelled" && "Đã hủy"}
                           {schedule.status === "No Show" && "Vắng mặt"}
                           {schedule.status === "Checked In" && "Đã check-in"}
-                          {!["Draft", "Scheduled", "In Progress", "Completed", "Cancelled", "No Show", "Checked In"].includes(
-                            schedule.status || ""
-                          ) &&
+                          {![
+                            "Draft",
+                            "Scheduled",
+                            "In Progress",
+                            "Completed",
+                            "Cancelled",
+                            "No Show",
+                            "Checked In",
+                          ].includes(schedule.status || "") &&
                             (schedule.status || "Không xác định")}
                         </Badge>
                       </TableCell>
@@ -763,7 +812,12 @@ export default function VolunteerScheduleManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleUpdateStatus(schedule.scheduleId, "Checked In")}
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    schedule.scheduleId,
+                                    "Checked In"
+                                  )
+                                }
                                 className="text-xs px-2 py-1 h-7"
                               >
                                 Check-in
@@ -771,7 +825,12 @@ export default function VolunteerScheduleManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleUpdateStatus(schedule.scheduleId, "Cancelled")}
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    schedule.scheduleId,
+                                    "Cancelled"
+                                  )
+                                }
                                 className="text-xs px-2 py-1 h-7"
                               >
                                 Hủy
@@ -783,7 +842,12 @@ export default function VolunteerScheduleManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleUpdateStatus(schedule.scheduleId, "In Progress")}
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    schedule.scheduleId,
+                                    "In Progress"
+                                  )
+                                }
                                 className="text-xs px-2 py-1 h-7"
                               >
                                 Bắt đầu
@@ -791,7 +855,12 @@ export default function VolunteerScheduleManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleUpdateStatus(schedule.scheduleId, "No Show")}
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    schedule.scheduleId,
+                                    "No Show"
+                                  )
+                                }
                                 className="text-xs px-2 py-1 h-7"
                               >
                                 Vắng mặt
@@ -802,13 +871,18 @@ export default function VolunteerScheduleManagementPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleUpdateStatus(schedule.scheduleId, "Completed")}
+                              onClick={() =>
+                                handleUpdateStatus(
+                                  schedule.scheduleId,
+                                  "Completed"
+                                )
+                              }
                               className="text-xs px-2 py-1 h-7"
                             >
                               Hoàn thành
                             </Button>
                           )}
-                          
+
                           {/* Always show edit and delete buttons */}
                           <Button
                             variant="ghost"
@@ -869,7 +943,9 @@ export default function VolunteerScheduleManagementPage() {
       <Dialog open={createModal.isOpen} onOpenChange={createModal.close}>
         <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl">
           <DialogHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg p-6 -m-6 mb-4">
-            <DialogTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Tạo lịch trình mới</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">
+              Tạo lịch trình mới
+            </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-300">
               Tạo lịch trình mới cho tình nguyện viên
             </DialogDescription>
@@ -917,7 +993,8 @@ export default function VolunteerScheduleManagementPage() {
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    eventId: value === "none" ? null : value ? parseInt(value) : null,
+                    eventId:
+                      value === "none" ? null : value ? parseInt(value) : null,
                   })
                 }
               >
@@ -1018,7 +1095,7 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectItem value="Event">Sự kiện</SelectItem>
                   <SelectItem value="Training">Đào tạo</SelectItem>
                   <SelectItem value="Meeting">Họp</SelectItem>
-                  <SelectItem value="Task">Nhiệm vụ</SelectItem>
+                  <SelectItem value="Other">Khác</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1054,10 +1131,13 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="Draft">Nháp</SelectItem>
                   <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
-                  <SelectItem value="InProgress">Đang thực hiện</SelectItem>
+                  <SelectItem value="Checked In">Đã check-in</SelectItem>
+                  <SelectItem value="In Progress">Đang thực hiện</SelectItem>
                   <SelectItem value="Completed">Hoàn thành</SelectItem>
                   <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                  <SelectItem value="No Show">Vắng mặt</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1102,7 +1182,9 @@ export default function VolunteerScheduleManagementPage() {
       <Dialog open={editModal.isOpen} onOpenChange={editModal.close}>
         <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl">
           <DialogHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-t-lg p-6 -m-6 mb-4">
-            <DialogTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">Chỉnh sửa lịch trình</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-300 dark:to-purple-300">
+              Chỉnh sửa lịch trình
+            </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-300">
               Cập nhật thông tin lịch trình tình nguyện viên
             </DialogDescription>
@@ -1151,7 +1233,8 @@ export default function VolunteerScheduleManagementPage() {
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    eventId: value === "none" ? null : value ? parseInt(value) : null,
+                    eventId:
+                      value === "none" ? null : value ? parseInt(value) : null,
                   })
                 }
               >
@@ -1252,7 +1335,7 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectItem value="Event">Sự kiện</SelectItem>
                   <SelectItem value="Training">Đào tạo</SelectItem>
                   <SelectItem value="Meeting">Họp</SelectItem>
-                  <SelectItem value="Task">Nhiệm vụ</SelectItem>
+                  <SelectItem value="Other">Khác</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1288,10 +1371,13 @@ export default function VolunteerScheduleManagementPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="Draft">Nháp</SelectItem>
                   <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
-                  <SelectItem value="InProgress">Đang thực hiện</SelectItem>
+                  <SelectItem value="Checked In">Đã check-in</SelectItem>
+                  <SelectItem value="In Progress">Đang thực hiện</SelectItem>
                   <SelectItem value="Completed">Hoàn thành</SelectItem>
                   <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                  <SelectItem value="No Show">Vắng mặt</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1336,7 +1422,9 @@ export default function VolunteerScheduleManagementPage() {
       <Dialog open={deleteModal.isOpen} onOpenChange={deleteModal.close}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl">
           <DialogHeader className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/50 dark:to-orange-950/50 rounded-t-lg p-6 -m-6 mb-4">
-            <DialogTitle className="bg-gradient-to-r from-red-700 to-orange-700 bg-clip-text text-transparent dark:from-red-300 dark:to-orange-300">Xác nhận xóa</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-red-700 to-orange-700 bg-clip-text text-transparent dark:from-red-300 dark:to-orange-300">
+              Xác nhận xóa
+            </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-300">
               Bạn có chắc chắn muốn xóa lịch trình "{deleteModal.data?.title}"?
               Hành động này không thể hoàn tác.

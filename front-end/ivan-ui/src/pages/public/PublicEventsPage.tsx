@@ -1,15 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Calendar, Users, MapPin, Search, Clock, Building2 } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  MapPin,
+  Search,
+  Clock,
+  Building2,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CombinedLayout } from "@/components/public/CombinedLayout";
 import { EventListItem } from "@/components/public/EventListItem";
 import { FeedbackSection } from "@/components/public/FeedbackSection";
 import { eventsService } from "@/services/eventsService";
-import type {
-  EventDto,
-  EventFilterDto,
-} from "@/types/events";
+import type { EventDto, EventFilterDto } from "@/types/events";
 import type { StatCard } from "@/components/public/StatsSection";
 
 // Import the detail page content components
@@ -17,52 +21,85 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  Heart,
-  Target,
-  Zap,
-} from "lucide-react";
+import { Heart, Target, Zap } from "lucide-react";
 
 // Event status constants - should match backend status IDs
 const EVENT_STATUS = {
-  DRAFT: 1,
-  OPEN: 2,
-  FULL: 3,
-  CLOSED: 4,
+  PENDING_APPROVAL: 1,
+  PUBLISHED: 2,
+  ONGOING: 3,
+  COMPLETED: 4,
   CANCELLED: 5,
 } as const;
 
+// Helper function to check if an event is pending approval
+const isEventPendingApproval = (event: EventDto): boolean => {
+  // Check statusId first (more reliable)
+  if (event.statusId === EVENT_STATUS.PENDING_APPROVAL) {
+    return true;
+  }
+
+  // Fallback to status name check
+  if (event.statusName) {
+    const statusLower = event.statusName.toLowerCase();
+    return statusLower.includes("pending") || statusLower.includes("chờ duyệt");
+  }
+
+  return false;
+};
+
 const mapEventToListItem = (event: EventDto) => {
   // Determine status based on statusId (more reliable) or fallback to statusName
-  let status: "open" | "full" | "closed" = "open";
-  
+  let status: "ongoing" | "published" | "completed" | "closed" = "published";
+
   if (event.statusId) {
     switch (event.statusId) {
-      case EVENT_STATUS.OPEN:
-        status = "open";
+      case EVENT_STATUS.PUBLISHED:
+        status = "published";
         break;
-      case EVENT_STATUS.FULL:
-        status = "full";
+      case EVENT_STATUS.ONGOING:
+        status = "ongoing";
         break;
-      case EVENT_STATUS.CLOSED:
+      case EVENT_STATUS.COMPLETED:
+        status = "completed";
+        break;
       case EVENT_STATUS.CANCELLED:
         status = "closed";
         break;
       default:
-        status = "open";
+        status = "published";
     }
   } else if (event.statusName) {
     // Fallback to string matching if statusId is not reliable
     const statusLower = event.statusName.toLowerCase();
-    if (statusLower.includes('đóng') || statusLower.includes('closed') || statusLower.includes('hủy')) {
+    if (
+      statusLower.includes("ongoing") ||
+      statusLower.includes("đang diễn ra")
+    ) {
+      status = "ongoing";
+    } else if (
+      statusLower.includes("completed") ||
+      statusLower.includes("hoàn thành")
+    ) {
+      status = "completed";
+    } else if (
+      statusLower.includes("đóng") ||
+      statusLower.includes("closed") ||
+      statusLower.includes("hủy") ||
+      statusLower.includes("cancelled")
+    ) {
       status = "closed";
-    } else if (statusLower.includes('đủ') || statusLower.includes('full')) {
-      status = "full";
+    } else if (
+      statusLower.includes("pending") ||
+      statusLower.includes("chờ duyệt")
+    ) {
+      // Pending approval events are now filtered at API level, but fallback to closed status
+      status = "closed";
     } else {
-      status = "open";
+      status = "published";
     }
   }
-  
+
   return {
     id: event.eventId.toString(),
     title: event.eventName,
@@ -70,7 +107,12 @@ const mapEventToListItem = (event: EventDto) => {
     organization: event.organizationName,
     startDate: event.startDate,
     endDate: event.endDate,
-    time: event.startDate ? new Date(event.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : "",
+    time: event.startDate
+      ? new Date(event.startDate).toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "",
     location: event.location,
     detailedAddress: event.detailedAddress,
     province: event.province,
@@ -97,10 +139,12 @@ export default function PublicEventsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(id || null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(
+    id || null
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -113,11 +157,15 @@ export default function PublicEventsPage() {
     search: "",
     categoryIds: undefined,
     province: "",
-    statusIds: undefined,
+    statusIds: [
+      EVENT_STATUS.ONGOING,
+      EVENT_STATUS.PUBLISHED,
+      EVENT_STATUS.COMPLETED,
+    ], // Show ongoing, published, and completed events
     page: 1,
     size: 10,
-    sortBy: "createdAt",
-    sortDirection: "desc",
+    sortBy: "startDate", // Sort by start date to show upcoming events first
+    sortDirection: "asc", // Ascending to show nearest events first
   });
 
   // Update filters when debounced search changes
@@ -150,8 +198,8 @@ export default function PublicEventsPage() {
           totalPages: result.totalPages,
           totalItems: result.totalCount,
         });
-        
-        // Auto-select first event if none selected
+
+        // Auto-select first event if none selected (events are already filtered by backend)
         if (!selectedEventId && result.items.length > 0) {
           const firstEventId = result.items[0].eventId?.toString();
           if (firstEventId) {
@@ -160,7 +208,9 @@ export default function PublicEventsPage() {
           }
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Failed to load events");
+        toast.error(
+          err instanceof Error ? err.message : "Failed to load events"
+        );
       } finally {
         setLoading(false);
       }
@@ -177,7 +227,16 @@ export default function PublicEventsPage() {
 
         try {
           const result = await eventsService.getEvent(Number(selectedEventId));
-          setSelectedEvent(result);
+
+          // Check if the event is pending approval and shouldn't be displayed
+          if (isEventPendingApproval(result)) {
+            // Event is pending approval, don't show it
+            setSelectedEvent(null);
+            toast.error("Sự kiện này đang chờ duyệt và không thể hiển thị");
+            navigate("/events", { replace: true });
+          } else {
+            setSelectedEvent(result);
+          }
         } catch (err) {
           toast.error(
             err instanceof Error ? err.message : "Failed to load event details"
@@ -191,11 +250,46 @@ export default function PublicEventsPage() {
     }
   }, [selectedEventId]);
 
-  // Map backend data to component props
-  const mappedEvents = useMemo(
-    () => events.map(mapEventToListItem),
-    [events]
-  );
+  // Map backend data to component props and sort by priority (filtering now done at API level)
+  const mappedEvents = useMemo(() => {
+    // Define status priority for sorting: ongoing > published > completed
+    const getStatusPriority = (statusId: number): number => {
+      switch (statusId) {
+        case EVENT_STATUS.ONGOING:
+          return 1; // Highest priority
+        case EVENT_STATUS.PUBLISHED:
+          return 2; // Medium priority
+        case EVENT_STATUS.COMPLETED:
+          return 3; // Lowest priority
+        default:
+          return 4; // Unknown status
+      }
+    };
+
+    // Events are already filtered by backend, map and sort them
+    const mappedData = events.map(mapEventToListItem);
+
+    // Sort by status priority first, then by start date
+    return mappedData.sort((a, b) => {
+      const eventA = events.find((e) => e.eventId.toString() === a.id);
+      const eventB = events.find((e) => e.eventId.toString() === b.id);
+
+      if (!eventA || !eventB) return 0;
+
+      const priorityA = getStatusPriority(eventA.statusId || 0);
+      const priorityB = getStatusPriority(eventB.statusId || 0);
+
+      // First sort by status priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // Then sort by start date (upcoming first)
+      const dateA = new Date(eventA.startDate).getTime();
+      const dateB = new Date(eventB.startDate).getTime();
+      return dateA - dateB;
+    });
+  }, [events]);
 
   // Filter change handlers
   const handleSearch = (query: string) => {
@@ -222,7 +316,16 @@ export default function PublicEventsPage() {
 
         try {
           const result = await eventsService.getEvent(Number(selectedEventId));
-          setSelectedEvent(result);
+
+          // Check if the event is pending approval and shouldn't be displayed
+          if (isEventPendingApproval(result)) {
+            // Event is pending approval, don't show it
+            setSelectedEvent(null);
+            toast.error("Sự kiện này đang chờ duyệt và không thể hiển thị");
+            navigate("/events", { replace: true });
+          } else {
+            setSelectedEvent(result);
+          }
         } catch (err) {
           toast.error(
             err instanceof Error ? err.message : "Failed to load event details"
@@ -247,7 +350,11 @@ export default function PublicEventsPage() {
     {
       title: "Tình nguyện viên",
       value: mappedEvents
-        .reduce((total: number, event) => total + (event.maxVolunteers || event.minVolunteers || 0), 0)
+        .reduce(
+          (total: number, event) =>
+            total + (event.maxVolunteers || event.minVolunteers || 0),
+          0
+        )
         .toLocaleString(),
       subtitle: "Cần tuyển",
       icon: Users,
@@ -255,7 +362,9 @@ export default function PublicEventsPage() {
     {
       title: "Địa điểm",
       value: new Set(
-        mappedEvents.map((event) => event.province || event.location).filter(Boolean)
+        mappedEvents
+          .map((event) => event.province || event.location)
+          .filter(Boolean)
       ).size.toString(),
       subtitle: "Tỉnh/Thành phố",
       icon: MapPin,
@@ -267,52 +376,87 @@ export default function PublicEventsPage() {
     if (!selectedEvent) return null;
 
     const statusConfig = {
-      open: { 
-        label: "Đang mở", 
-        variant: "default" as const, 
+      ongoing: {
+        label: "Đang diễn ra",
+        variant: "default" as const,
         color: "text-emerald-600 dark:text-emerald-300",
-        bgGradient: "from-emerald-500/10 to-green-500/10 dark:from-emerald-400/20 dark:to-green-400/20"
+        bgGradient:
+          "from-emerald-500/10 to-green-500/10 dark:from-emerald-400/20 dark:to-green-400/20",
       },
-      full: { 
-        label: "Đã đủ", 
-        variant: "secondary" as const, 
-        color: "text-amber-600 dark:text-amber-300",
-        bgGradient: "from-amber-500/10 to-orange-500/10 dark:from-amber-400/20 dark:to-orange-400/20"
+      published: {
+        label: "Đã duyệt",
+        variant: "secondary" as const,
+        color: "text-blue-600 dark:text-blue-300",
+        bgGradient:
+          "from-blue-500/10 to-cyan-500/10 dark:from-blue-400/20 dark:to-cyan-400/20",
       },
-      closed: { 
-        label: "Đã đóng", 
-        variant: "outline" as const, 
-        color: "text-gray-600 dark:text-gray-300",
-        bgGradient: "from-gray-500/10 to-slate-500/10 dark:from-gray-400/20 dark:to-slate-400/20"
+      completed: {
+        label: "Đã hoàn thành",
+        variant: "outline" as const,
+        color: "text-purple-600 dark:text-purple-300",
+        bgGradient:
+          "from-purple-500/10 to-violet-500/10 dark:from-purple-400/20 dark:to-violet-400/20",
+      },
+      closed: {
+        label: "Đã đóng",
+        variant: "destructive" as const,
+        color: "text-red-600 dark:text-red-300",
+        bgGradient:
+          "from-red-500/10 to-rose-500/10 dark:from-red-400/20 dark:to-rose-400/20",
       },
     };
 
     // Determine status using the same logic as mapping function
-    let eventStatus: "open" | "full" | "closed" = "open";
-    
+    let eventStatus: "ongoing" | "published" | "completed" | "closed" =
+      "published";
+
     if (selectedEvent.statusId) {
       switch (selectedEvent.statusId) {
-        case EVENT_STATUS.OPEN:
-          eventStatus = "open";
+        case EVENT_STATUS.PUBLISHED:
+          eventStatus = "published";
           break;
-        case EVENT_STATUS.FULL:
-          eventStatus = "full";
+        case EVENT_STATUS.ONGOING:
+          eventStatus = "ongoing";
           break;
-        case EVENT_STATUS.CLOSED:
+        case EVENT_STATUS.COMPLETED:
+          eventStatus = "completed";
+          break;
         case EVENT_STATUS.CANCELLED:
           eventStatus = "closed";
           break;
+        case EVENT_STATUS.PENDING_APPROVAL:
+          // This shouldn't happen since we filter these out, but just in case
+          eventStatus = "closed";
+          break;
         default:
-          eventStatus = "open";
+          eventStatus = "published";
       }
     } else if (selectedEvent.statusName) {
       const statusLower = selectedEvent.statusName.toLowerCase();
-      if (statusLower.includes('đóng') || statusLower.includes('closed') || statusLower.includes('hủy')) {
+      if (
+        statusLower.includes("ongoing") ||
+        statusLower.includes("đang diễn ra")
+      ) {
+        eventStatus = "ongoing";
+      } else if (
+        statusLower.includes("completed") ||
+        statusLower.includes("hoàn thành")
+      ) {
+        eventStatus = "completed";
+      } else if (
+        statusLower.includes("đóng") ||
+        statusLower.includes("closed") ||
+        statusLower.includes("hủy") ||
+        statusLower.includes("cancelled")
+      ) {
         eventStatus = "closed";
-      } else if (statusLower.includes('đủ') || statusLower.includes('full')) {
-        eventStatus = "full";
+      } else if (
+        statusLower.includes("pending") ||
+        statusLower.includes("chờ duyệt")
+      ) {
+        eventStatus = "closed";
       } else {
-        eventStatus = "open";
+        eventStatus = "published";
       }
     }
     const statusInfo = statusConfig[eventStatus];
@@ -321,7 +465,9 @@ export default function PublicEventsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="space-y-4">
-          <div className={`p-6 rounded-xl bg-gradient-to-br ${statusInfo.bgGradient} border border-border/50`}>
+          <div
+            className={`p-6 rounded-xl bg-gradient-to-br ${statusInfo.bgGradient} border border-border/50`}
+          >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -347,14 +493,19 @@ export default function PublicEventsPage() {
                   <div className="p-1 rounded-md bg-blue-500/10 dark:bg-blue-400/20">
                     <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <span className="text-foreground font-medium">{selectedEvent.organizationName}</span>
+                  <span className="text-foreground font-medium">
+                    {selectedEvent.organizationName}
+                  </span>
                 </div>
-                <Badge variant={statusInfo.variant} className={`${statusInfo.color} font-medium`}>
+                <Badge
+                  variant={statusInfo.variant}
+                  className={`${statusInfo.color} font-medium`}
+                >
                   {statusInfo.label}
                 </Badge>
               </div>
             </div>
-            
+
             <p className="text-foreground/80 mt-4 leading-relaxed">
               {selectedEvent.description}
             </p>
@@ -367,12 +518,12 @@ export default function PublicEventsPage() {
             {selectedEvent.bannerImageUrl && (
               <div>
                 <h3 className="font-medium mb-2">Hình ảnh sự kiện</h3>
-                <img 
-                  src={selectedEvent.bannerImageUrl} 
+                <img
+                  src={selectedEvent.bannerImageUrl}
                   alt={selectedEvent.eventName}
                   className="w-full h-64 object-cover rounded-lg"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.style.display = "none";
                   }}
                 />
               </div>
@@ -381,17 +532,19 @@ export default function PublicEventsPage() {
               <div>
                 <h3 className="font-medium mb-2">Thư viện ảnh</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {selectedEvent.galleryImages.split(',').map((imageUrl, index) => (
-                    <img 
-                      key={index}
-                      src={imageUrl.trim()} 
-                      alt={`${selectedEvent.eventName} - ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ))}
+                  {selectedEvent.galleryImages
+                    .split(",")
+                    .map((imageUrl, index) => (
+                      <img
+                        key={index}
+                        src={imageUrl.trim()}
+                        alt={`${selectedEvent.eventName} - ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ))}
                 </div>
               </div>
             )}
@@ -406,23 +559,43 @@ export default function PublicEventsPage() {
                 <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
                   <Calendar className="h-5 w-5" />
                 </div>
-                <span className="font-semibold text-foreground">Thời gian sự kiện</span>
+                <span className="font-semibold text-foreground">
+                  Thời gian sự kiện
+                </span>
               </div>
               <div className="text-sm space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-foreground">Bắt đầu: {new Date(selectedEvent.startDate).toLocaleDateString('vi-VN')} {new Date(selectedEvent.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-foreground">
+                    Bắt đầu:{" "}
+                    {new Date(selectedEvent.startDate).toLocaleDateString(
+                      "vi-VN"
+                    )}{" "}
+                    {new Date(selectedEvent.startDate).toLocaleTimeString(
+                      "vi-VN",
+                      { hour: "2-digit", minute: "2-digit" }
+                    )}
+                  </span>
                 </div>
                 {selectedEvent.endDate && (
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                    <span className="text-foreground">Kết thúc: {new Date(selectedEvent.endDate).toLocaleDateString('vi-VN')} {new Date(selectedEvent.endDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-foreground">
+                      Kết thúc:{" "}
+                      {new Date(selectedEvent.endDate).toLocaleDateString(
+                        "vi-VN"
+                      )}{" "}
+                      {new Date(selectedEvent.endDate).toLocaleTimeString(
+                        "vi-VN",
+                        { hour: "2-digit", minute: "2-digit" }
+                      )}
+                    </span>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="border-0 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-3">
@@ -432,35 +605,60 @@ export default function PublicEventsPage() {
                 <span className="font-semibold text-foreground">Địa điểm</span>
               </div>
               <div className="text-sm space-y-1">
-                {selectedEvent.detailedAddress && <div className="text-foreground font-medium">{selectedEvent.detailedAddress}</div>}
-                {selectedEvent.location && <div className="text-foreground">{selectedEvent.location}</div>}
+                {selectedEvent.detailedAddress && (
+                  <div className="text-foreground font-medium">
+                    {selectedEvent.detailedAddress}
+                  </div>
+                )}
+                {selectedEvent.location && (
+                  <div className="text-foreground">
+                    {selectedEvent.location}
+                  </div>
+                )}
                 {(selectedEvent.district || selectedEvent.province) && (
-                  <div className="text-muted-foreground">{selectedEvent.district}{selectedEvent.district && selectedEvent.province && ', '}{selectedEvent.province}</div>
+                  <div className="text-muted-foreground">
+                    {selectedEvent.district}
+                    {selectedEvent.district && selectedEvent.province && ", "}
+                    {selectedEvent.province}
+                  </div>
                 )}
               </div>
             </CardContent>
           </Card>
-          
-          {(selectedEvent.registrationStartDate || selectedEvent.registrationEndDate) && (
+
+          {(selectedEvent.registrationStartDate ||
+            selectedEvent.registrationEndDate) && (
             <Card className="border-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 hover:shadow-lg transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
                     <Clock className="h-5 w-5" />
                   </div>
-                  <span className="font-semibold text-foreground">Thời gian đăng ký</span>
+                  <span className="font-semibold text-foreground">
+                    Thời gian đăng ký
+                  </span>
                 </div>
                 <div className="text-sm space-y-2">
                   {selectedEvent.registrationStartDate && (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-foreground">Mở đăng ký: {new Date(selectedEvent.registrationStartDate).toLocaleDateString('vi-VN')}</span>
+                      <span className="text-foreground">
+                        Mở đăng ký:{" "}
+                        {new Date(
+                          selectedEvent.registrationStartDate
+                        ).toLocaleDateString("vi-VN")}
+                      </span>
                     </div>
                   )}
                   {selectedEvent.registrationEndDate && (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      <span className="text-foreground">Hạn đăng ký: {new Date(selectedEvent.registrationEndDate).toLocaleDateString('vi-VN')}</span>
+                      <span className="text-foreground">
+                        Hạn đăng ký:{" "}
+                        {new Date(
+                          selectedEvent.registrationEndDate
+                        ).toLocaleDateString("vi-VN")}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -484,43 +682,65 @@ export default function PublicEventsPage() {
               {selectedEvent.minVolunteers && (
                 <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-black/20 rounded-lg">
                   <span className="text-foreground">Tối thiểu cần</span>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">{selectedEvent.minVolunteers} người</span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400">
+                    {selectedEvent.minVolunteers} người
+                  </span>
                 </div>
               )}
               {selectedEvent.maxVolunteers && (
                 <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-black/20 rounded-lg">
                   <span className="text-foreground">Tối đa nhận</span>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">{selectedEvent.maxVolunteers} người</span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400">
+                    {selectedEvent.maxVolunteers} người
+                  </span>
                 </div>
               )}
-              {selectedEvent.volunteersRegistered !== undefined && selectedEvent.maxVolunteers && (
-                <>
-                  <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="text-foreground">Đã đăng ký</span>
-                    <span className="font-bold text-purple-600 dark:text-purple-400">
-                      {selectedEvent.volunteersRegistered}/{selectedEvent.maxVolunteers}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                      <div 
-                        className="h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-purple-500 to-violet-500"
-                        style={{ 
-                          width: `${Math.min((selectedEvent.volunteersRegistered / selectedEvent.maxVolunteers) * 100, 100)}%` 
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">
-                        {Math.round((selectedEvent.volunteersRegistered / selectedEvent.maxVolunteers) * 100)}% đã đăng ký
-                      </span>
-                      <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
-                        Còn {Math.max(selectedEvent.maxVolunteers - selectedEvent.volunteersRegistered, 0)} vị trí
+              {selectedEvent.volunteersRegistered !== undefined &&
+                selectedEvent.maxVolunteers && (
+                  <>
+                    <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+                      <span className="text-foreground">Đã đăng ký</span>
+                      <span className="font-bold text-purple-600 dark:text-purple-400">
+                        {selectedEvent.volunteersRegistered}/
+                        {selectedEvent.maxVolunteers}
                       </span>
                     </div>
-                  </div>
-                </>
-              )}
+                    <div className="space-y-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div
+                          className="h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-purple-500 to-violet-500"
+                          style={{
+                            width: `${Math.min(
+                              (selectedEvent.volunteersRegistered /
+                                selectedEvent.maxVolunteers) *
+                                100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          {Math.round(
+                            (selectedEvent.volunteersRegistered /
+                              selectedEvent.maxVolunteers) *
+                              100
+                          )}
+                          % đã đăng ký
+                        </span>
+                        <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
+                          Còn{" "}
+                          {Math.max(
+                            selectedEvent.maxVolunteers -
+                              selectedEvent.volunteersRegistered,
+                            0
+                          )}{" "}
+                          vị trí
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
             </div>
           </CardContent>
         </Card>
@@ -541,7 +761,10 @@ export default function PublicEventsPage() {
         )}
 
         {/* Requirements */}
-        {(selectedEvent.requirements || selectedEvent.requiredSkills || selectedEvent.ageRequirement || selectedEvent.genderRequirement) && (
+        {(selectedEvent.requirements ||
+          selectedEvent.requiredSkills ||
+          selectedEvent.ageRequirement ||
+          selectedEvent.genderRequirement) && (
           <Card className="border-0 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-lg">
@@ -555,7 +778,9 @@ export default function PublicEventsPage() {
               <div className="space-y-4 text-sm">
                 {selectedEvent.requirements && (
                   <div className="p-4 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-rose-600 dark:text-rose-400">Yêu cầu chung:</span>
+                    <span className="font-semibold text-rose-600 dark:text-rose-400">
+                      Yêu cầu chung:
+                    </span>
                     <p className="text-foreground whitespace-pre-wrap mt-2 leading-relaxed">
                       {selectedEvent.requirements}
                     </p>
@@ -563,20 +788,32 @@ export default function PublicEventsPage() {
                 )}
                 {selectedEvent.requiredSkills && (
                   <div className="p-4 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-rose-600 dark:text-rose-400">Kỹ năng yêu cầu: </span>
-                    <span className="text-foreground">{selectedEvent.requiredSkills}</span>
+                    <span className="font-semibold text-rose-600 dark:text-rose-400">
+                      Kỹ năng yêu cầu:{" "}
+                    </span>
+                    <span className="text-foreground">
+                      {selectedEvent.requiredSkills}
+                    </span>
                   </div>
                 )}
                 {selectedEvent.ageRequirement && (
                   <div className="p-4 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-rose-600 dark:text-rose-400">Yêu cầu độ tuổi: </span>
-                    <span className="text-foreground">{selectedEvent.ageRequirement}</span>
+                    <span className="font-semibold text-rose-600 dark:text-rose-400">
+                      Yêu cầu độ tuổi:{" "}
+                    </span>
+                    <span className="text-foreground">
+                      {selectedEvent.ageRequirement}
+                    </span>
                   </div>
                 )}
                 {selectedEvent.genderRequirement && (
                   <div className="p-4 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-rose-600 dark:text-rose-400">Yêu cầu giới tính: </span>
-                    <span className="text-foreground">{selectedEvent.genderRequirement}</span>
+                    <span className="font-semibold text-rose-600 dark:text-rose-400">
+                      Yêu cầu giới tính:{" "}
+                    </span>
+                    <span className="text-foreground">
+                      {selectedEvent.genderRequirement}
+                    </span>
                   </div>
                 )}
               </div>
@@ -606,7 +843,9 @@ export default function PublicEventsPage() {
         )}
 
         {/* Contact Information */}
-        {(selectedEvent.contactPerson || selectedEvent.contactPhone || selectedEvent.contactEmail) && (
+        {(selectedEvent.contactPerson ||
+          selectedEvent.contactPhone ||
+          selectedEvent.contactEmail) && (
           <Card className="border-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-lg">
@@ -620,20 +859,32 @@ export default function PublicEventsPage() {
               <div className="space-y-3 text-sm">
                 {selectedEvent.contactPerson && (
                   <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">Người liên hệ:</span>
-                    <span className="text-foreground font-medium">{selectedEvent.contactPerson}</span>
+                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                      Người liên hệ:
+                    </span>
+                    <span className="text-foreground font-medium">
+                      {selectedEvent.contactPerson}
+                    </span>
                   </div>
                 )}
                 {selectedEvent.contactPhone && (
                   <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">Số điện thoại:</span>
-                    <span className="text-foreground font-medium">{selectedEvent.contactPhone}</span>
+                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                      Số điện thoại:
+                    </span>
+                    <span className="text-foreground font-medium">
+                      {selectedEvent.contactPhone}
+                    </span>
                   </div>
                 )}
                 {selectedEvent.contactEmail && (
                   <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">Email:</span>
-                    <span className="text-foreground font-medium">{selectedEvent.contactEmail}</span>
+                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                      Email:
+                    </span>
+                    <span className="text-foreground font-medium">
+                      {selectedEvent.contactEmail}
+                    </span>
                   </div>
                 )}
               </div>
@@ -642,27 +893,38 @@ export default function PublicEventsPage() {
         )}
 
         {/* Action Buttons */}
-        {hasRole('volunteer') && (
+        {hasRole("volunteer") && (
           <div className="flex gap-3">
-            <Button 
-              className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300" 
-              disabled={eventStatus === 'closed' || eventStatus === 'full'}
+            <Button
+              className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              disabled={eventStatus === "closed" || eventStatus === "completed"}
               onClick={() => {
-                if (eventStatus !== 'closed' && eventStatus !== 'full' && selectedEvent) {
-                  navigate(`/volunteer/events/${selectedEvent.eventId}/register`);
+                if (
+                  eventStatus !== "closed" &&
+                  eventStatus !== "completed" &&
+                  selectedEvent
+                ) {
+                  navigate(
+                    `/volunteer/events/${selectedEvent.eventId}/register`
+                  );
                 }
               }}
             >
               <Heart className="h-4 w-4 mr-2" />
-              {eventStatus === 'closed' ? 'Đã đóng' : 
-               eventStatus === 'full' ? 'Đã đủ người' : 'Đăng ký tham gia'}
+              {eventStatus === "closed"
+                ? "Đã hủy"
+                : eventStatus === "completed"
+                ? "Đã hoàn thành"
+                : eventStatus === "ongoing"
+                ? "Tham gia ngay"
+                : "Đăng ký tham gia"}
             </Button>
           </div>
         )}
 
         {/* Feedback Section */}
-        <FeedbackSection 
-          eventId={selectedEvent.eventId} 
+        <FeedbackSection
+          eventId={selectedEvent.eventId}
           eventName={selectedEvent.eventName}
         />
       </div>
@@ -689,13 +951,12 @@ export default function PublicEventsPage() {
         hasPreviousPage: pagination.page > 1,
       }}
       onPageChange={handlePageChange}
-      
       detailLoading={detailLoading}
       detailContent={<DetailContent />}
       listItems={mappedEvents.map((event) => (
         <EventListItem
           key={event.id}
-          event={event}
+          event={event as any} // Temporary fix for type mismatch
           isSelected={event.id === selectedEventId}
           onClick={() => handleEventSelect(event.id)}
         />
