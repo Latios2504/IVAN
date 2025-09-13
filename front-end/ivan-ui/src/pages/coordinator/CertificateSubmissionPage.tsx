@@ -72,21 +72,19 @@ const CertificateSubmissionPage: React.FC = () => {
     qrcodeUrl: "",
   });
 
-  // Load initial data
+  // inside useEffect for loading initial data
   useEffect(() => {
     const loadInitialData = async () => {
       try {
         setLoadingData(true);
 
-        // Load volunteers, events, and templates in parallel
-        const [volunteersData, eventsData, templatesData] = await Promise.all([
+        // Load volunteers and templates only
+        const [volunteersData, templatesData] = await Promise.all([
           coordinatorQueriesService.getAllVolunteersOfMyOrganizations(),
-          coordinatorQueriesService.getAllCompletedEventsOfMyOrganizations(),
           certificateTemplateService.getCertificateTemplates(),
         ]);
 
         setVolunteers(volunteersData || []);
-        setEvents(eventsData || []);
         setTemplates(templatesData.items || []);
       } catch (err) {
         console.error("Error loading initial data:", err);
@@ -98,6 +96,35 @@ const CertificateSubmissionPage: React.FC = () => {
 
     loadInitialData();
   }, []);
+
+  // fetch events whenever volunteer changes
+  useEffect(() => {
+    const fetchEventsForVolunteer = async () => {
+      // clear current event selection whenever volunteer changes
+      setFormData((prev) => ({ ...prev, eventId: "" }));
+
+      if (!formData.volunteerId) {
+        setEvents([]);
+        return;
+      }
+      try {
+        setLoadingData(true);
+        const result =
+          await coordinatorQueriesService.getCompletedEventsOfMyOrganizationsForVolunteer(
+            parseInt(formData.volunteerId),
+            { pageNumber: 1, pageSize: 1000 } // big page to fetch all
+          );
+        setEvents(result.items || []);
+      } catch (err) {
+        console.error("Error fetching events for volunteer:", err);
+        setEvents([]);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchEventsForVolunteer();
+  }, [formData.volunteerId]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -269,20 +296,31 @@ const CertificateSubmissionPage: React.FC = () => {
                 <Select
                   value={formData.eventId}
                   onValueChange={(value) => handleInputChange("eventId", value)}
+                  disabled={!formData.volunteerId} // disable until volunteer is chosen
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn sự kiện" />
+                    <SelectValue
+                      placeholder={
+                        !formData.volunteerId
+                          ? "Vui lòng chọn tình nguyện viên trước"
+                          : events.length === 0
+                          ? "Không có sự kiện hoàn thành nào"
+                          : "Chọn sự kiện"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {events.map((event) => (
-                      <SelectItem
-                        key={event.eventId}
-                        value={event.eventId.toString()}
-                      >
-                        {event.eventName} (
-                        {new Date(event.endDate).toLocaleDateString("vi-VN")})
-                      </SelectItem>
-                    ))}
+                    {formData.volunteerId && events.length > 0 ? (
+                      events.map((event) => (
+                        <SelectItem
+                          key={event.eventId}
+                          value={event.eventId.toString()}
+                        >
+                          {event.eventName} (
+                          {new Date(event.endDate).toLocaleDateString("vi-VN")})
+                        </SelectItem>
+                      ))
+                    ) : null}
                   </SelectContent>
                 </Select>
               </div>

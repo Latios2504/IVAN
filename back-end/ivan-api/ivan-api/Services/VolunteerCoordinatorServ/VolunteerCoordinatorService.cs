@@ -204,6 +204,8 @@ public class VolunteerCoordinatorService : IVolunteerCoordinatorService
             }
         }
 
+        coordinator.UpdatedAt = DateTime.Now;
+
         var updatedCoordinator = await _coordinatorRepository.UpdateCoordinatorAsync(coordinator);
         return MapToDto(updatedCoordinator);
     }

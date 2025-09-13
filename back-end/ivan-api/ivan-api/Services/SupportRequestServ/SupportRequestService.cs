@@ -123,6 +123,9 @@ namespace ivan_api.Services.SupportRequestServ
                         : null
                 };
 
+                request.CreatedAt = DateTime.UtcNow;
+                request.UpdatedAt = DateTime.UtcNow;
+
                 var createdRequest = await _repository.CreateAsync(request);
                 
                 // Get full request with includes
@@ -187,6 +190,8 @@ namespace ivan_api.Services.SupportRequestServ
                 {
                     request.Priority = dto.Priority;
                 }
+
+                request.UpdatedAt = DateTime.Now;
 
                 var success = await _repository.UpdateAsync(request);
                 
@@ -255,6 +260,8 @@ namespace ivan_api.Services.SupportRequestServ
                     IsInternal = isInternal
                 };
 
+                commentEntity.CreatedAt = DateTime.UtcNow;
+
                 var success = await _repository.AddCommentAsync(commentEntity);
                 
                 return new ApiResponseDTO<bool>
@@ -299,6 +306,8 @@ namespace ivan_api.Services.SupportRequestServ
                         ? string.Join(",", attachmentUrls) 
                         : null
                 };
+
+                commentEntity.CreatedAt = DateTime.UtcNow;
 
                 var success = await _repository.AddCommentAsync(commentEntity);
                 

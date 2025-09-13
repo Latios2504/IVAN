@@ -21,6 +21,7 @@ namespace ivan_api.Services.PartnerCollaborationServ
         public Task<int> CreateCollaboration(PartnerCollaborationCreateDto dto)
         {
             var newPc = _mapper.Map<PartnerCollaboration>(dto);
+            newPc.CreatedAt = DateTime.Now;
             return _partnerCollaborationRepository.CreateCollaboration(newPc);
         }
 

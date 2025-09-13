@@ -75,6 +75,8 @@ namespace ivan_api.Services.CertificateTemplates
                 if (certificateTemplateUpdateModel.IsActive.HasValue)
                     existingCertificateTemplate.IsActive = certificateTemplateUpdateModel.IsActive;
 
+                existingCertificateTemplate.UpdatedAt = DateTime.Now;
+
                 return await _repository.UpdateCertificateTemplate(existingCertificateTemplate);
             }
             catch (Exception ex)

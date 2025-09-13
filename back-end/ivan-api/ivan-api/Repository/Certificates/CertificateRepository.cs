@@ -34,7 +34,14 @@ namespace ivan_api.Repository.Certificates
                 .AnyAsync(c => c.UserId == createdByUserId
                             && c.OrganizationId == ev.OrganizationId
                             && c.IsActive == true);
-            if (!isCoordinatorOfOrg) throw new UnauthorizedAccessException("Coordinator does not belong to this organization");
+            
+            //check if created by org
+            var isOrg = await _context.Organizations
+                .AnyAsync(c => c.UserId == createdByUserId
+                            && c.OrganizationId == ev.OrganizationId
+                            && c.IsActive == true);
+
+            if (!isCoordinatorOfOrg && !isOrg) throw new UnauthorizedAccessException("Coordinator/Organization does not belong to this organization");
 
             // 3) Volunteer có đăng ký Event (và chưa được cấp trước đó)
             var reg = await _context.EventRegistrations
@@ -174,12 +181,12 @@ namespace ivan_api.Repository.Certificates
         public async Task<IEnumerable<Certificate>> ListCertificate(CertificateFilterModel filter)
         {
             var query = _context.Certificates
-        .AsNoTracking()
-        .Include(x => x.Event)
-        .Include(x => x.IssuedByNavigation)
-        .Include(x => x.Template)
-        .Include(x => x.Volunteer)
-        .AsQueryable();
+                .AsNoTracking()
+                .Include(x => x.Event)
+                .Include(x => x.IssuedByNavigation)
+                .Include(x => x.Template)
+                .Include(x => x.Volunteer)
+                .AsQueryable();
 
             // ✅ ĐÚNG: lọc theo tổ chức của Event
             if (filter.OrganizationId != null)

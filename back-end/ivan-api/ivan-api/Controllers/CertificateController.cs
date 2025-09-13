@@ -160,7 +160,8 @@ namespace ivan_api.Controllers
         }
 
         [HttpPost("add")]
-        [Authorize(Roles = ivan_api.Constants.AuthenticationConstants.Roles.VolunteerCoordinator)]
+        //[Authorize(Roles = ivan_api.Constants.AuthenticationConstants.Roles.VolunteerCoordinator)]
+        [Authorize(Roles = $"{ivan_api.Constants.AuthenticationConstants.Roles.Organization},{ivan_api.Constants.AuthenticationConstants.Roles.VolunteerCoordinator}")]
         public async Task<ActionResult<ApiResponseDTO<object>>> Add([FromBody] CertificateInputModel input)
         {
             if (input == null)
