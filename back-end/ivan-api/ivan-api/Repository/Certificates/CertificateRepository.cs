@@ -324,14 +324,12 @@ namespace ivan_api.Repository.Certificates
 
             var update = await GetCertificateById(id);
 
-            if(update.DownloadCount == 0 || update.DownloadCount == null)
+            if(update.DownloadCount == null || !update.DownloadCount.HasValue || update.DownloadCount.Value < 0)
             {
                 update.DownloadCount = 0;
             }
-            else
-            {
-                update.DownloadCount += 1;
-            }
+            
+            update.DownloadCount += 1;
 
             update.LastDownloadDate = DateTime.Now;
 
