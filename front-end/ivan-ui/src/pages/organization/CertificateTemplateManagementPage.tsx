@@ -29,18 +29,43 @@ import DeleteCertificateTemplateDialog from "@/components/organization/certifica
 import PreviewCertificateTemplateModal from "@/components/organization/certificate-template/PreviewCertificateTemplateModal";
 import BulkActionsModal from "@/components/organization/certificate-template/BulkActionsModal";
 import { StatsCard } from "@/components/common/StatsCard";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 // Mock current user - replace with actual auth context
-const getCurrentUser = () => ({
-  userId: 1,
-  role: "organization", // organization, admin
-  organizationId: 12, // Updated to match your database data
-  name: "Organization Admin",
-});
+//const getCurrentUser = () => ({
+//  userId: 1,
+//  role: "organization", // organization, admin
+//  organizationId: 12, // Updated to match your database data
+//  name: "Organization Admin",
+//});
 
 export default function CertificateTemplateManagementPage() {
-  const currentUser = getCurrentUser();
-  const isAdmin = currentUser.role === "admin";
+  
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // If user is not logged in, redirect to login
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Build currentUser object similar to your mock
+  const currentUser = user
+    ? {
+        userId: user.id,
+        role: user.role,
+        organizationId: user.organizationId ?? null,
+        name: user.fullName ?? "Unknown User",
+      }
+    : null;
+
+  const isAdmin = currentUser?.role === "admin";
+
+  //const currentUser = getCurrentUser();
+  //const isAdmin = currentUser.role === "admin";
 
   // State management
   const [templates, setTemplates] = useState<CertificateTemplateViewModel[]>(

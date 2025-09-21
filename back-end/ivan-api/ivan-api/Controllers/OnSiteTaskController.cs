@@ -172,9 +172,12 @@ namespace ivan_api.Controllers
                     });
                 }
 
-                var listDto = await _service.GetList(1, 100);
-                var list = listDto.Items.ToList();
-                var postAdd = await _service.GetOnSiteTaskById(list.Last().TaskId);
+                //var listDto = await _service.GetList(1, 100);
+                //var list = listDto.Items.ToList();
+                //var postAdd = await _service.GetOnSiteTaskById(list.Last().TaskId);
+
+                var lastId = await _service.GetLastId();
+                var postAdd = await _service.GetOnSiteTaskById(lastId);
 
                 return Ok(new ApiResponseDTO<object>
                 {
@@ -782,13 +785,13 @@ namespace ivan_api.Controllers
         [HttpGet("coordinator/mine-assigned")]
         [Authorize(Roles = AuthenticationConstants.Roles.VolunteerCoordinator)]
         public async Task<ActionResult<ApiResponseDTO<object>>> GetCoordinatorAssignedTasks(
-    [FromQuery] int pageNumber = 1,
-    [FromQuery] int pageSize = 10,
-    [FromQuery] int? eventId = null,
-    [FromQuery] int? statusId = null,
-    [FromQuery] int? volunteerId = null,
-    [FromQuery] DateTime? from = null,
-    [FromQuery] DateTime? to = null)
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] int? eventId = null,
+            [FromQuery] int? statusId = null,
+            [FromQuery] int? volunteerId = null,
+            [FromQuery] DateTime? from = null,
+            [FromQuery] DateTime? to = null)
         {
             try
             {

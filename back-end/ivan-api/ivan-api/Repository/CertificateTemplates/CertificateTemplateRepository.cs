@@ -27,7 +27,8 @@ namespace ivan_api.Repository.CertificateTemplates
             
             if (success)
             {
-                return certificateTemplate.TemplateId; // Return the generated ID
+                //return certificateTemplate.TemplateId; // Return the generated ID
+                return await GetLastId();//this get last created template id, should be correct if template was added to db
             }
             
             return null;

@@ -137,8 +137,8 @@ namespace ivan_api.Services.TaskAssignments
         }
 
         public Task<PagedResultDto<CoordinatorAssignedTaskListItemDto>> GetAssignmentsAssignedByCoordinatorAsync(
-    int coordinatorUserId, int pageNumber, int pageSize,
-    int? eventId, int? statusId, int? volunteerId, DateTime? from, DateTime? to)
+            int coordinatorUserId, int pageNumber, int pageSize,
+            int? eventId, int? statusId, int? volunteerId, DateTime? from, DateTime? to)
         {
             return _repository.GetAssignmentsByAssignedByPaged(
                 coordinatorUserId, pageNumber, pageSize, eventId, statusId, volunteerId, from, to);

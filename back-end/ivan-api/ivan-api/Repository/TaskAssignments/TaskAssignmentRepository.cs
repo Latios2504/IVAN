@@ -118,13 +118,13 @@ namespace ivan_api.Repository.TaskAssignments
         }
 
         public async Task<PagedResultDto<TaskAssignment>> GetVolunteerAssignmentsPaged(
-    int volunteerId,
-    int pageNumber,
-    int pageSize,
-    int? eventId,
-    int? statusId,
-    DateTime? from,
-    DateTime? to)
+            int volunteerId,
+            int pageNumber,
+            int pageSize,
+            int? eventId,
+            int? statusId,
+            DateTime? from,
+            DateTime? to)
         {
             var query = _context.TaskAssignments
                 .AsNoTracking()
@@ -167,8 +167,8 @@ namespace ivan_api.Repository.TaskAssignments
         }
 
         public async Task<PagedResultDto<CoordinatorAssignedTaskListItemDto>> GetAssignmentsByAssignedByPaged(
-    int assignedByUserId, int pageNumber, int pageSize,
-    int? eventId, int? statusId, int? volunteerId, DateTime? from, DateTime? to)
+            int assignedByUserId, int pageNumber, int pageSize,
+            int? eventId, int? statusId, int? volunteerId, DateTime? from, DateTime? to)
         {
             // KHÔNG Include user navigation để tránh kéo passwordHash/salt
             var q = _context.TaskAssignments
