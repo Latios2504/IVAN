@@ -286,7 +286,7 @@ namespace ivan_api.Services.Analytics
                 var tasksCompleted = await _context.CoordinatorTasks
                     .CountAsync(t => t.CoordinatorId == coordinatorId && t.Status == "Completed");
                 
-                var taskCompletionRate = tasksAssigned > 0 ? (decimal)tasksCompleted / tasksAssigned * 100 : 0;
+                var taskCompletionRate = tasksAssigned > 0 ? (decimal)tasksCompleted / tasksAssigned : 0;
 
                 // Get tasks by status
                 var tasksByStatus = await _context.CoordinatorTasks

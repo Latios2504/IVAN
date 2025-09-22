@@ -64,6 +64,11 @@ interface VolunteerOption {
   lastName: string;
 }
 
+interface EventOption {
+  eventId: number;
+  eventName: string;
+}
+
 interface ScheduleFormData {
   volunteerId: number | null;
   eventId: number | null;
@@ -101,7 +106,7 @@ export default function VolunteerScheduleManagementPage() {
   const [schedules, setSchedules] = useState<VolunteerScheduleDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
-  const [events, setEvents] = useState<EventDto[]>([]);
+  const [events, setEvents] = useState<EventOption[]>([]);
   const [volunteers, setVolunteers] = useState<VolunteerOption[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
@@ -164,23 +169,13 @@ export default function VolunteerScheduleManagementPage() {
       });
       
       // Extract unique events from schedules
-      const uniqueEventsMap = new Map<number, EventDto>();
+      const uniqueEventsMap = new Map<number, EventOption>();
       
       allSchedulesResult.items.forEach(schedule => {
         if (schedule.eventId && schedule.eventName && !uniqueEventsMap.has(schedule.eventId)) {
           uniqueEventsMap.set(schedule.eventId, {
             eventId: schedule.eventId,
             eventName: schedule.eventName,
-            eventLocation: schedule.eventLocation || '',
-            startDate: schedule.startDateTime,
-            endDate: schedule.endDateTime,
-            // Add other required EventDto fields with default values
-            description: '',
-            maxVolunteers: 0,
-            currentVolunteers: 0,
-            status: 'Active',
-            createdAt: schedule.createdAt || new Date().toISOString(),
-            updatedAt: schedule.updatedAt || new Date().toISOString()
           });
         }
       });
@@ -248,7 +243,7 @@ export default function VolunteerScheduleManagementPage() {
       });
       
       // Extract unique events from schedules
-      const uniqueEventsMap = new Map<number, EventDto>();
+      const uniqueEventsMap = new Map<number, EventOption>();
       const uniqueVolunteersMap = new Map<number, VolunteerOption>();
       
       allSchedulesResult.items.forEach(schedule => {
@@ -257,16 +252,6 @@ export default function VolunteerScheduleManagementPage() {
           uniqueEventsMap.set(schedule.eventId, {
             eventId: schedule.eventId,
             eventName: schedule.eventName,
-            eventLocation: schedule.eventLocation || '',
-            startDate: schedule.startDateTime,
-            endDate: schedule.endDateTime,
-            // Add other required EventDto fields with default values
-            description: '',
-            maxVolunteers: 0,
-            currentVolunteers: 0,
-            status: 'Active',
-            createdAt: schedule.createdAt || new Date().toISOString(),
-            updatedAt: schedule.updatedAt || new Date().toISOString()
           });
         }
         

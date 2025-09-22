@@ -1,4 +1,4 @@
-using ivan_api.Models;
+﻿using ivan_api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ivan_api.Repository.SupportRequestRepo
@@ -87,7 +87,7 @@ namespace ivan_api.Repository.SupportRequestRepo
         public async Task<List<SupportCategory>> GetCategoriesAsync()
         {
             return await _context.SupportCategories
-                .Where(sc => sc.IsActive == true)
+                .Where(sc => sc.IsActive == true && !sc.CategoryName.Equals("Tạo tài khoản cho điều phối viên"))
                 .OrderBy(sc => sc.CategoryName)
                 .ToListAsync();
         }

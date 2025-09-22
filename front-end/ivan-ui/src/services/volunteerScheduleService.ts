@@ -25,6 +25,11 @@ class VolunteerScheduleService {
       filterWithDefaults
     );
 
+    console.log("=== DEBUG getCoordinatorVolunteerSchedules ===");
+    console.log("Raw API response:", response);
+    console.log("Response data:", response.data);
+    console.log("============================================");
+
     if (!response.data) {
       return {
         items: [],
