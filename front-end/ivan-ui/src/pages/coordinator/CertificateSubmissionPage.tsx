@@ -282,8 +282,7 @@ const CertificateSubmissionPage: React.FC = () => {
                         key={volunteer.volunteerId}
                         value={volunteer.volunteerId.toString()}
                       >
-                        {volunteer.fullName} - {volunteer.email} (
-                        {volunteer.totalEvents} sự kiện)
+                        {volunteer.fullName} - {volunteer.email}
                       </SelectItem>
                     ))}
                   </SelectContent>

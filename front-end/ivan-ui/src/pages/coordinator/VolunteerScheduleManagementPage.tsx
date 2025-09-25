@@ -48,6 +48,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 import { useModal, useModalWithData } from "@/hooks/useModal";
+import { coordinatorQueriesService } from "@/services/coordinatorQueriesService";
 import { volunteerScheduleService } from "@/services/volunteerScheduleService";
 import type {
   VolunteerScheduleDto,
@@ -55,6 +56,10 @@ import type {
   VolunteerScheduleRequestDto,
   UpdateVolunteerScheduleStatusDto,
 } from "@/types/volunteerSchedule";
+import type {
+  VolunteerBriefDto,
+  EventBriefDto,
+} from "@/types/coordinatorQueries";
 import { eventsService } from "@/services/eventsService";
 import type { EventDto } from "@/types/events";
 
@@ -108,6 +113,8 @@ export default function VolunteerScheduleManagementPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [events, setEvents] = useState<EventOption[]>([]);
   const [volunteers, setVolunteers] = useState<VolunteerOption[]>([]);
+  const [addEvents, setAddEvents] = useState<EventBriefDto[]>([]);
+  const [addVolunteers, setAddVolunteers] = useState<VolunteerBriefDto[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
   // Filter states
@@ -129,6 +136,7 @@ export default function VolunteerScheduleManagementPage() {
   // Load data on component mount and filter changes
   useEffect(() => {
     loadSchedules();
+    loadAddEventsAndVolunteer();
   }, [filters]);
 
   useEffect(() => {
@@ -138,6 +146,25 @@ export default function VolunteerScheduleManagementPage() {
   // Reload options data when schedules change (after create/update/delete)
   const reloadOptionsData = () => {
     loadOptionsData();
+  };
+
+  const loadAddEventsAndVolunteer = async () => {
+    try {
+      setLoading(true);
+      
+      const [volunteersData, eventsData] = await Promise.all([
+                coordinatorQueriesService.getAllVolunteersOfMyOrganizations(),
+                coordinatorQueriesService.getAllEventsOfMyOrganizations(),
+              ]);
+      
+              setAddVolunteers(volunteersData || []);
+              setAddEvents(eventsData || []);
+    } catch (error) {
+      console.error("Failed to load events and volunteers:", error);
+      toast.error("Failed to load events and volunteers");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadSchedules = async () => {
@@ -335,6 +362,7 @@ export default function VolunteerScheduleManagementPage() {
       createModal.close();
       resetForm();
       loadSchedules();
+      loadAddEventsAndVolunteer();
       reloadOptionsData(); // Reload dropdown options
     } catch (error) {
       console.error("Failed to create schedule:", error);
@@ -389,6 +417,7 @@ export default function VolunteerScheduleManagementPage() {
       editModal.close();
       resetForm();
       loadSchedules();
+      loadAddEventsAndVolunteer();
       reloadOptionsData(); // Reload dropdown options
     } catch (error) {
       console.error("Failed to update schedule:", error);
@@ -407,6 +436,7 @@ export default function VolunteerScheduleManagementPage() {
       toast.success("Volunteer schedule deleted successfully!");
       deleteModal.close();
       loadSchedules();
+      loadAddEventsAndVolunteer();
       reloadOptionsData(); // Reload dropdown options
     } catch (error) {
       console.error("Failed to delete schedule:", error);
@@ -877,17 +907,17 @@ export default function VolunteerScheduleManagementPage() {
                     <SelectItem value="loading" disabled>
                       Đang tải danh sách tình nguyện viên...
                     </SelectItem>
-                  ) : volunteers.length === 0 ? (
+                  ) : addVolunteers.length === 0 ? (
                     <SelectItem value="empty" disabled>
                       Không có tình nguyện viên nào
                     </SelectItem>
                   ) : (
-                    volunteers.map((volunteer) => (
+                    addVolunteers.map((volunteer) => (
                       <SelectItem
                         key={volunteer.volunteerId}
                         value={volunteer.volunteerId.toString()}
                       >
-                        {volunteer.firstName} {volunteer.lastName}
+                        {volunteer.fullName}
                       </SelectItem>
                     ))
                   )}
@@ -915,12 +945,12 @@ export default function VolunteerScheduleManagementPage() {
                     <SelectItem value="loading" disabled>
                       Đang tải danh sách sự kiện...
                     </SelectItem>
-                  ) : events.length === 0 ? (
+                  ) : addEvents.length === 0 ? (
                     <SelectItem value="empty" disabled>
                       Không có sự kiện nào
                     </SelectItem>
                   ) : (
-                    events.map((event) => (
+                    addEvents.map((event) => (
                       <SelectItem
                         key={event.eventId}
                         value={event.eventId.toString()}
@@ -1111,17 +1141,17 @@ export default function VolunteerScheduleManagementPage() {
                     <SelectItem value="loading" disabled>
                       Đang tải danh sách tình nguyện viên...
                     </SelectItem>
-                  ) : volunteers.length === 0 ? (
+                  ) : addVolunteers.length === 0 ? (
                     <SelectItem value="empty" disabled>
                       Không có tình nguyện viên nào
                     </SelectItem>
                   ) : (
-                    volunteers.map((volunteer) => (
+                    addVolunteers.map((volunteer) => (
                       <SelectItem
                         key={volunteer.volunteerId}
                         value={volunteer.volunteerId.toString()}
                       >
-                        {volunteer.firstName} {volunteer.lastName}
+                        {volunteer.fullName}
                       </SelectItem>
                     ))
                   )}
@@ -1149,12 +1179,12 @@ export default function VolunteerScheduleManagementPage() {
                     <SelectItem value="loading" disabled>
                       Đang tải danh sách sự kiện...
                     </SelectItem>
-                  ) : events.length === 0 ? (
+                  ) : addEvents.length === 0 ? (
                     <SelectItem value="empty" disabled>
                       Không có sự kiện nào
                     </SelectItem>
                   ) : (
-                    events.map((event) => (
+                    addEvents.map((event) => (
                       <SelectItem
                         key={event.eventId}
                         value={event.eventId.toString()}

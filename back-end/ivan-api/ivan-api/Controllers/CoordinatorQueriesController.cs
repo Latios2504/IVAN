@@ -293,5 +293,151 @@ namespace ivan_api.Controllers
                     new List<string> { ex.Message }));
             }
         }
+
+        [HttpGet("events/ongoing")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetOngoingEventsOfMyOrganizations(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var userId = _auth.GetUserIdFromClaims(User);
+
+                var orgIds = await _db.VolunteerCoordinators
+                    .Where(c => c.UserId == userId && (c.IsActive == true))
+                    .Select(c => c.OrganizationId)
+                    .Distinct()
+                    .ToListAsync();
+                if (orgIds.Count == 0)
+                {
+                    return Ok(ApiResponseDTO<object>.Ok(new PagedResultDto<EventBriefDto>
+                    {
+                        Items = new List<EventBriefDto>(),
+                        TotalCount = 0,
+                        PageNumber = pageNumber,
+                        PageSize = pageSize
+                    }, "No organizations found for current coordinator"));
+                }
+
+                var completedStatusId = await _db.EventStatuses
+                    .Where(s => s.StatusName == "Ongoing")
+                    .Select(s => s.StatusId)
+                    .FirstOrDefaultAsync();
+
+                if (completedStatusId == 0)
+                {
+                    return Ok(ApiResponseDTO<object>.Ok(new PagedResultDto<EventBriefDto>
+                    {
+                        Items = new List<EventBriefDto>(),
+                        TotalCount = 0,
+                        PageNumber = pageNumber,
+                        PageSize = pageSize
+                    }, "No 'Ongoing' status found"));
+                }
+
+                var eventsQ = _db.Events
+                    .Include(e => e.Status)
+                    .Where(e => orgIds.Contains(e.OrganizationId) && e.StatusId == completedStatusId);
+
+                var total = await eventsQ.CountAsync();
+
+                var items = await eventsQ
+                    .OrderByDescending(e => e.EndDate)
+                    .ThenBy(e => e.EventId)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(e => new EventBriefDto
+                    {
+                        EventId = e.EventId,
+                        EventName = e.EventName,
+                        StartDate = e.StartDate,
+                        EndDate = e.EndDate,
+                        StatusName = e.Status.StatusName,
+                        OrganizationId = e.OrganizationId
+                    })
+                    .ToListAsync();
+
+                var result = new PagedResultDto<EventBriefDto>
+                {
+                    Items = items,
+                    TotalCount = total,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+
+                return Ok(ApiResponseDTO<object>.Ok(result, "Completed events retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponseDTO<object>.Fail(
+                    "Failed to retrieve completed events",
+                    new List<string> { ex.Message }));
+            }
+        }
+
+        [HttpGet("events/all")]
+        public async Task<ActionResult<ApiResponseDTO<object>>> GetAllEventsOfMyOrganizations(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var userId = _auth.GetUserIdFromClaims(User);
+
+                var orgIds = await _db.VolunteerCoordinators
+                    .Where(c => c.UserId == userId && (c.IsActive == true))
+                    .Select(c => c.OrganizationId)
+                    .Distinct()
+                    .ToListAsync();
+                if (orgIds.Count == 0)
+                {
+                    return Ok(ApiResponseDTO<object>.Ok(new PagedResultDto<EventBriefDto>
+                    {
+                        Items = new List<EventBriefDto>(),
+                        TotalCount = 0,
+                        PageNumber = pageNumber,
+                        PageSize = pageSize
+                    }, "No organizations found for current coordinator"));
+                }
+
+                var eventsQ = _db.Events
+                    .Include(e => e.Status)
+                    .Where(e => orgIds.Contains(e.OrganizationId));
+
+                var total = await eventsQ.CountAsync();
+
+                var items = await eventsQ
+                    .OrderByDescending(e => e.EndDate)
+                    .ThenBy(e => e.EventId)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(e => new EventBriefDto
+                    {
+                        EventId = e.EventId,
+                        EventName = e.EventName,
+                        StartDate = e.StartDate,
+                        EndDate = e.EndDate,
+                        StatusName = e.Status.StatusName,
+                        OrganizationId = e.OrganizationId
+                    })
+                    .ToListAsync();
+
+                var result = new PagedResultDto<EventBriefDto>
+                {
+                    Items = items,
+                    TotalCount = total,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+
+                return Ok(ApiResponseDTO<object>.Ok(result, "Completed events retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponseDTO<object>.Fail(
+                    "Failed to retrieve completed events",
+                    new List<string> { ex.Message }));
+            }
+        }
     }
 }
