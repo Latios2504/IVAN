@@ -20,7 +20,7 @@ interface EventListItemProps {
     volunteersRegistered?: number;
     registrationEndDate?: string;
     registrationStartDate?: string;
-    status: "open" | "full" | "closed";
+    status: "ongoing" | "published" | "completed" | "closed";
     category: string;
     image?: string;
     isUrgent?: boolean;
@@ -37,9 +37,26 @@ interface EventListItemProps {
 }
 
 const statusConfig = {
-  open: { label: "Đang mở", variant: "default" as const, color: "text-green-600" },
-  full: { label: "Đã đủ", variant: "secondary" as const, color: "text-orange-600" },
-  closed: { label: "Đã đóng", variant: "destructive" as const, color: "text-red-600" },
+  ongoing: {
+    label: "Đang diễn ra",
+    variant: "default" as const,
+    color: "text-emerald-600",
+  },
+  published: {
+    label: "Đã duyệt",
+    variant: "secondary" as const,
+    color: "text-blue-600",
+  },
+  completed: {
+    label: "Đã hoàn thành",
+    variant: "outline" as const,
+    color: "text-purple-600",
+  },
+  closed: {
+    label: "Đã đóng",
+    variant: "destructive" as const,
+    color: "text-red-600",
+  },
 };
 
 export function EventListItem({
@@ -111,10 +128,15 @@ export function EventListItem({
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3 flex-shrink-0" />
               <span>
-                {new Date(event.startDate).toLocaleDateString('vi-VN')}
-                {event.endDate && new Date(event.startDate).toDateString() !== new Date(event.endDate).toDateString() && (
-                  <span> - {new Date(event.endDate).toLocaleDateString('vi-VN')}</span>
-                )}
+                {new Date(event.startDate).toLocaleDateString("vi-VN")}
+                {event.endDate &&
+                  new Date(event.startDate).toDateString() !==
+                    new Date(event.endDate).toDateString() && (
+                    <span>
+                      {" "}
+                      - {new Date(event.endDate).toLocaleDateString("vi-VN")}
+                    </span>
+                  )}
               </span>
             </div>
             {event.time && (
@@ -126,7 +148,8 @@ export function EventListItem({
           </div>
           {event.registrationEndDate && (
             <div className="text-xs text-orange-600">
-              Hạn đăng ký: {new Date(event.registrationEndDate).toLocaleDateString('vi-VN')}
+              Hạn đăng ký:{" "}
+              {new Date(event.registrationEndDate).toLocaleDateString("vi-VN")}
             </div>
           )}
         </div>
@@ -148,26 +171,37 @@ export function EventListItem({
           <div className="flex items-center gap-1">
             <Users className="h-3 w-3 text-muted-foreground" />
             <span className="text-xs text-slate-600 dark:text-slate-400">
-              {event.volunteersRegistered !== undefined ? (
-                `${event.volunteersRegistered}/${event.maxVolunteers || event.minVolunteers} tình nguyện viên`
-              ) : (
-                `Cần ${event.minVolunteers}${event.maxVolunteers && event.maxVolunteers !== event.minVolunteers ? `-${event.maxVolunteers}` : ''} tình nguyện viên`
-              )}
+              {event.volunteersRegistered !== undefined
+                ? `${event.volunteersRegistered}/${
+                    event.maxVolunteers || event.minVolunteers
+                  } tình nguyện viên`
+                : `Cần ${event.minVolunteers}${
+                    event.maxVolunteers &&
+                    event.maxVolunteers !== event.minVolunteers
+                      ? `-${event.maxVolunteers}`
+                      : ""
+                  } tình nguyện viên`}
             </span>
           </div>
-          
+
           {/* Progress bar - only show if we have registration data */}
           {event.volunteersRegistered !== undefined && event.maxVolunteers && (
             <div className="flex-1 max-w-16 ml-2">
               <div className="h-1 bg-muted rounded-full overflow-hidden">
-                <div 
+                <div
                   className={cn(
                     "h-full transition-all duration-300",
-                    event.status === "open" ? "bg-green-500" : 
-                    event.status === "full" ? "bg-orange-500" : "bg-red-500"
+                    event.status === "open"
+                      ? "bg-green-500"
+                      : event.status === "full"
+                      ? "bg-orange-500"
+                      : "bg-red-500"
                   )}
-                  style={{ 
-                    width: `${Math.min((event.volunteersRegistered / event.maxVolunteers) * 100, 100)}%` 
+                  style={{
+                    width: `${Math.min(
+                      (event.volunteersRegistered / event.maxVolunteers) * 100,
+                      100
+                    )}%`,
                   }}
                 />
               </div>

@@ -136,11 +136,13 @@ export default function SupportRequestManagementPage() {
           ? "duyệt"
           : status === "Rejected"
           ? "từ chối"
+          : status === "Resolved"
+          ? "đánh dấu đã giải quyết"
           : status;
       toast.success(`Đã ${statusText} yêu cầu từ thiện`);
 
-      // Close dialog after approve/reject
-      if (status === "Approved" || status === "Rejected") {
+      // Close dialog only after resolved
+      if (status === "Resolved") {
         setShowDetailDialog(false);
         setSelectedRequest(null);
         setComment("");
@@ -212,7 +214,9 @@ export default function SupportRequestManagementPage() {
         }
 
         try {
-          const url = await supportRequestService.uploadAttachment(file);
+          // TODO: Implement file upload functionality
+          // For now, we'll use a placeholder URL
+          const url = `uploads/${file.name}`;
           return { name: file.name, url };
         } catch (error) {
           toast.error(`Lỗi tải lên tệp ${file.name}`);
@@ -297,9 +301,7 @@ export default function SupportRequestManagementPage() {
     {
       key: "subject",
       header: "Tiêu đề",
-      render: (value, item) => (
-        <div className="max-w-xs truncate">{value}</div>
-      ),
+      render: (value, item) => <div className="max-w-xs truncate">{value}</div>,
     },
     {
       key: "userName",
@@ -329,9 +331,7 @@ export default function SupportRequestManagementPage() {
       key: "createdAt",
       header: "Ngày tạo",
       render: (value, item) =>
-        value
-          ? new Date(value).toLocaleDateString("vi-VN")
-          : "-",
+        value ? new Date(value).toLocaleDateString("vi-VN") : "-",
     },
   ];
 
@@ -630,16 +630,9 @@ export default function SupportRequestManagementPage() {
 
           <DialogFooter>
             <div className="flex gap-2">
+              {/* Step 1: Open status can go to Approved or Rejected */}
               {selectedRequest?.status === "Open" && (
                 <>
-                  <Button
-                    onClick={() => handleStatusUpdate("Resolved")}
-                    disabled={isUpdating}
-                    variant="default"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Đánh dấu đã giải quyết
-                  </Button>
                   <Button
                     onClick={() => handleStatusUpdate("Approved")}
                     disabled={isUpdating}
@@ -658,6 +651,20 @@ export default function SupportRequestManagementPage() {
                   </Button>
                 </>
               )}
+
+              {/* Step 2: Approved or Rejected can go to Resolved */}
+              {(selectedRequest?.status === "Approved" ||
+                selectedRequest?.status === "Rejected") && (
+                <Button
+                  onClick={() => handleStatusUpdate("Resolved")}
+                  disabled={isUpdating}
+                  variant="default"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Đánh dấu đã giải quyết
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 onClick={() => setShowDetailDialog(false)}

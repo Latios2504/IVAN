@@ -160,6 +160,34 @@ export default function OrganizationDashboard() {
                 </CardContent>
               </Card>
 
+              {/* Support Request Management */}
+              <Card className="bg-gradient-to-br from-purple-50/80 via-pink-50/80 to-rose-50/80 dark:from-purple-950/30 dark:via-pink-950/30 dark:to-rose-950/30 border border-purple-200/50 dark:border-purple-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="border-b border-purple-200/50 dark:border-purple-800/50">
+                  <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    Yêu cầu từ thiện
+                  </CardTitle>
+                  <CardDescription className="text-purple-700/80 dark:text-purple-300/80">
+                    Xem các yêu cầu từ thiện đã được duyệt
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-4">
+                  <Button
+                    asChild
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <Link
+                      to="/organization/approved-support-requests"
+                      className="flex items-center gap-2"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Xem yêu cầu từ thiện đã duyệt
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Certificate Management */}
               <Card className="bg-gradient-to-br from-orange-50/80 via-amber-50/80 to-yellow-50/80 dark:from-orange-950/30 dark:via-amber-950/30 dark:to-yellow-950/30 border border-orange-200/50 dark:border-orange-800/50 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-300">
                 <CardHeader className="border-b border-orange-200/50 dark:border-orange-800/50">

@@ -145,7 +145,25 @@ export default function VolunteerEventRegistrationPage() {
     const startDate = new Date(event.registrationStartDate);
     const endDate = new Date(event.registrationEndDate);
 
-    return now >= startDate && now <= endDate;
+    // Debug: Log the dates for troubleshooting
+    console.log('Current time:', now.toISOString());
+    console.log('Registration start:', startDate.toISOString());
+    console.log('Registration end:', endDate.toISOString());
+    console.log('Is registration open:', now >= startDate && now <= endDate);
+
+    const isOpen = now >= startDate && now <= endDate;
+    
+    // Check if registration hasn't started yet
+    if (now < startDate) {
+      console.log('Registration has not started yet');
+    }
+    
+    // Check if registration has ended
+    if (now > endDate) {
+      console.log('Registration has ended');
+    }
+
+    return isOpen;
   };
 
   if (loading) {
@@ -262,7 +280,23 @@ export default function VolunteerEventRegistrationPage() {
             <Alert className="mb-6">
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Thời gian đăng ký cho sự kiện này đã kết thúc.
+                {(() => {
+                  if (!event?.registrationStartDate || !event?.registrationEndDate) {
+                    return "Thông tin thời gian đăng ký không có sẵn.";
+                  }
+                  
+                  const now = new Date();
+                  const startDate = new Date(event.registrationStartDate);
+                  const endDate = new Date(event.registrationEndDate);
+                  
+                  if (now < startDate) {
+                    return `Thời gian đăng ký chưa bắt đầu. Đăng ký sẽ mở từ ${formatDate(event.registrationStartDate)} đến ${formatDate(event.registrationEndDate)}. Thời gian hiện tại: ${formatDate(now.toISOString())}`;
+                  } else if (now > endDate) {
+                    return `Thời gian đăng ký đã kết thúc vào ${formatDate(event.registrationEndDate)}. Thời gian hiện tại: ${formatDate(now.toISOString())}`;
+                  } else {
+                    return "Đăng ký hiện đang mở.";
+                  }
+                })()}
               </AlertDescription>
             </Alert>
           )}
