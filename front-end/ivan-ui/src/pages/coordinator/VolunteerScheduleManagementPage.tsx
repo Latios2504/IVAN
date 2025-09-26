@@ -152,13 +152,9 @@ export default function VolunteerScheduleManagementPage() {
     try {
       setLoading(true);
       
-      const [volunteersData, eventsData] = await Promise.all([
-                coordinatorQueriesService.getAllVolunteersOfMyOrganizations(),
-                coordinatorQueriesService.getAllEventsOfMyOrganizations(),
-              ]);
-      
-              setAddVolunteers(volunteersData || []);
-              setAddEvents(eventsData || []);
+      const volunteersData = await coordinatorQueriesService.getAllVolunteersOfMyOrganizations();
+        setAddVolunteers(volunteersData || []);
+        setAddEvents([]);
     } catch (error) {
       console.error("Failed to load events and volunteers:", error);
       toast.error("Failed to load events and volunteers");
@@ -166,6 +162,33 @@ export default function VolunteerScheduleManagementPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchEventsForVolunteer = async () => {
+      setFormData((prev) => ({ ...prev, eventId: null })); // reset event selection
+
+      if (!formData.volunteerId) {
+        setAddEvents([]);
+        return;
+      }
+
+      try {
+        setLoadingOptions(true);
+        const result = await coordinatorQueriesService.getAllEventsOfMyOrganizationsForVolunteer(
+          formData.volunteerId,
+          { pageNumber: 1, pageSize: 1000 }
+        );
+        setAddEvents(result.items || []);
+      } catch (err) {
+        console.error("Error fetching events for volunteer:", err);
+        setAddEvents([]);
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    fetchEventsForVolunteer();
+  }, [formData.volunteerId]);
 
   const loadSchedules = async () => {
     try {
@@ -935,9 +958,18 @@ export default function VolunteerScheduleManagementPage() {
                     eventId: value === "none" ? null : value ? parseInt(value) : null,
                   })
                 }
+                disabled={!formData.volunteerId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn sự kiện (tùy chọn)" />
+                  <SelectValue
+                      placeholder={
+                        !formData.volunteerId
+                          ? "Vui lòng chọn tình nguyện viên trước"
+                          : events.length === 0
+                          ? "Không có sự kiện nào"
+                          : "Chọn sự kiện"
+                      }
+                    />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Không chọn sự kiện</SelectItem>
@@ -949,7 +981,7 @@ export default function VolunteerScheduleManagementPage() {
                     <SelectItem value="empty" disabled>
                       Không có sự kiện nào
                     </SelectItem>
-                  ) : (
+                  ) : formData.volunteerId && events.length > 0 ? (
                     addEvents.map((event) => (
                       <SelectItem
                         key={event.eventId}
@@ -958,7 +990,7 @@ export default function VolunteerScheduleManagementPage() {
                         {event.eventName}
                       </SelectItem>
                     ))
-                  )}
+                  ) : null}
                 </SelectContent>
               </Select>
             </div>

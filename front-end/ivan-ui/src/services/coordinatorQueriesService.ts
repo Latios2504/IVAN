@@ -237,6 +237,100 @@ class CoordinatorQueriesService {
     return extractedData as PagedResultDto<EventBriefDto>;
   }
 
+  // GET /api/CoordinatorQueries/events/ongoing/{volunteer}
+  // Get ongoing events of coordinator's organizations that a specific volunteer joined
+  async getOngoingEventsOfMyOrganizationsForVolunteer(
+    volunteerId: number,
+    filters: CoordinatorQueryFilters = { pageNumber: 1, pageSize: 20 }
+  ): Promise<PagedResultDto<EventBriefDto>> {
+    const response = await apiClient.get<PagedResultDto<EventBriefDto>>(
+      `${this.baseUrl}/events/ongoing/${volunteerId}`,
+      filters
+    );
+
+    if (!response.data) {
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 20,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    // Handle .NET JSON serialization format
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
+
+    // If the entire response is wrapped, extract it
+    if (
+      extractedData &&
+      typeof extractedData === "object" &&
+      "items" in extractedData
+    ) {
+      const pagedResult = extractedData as PagedResultDto<EventBriefDto>;
+      // Also check if items is wrapped in $values
+      if (
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
+      ) {
+        pagedResult.items = (pagedResult.items as any).$values;
+      }
+      return pagedResult;
+    }
+
+    return extractedData as PagedResultDto<EventBriefDto>;
+  }
+
+  // GET /api/CoordinatorQueries/events/all/{volunteer}
+  // Get all events of coordinator's organizations that a specific volunteer joined
+  async getAllEventsOfMyOrganizationsForVolunteer(
+    volunteerId: number,
+    filters: CoordinatorQueryFilters = { pageNumber: 1, pageSize: 20 }
+  ): Promise<PagedResultDto<EventBriefDto>> {
+    const response = await apiClient.get<PagedResultDto<EventBriefDto>>(
+      `${this.baseUrl}/events/all/${volunteerId}`,
+      filters
+    );
+
+    if (!response.data) {
+      return {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 20,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+    }
+
+    // Handle .NET JSON serialization format
+    const extractedData = apiClient.extractDataFromNetResponse(response.data);
+
+    // If the entire response is wrapped, extract it
+    if (
+      extractedData &&
+      typeof extractedData === "object" &&
+      "items" in extractedData
+    ) {
+      const pagedResult = extractedData as PagedResultDto<EventBriefDto>;
+      // Also check if items is wrapped in $values
+      if (
+        pagedResult.items &&
+        typeof pagedResult.items === "object" &&
+        "$values" in pagedResult.items
+      ) {
+        pagedResult.items = (pagedResult.items as any).$values;
+      }
+      return pagedResult;
+    }
+
+    return extractedData as PagedResultDto<EventBriefDto>;
+  }
+
   // Helper method to get all volunteers without pagination (for dropdowns)
   async getAllVolunteersOfMyOrganizations(): Promise<VolunteerBriefDto[]> {
     try {
